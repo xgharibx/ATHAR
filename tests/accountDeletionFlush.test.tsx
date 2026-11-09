@@ -67,28 +67,15 @@ afterEach(() => {
   container.remove();
 });
 
-describe("account deletion sync guard", () => {
-  it("keeps the account when the latest sync cannot be confirmed", async () => {
+describe("account deletion when sync is unavailable", () => {
+  it("still requests authenticated deletion without flushing unrelated app data", async () => {
     clickButton("حذف الحساب");
     clickButton("نعم، احذف نهائيًا");
     await act(async () => { await Promise.resolve(); });
 
-    expect(mocks.calls).toEqual(["flush"]);
-    expect(mocks.deleteAccount).not.toHaveBeenCalled();
-    expect(container.textContent).toContain("نعم، احذف نهائيًا");
-  });
-
-  it("deletes only after the latest sync succeeds", async () => {
-    mocks.flushCloudSync.mockImplementation(async () => {
-      mocks.calls.push("flush");
-      return true;
-    });
-
-    clickButton("حذف الحساب");
-    clickButton("نعم، احذف نهائيًا");
-    await act(async () => { await Promise.resolve(); });
-
-    expect(mocks.calls).toEqual(["flush", "delete"]);
+    expect(mocks.calls).toEqual(["delete"]);
+    expect(mocks.flushCloudSync).not.toHaveBeenCalled();
+    expect(mocks.deleteAccount).toHaveBeenCalledWith("synthetic-user");
     expect(container.textContent).not.toContain("نعم، احذف نهائيًا");
   });
 });

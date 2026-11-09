@@ -62,7 +62,9 @@ export function sanitizeScores(scores: LeaderboardScoreBundle): LeaderboardScore
 
 export function validateSubmitPayload(payload: LeaderboardSubmitPayload) {
   if (!payload || payload.v !== 1) return { ok: false as const, reason: "bad-version" };
-  if (!payload.identity?.id || !payload.identity?.fingerprint) return { ok: false as const, reason: "bad-identity" };
+  if (!payload.identity?.id || payload.identity.id === "anon_fallback" || !payload.identity?.fingerprint) {
+    return { ok: false as const, reason: "bad-identity" };
+  }
   if (!payload.identity?.alias || payload.identity.alias.length > LEADERBOARD_POLICY.MAX_ALIAS_LENGTH) {
     return { ok: false as const, reason: "bad-alias" };
   }

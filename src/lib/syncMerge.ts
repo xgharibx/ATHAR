@@ -710,9 +710,18 @@ function mergeItems(
  */
 function mergeIdentity(local: unknown, remote: unknown): unknown {
   const usable = (v: unknown) =>
-    isRecord(v) && typeof v.id === "string" && v.id && typeof v.secret === "string" && v.secret;
-  if (!usable(local)) return usable(remote) ? remote : local;
+    isRecord(v) && typeof v.id === "string" && v.id && v.id !== "anon_fallback" &&
+    typeof v.secret === "string" && v.secret && v.secret !== "fallback_secret";
+  if (!usable(local)) return usable(remote) ? remote : null;
   if (!usable(remote)) return local;
+
+  // Same ID with two secrets is a stale credential, not two leaderboard
+  // identities. The account's synced copy is the common value all devices can
+  // converge on; adopt it so the leaderboard client can repair its local key.
+  if ((local as Record<string, unknown>).id === (remote as Record<string, unknown>).id &&
+      (local as Record<string, unknown>).secret !== (remote as Record<string, unknown>).secret) {
+    return remote;
+  }
 
   const joined = (v: unknown) => {
     const raw = (v as Record<string, unknown>).joinedAt;
@@ -853,17 +862,32 @@ export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions):
     // one side dropped it, a deletion wins only when the remaining copy is
     // unchanged. A changed surviving field is a concurrent edit.
     if (!(field in local)) {
+      // Leaderboard identity is an account credential, not a user-removable
+      // preference. Missing local export means storage is unavailable, so it
+      // must never be interpreted as a request to erase a valid cloud copy.
+      if (rule === "identity") {
+        if (field in remote) {
+          const identity = mergeFieldValue(field, null, r, b, hasBase, remoteNewer);
+          if (identity !== null && identity !== undefined) out[field] = identity;
+        }
+        continue;
+      }
       if (hasBase && sameJson(r, b)) continue;
       // Reconcile structural descendants against the base instead of copying
       // unchanged children from the retained side back over the deletion.
-      out[field] = hasBase && rule !== "scalar" && rule !== "maxNum" && rule !== "identity"
+      out[field] = hasBase && rule !== "scalar" && rule !== "maxNum"
         ? mergeFieldValue(field, emptyForRule(rule), r, b, true, remoteNewer)
         : r;
       continue;
     }
     if (!(field in remote)) {
+      if (rule === "identity") {
+        const identity = mergeFieldValue(field, l, null, b, hasBase, remoteNewer);
+        if (identity !== null && identity !== undefined) out[field] = identity;
+        continue;
+      }
       if (hasBase && sameJson(l, b)) continue;
-      out[field] = hasBase && rule !== "scalar" && rule !== "maxNum" && rule !== "identity"
+      out[field] = hasBase && rule !== "scalar" && rule !== "maxNum"
         ? mergeFieldValue(field, l, emptyForRule(rule), b, true, remoteNewer)
         : l;
       continue;

@@ -20,7 +20,8 @@
  */
 import { Capacitor } from "@capacitor/core";
 import { createClient, type AuthChangeEvent, type Session, type SupabaseClient, type User } from "@supabase/supabase-js";
-import { normalizeAccountStorageOwner, type AccountStorageOwner } from "@/lib/accountStorageScope";
+import { getAccountStorageOwner, normalizeAccountStorageOwner, type AccountStorageOwner } from "@/lib/accountStorageScope";
+import { peekLeaderboardIdentity } from "@/lib/leaderboard";
 
 /** Custom scheme used for native OAuth round-trips. It must match the
  *  Android intent filter, iOS URL type, and Supabase redirect allow-list. */
@@ -303,9 +304,11 @@ export function displayNameOf(user: User | null | undefined): string {
  * user needs the service-role key, which must never ship in a client bundle —
  * so this calls an edge function that performs the delete server-side.
  */
-export async function deleteAccount(): Promise<AuthResult> {
+export async function deleteAccount(expectedUserId: string): Promise<AuthResult> {
   const supabase = getSupabase();
   if (!supabase) return { ok: false, error: "الحسابات غير مُهيّأة بعد" };
+  const confirmedUserId = expectedUserId.trim();
+  if (!confirmedUserId) return { ok: false, error: "تعذّر التحقق من الحساب" };
   let session: Session | null;
   try {
     session = await getSession();
@@ -315,15 +318,31 @@ export async function deleteAccount(): Promise<AuthResult> {
       error: error instanceof Error ? error.message : "تعذّر التحقق من جلسة الحساب",
     };
   }
-  const token = session?.access_token;
-  if (!token) return { ok: false, error: "لست مسجّل الدخول" };
+  if (!session?.access_token) return { ok: false, error: "لست مسجّل الدخول" };
+  const token = session.access_token;
+  const userId = session.user?.id?.trim();
+  if (!userId || userId !== confirmedUserId) {
+    return { ok: false, error: "تغيّر الحساب المحدد. راجعه ثم أعد المحاولة." };
+  }
+  const expectedOwner = normalizeAccountStorageOwner(userId);
+  if (getAccountStorageOwner() !== expectedOwner || getPersistedAccountStorageOwner() !== expectedOwner) {
+    return { ok: false, error: "جارٍ تبديل الحساب. انتظر لحظة ثم أعد المحاولة." };
+  }
 
   try {
     const { error } = await supabase.functions.invoke("delete-account", {
       headers: { Authorization: `Bearer ${token}` },
+      body: { leaderboardIdentity: peekLeaderboardIdentity() },
     });
     if (error) return { ok: false, error: error.message };
-    await supabase.auth.signOut();
+    // The user may switch accounts while the delete request is in flight. Do
+    // not sign out that newly active account when the old request completes.
+    const activeSession = await getSession().catch(() => null);
+    if (activeSession?.user?.id === confirmedUserId &&
+        getAccountStorageOwner() === expectedOwner &&
+        getPersistedAccountStorageOwner() === expectedOwner) {
+      await supabase.auth.signOut();
+    }
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "تعذّر حذف الحساب" };

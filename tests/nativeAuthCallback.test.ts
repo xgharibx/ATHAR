@@ -82,7 +82,7 @@ describe("native authentication callback delivery", () => {
     sessionRead.hangs = true;
     const { deleteAccount } = await import("@/lib/authClient");
 
-    const pending = deleteAccount();
+    const pending = deleteAccount("account-a");
     await vi.advanceTimersByTimeAsync(5_000);
     const result = await Promise.race([pending, Promise.resolve("still-running" as const)]);
 

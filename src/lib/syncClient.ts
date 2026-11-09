@@ -355,9 +355,10 @@ function withoutExportMetadata(blob: SyncBlob): SyncBlob {
 }
 
 function localSnapshot(): SyncBlob {
+  const leaderboardIdentity = exportLeaderboardIdentity();
   return {
     ...withoutExportMetadata(useNoorStore.getState().exportState() as unknown as SyncBlob),
-    leaderboardIdentity: exportLeaderboardIdentity(),
+    ...(leaderboardIdentity ? { leaderboardIdentity } : {}),
     dataPacks: exportDataPacks(),
   };
 }

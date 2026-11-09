@@ -1,7 +1,7 @@
 {
   "name": "athar-adhkar",
   "private": true,
-  "version": "1.2.83",
+  "version": "1.2.84",
   "released": {
     "android": "1.2.82",
     "ios": null,
@@ -16,7 +16,7 @@
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint src supabase/functions vite.config.ts capacitor.config.ts --ext .ts,.tsx",
     "test": "vitest run",
-    "verify": "npm run support:check && npm run android:check-target && npm run lint && npm run test && npm run build",
+    "verify": "npm run support:check && npm run android:check-target && npm run capacitor:check-security && npm run lint && npm run test && npm run build",
     "release:web": "npm run verify",
     "release:web:auto-icon": "node tools/scripts/release-web.mjs",
     "leaderboard:health": "node tools/backend/check-leaderboard-endpoint.mjs",
@@ -36,7 +36,8 @@
     "release:stores": "node tools/scripts/build-store.mjs --store=all",
     "postinstall": "node tools/scripts/patch-capacitor-plugins.mjs",
     "support:check": "node tools/scripts/check-support-page.mjs",
-    "android:check-target": "node tools/scripts/check-android-target-sdk.mjs"
+    "android:check-target": "node tools/scripts/check-android-target-sdk.mjs",
+    "capacitor:check-security": "node tools/scripts/check-capacitor-security.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
@@ -83,10 +84,10 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@capacitor/android": "^6.1.2",
-    "@capacitor/cli": "^6.1.2",
-    "@capacitor/core": "^6.1.2",
-    "@capacitor/ios": "^6.2.1",
+    "@capacitor/android": "^6.2.3",
+    "@capacitor/cli": "^6.2.3",
+    "@capacitor/core": "^6.2.3",
+    "@capacitor/ios": "^6.2.3",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^25.0.3",
     "@types/react": "^18.2.66",

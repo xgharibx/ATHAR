@@ -527,6 +527,13 @@ describe("leaderboard identity", () => {
     expect(mergeDoc({ leaderboardIdentity: A }, { leaderboardIdentity: B }, noBase).leaderboardIdentity).toEqual(A);
   });
 
+  it("uses the synced secret to repair a stale local credential for the same identity", () => {
+    const local = { id: "anon_shared", secret: "stale-local-secret", joinedAt: "2026-01-05" };
+    const remote = { id: "anon_shared", secret: "verified-cloud-secret", joinedAt: "2026-01-05" };
+    expect(mergeDoc({ leaderboardIdentity: local }, { leaderboardIdentity: remote }, noBase)
+      .leaderboardIdentity).toEqual(remote);
+  });
+
   it("is symmetric, so both devices converge instead of fighting", () => {
     const fromA = mergeDoc({ leaderboardIdentity: A }, { leaderboardIdentity: B }, noBase);
     const fromB = mergeDoc({ leaderboardIdentity: B }, { leaderboardIdentity: A }, noBase);
@@ -545,6 +552,23 @@ describe("leaderboard identity", () => {
       mergeDoc({ leaderboardIdentity: A }, { leaderboardIdentity: { id: "no_secret" } }, noBase)
         .leaderboardIdentity,
     ).toEqual(A);
+  });
+
+  it("preserves a synced identity when local storage cannot export it", () => {
+    const base = { leaderboardIdentity: A };
+    expect(mergeDoc({}, { leaderboardIdentity: A }, { remoteNewer: true, base }))
+      .toEqual({ leaderboardIdentity: A });
+  });
+
+  it("does not treat a missing remote identity as a deletion", () => {
+    expect(mergeDoc({ leaderboardIdentity: A }, {}, { remoteNewer: true, base: { leaderboardIdentity: A } }))
+      .toEqual({ leaderboardIdentity: A });
+  });
+
+  it("does not adopt the legacy shared emergency identity from the cloud", () => {
+    expect(mergeDoc({}, {
+      leaderboardIdentity: { id: "anon_fallback", secret: "fallback_secret" },
+    }, noBase)).toEqual({});
   });
 });
 

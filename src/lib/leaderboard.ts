@@ -243,8 +243,17 @@ type LocalHistoryRow = {
 };
 
 function randomId(prefix: string) {
-  // Use CSPRNG for unguessable IDs
-  const uid = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+  const webCrypto = globalThis.crypto;
+  let uid: string;
+  if (typeof webCrypto?.randomUUID === "function") {
+    uid = webCrypto.randomUUID().replace(/-/g, "");
+  } else {
+    if (typeof webCrypto?.getRandomValues !== "function") {
+      throw new Error("secure-randomness-unavailable");
+    }
+    const bytes = webCrypto.getRandomValues(new Uint8Array(16));
+    uid = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  }
   return `${prefix}_${uid}`;
 }
 
@@ -432,6 +441,16 @@ export function getLocalRowsFromHistory(opts: {
 export function getLeaderboardIdentity(): LeaderboardIdentity {
   ensureMigration();
   try {
+    const storedId = accountScopedLocalStorage.getItem(ID_KEY);
+    const storedSecret = accountScopedLocalStorage.getItem(SECRET_KEY);
+    if (storedId === "anon_fallback" || storedSecret === "fallback_secret") {
+      // Older app builds could persist the same emergency identity for every
+      // user. Rotate only leaderboard credentials and their queued ranking
+      // records; prayer, Quran, and other local data stay untouched.
+      [ID_KEY, SECRET_KEY, ALIAS_KEY, USER_INDEX_KEY, JOINED_KEY, QUEUE_KEY, HISTORY_KEY]
+        .forEach((key) => accountScopedLocalStorage.removeItem(key));
+    }
+
     let id = accountScopedLocalStorage.getItem(ID_KEY);
     const isNew = !id;
     if (!id) {
@@ -466,13 +485,31 @@ export function getLeaderboardIdentity(): LeaderboardIdentity {
 
     return { id, alias, secret, joinedAt };
   } catch {
-    return {
-      id: "anon_fallback",
-      alias: "مستخدم 1",
-      secret: "fallback_secret",
-      joinedAt: new Date().toISOString().slice(0, 10)
-    };
+    return getLocalOnlyIdentity();
   }
+}
+
+let localOnlyIdentity: LeaderboardIdentity | null = null;
+
+function getLocalOnlyIdentity(): LeaderboardIdentity {
+  if (localOnlyIdentity) return localOnlyIdentity;
+
+  let id: string;
+  try {
+    id = randomId("local");
+  } catch {
+    id = `local_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+  }
+
+  localOnlyIdentity = {
+    id,
+    alias: canonicalAliasFromId(id),
+    // An identity without a CSPRNG-backed secret remains local and is rejected
+    // by buildSubmitPayload, so it can never become a shared server identity.
+    secret: "",
+    joinedAt: new Date().toISOString().slice(0, 10),
+  };
+  return localOnlyIdentity;
 }
 
 /**
@@ -488,8 +525,12 @@ export function getLeaderboardIdentity(): LeaderboardIdentity {
  * `secret` is a credential, so this only ever travels inside the user's own
  * row-level-security-protected sync document, never anywhere public.
  */
-export function exportLeaderboardIdentity(): LeaderboardIdentity & { userIndex?: number } {
+export function exportLeaderboardIdentity(): (LeaderboardIdentity & { userIndex?: number }) | null {
   const identity = getLeaderboardIdentity();
+  // Storage/CSPRNG failures produce a display-only local identity. Never put
+  // that identity into account sync: it is not a durable, verifiable account
+  // identity and would make concurrent devices replace each other's settings.
+  if (!identity.secret || identity.id === "anon_fallback" || identity.secret === "fallback_secret") return null;
   let userIndex: number | undefined;
   try {
     const raw = Number(accountScopedLocalStorage.getItem(USER_INDEX_KEY) ?? "0");
@@ -506,7 +547,7 @@ export function peekLeaderboardIdentity(): (LeaderboardIdentity & { userIndex?: 
     ensureMigration();
     const id = accountScopedLocalStorage.getItem(ID_KEY);
     const secret = accountScopedLocalStorage.getItem(SECRET_KEY);
-    if (!id || !secret) return null;
+    if (!id || !secret || id === "anon_fallback" || secret === "fallback_secret") return null;
     const alias = accountScopedLocalStorage.getItem(ALIAS_KEY) ?? "";
     const joinedAt = accountScopedLocalStorage.getItem(JOINED_KEY) ?? "";
     const userIndexValue = Number(accountScopedLocalStorage.getItem(USER_INDEX_KEY) ?? "0");
@@ -534,10 +575,13 @@ export function adoptLeaderboardIdentity(next: unknown): boolean {
   const incoming = next as Partial<LeaderboardIdentity> & { userIndex?: unknown };
   if (typeof incoming.id !== "string" || !incoming.id) return false;
   if (typeof incoming.secret !== "string" || !incoming.secret) return false;
+  if (incoming.id === "anon_fallback" || incoming.secret === "fallback_secret") return false;
 
   try {
     ensureMigration();
-    if (accountScopedLocalStorage.getItem(ID_KEY) === incoming.id) return false;
+    const currentId = accountScopedLocalStorage.getItem(ID_KEY);
+    const currentSecret = accountScopedLocalStorage.getItem(SECRET_KEY);
+    if (currentId === incoming.id && currentSecret === incoming.secret) return false;
 
     accountScopedLocalStorage.setItem(ID_KEY, incoming.id);
     accountScopedLocalStorage.setItem(SECRET_KEY, incoming.secret);
@@ -650,6 +694,9 @@ export async function buildSubmitPayload(
   metrics?: LeaderboardMetricsPayload,
 ) {
   const identity = getLeaderboardIdentity();
+  if (!identity.secret || identity.id === "anon_fallback" || identity.secret === "fallback_secret") {
+    throw new Error("secure-randomness-unavailable");
+  }
   const alias = normalizeAlias(identity.alias, identity.id);
   const cleanScores = sanitizeScores({
     global: normalizeScore(scores.global),
