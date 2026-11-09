@@ -1,6 +1,6 @@
 import * as React from "react";
 import Fuse from "fuse.js";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Search, ArrowUpRight, X, BookOpen, LibraryBig, ScrollText, Loader2, Copy } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -10,11 +10,14 @@ import { Input } from "@/components/ui/Input";
 import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { AdhkarLoadStatus } from "@/components/home/AdhkarLoadStatus";
 import type { FlatDhikr } from "@/data/types";
 import type { QuranSurah } from "@/data/quranTypes";
 import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
 import type { FlatLibraryEntry } from "@/data/libraryTypes";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
+import { useNoorStore } from "@/store/noorStore";
 import { cn, contrastText } from "@/lib/utils";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview } from "@/data/hadithTypes";
@@ -26,6 +29,8 @@ import { arNum } from "@/lib/formatNumber";
 // --- Recent searches helpers ---
 const RECENT_KEY = "noor_recent_searches";
 const MAX_RECENT = 6;
+type SearchableDhikr = FlatDhikr & { searchKey: string };
+
 function loadRecent(): string[] {
   try {
     const v = accountScopedLocalStorage.getItem(RECENT_KEY);
@@ -44,7 +49,9 @@ function pushRecent(term: string, prev: string[]): string[] {
 }
 
 export function SearchPage() {
-  const { data } = useAdhkarDB();
+  const adhkarQuery = useAdhkarDB();
+  const { data } = adhkarQuery;
+  const customPacks = useNoorStore((state) => state.customPacks);
   const { data: quranData } = useQuranDB();
   const { data: libraryData } = useIslamicLibraryDB();
   const navigate = useNavigate();
@@ -56,18 +63,39 @@ export function SearchPage() {
   const [libraryFilter, setLibraryFilter] = React.useState<string | null>(null);
   const [hadithBookKey, setHadithBookKey] = React.useState<string>("nawawi");
 
+  const searchCorpus = React.useMemo(() => {
+    const customItems: FlatDhikr[] = customPacks.flatMap((pack) => pack.items.map((item, index) => ({
+      key: dhikrStateKey(pack.id, index, item.id),
+      sectionId: pack.id,
+      sectionTitle: pack.title,
+      index,
+      itemId: item.id,
+      text: item.text,
+      count: item.count,
+    })));
+    const itemsByPosition = new Map<string, FlatDhikr>();
+    for (const item of [...(data?.flat ?? []), ...customItems]) {
+      // A bad/legacy pack can reuse an item ID at different positions. The
+      // category route resolves by position, so keep those distinct search hits.
+      // If bundled data and the live pack contain the same position, the pack
+      // item wins and the result is not duplicated.
+      itemsByPosition.set(`${item.sectionId}:${item.index}`, item);
+    }
+    return [...itemsByPosition].map(([position, item]) => ({ ...item, searchKey: position }));
+  }, [customPacks, data]);
+
   const fuse = React.useMemo(() => {
-    if (!data) return null;
-    return new Fuse(data.flat, {
+    if (searchCorpus.length === 0) return null;
+    return new Fuse(searchCorpus, {
       includeScore: true,
       threshold: 0.35,
       ignoreDiacritics: true,
       keys: ["text", "sectionTitle", "sectionId"]
     });
-  }, [data]);
+  }, [searchCorpus]);
 
   const { results, totalHits } = React.useMemo(() => {
-    if (!fuse || !q.trim()) return { results: [] as FlatDhikr[], totalHits: 0 };
+    if (!fuse || !q.trim()) return { results: [] as SearchableDhikr[], totalHits: 0 };
     const all = fuse.search(q).map((r) => r.item);
     const filtered = sectionFilter ? all.filter((r) => r.sectionId === sectionFilter) : all;
     return { results: filtered.slice(0, 50), totalHits: filtered.length };
@@ -75,7 +103,7 @@ export function SearchPage() {
 
   // Build section chip list from current results (before section filter)
   const sectionChips = React.useMemo(() => {
-    if (!fuse || !q.trim() || !data) return [] as Array<{ id: string; title: string; count: number }>;
+    if (!fuse || !q.trim()) return [] as Array<{ id: string; title: string; count: number }>;
     const all = fuse.search(q).map((r) => r.item);
     const map = new Map<string, { id: string; title: string; count: number }>();
     for (const r of all) {
@@ -84,7 +112,7 @@ export function SearchPage() {
       else { map.set(r.sectionId, { id: r.sectionId, title: r.sectionTitle, count: 1 }); }
     }
     return [...map.values()].sort((a, b) => b.count - a.count);
-  }, [fuse, q, data]);
+  }, [fuse, q]);
 
   // Reset section filter when query changes
   React.useEffect(() => { setSectionFilter(null); }, [q]);
@@ -194,6 +222,9 @@ export function SearchPage() {
     return hits;
   }, [hadithPack, q]);
   // ─────────────────────────────────────────────────────────────────────────
+
+  const adhkarCatalogUnavailable = !data && (adhkarQuery.isLoading || Boolean(adhkarQuery.error));
+
   React.useEffect(() => {
     if (!q.trim() || q.trim().length < 2 || (results.length + quranResults.length + libraryResults.length) === 0) return;
     const timer = setTimeout(() => setRecentSearches((prev) => pushRecent(q, prev)), 800);
@@ -322,6 +353,15 @@ export function SearchPage() {
         )}
       </Card>
 
+      {searchTab === "adhkar" && (
+        <AdhkarLoadStatus
+          hasData={Boolean(data)}
+          error={adhkarQuery.error}
+          isFetching={adhkarQuery.isFetching}
+          onRetry={() => { void adhkarQuery.refetch(); }}
+        />
+      )}
+
       {/* Section filter chips (adhkar only) */}
       {searchTab === "adhkar" && sectionChips.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar" style={{ scrollbarWidth: "none" }}>
@@ -413,7 +453,12 @@ export function SearchPage() {
             <Search size={32} aria-hidden="true" className="opacity-20" />
             <div className="text-sm opacity-55">اكتب للبحث في الأذكار</div>
           </div>
-        ) : results.length === 0 ? (
+        ) : results.length === 0 && adhkarCatalogUnavailable && adhkarQuery.isLoading ? (
+          <div role="status" className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-5 text-center text-sm opacity-75">
+            جارٍ تحميل الأذكار، وستظهر النتائج عند اكتمال التحميل.
+          </div>
+        ) : results.length === 0 && adhkarCatalogUnavailable ? null
+        : results.length === 0 ? (
           <EmptyState
             variant="search"
             title={`لا توجد نتائج لـ «${q}»`}
@@ -423,46 +468,57 @@ export function SearchPage() {
           <div className="space-y-2" role="list" aria-label="نتائج الأذكار">
             {results.map((r) => {
               const identity = getSectionIdentity(r.sectionId);
+              const sectionHref = `/c/${r.sectionId}?focus=${r.index}`;
               return (
-                <div key={r.key} role="listitem">
-                <button type="button"
-                  onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}
-                  className="group w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="text-base shrink-0">{identity.icon}</span>
-                      <div className="text-sm font-semibold truncate" style={{ color: identity.accent }}>
-                        {r.sectionTitle}
+                <div key={r.searchKey} role="listitem">
+                  <div className="group glass rounded-3xl border border-[var(--stroke)] p-4 transition hover:bg-[var(--card-2)] glass-hover">
+                    <div className="flex items-start justify-between gap-3">
+                      <Link
+                        to={sectionHref}
+                        className="flex min-w-0 items-center gap-1.5 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+                      >
+                        <span className="text-base shrink-0">{identity.icon}</span>
+                        <span className="text-sm font-semibold truncate" style={{ color: identity.accent }}>
+                          {r.sectionTitle}
+                        </span>
+                      </Link>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try { await navigator.clipboard.writeText(r.text); toast.success("تم النسخ"); }
+                            catch { toast.error("تعذر النسخ"); }
+                          }}
+                          className="rounded-lg p-1.5 opacity-60 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
+                          style={{ background: "var(--card)", color: "var(--fg)" }}
+                          aria-label="نسخ"
+                        >
+                          <Copy size={13} aria-hidden="true" />
+                        </button>
+                        <Link
+                          to={sectionHref}
+                          aria-label={`فتح ذكر من ${r.sectionTitle}`}
+                          className="rounded-lg p-1.5 opacity-60 transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+                        >
+                          <ArrowUpRight size={18} aria-hidden="true" />
+                        </Link>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try { await navigator.clipboard.writeText(r.text); toast.success("تم النسخ"); }
-                          catch { toast.error("تعذر النسخ"); }
-                        }}
-                        className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
-                        style={{ background: "var(--card)", color: "var(--fg)" }}
-                        aria-label="نسخ"
-                      >
-                        <Copy size={13} aria-hidden="true" />
-                      </button>
-                      <ArrowUpRight size={18} className="opacity-60" aria-hidden="true" />
-                    </div>
+                    <Link
+                      to={sectionHref}
+                      className="mt-3 block rounded-lg text-right focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+                    >
+                      <div className="arabic-text text-sm opacity-80 leading-7">
+                        {r.text.slice(0, 220)}
+                        {r.text.length > 220 ? "…" : ""}
+                      </div>
+                    </Link>
+                    {r.benefit && (
+                      <div className="mt-2 border-t border-[var(--stroke)] pt-2 text-[11px] opacity-55 leading-5">
+                        الفضل: {r.benefit.slice(0, 120)}{r.benefit.length > 120 ? "…" : ""}
+                      </div>
+                    )}
                   </div>
-                  <div className="mt-3 arabic-text text-sm opacity-80 leading-7">
-                    {r.text.slice(0, 220)}
-                    {r.text.length > 220 ? "…" : ""}
-                  </div>
-                  {r.benefit && (
-                    <div className="mt-2 text-[11px] opacity-55 leading-5 border-t border-[var(--stroke)] pt-2">
-                      الفضل: {r.benefit.slice(0, 120)}{r.benefit.length > 120 ? "…" : ""}
-                    </div>
-                  )}
-                </button>
                 </div>
               );
             })}
