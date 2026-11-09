@@ -2,28 +2,33 @@
 
 > ## Current verification status — 2026-11-09
 >
-> The production project `ojstudhmcypoqfnwugbf` is `ACTIVE_HEALTHY`; the 32
-> checked-in migration versions match its live migration ledger. Read-only
+> The production project `ojstudhmcypoqfnwugbf` is `ACTIVE_HEALTHY`; all 34
+> local migrations match the live ledger through `20261109073146`. Read-only
 > checks on 9 November confirmed 282 `athar_sync` documents (about 616 KB),
-> revision RPC reads/commits/acknowledgements returning HTTP 200 in the recent
-> request window, and an overall database size of about 19 MB. This is evidence
-> that the backend sync path is serving successfully, not a cross-device test
-> using the owner's own account. Staging pgTAP and a signed-in account
-> round-trip remain unverified: no disposable paid Supabase branch was created,
-> and this machine has no local PostgreSQL runtime. The later write-cutoff SQL
-> remains under `supabase/release-gates/`, outside the directory consumed by
-> routine `supabase db push`; legacy direct writes remain enabled.
+> 233 sync-table reads and 103 revision commits plus 103 acknowledgements
+> returning HTTP 200 in the preceding 24-hour request window, and an overall
+> database size of 22 MB. This is evidence that the backend sync path is serving
+> successfully, not a cross-device test using the owner's own account. Staging
+> pgTAP and a signed-in account round-trip remain unverified: no disposable
+> paid Supabase branch was created, and this machine has no local PostgreSQL
+> runtime. The later write-cutoff and server payload-limit SQL remain under
+> `supabase/release-gates/`, outside the directory consumed by routine
+> `supabase db push`; legacy direct writes remain enabled and the active RPC
+> does not yet enforce the app's document-size limit.
 >
-> The leaderboard function is active at version 34. A live read-only request on
-> 9 November returned 15 rows for today's global board. Its database currently
-> has about 1,530 user profiles, 5,276 rollups, and 528 score events. Daily
-> cleanup jobs are active and succeeded today: raw score events are retained for
-> seven days, alias audits for 30 days, and daily rollups for the current year.
-> This reduces growth but is **not a hard database-size cap**; profiles and
-> current-year rollups can still grow as more people use the leaderboard. The
-> leaderboard had a 503 outage earlier on 8 November; its most recent logged
-> 503 was at 19:33 UTC, followed by successful requests. Do not promise that
-> future database quota exhaustion is impossible.
+> The leaderboard function is active at version 35. In the preceding 24-hour
+> logs, v35 returned 375 HTTP 200 and 21 HTTP 400 responses, with no 503s;
+> v34 returned 907 HTTP 200 and one HTTP 400, also with no 503s. The older v33
+> deployment accounted for 3,926 HTTP 503 responses in that window. The database
+> currently has 1,537 profiles (about 912 KB), 6,959 rollups (about 2.3 MB),
+> and 1,242 score events (about 4.0 MB). Both daily cleanup jobs are active and
+> last succeeded on 9 November: raw score events are retained for seven days,
+> alias audits for 30 days, and daily rollups for the current year. Score-event
+> and section-row limits apply per identity, not across the whole project. This
+> reduces growth but is **not a hard database-size cap**; new identities and
+> current-year rollups can still accumulate. The organization is on the Free
+> plan and the database is currently 22 MB. Do not promise that future database
+> quota exhaustion is impossible.
 >
 > **For a new environment or staging verification:** apply
 > `20261003132940_athar_sync_revision_protocol.sql` after its prerequisite

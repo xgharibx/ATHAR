@@ -41,6 +41,7 @@ import {
 } from "@/lib/reminders";
 import { NOTIFICATION_ACTION_TYPES, REMINDER_ACTION_TYPE_ID, CUSTOM_REMINDER_ACTION_TYPE_ID } from "@/lib/notificationActionTypes";
 import type { Reminders } from "@/store/noorStore";
+import { useNoorStore } from "@/store/noorStore";
 import { setAccountStorageOwner } from "@/lib/accountStorageScope";
 
 const PRAYER_ALERTS = { Fajr: true, Dhuhr: false, Asr: false, Maghrib: false, Isha: false };
@@ -85,6 +86,7 @@ beforeEach(() => {
   mocks.localNotifications.removeAllDeliveredNotifications.mockClear();
   mocks.localNotifications.checkPermissions.mockResolvedValue({ display: "granted" });
   mocks.localNotifications.schedule.mockClear();
+  useNoorStore.setState({ prayerLog: {} });
 });
 
 afterEach(() => {
@@ -149,6 +151,16 @@ describe("silent native notification sound payloads", () => {
     } | undefined;
 
     expect(lastCancellation?.notifications?.map(({ id }) => id)).not.toContain(tomorrowAlarm?.id);
+  });
+
+  it("does not restore the follow-up for a prayer already logged in the app store", async () => {
+    useNoorStore.setState({ prayerLog: { "2026-10-02": { Fajr: true } } });
+
+    await syncReminders({ ...adhkarReminders(), prayerAlertsEnabled: true }, { Fajr: "06:50" });
+
+    expect(scheduledNotifications().filter((notification) =>
+      (notification.extra as { prayerName?: string } | undefined)?.prayerName === "Fajr",
+    )).toEqual([]);
   });
 
   it("sounds the recurring reminder again but keeps its snooze silent", async () => {

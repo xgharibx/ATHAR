@@ -641,7 +641,11 @@ export function buildPrayerNotificationsForDays(
   audio: NotificationAudioConfig,
   enabledPrayers: PrayerAlertPreferences,
   quiet: NotificationAudioConfig,
-  options: { includeDailyHadith?: boolean; now?: Date } = {},
+  options: {
+    includeDailyHadith?: boolean;
+    now?: Date;
+    prayerLog?: Record<string, Record<string, boolean>>;
+  } = {},
 ): LocalNotification[] {
   const now = options.now ?? new Date();
   return days.slice(0, 2).flatMap((day) => {
@@ -652,26 +656,12 @@ export function buildPrayerNotificationsForDays(
       if (!enabledPrayers[prayerName]) return [];
 
       const at = dateAtLocalTime(day.dateISO, day.timings[prayerName] ?? "");
-      if (!at || at.getTime() <= now.getTime() + 30_000) return [];
+      if (!at) return [];
 
       const extra = { prayerName, dateISO: day.dateISO };
-      const main = {
-        id: notificationIdForDate(PRAYER_NOTIFICATION_IDS[prayerName], day.dateISO),
-        title: "أثر — الأذان",
-        body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
-        channelId: audio.channelId,
-        ...notificationSound(audio.soundFile),
-        smallIcon: REMINDER_NOTIFICATION_ICON,
-        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-        iconColor: REMINDER_ICON_COLOR,
-        schedule: withAndroidDozeDelivery({ at }),
-        actionTypeId: PRAYER_ACTION_TYPE_ID,
-        extra,
-      };
-
-      // Vibration only. The adhan belongs to the adhan; hearing it again half an
-      // hour later, as a nudge, is startling rather than helpful.
       const followUpAt = new Date(at.getTime() + 30 * 60_000);
+      const prayerWasLogged = options.prayerLog?.[day.dateISO]?.[prayerName] === true;
+      const shouldScheduleFollowUp = !prayerWasLogged && followUpAt.getTime() > now.getTime() + 30_000;
       const followUp = {
         id: notificationIdForDate(PRAYER_FOLLOWUP_IDS[prayerName], day.dateISO),
         title: "أثر — تذكير لطيف",
@@ -686,7 +676,28 @@ export function buildPrayerNotificationsForDays(
         extra,
       };
 
-      return [main, followUp];
+      // If the app resumes after the Adhan but before its gentle follow-up,
+      // restore only the still-pending follow-up. Never replay a past Adhan.
+      if (at.getTime() <= now.getTime() + 30_000) {
+        return shouldScheduleFollowUp ? [followUp] : [];
+      }
+
+      const main = {
+        id: notificationIdForDate(PRAYER_NOTIFICATION_IDS[prayerName], day.dateISO),
+        title: "أثر — الأذان",
+        body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
+        channelId: audio.channelId,
+        ...notificationSound(audio.soundFile),
+        smallIcon: REMINDER_NOTIFICATION_ICON,
+        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+        iconColor: REMINDER_ICON_COLOR,
+        schedule: withAndroidDozeDelivery({ at }),
+        actionTypeId: PRAYER_ACTION_TYPE_ID,
+        extra,
+      };
+
+      // The gentle follow-up stays silent; only the main Adhan uses sound.
+      return shouldScheduleFollowUp ? [main, followUp] : [main];
     });
 
     if (isRamadan(dayStart)) notifications.push(...buildRamadanNotifications(
@@ -1097,7 +1108,10 @@ async function syncRemindersForOwner(
       prayerNotificationAudio,
       { ...DEFAULT_PRAYER_ALERTS, ...reminders.prayerAlerts },
       quiet,
-      { includeDailyHadith: reminders.dailyHadithNotif },
+      {
+        includeDailyHadith: reminders.dailyHadithNotif,
+        prayerLog: useNoorStore.getState().prayerLog,
+      },
     ));
   }
 

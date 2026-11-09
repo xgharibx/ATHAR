@@ -48,11 +48,36 @@ describe("native prayer notification schedule horizon", () => {
     expect(notifications.some((item) => item.extra?.prayerName === "Fajr" && item.extra?.dateISO === "2026-10-02")).toBe(false);
   });
 
-  it("does not duplicate a prayer that has already passed", () => {
+  it("does not replay the Adhan for a passed prayer but keeps its pending follow-up", () => {
     const now = new Date(2026, 9, 2, 12, 0, 0);
     const notifications = buildPrayerNotificationsForDays([
       { dateISO: "2026-10-02", timings: { Fajr: "05:00", Dhuhr: "11:59" } },
     ], LOUD, ALL_PRAYERS_ENABLED, QUIET, { now });
+
+    expect(notifications).toHaveLength(1);
+    expect(notifications[0].title).toBe("أثر — تذكير لطيف");
+    expect(notifications[0].extra).toMatchObject({ prayerName: "Dhuhr", dateISO: "2026-10-02" });
+  });
+
+  it("keeps an uncompleted prayer follow-up when syncing after the Adhan time", () => {
+    const now = new Date(2026, 9, 2, 5, 15, 0);
+    const notifications = buildPrayerNotificationsForDays([
+      { dateISO: "2026-10-02", timings: { Fajr: "05:00" } },
+    ], LOUD, ALL_PRAYERS_ENABLED, QUIET, { now });
+
+    expect(notifications).toHaveLength(1);
+    expect(notifications[0].title).toBe("أثر — تذكير لطيف");
+    expect(notifications[0].extra).toMatchObject({ prayerName: "Fajr", dateISO: "2026-10-02" });
+    expect(notifications[0].schedule.at).toEqual(new Date(2026, 9, 2, 5, 30, 0));
+  });
+
+  it("does not recreate a prayer follow-up after it was marked complete", () => {
+    const notifications = buildPrayerNotificationsForDays([
+      { dateISO: "2026-10-02", timings: { Fajr: "05:00" } },
+    ], LOUD, ALL_PRAYERS_ENABLED, QUIET, {
+      now: new Date(2026, 9, 2, 5, 15, 0),
+      prayerLog: { "2026-10-02": { Fajr: true } },
+    });
 
     expect(notifications).toEqual([]);
   });
