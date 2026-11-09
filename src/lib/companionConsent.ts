@@ -1,10 +1,14 @@
 import { Capacitor } from "@capacitor/core";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
-const CONSENT_KEY = "athar_companion_minimax_consent_v1";
+// v2 is intentionally separate from the legacy device-wide grant. That old
+// value cannot be attributed to a particular account, so reusing it could let
+// one account inherit another person's approval on a shared device.
+const CONSENT_KEY = "athar_companion_minimax_consent_v2";
 
 export function hasCompanionAiConsent(): boolean {
   try {
-    return typeof window !== "undefined" && window.localStorage.getItem(CONSENT_KEY) === "granted";
+    return accountScopedLocalStorage.getItem(CONSENT_KEY) === "granted";
   } catch {
     return false;
   }
@@ -26,7 +30,7 @@ export function canSendCompanionAiMessage(
 
 export function grantCompanionAiConsent(): void {
   try {
-    window.localStorage.setItem(CONSENT_KEY, "granted");
+    accountScopedLocalStorage.setItem(CONSENT_KEY, "granted");
   } catch {
     // The current message can still proceed from the user's explicit choice;
     // without persistent storage, the next send will ask again.
@@ -35,7 +39,7 @@ export function grantCompanionAiConsent(): void {
 
 export function revokeCompanionAiConsent(): void {
   try {
-    window.localStorage.removeItem(CONSENT_KEY);
+    accountScopedLocalStorage.removeItem(CONSENT_KEY);
   } catch {
     // Keep this helper safe in restricted browser contexts.
   }
