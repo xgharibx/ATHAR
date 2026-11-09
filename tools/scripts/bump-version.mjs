@@ -1,10 +1,11 @@
 /**
  * Bump the app version everywhere it lives, in one step.
  *
- * Three files each carry a copy of the version, and they have to agree or a
+ * The package files and both native projects carry copies of the version, and they must agree or a
  * store rejects the upload (or worse, accepts it and mis-orders updates):
  *
  *   package.json                              "version"
+ *   package-lock.json                         root "version" + packages[""].version
  *   android/app/build.gradle                  versionName + versionCode
  *   ios/App/App.xcodeproj/project.pbxproj     MARKETING_VERSION + CURRENT_PROJECT_VERSION
  *
@@ -26,6 +27,7 @@ import { fileURLToPath } from "url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const PKG = path.join(ROOT, "package.json");
+const LOCK = path.join(ROOT, "package-lock.json");
 const GRADLE = path.join(ROOT, "android/app/build.gradle");
 const PBX = path.join(ROOT, "ios/App/App.xcodeproj/project.pbxproj");
 
@@ -35,6 +37,8 @@ const write = (p, s) => fs.writeFileSync(p, s, "utf8");
 
 function readState() {
   const pkg = JSON.parse(read(PKG));
+  const lockText = read(LOCK);
+  const lock = JSON.parse(lockText);
   const gradle = read(GRADLE);
   const pbx = read(PBX);
 
@@ -43,11 +47,30 @@ function readState() {
   const marketing = [...new Set([...pbx.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map((m) => m[1].trim()))];
   const builds = [...new Set([...pbx.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((m) => Number(m[1])))];
 
-  return { pkg, gradle, pbx, version: pkg.version, gName, gCode, marketing, builds };
+  return {
+    pkg,
+    lock,
+    lockText,
+    lockRootVersion: lock.version,
+    lockPackageVersion: lock.packages?.[""]?.version,
+    gradle,
+    pbx,
+    version: pkg.version,
+    gName,
+    gCode,
+    marketing,
+    builds,
+  };
 }
 
 function agree(s) {
   const problems = [];
+  if (s.lockRootVersion !== s.version) {
+    problems.push(`package-lock root version ${s.lockRootVersion} != package ${s.version}`);
+  }
+  if (s.lockPackageVersion !== s.version) {
+    problems.push(`package-lock packages[""] version ${s.lockPackageVersion} != package ${s.version}`);
+  }
   if (s.gName !== s.version) problems.push(`android versionName ${s.gName} != package ${s.version}`);
   if (s.marketing.length !== 1 || s.marketing[0] !== s.version) {
     problems.push(`ios MARKETING_VERSION ${s.marketing.join(",")} != package ${s.version}`);
@@ -75,7 +98,7 @@ if (arg === "--check") {
     console.error("version files DISAGREE:\n  " + problems.join("\n  "));
     process.exit(1);
   }
-  console.log(`ok: ${s.version} (build ${s.gCode}) in package, android and ios`);
+  console.log(`ok: ${s.version} (build ${s.gCode}) in package, lockfile, android and ios`);
   process.exit(0);
 }
 
@@ -89,6 +112,13 @@ if (before.length) {
 
 const version = nextVersion(s.version, arg);
 const code = Math.max(s.gCode, ...s.builds) + 1;
+
+if (!s.lock.packages?.[""]) throw new Error('package-lock.json is missing packages[""]');
+s.lock.version = version;
+s.lock.packages[""].version = version;
+const eol = s.lockText.includes("\r\n") ? "\r\n" : "\n";
+const lockOutput = JSON.stringify(s.lock, null, 2).replace(/\n/g, eol);
+write(LOCK, lockOutput + (s.lockText.endsWith("\n") ? eol : ""));
 
 // package.json — keep its line endings and key order by editing the one line.
 const pkgText = read(PKG);
@@ -110,4 +140,4 @@ write(
 );
 
 console.log(`${s.version} (build ${s.gCode}) -> ${version} (build ${code})`);
-console.log("updated: package.json, android/app/build.gradle, ios project.pbxproj");
+console.log("updated: package.json, package-lock.json, android/app/build.gradle, ios project.pbxproj");
