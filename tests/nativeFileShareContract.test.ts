@@ -24,3 +24,22 @@ describe("native backup file sharing contract", () => {
     expect(info).toContain("<string>athar</string>");
   });
 });
+
+describe("legacy Android gallery save permission contract", () => {
+  it("declares write permission only through Android 9", () => {
+    const manifest = readFileSync(resolve(process.cwd(), "android/app/src/main/AndroidManifest.xml"), "utf8");
+
+    expect(manifest).toMatch(/<uses-permission\s+android:name="android\.permission\.WRITE_EXTERNAL_STORAGE"\s+android:maxSdkVersion="28"\s*\/>/);
+  });
+
+  it("requests permission only before pre-Android-10 gallery writes and rejects denial", () => {
+    const android = readFileSync(resolve(process.cwd(), "android/app/src/main/java/com/athar/adhkar/ShareBridgePlugin.java"), "utf8");
+
+    expect(android).toContain("@Permission(alias = \"gallery\", strings = { Manifest.permission.WRITE_EXTERNAL_STORAGE })");
+    expect(android).toContain("if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q");
+    expect(android).toContain("requestPermissionForAlias(\"gallery\", call, \"saveImagePermissionCallback\")");
+    expect(android).toMatch(/@PermissionCallback\s+private void saveImagePermissionCallback\(PluginCall call\)/);
+    expect(android).toContain("call.reject(\"storage permission denied\")");
+    expect(android).toContain("saveImageToGallery(call)");
+  });
+});

@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.ClipData;
 import android.content.Intent;
+import android.Manifest;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -15,7 +16,10 @@ import androidx.core.content.FileProvider;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,7 +45,9 @@ import java.util.UUID;
  *          registerPlugin("ShareBridge").saveImage({ base64, filename })
  *          registerPlugin("ShareBridge").shareFile({ base64, filename, mimeType, title })
  */
-@CapacitorPlugin(name = "ShareBridge")
+@CapacitorPlugin(name = "ShareBridge", permissions = {
+    @Permission(alias = "gallery", strings = { Manifest.permission.WRITE_EXTERNAL_STORAGE })
+})
 public class ShareBridgePlugin extends Plugin {
     private static final long SHARE_FILE_RETENTION_MILLIS = 7L * 24L * 60L * 60L * 1000L;
 
@@ -197,6 +203,28 @@ public class ShareBridgePlugin extends Plugin {
             call.reject("missing base64");
             return;
         }
+
+        // MediaStore does not require storage access on Android 10+, but public
+        // gallery writes on Android 7–9 require this runtime permission.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && getPermissionState("gallery") != PermissionState.GRANTED) {
+            requestPermissionForAlias("gallery", call, "saveImagePermissionCallback");
+            return;
+        }
+
+        saveImageToGallery(call);
+    }
+
+    @PermissionCallback
+    private void saveImagePermissionCallback(PluginCall call) {
+        if (getPermissionState("gallery") != PermissionState.GRANTED) {
+            call.reject("storage permission denied");
+            return;
+        }
+        saveImageToGallery(call);
+    }
+
+    private void saveImageToGallery(PluginCall call) {
+        String base64 = call.getString("base64");
         String filename = call.getString("filename", "athar.png");
 
         try {
