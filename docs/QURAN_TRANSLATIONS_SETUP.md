@@ -7,12 +7,11 @@ ATHAR loads Yusuf Ali (translation ID `22`) and Jalandhry (`234`) one surah at a
 Create a backend application in the Quran Foundation developer portal and obtain its client ID and client secret. Then configure the matching Supabase project's Edge Function secrets:
 
 ```sh
-npx supabase db push
 npx supabase secrets set QF_CLIENT_ID=<client-id> QF_CLIENT_SECRET=<client-secret> QF_ENV=production
 npx supabase functions deploy quran-translations
 ```
 
-Link the Supabase CLI to a staging project before applying migrations; the Edge Function requires `reserve_quran_translation_request` to be present. Use `QF_ENV=prelive` only with Quran Foundation's pre-live credentials. Never put either credential in `.env.local`, a `VITE_*` variable, source code, or a client bundle. The function fails closed with HTTP 503 when credentials or the shared quota service are unavailable.
+The production quota migration is recorded as `20261109045550 quran_translation_rate_limits`, and `quran-translations` is deployed as version 1 with JWT verification enabled. The checked-in migration versions match the production ledger as of 9 November 2026. Setting the provider secrets and deploying the function does not require `supabase db push`; that command applies every pending migration in the project. Use `QF_ENV=prelive` only with Quran Foundation's pre-live credentials. Never put either credential in `.env.local`, a `VITE_*` variable, source code, or a client bundle. The function fails closed with HTTP 503 when credentials or the shared quota service are unavailable.
 
 ## Provider requirements
 
@@ -24,4 +23,4 @@ Link the Supabase CLI to a staging project before applying migrations; the Edge 
 
 ## Current verification boundary
 
-The function and client are covered by mocked tests, including OAuth, allowlisting, CORS, shared-quota decisions, response validation, and expiry. This repository phase has not applied the migration, set Supabase secrets, or deployed the function. Until a maintainer configures an approved Quran Foundation application and the restricted Supabase project accepts staging deployment, production responses and quota enforcement cannot be verified.
+The function and client are covered by mocked tests, including OAuth, allowlisting, CORS, shared-quota decisions, response validation, and expiry. On 9 November 2026, the migration and function were deployed to the ATHAR production project, and read-only checks confirmed the table's RLS/ACLs and service-role-only RPC access. One live request passed function authorization and quota reservation but returned HTTP 503 `translation-service-unavailable`; Quran Foundation client credentials are not configured. That smoke request stored only the normal global and keyed quota counters, with no account data or Quran text. A successful provider response, credential approval for both translation IDs, and real client UI flow remain unverified until those server secrets are configured.

@@ -77,7 +77,7 @@ describe("delete-account Edge Function safeguards", () => {
       "utf8",
     );
     const handoffMigration = fs.readFileSync(
-      path.resolve("supabase/migrations/20261109025000_account_delete_leaderboard_handoff.sql"),
+      path.resolve("supabase/migrations/20261109031940_account_delete_leaderboard_handoff.sql"),
       "utf8",
     );
 
