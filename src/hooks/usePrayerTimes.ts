@@ -125,6 +125,10 @@ async function fetchPrayerTimesByCoords(latitude: number, longitude: number, met
   return fetchPrayerTimesResponse(url);
 }
 
+function browserReportsOffline(): boolean {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
+}
+
 function writeCachedCoords(lat: number, lng: number) {
   try {
     accountScopedLocalStorage.setItem(
@@ -330,6 +334,7 @@ export function usePrayerTimes() {
       if (cachedCoords) {
         const locationKey = `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}:${method}:${school}`;
         try {
+          if (browserReportsOffline()) throw new Error("offline");
           return await trySource(
             "آخر موقع محفوظ",
             locationKey,
@@ -353,6 +358,7 @@ export function usePrayerTimes() {
       //    but if it fails we transparently move to the local adhan-based
       //    compute so the widget never lingers on a spinner.
       try {
+        if (browserReportsOffline()) throw new Error("offline");
         return await trySource("القاهرة", cityLocationKey, () => fetchPrayerTimes(city, country, method, school));
       } catch {
         const cached = readCached(dayKey, cityLocationKey);
@@ -370,6 +376,9 @@ export function usePrayerTimes() {
     },
     placeholderData: initialCachedData,
     staleTime: Infinity,
+    // The query function has a local/cache fallback, so it must run even when
+    // React Query's online manager would pause other network-backed queries.
+    networkMode: "always",
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchInterval: false,
@@ -383,6 +392,7 @@ export function usePrayerTimes() {
     queryKey: ["prayer-times", "tomorrow-v1", tomorrowKey, method, school, locationIdentity, tomorrowLocationKey],
     enabled: Capacitor.isNativePlatform() && query.data !== undefined && !query.isPlaceholderData,
     staleTime: Infinity,
+    networkMode: "always",
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: 1,
@@ -394,6 +404,7 @@ export function usePrayerTimes() {
       const coords = cachedCoords;
       const date = parseDateKey(tomorrowKey) ?? new Date(Date.now() + 24 * 60 * 60 * 1000);
       try {
+        if (browserReportsOffline()) throw new Error("offline");
         const fresh = coords
           ? await fetchPrayerTimesByCoords(coords.lat, coords.lng, method, school, tomorrowKey)
           : await fetchPrayerTimes(city, country, method, school, tomorrowKey);
