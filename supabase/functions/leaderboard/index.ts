@@ -787,7 +787,9 @@ function eventRows(payload, resolvedAlias) {
     checksum: payload.checksum,
     period: "daily",
     source: "edge_function_v1",
-    payload
+    // Duplicate detection only needs the normalized score snapshot. Keep the
+    // event row compact instead of repeating identity, metrics, and metadata.
+    payload: { scores: payload.scores }
   };
 
   const rows = [

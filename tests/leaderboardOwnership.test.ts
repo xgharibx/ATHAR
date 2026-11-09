@@ -176,7 +176,7 @@ describe("leaderboard identity ownership", () => {
     expect(edge.mutations).toEqual([]);
   });
 
-  it("persists only allowlisted submission fields", async () => {
+  it("stores only the sanitized scores needed for duplicate detection", async () => {
     const edge = server({ data: true, error: null });
     const base = edge.validSubmission();
     const response = await edge.submit("a".repeat(64), {
@@ -206,11 +206,16 @@ describe("leaderboard identity ownership", () => {
     expect(response.status).toBe(200);
     const inserted = edge.writes.find((write) => write.table === "leaderboard_score_events")?.value as
       Array<{ payload: Record<string, unknown> }> | undefined;
-    expect(inserted?.[0]?.payload).not.toHaveProperty("extra");
-    expect(inserted?.[0]?.payload.identity).not.toHaveProperty("unexpected");
-    expect(inserted?.[0]?.payload.scores).not.toHaveProperty("unexpected");
+    expect(Object.keys(inserted?.[0]?.payload ?? {})).toEqual(["scores"]);
+    expect(inserted?.[0]?.payload.scores).toMatchObject({
+      global: 50,
+      dhikr: 3,
+      quran: 1,
+      prayers: 1,
+      tasbeehDaily: 4,
+      sections: { morning: 3 },
+    });
     expect(inserted?.[0]?.payload.scores.sections).not.toHaveProperty("x".repeat(81));
-    expect(inserted?.[0]?.payload.metrics).not.toHaveProperty("unexpected");
   });
 
   it("repairs a rollup after the event was saved but its first upsert failed", async () => {
