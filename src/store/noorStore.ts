@@ -5,6 +5,7 @@ import type { CustomAdhkarPack } from "@/data/types";
 import { createDhikrItemId, dhikrStateKey, newDhikrItemId } from "@/lib/dhikrItemIdentity";
 import type { CustomReminder } from "@/data/reminderTypes";
 import { getIbadahDateKey, getLocalDateKey } from "@/lib/dayBoundaries";
+import { customCounterKey, isQuickSebhaPhrase } from "@/lib/sebhaCustom";
 import {
   idbSetHadithBookmark,
   idbSetHadithProgress,
@@ -63,7 +64,7 @@ function migrateSharedCustomTasbeehCounter(state: Partial<NoorState>): Partial<N
   const phrase = state.sebhaCustom?.phrase?.replace(/\s+/g, " ").trim();
   if (!phrase) return {};
 
-  const key = `custom:${phrase}`;
+  const key = customCounterKey(phrase);
   const out: Partial<NoorState> = {};
 
   const move = <T extends Record<string, number>>(map: T | undefined): T | undefined => {
@@ -1567,12 +1568,38 @@ export const useNoorStore = create<NoorState>()(
           sebhaCustomList: s.sebhaCustomList.map((c) => (c.id === id ? { ...c, ...patch } : c)),
         })),
       deleteSebhaCustomItem: (id) =>
-        set((s) => ({
-          sebhaCustomList: s.sebhaCustomList.filter((c) => c.id !== id),
-          quickTasbeeh: Object.fromEntries(
-            Object.entries(s.quickTasbeeh).filter(([k]) => k !== `custom:${id}`)
-          ),
-        })),
+        set((s) => {
+          const deleted = s.sebhaCustomList.find((item) => item.id === id);
+          if (!deleted) return {};
+
+          const sebhaCustomList = s.sebhaCustomList.filter((item) => item.id !== id);
+          const counterKey = customCounterKey(deleted.phrase);
+          // Phrase counters can be shared by duplicate custom entries; only
+          // discard the count when no saved entry still uses that phrase.
+          const samePhraseRemains = counterKey === "custom"
+            || isQuickSebhaPhrase(deleted.phrase)
+            || sebhaCustomList.some((item) => customCounterKey(item.phrase) === counterKey);
+          const clearsActiveCustom = !samePhraseRemains
+            && s.sebhaCustom !== null
+            && customCounterKey(s.sebhaCustom.phrase) === counterKey;
+
+          return {
+            sebhaCustomList,
+            ...(!samePhraseRemains && counterKey !== "custom"
+              ? {
+                  quickTasbeeh: Object.fromEntries(
+                    Object.entries(s.quickTasbeeh).filter(([key]) => key !== counterKey),
+                  ),
+                }
+              : {}),
+            ...(clearsActiveCustom
+              ? {
+                  sebhaCustom: null,
+                  ...(s.sebhaSelected === "custom" ? { sebhaSelected: "subhanallah" } : {}),
+                }
+              : {}),
+          };
+        }),
       reorderSebhaCustomList: (id, direction) =>
         set((s) => {
           const idx = s.sebhaCustomList.findIndex((c) => c.id === id);
