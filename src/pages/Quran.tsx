@@ -26,7 +26,7 @@ import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { getReciter } from "@/lib/quranReciters";
 import { loadQuranPageMap } from "@/data/quranLoad";
 import { arNum } from "@/lib/formatNumber";
-import { countCompletedKhatmaDays, getKhatmaDayRange, getKhatmaPlanStatus } from "@/lib/quranKhatma";
+import { countCompletedKhatmaDays, getKhatmaDayRange, getKhatmaPlanStatus, getKhatmaTimeline } from "@/lib/quranKhatma";
 
 
 function normalize(s: string) {
@@ -94,25 +94,6 @@ const DAILY_VERSES: Array<{ surahId: number; ayahIndex: number }> = [
 
 function getDailyVerseIdx(): number {
   return Math.floor(Date.now() / 86400000) % DAILY_VERSES.length;
-}
-
-function parseISODate(dateISO: string) {
-  const match = (dateISO ?? "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!match) return null;
-  const yyyy = Number(match[1]);
-  const mm = Number(match[2]);
-  const dd = Number(match[3]);
-  if (!yyyy || !mm || !dd) return null;
-  const date = new Date(yyyy, mm - 1, dd);
-  if (Number.isNaN(date.getTime())) return null;
-  return date;
-}
-
-function daysBetween(a: Date, b: Date) {
-  const ms = 24 * 60 * 60 * 1000;
-  const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
-  const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
-  return Math.floor((utcB - utcA) / ms);
 }
 
 /** Phase 2 — Surah+ayah search parsing moved to src/data/quranDirectSearch.ts
@@ -425,11 +406,9 @@ export function QuranPage() {
     if (!data) return null;
     if (!khatmaStartISO || !khatmaDays) return null;
 
-    const start = parseISODate(khatmaStartISO);
-    const today = parseISODate(todayISO);
-    if (!start || !today) return null;
-
     const days = Math.max(1, Math.min(730, Math.floor(khatmaDays)));
+    const timeline = getKhatmaTimeline(khatmaStartISO, todayISO, days);
+    if (!timeline) return null;
     const flat: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
 
     for (const surah of data) {
@@ -442,29 +421,34 @@ export function QuranPage() {
 
     if (flat.length === 0) return null;
 
-    const dayIndexRaw = Math.max(0, daysBetween(start, today));
-    const dayIndex = Math.min(dayIndexRaw, days - 1);
-    const range = getKhatmaDayRange(dayIndex, days, flat.length, khatmaScheduleVersion ?? 1);
-    const startAt = range.firstAyah - 1;
-    const endAt = range.lastAyah - 1;
-    const first = flat[startAt];
-    const last = flat[endAt];
-
-    if (!first || !last) return null;
-
     const doneCount = countCompletedKhatmaDays(khatmaStartISO, days, khatmaDone);
-    const doneToday = !!khatmaDone?.[todayISO];
     const percent = Math.min(100, Math.round((doneCount / days) * 100));
-    const status = getKhatmaPlanStatus(dayIndexRaw, days, doneCount);
+    const status = getKhatmaPlanStatus(timeline.elapsedDays, days, doneCount);
+    const doneToday = timeline.isWithinPlan && !!khatmaDone?.[todayISO];
+
+    let today: { first: (typeof flat)[number]; last: (typeof flat)[number] } | null = null;
+    let dayIndex = 0;
+    let chunk = 0;
+    if (timeline.isWithinPlan) {
+      dayIndex = timeline.elapsedDays;
+      const range = getKhatmaDayRange(dayIndex, days, flat.length, khatmaScheduleVersion ?? 1);
+      const first = flat[range.firstAyah - 1];
+      const last = flat[range.lastAyah - 1];
+      if (!first || !last) return null;
+      today = { first, last };
+      chunk = range.dailyTarget;
+    }
 
     return {
       days,
-      chunk: range.dailyTarget,
+      chunk,
       dayIndex,
-      isFinished: status !== "active",
+      isFinished: status !== "active" || timeline.isUpcoming,
       isExpired: status === "expired",
       isCompleted: status === "completed",
-      today: { first, last },
+      isUpcoming: timeline.isUpcoming,
+      startsInDays: timeline.startsInDays,
+      today,
       meta: { doneCount, doneToday, percent }
     };
   }, [data, khatmaDays, khatmaDone, khatmaScheduleVersion, khatmaStartISO, todayISO]);
@@ -904,11 +888,36 @@ export function QuranPage() {
 
       </Card>
 
+      {mode === "surahs" && !query && khatma?.isUpcoming && (
+        <div
+          className="w-full rounded-3xl border p-5 quran-surface"
+          style={{
+            background: "color-mix(in srgb, var(--accent) 7%, var(--card))",
+            borderColor: "color-mix(in srgb, var(--accent) 22%, transparent)",
+          }}
+        >
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[var(--accent)]">
+            <span aria-hidden="true">📅</span>
+            <span>خطة تلاوة مجدولة</span>
+          </div>
+          <p className="mb-3 text-sm opacity-80">
+            تبدأ خطة التلاوة بعد {arNum(khatma.startsInDays)} يوم
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate("/quran/plans")}
+            className="text-xs font-semibold text-[var(--accent)] underline underline-offset-2"
+          >
+            عرض خطة التلاوة
+          </button>
+        </div>
+      )}
+
       {/* ── Today's khatma reading target ─────────────────── */}
-      {mode === "surahs" && !query && khatma && !khatma.isFinished && (
+      {mode === "surahs" && !query && khatma && !khatma.isFinished && khatma.today && (
         <button
           type="button"
-          onClick={() => navigate(`/mushaf?surah=${khatma.today.first.surahId}&ayah=${khatma.today.first.ayahIndex}`)}
+          onClick={() => navigate(`/mushaf?surah=${khatma.today!.first.surahId}&ayah=${khatma.today!.first.ayahIndex}`)}
           className="w-full text-right rounded-3xl border transition-all active:scale-[0.99] quran-surface overflow-hidden"
           style={{
             background: khatma.meta.doneToday

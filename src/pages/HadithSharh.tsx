@@ -49,6 +49,7 @@ export function HadithSharhPage() {
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(false);
   const [hadith, setHadith] = React.useState<SharhHadith | null>(null);
+  const viewRequestId = React.useRef(0);
 
   const run = React.useCallback(async (task: () => Promise<void>, isCurrent: () => boolean = () => true) => {
     setLoading(true);
@@ -64,47 +65,61 @@ export function HadithSharhPage() {
 
   // Load per view
   React.useEffect(() => {
+    const requestId = ++viewRequestId.current;
+    const isCurrent = () => viewRequestId.current === requestId;
+
     if (view.kind === "roots") {
       setChildren([]);
-      void run(async () => setRoots(await fetchSharhRoots()));
+      void run(async () => {
+        const nextRoots = await fetchSharhRoots();
+        if (isCurrent()) setRoots(nextRoots);
+      }, isCurrent);
     } else if (view.kind === "category") {
-      let active = true;
       setChildren([]);
       void run(async () => {
         const kids = await fetchSharhChildren(view.root.id);
-        if (!active) return;
+        if (!isCurrent()) return;
         if (kids.length === 0) {
           // Leaf root — jump straight to its hadith list
           setView({ kind: "list", category: view.root });
           return;
         }
         setChildren(kids);
-      }, () => active);
-      return () => { active = false; };
+      }, isCurrent);
     } else if (view.kind === "list") {
       setItems([]);
       setPage(1);
       void run(async () => {
         const p = await fetchSharhList(view.category.id, 1);
+        if (!isCurrent()) return;
         setItems(p.items);
         setHasMore(p.hasMore);
-      });
+      }, isCurrent);
     } else if (view.kind === "hadith") {
       setHadith(null);
-      void run(async () => setHadith(await fetchSharhHadith(view.id)));
+      void run(async () => {
+        const nextHadith = await fetchSharhHadith(view.id);
+        if (isCurrent()) setHadith(nextHadith);
+      }, isCurrent);
     }
+    return () => {
+      if (viewRequestId.current === requestId) viewRequestId.current++;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
 
   const loadMore = React.useCallback(() => {
     if (view.kind !== "list") return;
     const next = page + 1;
+    const requestId = viewRequestId.current;
+    const isCurrent = () => viewRequestId.current === requestId;
     void run(async () => {
       const p = await fetchSharhList(view.category.id, next);
+      if (!isCurrent()) return;
       setItems((prev) => [...prev, ...p.items]);
       setHasMore(p.hasMore);
       setPage(next);
-    });
+    }, isCurrent);
   }, [view, page, run]);
 
   const share = React.useCallback(async (h: SharhHadith) => {
