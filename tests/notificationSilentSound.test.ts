@@ -148,6 +148,35 @@ describe("silent native notification sound payloads", () => {
     expect(notifications.some((notification) => notification.title === "أثر — الأذان")).toBe(false);
   });
 
+  it("marks date-specific prayer notifications with their intended local wall time", () => {
+    const notifications = buildPrayerNotificationsForDays(
+      [{ dateISO: "2026-10-03", timings: { Fajr: "05:01" } }],
+      { channelId: "adhan", soundFile: "adhan.caf" },
+      PRAYER_ALERTS,
+      { channelId: "quiet" },
+      { includeDailyHadith: true, now: new Date(2026, 9, 2, 7, 0, 0) },
+    );
+    const wallClockNotifications = notifications.filter((notification) =>
+      notification.title === "أثر — الأذان" ||
+      notification.title === "أثر — تذكير لطيف" ||
+      notification.title === "أثر — حديث اليوم ﷺ",
+    );
+
+    expect(wallClockNotifications).toHaveLength(3);
+    for (const notification of wallClockNotifications) {
+      const at = notification.schedule?.at;
+      const extra = notification.extra as Record<string, unknown>;
+      expect(at).toBeInstanceOf(Date);
+      expect(extra).toMatchObject({
+        atharWallClockOnce: true,
+        atharWallClockDateISO: "2026-10-03",
+      });
+      expect(extra.atharWallClockTime).toBe(
+        `${String(at!.getHours()).padStart(2, "0")}:${String(at!.getMinutes()).padStart(2, "0")}`,
+      );
+    }
+  });
+
   it("preserves tomorrow's prayer alarm when a refresh only provides today's times", async () => {
     const reminders = { ...adhkarReminders(), prayerAlertsEnabled: true };
     const today = { Fajr: "08:00" };
@@ -210,6 +239,12 @@ describe("silent native notification sound payloads", () => {
       .toMatchObject({ channelId: "adhan", sound: "adhan_ahmad_al_nafees.mp3" });
     expect(notifications.find((item) => item.title === "أثر — الإفطار"))
       .toMatchObject({ channelId: "quiet", sound: "" });
+    expect(notifications.find((item) => item.title === "أثر — الإفطار")?.extra)
+      .toMatchObject({
+        atharWallClockOnce: true,
+        atharWallClockDateISO: "2026-03-05",
+        atharWallClockTime: "18:00",
+      });
   });
 
   it("allows Android adhkar reminders to fire during Doze", async () => {

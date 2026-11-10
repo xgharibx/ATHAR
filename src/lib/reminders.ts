@@ -404,6 +404,15 @@ function dateAtLocalTime(dateISO: string, hhmm: string): Date | null {
   return getLocalDateKey(at) === dateISO ? at : null;
 }
 
+/** Native one-shot prayer alarms must follow the device's local wall clock after timezone changes. */
+function wallClockNotificationExtra(at: Date) {
+  return {
+    atharWallClockOnce: true,
+    atharWallClockDateISO: getLocalDateKey(at),
+    atharWallClockTime: `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`,
+  };
+}
+
 export async function playReminderSoundPreview(soundProfile: ReminderSoundProfile, onDone?: () => void) {
   const sound = getReminderSoundOption(soundProfile);
   await playSoundPreview(`/sounds/reminders/${sound.fileName}`, `reminder:${soundProfile}`, 0.85, onDone);
@@ -658,7 +667,7 @@ export function buildPrayerNotificationsForDays(
       const at = dateAtLocalTime(day.dateISO, day.timings[prayerName] ?? "");
       if (!at) return [];
 
-      const extra = { prayerName, dateISO: day.dateISO };
+      const extra = { prayerName, dateISO: day.dateISO, ...wallClockNotificationExtra(at) };
       const followUpAt = new Date(at.getTime() + 30 * 60_000);
       const prayerWasLogged = options.prayerLog?.[day.dateISO]?.[prayerName] === true;
       const shouldScheduleFollowUp = !prayerWasLogged && followUpAt.getTime() > now.getTime() + 30_000;
@@ -673,7 +682,7 @@ export function buildPrayerNotificationsForDays(
         iconColor: REMINDER_ICON_COLOR,
         schedule: withAndroidDozeDelivery({ at: followUpAt }),
         actionTypeId: PRAYER_ACTION_TYPE_ID,
-        extra,
+        extra: { ...extra, ...wallClockNotificationExtra(followUpAt) },
       };
 
       // If the app resumes after the Adhan but before its gentle follow-up,
@@ -747,7 +756,7 @@ function buildRamadanNotifications(
         largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
         iconColor: REMINDER_ICON_COLOR,
         schedule: withAndroidDozeDelivery({ at: suhoorAt }),
-        extra: { dateISO: day.dateISO },
+        extra: { dateISO: day.dateISO, ...wallClockNotificationExtra(suhoorAt) },
       });
     }
   }
@@ -764,7 +773,7 @@ function buildRamadanNotifications(
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
       schedule: withAndroidDozeDelivery({ at: iftarAt }),
-      extra: { dateISO: day.dateISO },
+      extra: { dateISO: day.dateISO, ...wallClockNotificationExtra(iftarAt) },
     });
   }
 
@@ -793,7 +802,7 @@ function buildDailyHadithNotification(
     largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
     iconColor: REMINDER_ICON_COLOR,
     schedule: withAndroidDozeDelivery({ at: fajrAt }),
-    extra: { dateISO: day.dateISO },
+    extra: { dateISO: day.dateISO, ...wallClockNotificationExtra(fajrAt) },
   };
 }
 
