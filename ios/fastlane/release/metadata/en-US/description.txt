@@ -1,36 +1,38 @@
-In the rush of life, the soul needs a tranquil haven. Athar is your quiet companion for remembrance, Quran recitation, and renewing your connection with Allah.
+In life's fast pace, the soul needs a tranquil haven. Athar is more than an app: it is your companion and sanctuary for remembrance, Quran recitation, and renewing your connection with Allah.
 
-Designed with love and care, Athar brings serenity to your day and helps you build lasting faith habits with a present heart and fewer distractions.
+Designed with care, Athar brings serenity to your day and helps you build lasting habits of faith with a present heart and fewer distractions.
 
 The app interface is currently in Arabic.
 
-THE LIGHT OF THE QURAN IN YOUR HANDS: Read in an eye-friendly digital Mushaf, follow your reading progress and khatma plan, listen to recitations and Quran radio, read tafsir, and learn Quranic vocabulary. Review memorized verses by hiding and revealing them gradually.
+Elevate your daily worship:
 
-• YOUR DAILY STRONGHOLD: Browse morning and evening adhkar, supplications after prayer, and more. Read each supplication with its virtue and count, track your progress, create your own adhkar, and save favorites.
+• The light of the Quran in your hands: Read in an eye-friendly digital Mushaf, follow your progress and khatma plan, listen to recitations and Quran radio, read tafsir, and learn Quranic vocabulary. Review memorized verses by hiding and revealing them gradually.
 
-• THE PULSE OF PRAYER IN YOUR HEART: See prayer times and the countdown to the next prayer, find the Qibla and nearby mosques, and choose and preview adhan and reminder sounds. Customize reminders to suit your day. The first reminder is audible; later reminders are silent to reduce interruptions.
+• Your daily stronghold: Browse prescribed adhkar from waking until sleeping, including morning and evening supplications and those after prayer. Read each supplication, its virtue, and count; track progress, create adhkar, and save favorites.
 
-• CONTINUOUS REMEMBRANCE: Recite at any time with the floating digital tasbih or use the dedicated tasbih, then follow your daily recitation.
+• The pulse of prayer in your heart: See prayer times and the countdown to the next prayer, find the Qibla direction and nearby mosques, and choose and preview adhan and reminder sounds. Customize reminders to suit your day. The first reminder is audible; later reminders are silent to reduce interruptions.
 
-• DAILY RECITATION, SELF-REFLECTION, AND MAKING UP MISSED PRAYERS: Follow your daily recitation plan, review your worship, and track missed prayers as you make them up step by step.
+• Continuous remembrance: Recite anytime with the floating or dedicated digital tasbih, and track your daily recitation.
 
-• YOUR SMART COMPANION, ATHAR: Ask about the Quran, hadith, and Islamic meanings, and explore answers based on available sources. Use it without an account. It needs the internet, and your message and necessary context are sent to an AI service provider for processing.
+• Daily recitation, self-reflection, and making up missed prayers: Follow your recitation plan, review your worship, and track missed prayers step by step.
 
-• AN ISLAMIC LIBRARY AT YOUR FINGERTIPS: Search hadith books and collections, read explanations, benefits, uncommon terms, and hadith gradings, and save hadith to review or memorize. Explore stories of the Prophets, the Seerah and Companions, the Beautiful Names of Allah, the pillars of Islam and faith, ruqyah, and guides to purification and prayer.
+• Your smart companion, Athar: Ask about the Quran, hadith, and Islamic meanings, and explore answers based on available sources. No account is needed. An internet connection is required, and your message and necessary context are sent to an AI service provider for processing.
 
-• SUNAN AND SUPPLICATIONS WITH SOURCES: Discover more than 900 sunan with hadith references, narrators, and numbers, including forgotten sunnahs. Explore supplications of the Prophets and Companions, and supplications for refuge, forgiveness, and guidance.
+• An Islamic library at your fingertips: Search hadith books and read explanations, benefits, uncommon terms, and gradings. Save hadith to revisit or memorize, and practice reciting them. Explore stories of the Prophets, the Seerah and Companions, the Beautiful Names of Allah, the pillars of Islam and faith, ruqyah, and guides to purification and prayer.
 
-• A RENEWED INSPIRATION EVERY DAY: Follow the daily supplication and sunnah, a Quran verse, hadith, reflection, and Quranic word. Explore Quranic scientific miracles, short clips, courses, and more.
+• Provision of biography and knowledge: Discover more than 900 sunan with hadith references, including forgotten sunnahs. Explore supplications of the Prophets and Companions, and supplications for refuge, forgiveness, and guidance.
 
-• CONTINUE YOUR SPIRITUAL JOURNEY: Review your statistics, goals, and progress in Quran recitation, adhkar, and tasbih. Take part in the leaderboard and find encouragement along your path. Sign-in is optional for account features and cloud synchronization.
+• A renewed inspiration every day: Follow reflections, benefits, and Islamic content. Explore Quranic scientific miracles, short clips, and courses.
 
-• EVERYTHING YOU LOVE AT YOUR FINGERTIPS: Browse the app and save verses, supplications, and hadith you want to revisit.
+• Continue your spiritual journey: Review your statistics and progress in Quran recitation, adhkar, and tasbih. Set goals and take part in the leaderboard. Sign-in is optional for cloud sync and account features.
 
-• WITH YOU EVEN WHEN OFFLINE: Read the Quran, adhkar, and content you have already downloaded or saved without internet. Recitations, synchronization, the smart companion, and some services need a connection.
+• Everything you love at your fingertips: Save verses, supplications, and hadith you want to revisit in your favorites.
 
-A PURE SANCTUARY, WITH PRIVACY IN MIND:
+• With you even when offline: Read the Quran, adhkar, and content you have already downloaded or saved without internet. Recitations, synchronization, the smart companion, and some services require a connection.
 
-Athar does not display its own ads, though third-party content providers may show ads within their content. Athar does not track your location in the background. If you allow location access, coordinates are used by services that provide prayer times or search for nearby mosques. You can choose a city instead. The smart companion sends your message and necessary context to its AI provider for processing.
+A pure sanctuary, with privacy in mind:
+
+Athar does not display its own ads, though third-party providers may show ads in their content. The app does not track your location in the background. If allowed, location is used to request prayer times or find nearby mosques; you can choose a city instead. The smart companion sends your message and necessary context to its AI provider.
 
 Read the privacy policy:
 https://www.athark.org/privacy.html
