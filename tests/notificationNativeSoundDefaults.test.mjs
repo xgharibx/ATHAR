@@ -11,6 +11,16 @@ it("honors explicit silence and vibration before Android notification channels",
   try {
     const plugin = path.join(fixture, "node_modules/@capacitor/local-notifications/android");
     cpSync(path.join(repo, "node_modules/@capacitor/local-notifications/android"), plugin, { recursive: true });
+    const swiftSource = path.join(
+      repo,
+      "node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift",
+    );
+    const swiftTarget = path.join(
+      fixture,
+      "node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift",
+    );
+    mkdirSync(path.dirname(swiftTarget), { recursive: true });
+    cpSync(swiftSource, swiftTarget);
     const script = path.join(fixture, "tools/scripts/patch-capacitor-plugins.mjs");
     mkdirSync(path.dirname(script), { recursive: true });
     cpSync(path.join(repo, "tools/scripts/patch-capacitor-plugins.mjs"), script);

@@ -6,7 +6,7 @@ let translationCachePromise: Promise<QuranEnglishTranslation> | null = null;
 
 export async function loadEnglishTranslationCache(): Promise<QuranEnglishTranslation> {
   if (!translationCachePromise) {
-    translationCachePromise = fetch(publicDataUrl("data/quran-en-sahih.json"))
+    const pending = fetch(publicDataUrl("data/quran-en-sahih.json"))
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json() as Promise<Record<string, string[]>>;
@@ -21,6 +21,13 @@ export async function loadEnglishTranslationCache(): Promise<QuranEnglishTransla
         }
         return result;
       });
+    translationCachePromise = pending;
+    try {
+      return await pending;
+    } catch (error) {
+      if (translationCachePromise === pending) translationCachePromise = null;
+      throw error;
+    }
   }
 
   return translationCachePromise;

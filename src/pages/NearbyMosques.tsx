@@ -13,10 +13,31 @@ type OverpassElement = {
   lat?: number;
   lon?: number;
   center?: { lat: number; lon: number };
-  tags?: { name?: string; "name:ar"?: string; [key: string]: string | undefined };
+  tags?: { name?: unknown; "name:ar"?: unknown; [key: string]: unknown };
 };
 
 type OverpassResponse = { elements: OverpassElement[] };
+
+const OVERPASS_ERROR_MESSAGE = "تعذر جلب بيانات المساجد. تحقق من اتصالك وحاول مرة أخرى.";
+const NEARBY_RADIUS_METERS = 5_000;
+const NEARBY_RADIUS_KM = NEARBY_RADIUS_METERS / 1_000;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isOverpassResponse(value: unknown): value is OverpassResponse {
+  if (!isRecord(value) || !Array.isArray(value.elements)) return false;
+  if (typeof value.remark === "string" && value.remark.trim()) return false;
+
+  return value.elements.every((element) => {
+    if (!isRecord(element) || (element.type !== "node" && element.type !== "way") || !Number.isFinite(element.id)) {
+      return false;
+    }
+    const coordinates = element.type === "way" ? element.center : element;
+    return isRecord(coordinates) && Number.isFinite(coordinates.lat) && Number.isFinite(coordinates.lon);
+  });
+}
 
 type GeoState =
   | { status: "idle" }
@@ -56,10 +77,15 @@ export function NearbyMosquesPage() {
   const [loading, setLoading] = React.useState(false);
   const [fetchError, setFetchError] = React.useState<string | null>(null);
   const requestController = React.useRef<AbortController | null>(null);
+  const isMounted = React.useRef(false);
 
-  React.useEffect(() => () => {
-    requestController.current?.abort();
-    requestController.current = null;
+  React.useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      requestController.current?.abort();
+      requestController.current = null;
+    };
   }, []);
 
   const fetchMosques = React.useCallback(async (lat: number, lng: number) => {
@@ -71,7 +97,7 @@ export function NearbyMosquesPage() {
     setLoading(true);
     setFetchError(null);
     try {
-      const query = `[out:json][timeout:15];(node(around:5000,${lat},${lng})[amenity=place_of_worship][religion=muslim];way(around:5000,${lat},${lng})[amenity=place_of_worship][religion=muslim];);out center 25;`;
+      const query = `[out:json][timeout:15];(node(around:${NEARBY_RADIUS_METERS},${lat},${lng})[amenity=place_of_worship][religion=muslim];way(around:${NEARBY_RADIUS_METERS},${lat},${lng})[amenity=place_of_worship][religion=muslim];);out center;`;
       const timeout = new Promise<never>((_resolve, reject) => {
         timeoutId = globalThis.setTimeout(() => {
           timedOut = true;
@@ -87,16 +113,30 @@ export function NearbyMosquesPage() {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error("تعذر جلب بيانات المساجد. تحقق من اتصالك وحاول مرة أخرى.");
-        return await res.json() as OverpassResponse;
+        let payload: unknown;
+        try {
+          payload = await res.json();
+        } catch {
+          throw new Error(OVERPASS_ERROR_MESSAGE);
+        }
+        if (!isOverpassResponse(payload)) throw new Error(OVERPASS_ERROR_MESSAGE);
+        return payload;
       })();
       const data = await Promise.race([request, timeout]);
       const items: Mosque[] = data.elements
         .map((el) => {
           const elLat = el.lat ?? el.center?.lat ?? 0;
           const elLon = el.lon ?? el.center?.lon ?? 0;
-          const nameAr = el.tags?.["name:ar"] ?? el.tags?.["name"] ?? "مسجد";
+          const arabicName = el.tags?.["name:ar"];
+          const defaultName = el.tags?.name;
+          const nameAr = typeof arabicName === "string" && arabicName.trim()
+            ? arabicName
+            : typeof defaultName === "string" && defaultName.trim()
+              ? defaultName
+              : "مسجد";
           return { id: el.id, name: nameAr, lat: elLat, lon: elLon, distanceKm: haversine(lat, lng, elLat, elLon) };
         })
+        .filter((mosque) => mosque.distanceKm <= NEARBY_RADIUS_KM)
         .sort((a, b) => a.distanceKm - b.distanceKm)
         .slice(0, 10);
       setMosques(items);
@@ -122,12 +162,16 @@ export function NearbyMosquesPage() {
     setGeo({ status: "loading" });
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        if (!isMounted.current) return;
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setGeo({ status: "ok", lat, lng });
         void fetchMosques(lat, lng);
       },
-      (err) => setGeo({ status: "error", code: err.code, msg: err.message }),
+      (err) => {
+        if (!isMounted.current) return;
+        setGeo({ status: "error", code: err.code, msg: err.message });
+      },
       { enableHighAccuracy: true, timeout: 10000 },
     );
   }, [fetchMosques]);
@@ -193,7 +237,7 @@ export function NearbyMosquesPage() {
       {loading && geo.status === "ok" && (
         <Card className="p-4 flex items-center gap-3 text-sm opacity-60" role="status" aria-live="polite" aria-atomic="true">
           <RefreshCw size={16} className="animate-spin shrink-0" aria-hidden="true" />
-          <span>جارٍ البحث عن المساجد القريبة في نطاق 5 كم...</span>
+          <span>جارٍ البحث عن المساجد القريبة في نطاق {NEARBY_RADIUS_KM} كم...</span>
         </Card>
       )}
 
@@ -213,7 +257,7 @@ export function NearbyMosquesPage() {
       {!loading && !fetchError && geo.status === "ok" && mosques.length === 0 && (
         <Card className="p-6 text-sm text-center space-y-2">
           <div className="text-4xl mb-2" aria-hidden="true">🕌</div>
-          <div className="opacity-60">لم يُعثر على مساجد مسجّلة في نطاق 5 كم من موقعك</div>
+          <div className="opacity-60">لم يُعثر على مساجد مسجّلة في نطاق {NEARBY_RADIUS_KM} كم من موقعك</div>
           <Button variant="secondary" size="sm" className="mt-2" onClick={() => void fetchMosques((geo as {status:"ok";lat:number;lng:number}).lat, (geo as {status:"ok";lat:number;lng:number}).lng)}>
             <RefreshCw size={14} aria-hidden="true" /> بحث مجدداً
           </Button>
@@ -224,7 +268,7 @@ export function NearbyMosquesPage() {
       {mosques.length > 0 && (
         <div className="space-y-2" role="list" aria-label="المساجد القريبة">
           <div className="text-xs font-semibold opacity-60 uppercase tracking-wide mb-3" aria-live="polite" aria-atomic="true">
-            {mosques.length} مسجد في نطاق 5 كم
+            {mosques.length} مسجد في نطاق {NEARBY_RADIUS_KM} كم
           </div>
           {mosques.map((mosque, i) => {
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${mosque.lat},${mosque.lon}`;

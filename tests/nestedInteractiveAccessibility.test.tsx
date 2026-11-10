@@ -75,6 +75,9 @@ beforeEach(() => {
     sebhaSelected: "subhanallah",
     sebhaCustom: { phrase: "سبحان الله وبحمده", target: 33 },
     quickTasbeeh: {},
+    khatmaStartISO: null,
+    khatmaDays: null,
+    khatmaDone: {},
     customReminders: [{ id: "stored-reminder", title: "تذكير الاختبار", category: "dhikr", repeat: "daily", enabled: true, atTimeOfDay: "06:30", createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z" }],
   }));
   vi.clearAllMocks();
@@ -114,6 +117,25 @@ describe("interactive controls inside content rows", () => {
     expect(container.querySelector('[data-testid="location"]')?.textContent).toBe("/quran");
     act(() => actions[0]!.click());
     expect(container.querySelector('[data-testid="location"]')?.textContent).toBe("/mushaf");
+  });
+
+  it("does not present a future khatma plan's first range as today's reading", () => {
+    useNoorStore.setState((state) => ({
+      ...state,
+      khatmaStartISO: "2999-01-01",
+      khatmaDays: 30,
+      khatmaScheduleVersion: 2,
+      khatmaDone: {},
+    }));
+
+    mount(
+      <MemoryRouter initialEntries={["/quran"]}>
+        <Routes><Route path="/quran" element={<QuranPage />} /></Routes>
+      </MemoryRouter>,
+    );
+
+    expect(container.textContent).toContain("تبدأ خطة التلاوة بعد");
+    expect(container.querySelector('button[aria-label^="ورد اليوم"]')).toBeNull();
   });
 
   it("gives the custom dhikr selector and edit action independent button semantics", () => {

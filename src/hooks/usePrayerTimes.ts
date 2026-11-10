@@ -46,7 +46,7 @@ type PrayerTimesData = PrayerTimesResponse & {
   __sourceLabel?: string;
 };
 
-const PRAYER_CACHE_PREFIX = "noor_prayer_times_v1";
+const PRAYER_CACHE_PREFIX = "noor_prayer_times_v2";
 function cacheKey(dayKey: string, locationKey: string) {
   return `${PRAYER_CACHE_PREFIX}:${dayKey}:${locationKey}`;
 }
@@ -113,16 +113,20 @@ function toAladhanDate(dateKey: string): string {
   return `${two(date.getDate())}-${two(date.getMonth() + 1)}-${date.getFullYear()}`;
 }
 
-async function fetchPrayerTimes(city: string, country: string, method: number, school: number, dateKey?: string) {
+async function fetchPrayerTimes(city: string, country: string, method: number, school: number, timeZoneId: string, dateKey?: string) {
   const datePath = dateKey ? `/${toAladhanDate(dateKey)}` : "";
-  const url = `https://api.aladhan.com/v1/timingsByCity${datePath}?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`;
+  const url = `https://api.aladhan.com/v1/timingsByCity${datePath}?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}&timezonestring=${encodeURIComponent(timeZoneId)}`;
   return fetchPrayerTimesResponse(url);
 }
 
-async function fetchPrayerTimesByCoords(latitude: number, longitude: number, method: number, school: number, dateKey?: string) {
+async function fetchPrayerTimesByCoords(latitude: number, longitude: number, method: number, school: number, timeZoneId: string, dateKey?: string) {
   const datePath = dateKey ? `/${toAladhanDate(dateKey)}` : "";
-  const url = `https://api.aladhan.com/v1/timings${datePath}?latitude=${latitude}&longitude=${longitude}&method=${method}&school=${school}`;
+  const url = `https://api.aladhan.com/v1/timings${datePath}?latitude=${latitude}&longitude=${longitude}&method=${method}&school=${school}&timezonestring=${encodeURIComponent(timeZoneId)}`;
   return fetchPrayerTimesResponse(url);
+}
+
+function browserReportsOffline(): boolean {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
 }
 
 function writeCachedCoords(lat: number, lng: number) {
@@ -186,9 +190,8 @@ function localDateKey(date: Date): string {
  * Fully offline prayer-time computation (Jean Meeus astronomical formulas via the
  * `adhan` package) — the last-resort fallback when there is no network AND no cached
  * API response for this day/location yet (e.g. first launch with no connectivity).
- * Device-local clock time is used for formatting, which is correct as long as the
- * device's timezone matches the coordinates it's physically standing at (always true
- * in practice for a phone).
+ * PrayerTimes returns UTC instants for the selected coordinates. Format them in the
+ * device timezone, which is also used by the app's countdowns and notification scheduler.
  */
 function computeLocalPrayerTimes(lat: number, lng: number, date: Date, method: number, school: number): PrayerTimesResponse {
   const params = methodToCalculationParameters(method);
@@ -289,29 +292,31 @@ export function usePrayerTimes() {
     };
   }, []);
 
+  const deviceTimeZoneId = clockContext.timeZoneId || "UTC";
+
   // Fallback defaults
   const city = DEFAULT_PRAYER_CITY.city;
   const country = DEFAULT_PRAYER_CITY.country;
-  const cityLocationKey = `city:${city}:${country}:${method}:${school}`;
+  const cityLocationKey = `city:${city}:${country}:${method}:${school}:${deviceTimeZoneId}`;
   const tomorrowKey = shiftDateKey(dayKey, 1);
   const cachedCoords = readCachedPrayerCoordinates();
   const locationIdentity = getPrayerLocationIdentity(cachedCoords);
   const tomorrowLocationKey = cachedCoords
-    ? `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}:${method}:${school}`
+    ? `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}:${method}:${school}:${deviceTimeZoneId}`
     : cityLocationKey;
   const coordsLat = cachedCoords?.lat ?? null;
   const coordsLng = cachedCoords?.lng ?? null;
   const initialCachedData = React.useMemo(() => {
     if (coordsLat !== null && coordsLng !== null) {
-      const locationKey = `coords:${coordsLat.toFixed(3)}:${coordsLng.toFixed(3)}:${method}:${school}`;
+      const locationKey = `coords:${coordsLat.toFixed(3)}:${coordsLng.toFixed(3)}:${method}:${school}:${deviceTimeZoneId}`;
       const cached = readCached(dayKey, locationKey);
       return cached ?? undefined;
     }
     return readCached(dayKey, cityLocationKey) ?? undefined;
-  }, [cityLocationKey, coordsLat, coordsLng, dayKey, method, school]);
+  }, [cityLocationKey, coordsLat, coordsLng, dayKey, deviceTimeZoneId, method, school]);
 
   const query = useQuery<PrayerTimesData>({
-    queryKey: ["prayer-times", "v3", dayKey, method, school, clockContext.timeZoneId, clockContext.utcOffsetMinutes, locationIdentity],
+    queryKey: ["prayer-times", "v4", dayKey, method, school, deviceTimeZoneId, clockContext.utcOffsetMinutes, locationIdentity],
     queryFn: async () => {
       const trySource = async (label: string, locationKey: string, fn: () => Promise<PrayerTimesResponse>) => {
         const fresh = await fn();
@@ -328,13 +333,14 @@ export function usePrayerTimes() {
 
       // 1) Last known coordinates. Never prompt for GPS as a side effect of app startup.
       if (cachedCoords) {
-        const locationKey = `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}:${method}:${school}`;
+        const locationKey = `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}:${method}:${school}:${deviceTimeZoneId}`;
         try {
+          if (browserReportsOffline()) throw new Error("offline");
           return await trySource(
             "آخر موقع محفوظ",
             locationKey,
             () =>
-            fetchPrayerTimesByCoords(cachedCoords.lat, cachedCoords.lng, method, school)
+            fetchPrayerTimesByCoords(cachedCoords.lat, cachedCoords.lng, method, school, deviceTimeZoneId)
           );
         } catch {
           const cached = readCached(dayKey, locationKey);
@@ -353,7 +359,8 @@ export function usePrayerTimes() {
       //    but if it fails we transparently move to the local adhan-based
       //    compute so the widget never lingers on a spinner.
       try {
-        return await trySource("القاهرة", cityLocationKey, () => fetchPrayerTimes(city, country, method, school));
+        if (browserReportsOffline()) throw new Error("offline");
+        return await trySource("القاهرة", cityLocationKey, () => fetchPrayerTimes(city, country, method, school, deviceTimeZoneId));
       } catch {
         const cached = readCached(dayKey, cityLocationKey);
         if (cached) return cached;
@@ -370,6 +377,9 @@ export function usePrayerTimes() {
     },
     placeholderData: initialCachedData,
     staleTime: Infinity,
+    // The query function has a local/cache fallback, so it must run even when
+    // React Query's online manager would pause other network-backed queries.
+    networkMode: "always",
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchInterval: false,
@@ -380,9 +390,10 @@ export function usePrayerTimes() {
   // the OS, because the app may stay closed across midnight. Fetch only after
   // today's location lookup has settled so this uses the same cached GPS source.
   const tomorrowQuery = useQuery<PrayerTimesData>({
-    queryKey: ["prayer-times", "tomorrow-v1", tomorrowKey, method, school, locationIdentity, tomorrowLocationKey],
+    queryKey: ["prayer-times", "tomorrow-v2", tomorrowKey, method, school, deviceTimeZoneId, clockContext.utcOffsetMinutes, locationIdentity, tomorrowLocationKey],
     enabled: Capacitor.isNativePlatform() && query.data !== undefined && !query.isPlaceholderData,
     staleTime: Infinity,
+    networkMode: "always",
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: 1,
@@ -394,9 +405,10 @@ export function usePrayerTimes() {
       const coords = cachedCoords;
       const date = parseDateKey(tomorrowKey) ?? new Date(Date.now() + 24 * 60 * 60 * 1000);
       try {
+        if (browserReportsOffline()) throw new Error("offline");
         const fresh = coords
-          ? await fetchPrayerTimesByCoords(coords.lat, coords.lng, method, school, tomorrowKey)
-          : await fetchPrayerTimes(city, country, method, school, tomorrowKey);
+          ? await fetchPrayerTimesByCoords(coords.lat, coords.lng, method, school, deviceTimeZoneId, tomorrowKey)
+          : await fetchPrayerTimes(city, country, method, school, deviceTimeZoneId, tomorrowKey);
         writeCached(tomorrowKey, locationKey, fresh);
         return { ...fresh, __sourceLabel: coords ? "الموقع الحالي" : "القاهرة" };
       } catch {

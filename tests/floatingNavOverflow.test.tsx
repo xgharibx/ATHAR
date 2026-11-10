@@ -35,6 +35,8 @@ const click = (el: HTMLElement) => act(() => { el.click(); });
 
 beforeEach(() => {
   document.body.innerHTML = "";
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  Object.defineProperty(window, "scrollY", { configurable: true, value: 0 });
   // jsdom implements neither of these; the nav uses both for real behaviour.
   if (!Element.prototype.scrollIntoView) {
     Element.prototype.scrollIntoView = () => {};
@@ -138,5 +140,94 @@ describe("the six main tabs are untouched", () => {
     expect(row).not.toBeNull();
     expect(row.querySelector(".floating-nav")).not.toBeNull();
     expect(row.querySelector(".floating-nav-dots")).not.toBeNull();
+  });
+
+  it("removes the scrolled-away nav from keyboard focus", () => {
+    mount();
+    const navLink = q('nav[aria-label="التنقل الرئيسي"] a[href="/quran"]') as HTMLAnchorElement;
+    expect(navLink).not.toBeNull();
+    navLink.focus();
+    expect(document.activeElement).toBe(navLink);
+
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 200 });
+    const originalRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = (callback) => { callback(16); return 1; };
+    act(() => window.dispatchEvent(new Event("scroll")));
+    window.requestAnimationFrame = originalRaf;
+
+    const row = q(".floating-nav-row")!;
+    expect(row.getAttribute("aria-hidden")).toBe("true");
+    expect(row.hasAttribute("inert")).toBe(true);
+    expect(Array.from(row.querySelectorAll<HTMLElement>("a, button")).every((element) => element.tabIndex === -1)).toBe(true);
+    expect(row.contains(document.activeElement)).toBe(false);
+  });
+
+  it.each([
+    "quran-focus-mode",
+    "focus-mode",
+    "companion-sheet-open",
+    "companion-focus",
+    "shorts-open",
+  ])("removes the nav from keyboard focus while body.%s hides it", async (mode) => {
+    mount();
+
+    await act(async () => {
+      document.body.classList.add(mode);
+      await Promise.resolve();
+    });
+
+    const row = q(".floating-nav-row")!;
+    expect(row.getAttribute("aria-hidden")).toBe("true");
+    expect(row.hasAttribute("inert")).toBe(true);
+    expect(Array.from(row.querySelectorAll<HTMLElement>("a, button")).every((element) => element.tabIndex === -1)).toBe(true);
+
+    await act(async () => {
+      document.body.classList.remove(mode);
+      await Promise.resolve();
+    });
+    expect(row.getAttribute("aria-hidden")).toBeNull();
+    expect(row.hasAttribute("inert")).toBe(false);
+  });
+
+  it("closes an open overflow menu when a CSS-only hidden mode starts", async () => {
+    mount();
+    click(moreBtn());
+    expect(menu()).not.toBeNull();
+
+    await act(async () => {
+      document.body.classList.add("quran-focus-mode");
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      document.body.classList.remove("quran-focus-mode");
+      await Promise.resolve();
+    });
+    expect(menu()).toBeNull();
+  });
+
+  it("removes the nav while a full-screen modal or tasbeeh focus surface is open", async () => {
+    mount();
+    const modal = document.createElement("div");
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("data-state", "open");
+    const tasbeehFocus = document.createElement("div");
+    tasbeehFocus.className = "sebha-focus";
+
+    await act(async () => {
+      document.body.append(modal, tasbeehFocus);
+      await Promise.resolve();
+    });
+
+    const row = q(".floating-nav-row")!;
+    expect(row.getAttribute("aria-hidden")).toBe("true");
+    expect(row.hasAttribute("inert")).toBe(true);
+
+    await act(async () => {
+      modal.remove();
+      tasbeehFocus.remove();
+      await Promise.resolve();
+    });
+    expect(row.getAttribute("aria-hidden")).toBeNull();
   });
 });

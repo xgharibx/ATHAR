@@ -34,6 +34,9 @@ jobs:
       - name: Enforce Google Play target API minimum
         run: node tools/scripts/check-android-target-sdk.mjs
 
+      - name: Enforce patched Capacitor native packages
+        run: node tools/scripts/check-capacitor-security.mjs
+
       - name: Check accounts config
         run: |
           if [ -z "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then

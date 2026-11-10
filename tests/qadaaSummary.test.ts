@@ -82,6 +82,39 @@ describe("buildQadaaSummary", () => {
     expect(s.fastAdvice.level).not.toBe("none");
   });
 
+  it("does not use fasting completions to estimate prayer completion pace", () => {
+    const i = base();
+    i.owed = { "p:fajr": 20 };
+    i.dayTotals = { [TODAY]: 5 };
+    i.dayKinds = { [`${TODAY}|f:1446`]: 5 };
+
+    const s = buildQadaaSummary(i);
+
+    expect(s.pace).toBe(0);
+    expect(s.paceFinish).toBeNull();
+  });
+
+  it("counts prayer pace from mixed history, excluding fasts and optional witr", () => {
+    const yesterday = "2026-10-16";
+    const i = base();
+    i.owed = { "p:fajr": 20, "p:witr": 20 };
+    i.dayTotals = { [yesterday]: 100, [TODAY]: 100 };
+    i.dayKinds = {
+      [`${yesterday}|p:fajr`]: 2,
+      [`${yesterday}|p:witr`]: 1,
+      [`${yesterday}|f:1446`]: 97,
+      [`${TODAY}|p:fajr`]: 1,
+      [`${TODAY}|p:witr`]: 2,
+      [`${TODAY}|f:1446`]: 97,
+    };
+
+    const withoutWitr = buildQadaaSummary({ ...i, settings: { includeWitr: false } });
+    const withWitr = buildQadaaSummary({ ...i, settings: { includeWitr: true } });
+
+    expect(withoutWitr.pace).toBe(1.5);
+    expect(withWitr.pace).toBe(3);
+  });
+
   it("builds a full day from the prayers still open", () => {
     const i = base();
     i.owed = { "p:fajr": 1, "p:asr": 2 };

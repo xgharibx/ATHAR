@@ -53,11 +53,18 @@ public class NoorQadaaWidgetProvider extends AtharWidgetProvider {
             String json = WidgetData.readJson(context, WIDGET_KEY);
             JSONObject payload = json != null ? new JSONObject(json) : null;
             if (payload != null && payload.optBoolean("configured", false)) {
+                String currentDay = WidgetDayFreshness.currentIbadahDayKey(
+                    new java.util.Date(), payload.optString("fajrTime", ""));
+                String storedDay = payload.optString("ibadahDay", payload.optString("day", ""));
+                boolean currentIbadahDay = WidgetDayFreshness.isCurrentDay(storedDay, currentDay);
                 int remaining = Math.max(0, payload.optInt("remaining", 0));
                 int percent = Math.max(0, Math.min(100, payload.optInt("percent", 0)));
-                int quotaTotal = Math.max(0, payload.optInt("quotaTotal", 0));
-                int quotaLeft = Math.max(0, payload.optInt("quotaLeft", 0));
-                int streak = Math.max(0, payload.optInt("streak", 0));
+                int quotaTotal = Math.max(0, WidgetDayFreshness.valueForDay(
+                    storedDay, currentDay, payload.optInt("quotaTotal", 0)));
+                int quotaLeft = Math.max(0, WidgetDayFreshness.valueForDay(
+                    storedDay, currentDay, payload.optInt("quotaLeft", 0)));
+                int streak = Math.max(0, WidgetDayFreshness.valueForDay(
+                    storedDay, currentDay, payload.optInt("streak", 0)));
                 int fastRemaining = Math.max(0, payload.optInt("fastRemaining", 0));
 
                 progress = percent / 100f;
@@ -73,8 +80,10 @@ public class NoorQadaaWidgetProvider extends AtharWidgetProvider {
                     views.setTextViewText(R.id.qadaa_surah_name,
                         quotaLeft == 0 ? "أتممتَ حصة اليوم"
                             : "اليوم " + arabicDigits(quotaTotal - quotaLeft) + "/" + arabicDigits(quotaTotal));
-                } else {
+                } else if (currentIbadahDay) {
                     views.setTextViewText(R.id.qadaa_surah_name, "لا حصة اليوم");
+                } else {
+                    views.setTextViewText(R.id.qadaa_surah_name, "افتح التطبيق لتحديث حصة اليوم");
                 }
                 views.setTextViewText(R.id.qadaa_ayah_ref,
                     fastRemaining > 0 ? arabicDigits(fastRemaining) + " صيام متبقٍ" : "");

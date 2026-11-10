@@ -243,7 +243,10 @@ export function SettingsPage() {
 
   const [isNative, setIsNative] = React.useState(false);
   const isIOS = Capacitor.getPlatform() === "ios";
-  const [aiSharingAllowed, setAiSharingAllowed] = React.useState(() => hasCompanionAiConsent());
+  const [, refreshAiSharingConsent] = React.useReducer((revision: number) => revision + 1, 0);
+  // Read the active owner's grant during render so an in-place account switch
+  // cannot leave the previous account's consent state visible in Settings.
+  const aiSharingAllowed = hasCompanionAiConsent();
   const [notifPerm, setNotifPerm] = React.useState<"unknown" | "granted" | "denied" | "prompt">("unknown");
   const [playingPreview, setPlayingPreview] = React.useState<string | null>(null);
   const [mushafOfflineStatus, setMushafOfflineStatus] = React.useState<MushafOfflineStatus | null>(null);
@@ -1668,7 +1671,7 @@ export function SettingsPage() {
                 variant="secondary"
                 onClick={() => {
                   revokeCompanionAiConsent();
-                  setAiSharingAllowed(false);
+                  refreshAiSharingConsent();
                   toast.success("تم إيقاف الإذن. سيطلبه أثر مجددًا قبل الإرسال التالي.");
                 }}
               >

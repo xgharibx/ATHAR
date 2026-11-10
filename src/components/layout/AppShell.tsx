@@ -17,6 +17,7 @@ import { GardenOrnaments } from "@/components/brand/GardenOrnaments";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { UpdatePill } from "@/components/layout/UpdatePill";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 
 /**
  * The header's hamburger drawer, hidden at the owner's request.
@@ -222,26 +223,25 @@ function todayISO() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function useSectionProgress(sectionId: string, targets: number[]) {
+function useSectionProgress(section: import("@/data/types").Section) {
   const progress = useNoorStore((s) => s.progress);
   return React.useMemo(() => {
     let done = 0;
     let total = 0;
-    targets.forEach((t, i) => {
-      const key = `${sectionId}:${i}`;
-      const target = Math.max(0, Number(t) || 0);
+    section.content.forEach((item, i) => {
+      const key = dhikrStateKey(section.id, i, item.id);
+      const target = coerceCount(item.count);
       const c = Math.max(0, Number(progress[key]) || 0);
       total += target;
       done += Math.min(c, target);
     });
     return { done, total, percent: pct(done, total) };
-  }, [progress, sectionId, targets]);
+  }, [progress, section]);
 }
 
 function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onNavigate?: () => void }) {
   const location = useLocation();
-  const targets = React.useMemo(() => s.content.map((i) => coerceCount(i.count)), [s.content]);
-  const { percent } = useSectionProgress(s.id, targets);
+  const { percent } = useSectionProgress(s);
   const isActive = location.pathname === `/c/${s.id}`;
   const identity = React.useMemo(() => getSectionIdentity(s.id), [s.id]);
 
@@ -300,7 +300,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
     for (const s of db.sections) {
       for (let i = 0; i < s.content.length; i++) {
         const target = coerceCount(s.content[i]?.count);
-        const key = `${s.id}:${i}`;
+        const key = dhikrStateKey(s.id, i, s.content[i]?.id);
         const current = Math.min(Math.max(0, Number(progress[key]) || 0), target);
         total += target;
         done += current;

@@ -3793,14 +3793,14 @@ header {
 /* Q13: Pink highlight */
 .mushaf-ayah-span.hl-pink  { background: rgba(249, 168, 212, 0.18); }
 
-/* Q9: Per-ayah memorization hide (replaces container-level class) */
-.mushaf-ayah-span.mem-hidden {
+/* Q9: Mask only ayah content; the reveal button remains clear and accessible. */
+.mushaf-ayah-content.mem-hidden-text {
   filter: blur(7px);
   user-select: none;
   cursor: pointer;
   transition: filter 0.2s;
 }
-.mushaf-ayah-span.mem-hidden:hover { filter: blur(3px); }
+.mushaf-ayah-content.mem-hidden-text:hover { filter: blur(3px); }
 
 /* Q17: In-page search match */
 .mushaf-ayah-span.search-match {

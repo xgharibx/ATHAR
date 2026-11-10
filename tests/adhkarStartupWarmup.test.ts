@@ -1,7 +1,9 @@
 /** @vitest-environment jsdom */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-afterEach(() => {
+afterEach(async () => {
+  const { setAccountStorageOwner } = await import("@/lib/accountStorageScope");
+  setAccountStorageOwner("local");
   vi.unstubAllGlobals();
   vi.doUnmock("@/data/packs");
   vi.resetModules();
@@ -50,6 +52,33 @@ describe("bundled adhkar startup warming", () => {
     const { db } = await loadAdhkarDB();
     expect(db.sections.map((section) => section.id)).toContain("second-private-section");
     expect(db.sections.map((section) => section.id)).not.toContain("first-private-section");
+    setAccountStorageOwner("local");
+  });
+
+  it("keeps an in-flight adhkar load bound to the account that started it", async () => {
+    const { setAccountStorageOwner } = await import("@/lib/accountStorageScope");
+    const { savePacks } = await import("@/data/packs");
+    const pack = (id: string) => [{ packId: id, name: id, importedAt: "2026-10-07", sections: [{ id, title: id, content: [] }] }];
+    setAccountStorageOwner("user:first");
+    savePacks(pack("first-private-section"));
+
+    let resolveCatalog!: (response: { ok: boolean; json: () => Promise<unknown> }) => void;
+    const fetchMock = vi.fn(() => new Promise<{ ok: boolean; json: () => Promise<unknown> }>((resolve) => {
+      resolveCatalog = resolve;
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    const { loadAdhkarDB } = await import("@/data/load");
+    const loadForOwner = loadAdhkarDB as unknown as (owner: string) => Promise<{ db: { sections: Array<{ id: string }> } }>;
+    const pendingLoad = loadForOwner("user:first");
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    setAccountStorageOwner("user:second");
+    savePacks(pack("second-private-section"));
+    resolveCatalog({ ok: true, json: async () => ({ sections: [] }) });
+
+    const { db } = await pendingLoad;
+    expect(db.sections.map((section) => section.id)).toContain("first-private-section");
+    expect(db.sections.map((section) => section.id)).not.toContain("second-private-section");
     setAccountStorageOwner("local");
   });
 });

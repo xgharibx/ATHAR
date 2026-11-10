@@ -36,6 +36,7 @@ import { toArabicNumeral } from "@/lib/quranMeta";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { getDailyTasbeeh } from "@/lib/leaderboardScores";
 import { getLocalDateKey } from "@/lib/dayBoundaries";
+import { customCounterKey, QUICK_SEBHA_PHRASES } from "@/lib/sebhaCustom";
 import { doHaptic, playCompletionSound } from "@/lib/sebhaHaptics";
 import { SOUND_PROFILES, mascotForPhrase } from "@/lib/dhikrCatalog";
 import type { MascotKey } from "@/lib/dhikrCatalog";
@@ -90,24 +91,9 @@ type TasbeehKey = typeof TASBEEHAT[number]["key"] | "custom";
  * Whitespace is collapsed so the same phrase typed with a stray space is the
  * same counter, not a second one.
  */
-export function customCounterKey(phrase: string | undefined | null): string {
-  const clean = String(phrase ?? "").replace(/\s+/g, " ").trim();
-  return clean ? `custom:${clean}` : "custom";
-}
+export { customCounterKey } from "@/lib/sebhaCustom";
 
 const TARGETS = [33, 100, 1000] as const;
-
-// ─── Quick-select extended phrases ─────────────────────────────────────────
-const QUICK_PHRASES: Array<{ phrase: string; target: number }> = [
-  { phrase: "سبحان الله وبحمده", target: 100 },
-  { phrase: "سبحان الله العظيم", target: 100 },
-  { phrase: "لا حول ولا قوة إلا بالله", target: 33 },
-  { phrase: "أستغفر الله", target: 100 },
-  { phrase: "اللهم صل على محمد", target: 100 },
-  { phrase: "سبحان الله وبحمده سبحان الله العظيم", target: 33 },
-  { phrase: "حسبنا الله ونعم الوكيل", target: 33 },
-  { phrase: "لا إله إلا الله وحده لا شريك له", target: 33 },
-];
 
 // ─── Haptic helper (S1) ─────────────────────────────────────────────────────
 
@@ -1365,7 +1351,7 @@ export function SebhaPage() {
       <div>
         <div className="text-[10px] font-semibold opacity-40 mb-2 uppercase tracking-wider px-1">أذكار سريعة</div>
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {QUICK_PHRASES.map((qp) => {
+          {QUICK_SEBHA_PHRASES.map((qp) => {
             const isActiveQP = selected === "custom" && sebhaCustom?.phrase === qp.phrase;
             return (
               <button
@@ -1617,7 +1603,6 @@ export function SebhaPage() {
                   variant="danger"
                   onClick={() => {
                     deleteSebhaCustomItem(editingCustomId);
-                    if (selected === "custom") setSelected("subhanallah");
                     setShowCustomForm(false);
                     setEditingCustomId(null);
                     toast.success("تم حذف الذكر");

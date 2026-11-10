@@ -5,11 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
 import { warmYouTubeApi } from "@/lib/youtubePlayer";
 import { useQadaa } from "@/hooks/useQadaa";
-
-function todayISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+import { useTodayKey } from "@/hooks/useTodayKey";
+import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 
 const NAV_ITEMS = [
   { path: "/", label: "الرئيسية", icon: House },
@@ -36,28 +33,44 @@ const MORE_ITEMS = [
   { path: "/favorites", label: "المفضلة", icon: Heart },
 ] as const;
 
+const CSS_HIDDEN_NAV_MODES = [
+  "quran-focus-mode",
+  "focus-mode",
+  "companion-sheet-open",
+  "companion-focus",
+  "shorts-open",
+] as const;
+
+function hasCssHiddenNavSurface(): boolean {
+  return CSS_HIDDEN_NAV_MODES.some((mode) => document.body.classList.contains(mode))
+    || document.querySelector('[role="dialog"][data-state="open"], .sebha-focus') !== null;
+}
+
 export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [hidden, setHidden] = React.useState(false);
+  const [surfaceHidden, setSurfaceHidden] = React.useState(false);
   const [moreOpen, setMoreOpen] = React.useState(false);
+  const navRowRef = React.useRef<HTMLDivElement | null>(null);
   const moreRef = React.useRef<HTMLDivElement | null>(null);
   const moreBtnRef = React.useRef<HTMLButtonElement | null>(null);
   const lastScrollY = React.useRef(0);
   const ticking = React.useRef(false);
   const prevPath = React.useRef(location.pathname);
+  const navUnavailable = hidden || Boolean(drawerOpen) || surfaceHidden;
 
   const activity = useNoorStore((s) => s.activity);
   const khatmaDone = useNoorStore((s) => s.khatmaDone);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
-  const todayCount = activity[todayISO()] ?? 0;
+  const today = useTodayKey();
+  const todayCount = activity[today] ?? 0;
 
   const khatmaDueToday = React.useMemo(() => {
     if (!khatmaStartISO || !khatmaDays) return false;
-    const today = todayISO();
-    return !(khatmaDone?.[today] ?? false);
-  }, [khatmaStartISO, khatmaDays, khatmaDone]);
+    return isKhatmaDateWithinPlan(today, khatmaStartISO, khatmaDays) && !(khatmaDone?.[today] ?? false);
+  }, [khatmaStartISO, khatmaDays, khatmaDone, today]);
 
   React.useEffect(() => {
     let mounted = true;
@@ -83,6 +96,22 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
       mounted = false;
       window.removeEventListener("scroll", onScroll);
     };
+  }, []);
+
+  // Several full-screen and focus surfaces hide this row through CSS. Mirror
+  // those existing CSS conditions into the accessibility tree so their hidden
+  // controls cannot still receive keyboard focus.
+  React.useEffect(() => {
+    const updateSurfaceVisibility = () => setSurfaceHidden(hasCssHiddenNavSurface());
+    updateSurfaceVisibility();
+    const observer = new MutationObserver(updateSurfaceVisibility);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class", "data-state"],
+      childList: true,
+      subtree: true,
+    });
+    return () => observer.disconnect();
   }, []);
 
   // Dismiss the overflow menu the way a native one behaves: tap anywhere else,
@@ -111,8 +140,20 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
 
   // A hidden nav must not leave an orphaned popover floating on screen.
   React.useEffect(() => {
-    if (hidden || drawerOpen) setMoreOpen(false);
-  }, [hidden, drawerOpen]);
+    if (hidden || drawerOpen || surfaceHidden) setMoreOpen(false);
+  }, [hidden, drawerOpen, surfaceHidden]);
+
+  // `opacity` and `pointer-events` only hide the row visually. Keep it out of
+  // keyboard navigation too; the explicit tabIndex fallback also covers older
+  // WebViews that do not implement the native inert attribute.
+  React.useEffect(() => {
+    const row = navRowRef.current;
+    if (!row) return;
+    row.toggleAttribute("inert", navUnavailable);
+    if (navUnavailable && document.activeElement instanceof HTMLElement && row.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
+  }, [navUnavailable]);
 
   React.useEffect(() => {
     setMoreOpen(false);
@@ -158,6 +199,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
               key={item.path}
               to={item.path}
               className={`floating-nav-item ${active ? "active" : ""}`}
+              tabIndex={navUnavailable ? -1 : undefined}
               aria-label={
                 item.path === "/quran" && khatmaDueToday
                   ? `${item.label} — ورد القرآن مطلوب`
@@ -220,6 +262,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
                   navigate(item.path);
                 }}
                 className={`floating-nav-more-item ${active ? "active" : ""}`}
+                tabIndex={navUnavailable ? -1 : undefined}
                 aria-label={item.label}
                 title={item.label}
               >
@@ -246,6 +289,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
           if (opening) void warmYouTubeApi();
         }}
         className={`floating-nav-dots ${moreActive || moreOpen ? "active" : ""}`}
+        tabIndex={navUnavailable ? -1 : undefined}
         aria-label="المزيد"
         aria-haspopup="menu"
         aria-expanded={moreOpen}
@@ -258,8 +302,9 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
 
   return (
     <div
+      ref={navRowRef}
       className={`floating-nav-row xl:hidden ${hidden || drawerOpen ? "nav-hidden" : ""}`}
-      aria-hidden={drawerOpen ? "true" : undefined}
+      aria-hidden={navUnavailable ? "true" : undefined}
       style={drawerOpen ? { pointerEvents: "none" } : undefined}
     >
       {/* Invisible twin of the dots on the opposite side. It is what keeps the
@@ -274,6 +319,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
           navigate("/qadaa");
         }}
         className={`floating-nav-dots floating-nav-qadaa ${qadaaActive ? "active" : ""}`}
+        tabIndex={navUnavailable ? -1 : undefined}
         aria-label={qadaaPending ? `قضاء الفوائت، متبقٍ اليوم ${qadaa.quotaLeftTotal}` : "قضاء الفوائت"}
         aria-current={qadaaActive ? "page" : undefined}
       >

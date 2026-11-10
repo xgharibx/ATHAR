@@ -12,6 +12,31 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+function copyLocalNotificationsSwift(repoRoot, fixtureRoot) {
+  const source = path.join(
+    repoRoot,
+    "node_modules",
+    "@capacitor",
+    "local-notifications",
+    "ios",
+    "Sources",
+    "LocalNotificationsPlugin",
+    "LocalNotificationsPlugin.swift",
+  );
+  const target = path.join(
+    fixtureRoot,
+    "node_modules",
+    "@capacitor",
+    "local-notifications",
+    "ios",
+    "Sources",
+    "LocalNotificationsPlugin",
+    "LocalNotificationsPlugin.swift",
+  );
+  mkdirSync(path.dirname(target), { recursive: true });
+  copyFileSync(source, target);
+}
+
 describe("Capacitor ProGuard compatibility postinstall", () => {
   it("rewrites legacy ProGuard files across installed Capacitor Android modules", () => {
     const repoRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -120,6 +145,7 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       );
       mkdirSync(path.dirname(manifestTarget), { recursive: true });
       copyFileSync(notificationManifestSource, manifestTarget);
+      copyLocalNotificationsSwift(repoRoot, fixtureRoot);
 
       execFileSync(process.execPath, [fixtureScript], { cwd: fixtureRoot });
 
@@ -236,6 +262,7 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       }
       mkdirSync(path.dirname(patchedManifest), { recursive: true });
       copyFileSync(sourceManifest, patchedManifest);
+      copyLocalNotificationsSwift(repoRoot, fixtureRoot);
 
       execFileSync(process.execPath, [fixtureScript], { cwd: fixtureRoot });
 
@@ -337,24 +364,23 @@ public final class DateMatchDstProbe {
 
       const receiverPath = path.join(patchedPluginRoot, javaFiles[2]);
       const currentReceiver = readFileSync(receiverPath, "utf8");
-      const timezoneCondition = currentReceiver.indexOf("timeOrTimezoneChanged && at != null && schedule.isRepeating()");
-      const timezoneRebaseStart = currentReceiver.lastIndexOf("                if (", timezoneCondition);
-      const expiredScheduleStart = currentReceiver.indexOf(
-        "                if (at != null && !at.after(now)) {",
-        timezoneRebaseStart,
+      const wallClockStart = currentReceiver.indexOf(
+        "                if (timeOrTimezoneChanged && at != null && !schedule.isRepeating()) {",
       );
-      expect(timezoneRebaseStart).toBeGreaterThanOrEqual(0);
-      expect(expiredScheduleStart).toBeGreaterThan(timezoneRebaseStart);
+      const dailyStart = currentReceiver.indexOf(
+        "                if (timeOrTimezoneChanged && at != null && schedule.isRepeating()",
+        wallClockStart,
+      );
+      expect(wallClockStart).toBeGreaterThanOrEqual(0);
+      expect(dailyStart).toBeGreaterThan(wallClockStart);
 
-      // Recreate the previous postinstall patch: it already had Date at/now and
-      // expired-schedule recovery, but did not rebase after a timezone change.
-      writeFileSync(
-        receiverPath,
-        currentReceiver.slice(0, timezoneRebaseStart) + currentReceiver.slice(expiredScheduleStart),
-      );
+      // Recreate the previous patch: it already had daily rebasing and expired
+      // schedule recovery, but not date-specific one-shot rebasing.
+      writeFileSync(receiverPath, currentReceiver.slice(0, wallClockStart) + currentReceiver.slice(dailyStart));
       execFileSync(process.execPath, [fixtureScript], { cwd: fixtureRoot });
       const upgradedReceiver = readFileSync(receiverPath, "utf8");
       expect(upgradedReceiver).toContain("boolean timeOrTimezoneChanged");
+      expect(upgradedReceiver).toContain("DateMatch.atLocalWallClock(");
       expect(upgradedReceiver).toContain("DateMatch.nextConfiguredLocalTimeAfter(at, configuredHour, configuredMinute, now)");
       expect(upgradedReceiver).toContain('savedSchedule.put("at", dateFormat.format(at))');
     } finally {

@@ -16,16 +16,16 @@ platform :ios do
       app_identifier: "com.athar.adhkar",
       # Keep listing uploads pinned to the version configured by the repo.
       app_version: JSON.parse(File.read(File.expand_path("../../package.json", __dir__))).fetch("version"),
-      # The app UI is Arabic-only today. Keep English drafts out of the live
-      # upload path until the English UI and a matching screenshot set ship.
+      # The interface is Arabic today; provide both store-page localizations
+      # and use the same approved Arabic-interface screenshots in each.
       metadata_path: "./fastlane/release/metadata",
       screenshots_path: "./fastlane/release/screenshots",
-      languages: ["ar-SA"],
+      languages: ["ar-SA", "en-US"],
       skip_binary_upload: true,
       skip_app_version_update: false,
       force: true,
       submit_for_review: false,
-      automatic_release: false,
+      automatic_release: true,
       precheck_include_in_app_purchases: false,
       overwrite_screenshots: true
     )

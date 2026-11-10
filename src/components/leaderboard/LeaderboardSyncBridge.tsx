@@ -3,14 +3,12 @@ import * as React from "react";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useTodayKey } from "@/hooks/useTodayKey";
-import { isRateLimited, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot, LEADERBOARD_SUBMITTED_EVENT } from "@/lib/leaderboard";
-import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
+import { getRateLimitBackoffRemainingMs, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot, LEADERBOARD_SUBMITTED_EVENT } from "@/lib/leaderboard";
+import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
+import { getLeaderboardNetworkRetryDelayMs } from "@/lib/leaderboardRetry";
 import { useNoorStore } from "@/store/noorStore";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSyncStatus } from "@/hooks/useCloudSync";
-
-/** Stable empty object: a fresh {} from a selector re-renders on every store tick. */
-const EMPTY_PRAYER_LOG: Record<string, boolean> = {};
 
 const AUTO_SYNC_DEBOUNCE_MS = 2500;
 
@@ -28,14 +26,16 @@ export function LeaderboardSyncBridge() {
   const lastKnownFajrTime = useNoorStore((state) => state.lastKnownFajrTime);
   const effectiveFajr = prayerTimes.data?.data?.timings?.Fajr ?? lastKnownFajrTime ?? undefined;
   const todayKey = useTodayKey({ mode: "ibadah", fajrTime: effectiveFajr });
+  const civilTodayKey = useTodayKey();
   const progress = useNoorStore((state) => state.progress);
-  const quranAyahsToday = useNoorStore((state) => state.quranDailyAyahs[todayKey] ?? 0);
-  const prayersDone = useNoorStore((state) => state.dailyChecklist[todayKey] ?? {});
+  const customPacks = useNoorStore((state) => state.customPacks);
+  const quranDailyAyahs = useNoorStore((state) => state.quranDailyAyahs);
+  const dailyChecklist = useNoorStore((state) => state.dailyChecklist);
+  const prayerLog = useNoorStore((state) => state.prayerLog);
   // The five fard prayers actually logged today. Recorded since the actionable
   // prayer notifications shipped, and until now scored against nothing.
-  const prayersLoggedToday = useNoorStore((state) => state.prayerLog?.[todayKey] ?? EMPTY_PRAYER_LOG);
   const quickTasbeeh = useNoorStore((state) => state.quickTasbeeh);
-  const tasbeehTodayTotal = useNoorStore((state) => state.tasbeehDayTotals?.[todayKey] ?? 0);
+  const tasbeehDayTotals = useNoorStore((state) => state.tasbeehDayTotals);
   const lastIbadahResetISO = useNoorStore((state) => state.lastIbadahResetISO);
   const ensureDailyResets = useNoorStore((state) => state.ensureDailyResets);
   // Two devices on one account must report the SAME score. They already share
@@ -61,21 +61,48 @@ export function LeaderboardSyncBridge() {
   const lastSyncedKeyRef = React.useRef("");
   const syncingRef = React.useRef(false);
   const pendingSyncRef = React.useRef(false);
+  const retryAttemptRef = React.useRef(0);
+  const retryTimerRef = React.useRef<number | null>(null);
+  const retryWakeRef = React.useRef(false);
+  const networkRetryAtRef = React.useRef(0);
+  const identityGenerationRef = React.useRef(0);
+
+  const clearRetryTimer = React.useCallback(() => {
+    if (retryTimerRef.current !== null) {
+      window.clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleRetry = React.useCallback((delayMs: number, replace = false) => {
+    if (retryTimerRef.current !== null && !replace) return;
+    clearRetryTimer();
+    retryTimerRef.current = window.setTimeout(() => {
+      retryTimerRef.current = null;
+      networkRetryAtRef.current = 0;
+      retryWakeRef.current = true;
+      setRetryTick((value) => value + 1);
+    }, Math.max(0, Math.ceil(delayMs)));
+  }, [clearRetryTimer]);
+
+  React.useEffect(() => clearRetryTimer, [clearRetryTimer]);
 
   const sections = React.useMemo(() => data?.db.sections ?? [], [data]);
   const stats = React.useMemo(
     () =>
-      buildLeaderboardScoreStats({
+      buildLeaderboardScoreStatsForDay({
         sections,
+        customPacks,
         progress,
-        quranAyahsToday,
-        prayersDone,
-        prayersLoggedToday,
+        quranDailyAyahs,
+        dailyChecklist,
+        prayerLog,
         quickTasbeeh,
-        tasbeehTodayTotal,
-        todayISO: todayKey
+        tasbeehDayTotals,
+        todayISO: todayKey,
+        civilTodayISO: civilTodayKey,
       }),
-    [prayersDone, prayersLoggedToday, progress, quranAyahsToday, quickTasbeeh, tasbeehTodayTotal, sections, todayKey]
+    [civilTodayKey, customPacks, dailyChecklist, prayerLog, progress, quranDailyAyahs, quickTasbeeh, tasbeehDayTotals, sections, todayKey]
   );
 
   const snapshotKey = React.useMemo(
@@ -84,7 +111,20 @@ export function LeaderboardSyncBridge() {
   );
 
   React.useEffect(() => {
-    const triggerRetry = () => setRetryTick((value) => value + 1);
+    const triggerRetry = () => {
+      const remaining = getRateLimitBackoffRemainingMs();
+      if (remaining > 0) {
+        scheduleRetry(remaining);
+        return;
+      }
+      const networkBackoffRemaining = Math.max(0, networkRetryAtRef.current - Date.now());
+      if (networkBackoffRemaining > 0) {
+        scheduleRetry(networkBackoffRemaining);
+        return;
+      }
+      clearRetryTimer();
+      setRetryTick((value) => value + 1);
+    };
     const onVisible = () => {
       if (document.visibilityState === "visible") triggerRetry();
     };
@@ -93,7 +133,12 @@ export function LeaderboardSyncBridge() {
     // clear the "already sent this" guard or they would never be posted under
     // the new one and the day would look empty.
     const onIdentityChanged = () => {
+      identityGenerationRef.current += 1;
       lastSyncedKeyRef.current = "";
+      retryAttemptRef.current = 0;
+      networkRetryAtRef.current = 0;
+      retryWakeRef.current = true;
+      clearRetryTimer();
       triggerRetry();
     };
 
@@ -108,7 +153,7 @@ export function LeaderboardSyncBridge() {
       window.removeEventListener("athar-leaderboard-identity-changed", onIdentityChanged);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [clearRetryTimer, scheduleRetry]);
 
   React.useEffect(() => {
     if (!endpoint || sections.length === 0) return;
@@ -145,18 +190,59 @@ export function LeaderboardSyncBridge() {
     }
 
     if (snapshotKey === lastSyncedKeyRef.current) return;
-    if (isRateLimited()) return;
+    const rateLimitRemaining = getRateLimitBackoffRemainingMs();
+    if (rateLimitRemaining > 0) {
+      scheduleRetry(rateLimitRemaining);
+      return;
+    }
 
+    const networkBackoffRemaining = Math.max(0, networkRetryAtRef.current - Date.now());
+    if (networkBackoffRemaining > 0) {
+      scheduleRetry(networkBackoffRemaining);
+      return;
+    }
+
+    const delay = retryWakeRef.current ? 0 : AUTO_SYNC_DEBOUNCE_MS;
+    retryWakeRef.current = false;
     const timeoutId = window.setTimeout(async () => {
       if (syncingRef.current) {
         pendingSyncRef.current = true;
         return;
       }
-      if (isRateLimited()) return;
+      const retryAfterRemaining = getRateLimitBackoffRemainingMs();
+      if (retryAfterRemaining > 0) {
+        scheduleRetry(retryAfterRemaining);
+        return;
+      }
+      const networkBackoffRemaining = Math.max(0, networkRetryAtRef.current - Date.now());
+      if (networkBackoffRemaining > 0) {
+        scheduleRetry(networkBackoffRemaining);
+        return;
+      }
+      const requestGeneration = identityGenerationRef.current;
+      clearRetryTimer();
       syncingRef.current = true;
+      let succeeded = false;
       try {
         const flush = await syncLeaderboardSnapshot(endpoint, todayKey, stats.scores, stats.metrics);
-        if (!flush.ok) return;
+        if (requestGeneration !== identityGenerationRef.current) return;
+        if (!flush.ok) {
+          if (flush.reason === "network_retry") {
+            const delayMs = getLeaderboardNetworkRetryDelayMs(retryAttemptRef.current);
+            networkRetryAtRef.current = Date.now() + delayMs;
+            scheduleRetry(delayMs);
+            retryAttemptRef.current += 1;
+          } else if (flush.reason === "rate_limited") {
+            retryAttemptRef.current = 0;
+            networkRetryAtRef.current = 0;
+            scheduleRetry(flush.retryAfterMs ?? getRateLimitBackoffRemainingMs(), true);
+          }
+          return;
+        }
+        succeeded = true;
+        clearRetryTimer();
+        retryAttemptRef.current = 0;
+        networkRetryAtRef.current = 0;
         lastSyncedKeyRef.current = snapshotKey;
         // Say so, so a leaderboard already on screen re-reads the standings
         // rather than showing a rank that predates the score just sent.
@@ -172,10 +258,13 @@ export function LeaderboardSyncBridge() {
         syncingRef.current = false;
         if (pendingSyncRef.current) {
           pendingSyncRef.current = false;
-          setRetryTick((value) => value + 1);
+          if (succeeded || requestGeneration !== identityGenerationRef.current) {
+            if (requestGeneration !== identityGenerationRef.current) retryWakeRef.current = true;
+            setRetryTick((value) => value + 1);
+          }
         }
       }
-    }, AUTO_SYNC_DEBOUNCE_MS);
+    }, delay);
 
     return () => window.clearTimeout(timeoutId);
   }, [
@@ -190,6 +279,8 @@ export function LeaderboardSyncBridge() {
     ensureDailyResets,
     effectiveFajr,
     awaitingFirstSync,
+    clearRetryTimer,
+    scheduleRetry,
   ]);
 
   return null;

@@ -8,6 +8,7 @@ type EdgeOptions = {
   clientId?: string;
   clientSecret?: string;
   env?: string;
+  oauthStatus?: number;
   apiUnauthorizedResponses?: number;
   rateLimitAllowed?: boolean;
   rateLimitStatus?: number;
@@ -38,6 +39,7 @@ function createEdge(options: EdgeOptions = {}) {
       const url = String(input);
       calls.push({ url, init });
       if (url.includes("/oauth2/token")) {
+        if (options.oauthStatus) return new Response("OAuth unavailable", { status: options.oauthStatus });
         return Response.json({ access_token: "synthetic-access-token", expires_in: 3600, token_type: "Bearer" });
       }
       if (url.endsWith("/rest/v1/rpc/reserve_quran_translation_request")) {
@@ -159,8 +161,35 @@ describe("Quran Foundation translation Edge Function", () => {
     expect(edge.calls).toHaveLength(1);
   });
 
-  it("does not call Quran Foundation if server credentials or environment are missing", async () => {
-    const edge = createEdge({ clientId: "" });
+  it.each([22, 234])("uses the public compatibility endpoint for translation %i when credentials are absent", async (translationId) => {
+    const edge = createEdge({ clientId: "", clientSecret: "" });
+    const response = await edge.request({ translationId, chapterNumber: 1 });
+
+    expect(response.status).toBe(200);
+    expect((await response.json()).translations).toEqual([
+      { verse_key: "1:1", text: "In the Name 1 & mercy" },
+      { verse_key: "1:2", text: "A second ayah" },
+    ]);
+    expect(edge.calls.map((call) => call.url)).toEqual([
+      "https://synthetic.supabase.co/rest/v1/rpc/reserve_quran_translation_request",
+      `https://api.quran.com/api/v4/quran/translations/${translationId}?chapter_number=1&fields=verse_key`,
+    ]);
+  });
+
+  it("does not use the compatibility endpoint when configured credentials fail", async () => {
+    const edge = createEdge({ oauthStatus: 401 });
+    const response = await edge.request({ translationId: 22, chapterNumber: 1 });
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({ error: "translation-service-unavailable" });
+    expect(edge.calls.some((call) => call.url.startsWith("https://api.quran.com/"))).toBe(false);
+  });
+
+  it.each([
+    { clientId: "synthetic-client-id", clientSecret: "" },
+    { clientId: "", clientSecret: "synthetic-client-secret" },
+  ])("fails closed when only part of the Quran Foundation credential pair exists", async (credentials) => {
+    const edge = createEdge(credentials);
     const response = await edge.request({ translationId: 22, chapterNumber: 1 });
 
     expect(response.status).toBe(503);

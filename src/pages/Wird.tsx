@@ -12,7 +12,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useNoorStore, ibadahDayKeyOf } from "@/store/noorStore";
 import { addDays, parseISO } from "@/lib/qadaa";
 import {
-  SLOT_LABELS, SLOT_ORDER, TEMPLATES, WEEKDAY_SHORT, completionRate, countOn, dueOn, ratio, streak, weekRow,
+  SLOT_LABELS, SLOT_ORDER, TEMPLATES, WEEKDAY_SHORT, completionRate, countOn, dueOn, isAutoLinkCompatible, ratio, streak, weekRow,
   type WirdAuto, type WirdItem, type WirdKind, type WirdSlot,
 } from "@/lib/wird";
 
@@ -50,13 +50,18 @@ export function WirdPage() {
   const items = useNoorStore((s) => s.wirdItems);
   const log = useNoorStore((s) => s.wirdLog);
   const today = useNoorStore((s) => ibadahDayKeyOf(s));
+  const days = React.useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(today, i - 6)), [today]);
   const upsert = useNoorStore((s) => s.upsertWirdItem);
   const remove = useNoorStore((s) => s.removeWirdItem);
   const adjust = useNoorStore((s) => s.adjustWird);
   const external = useExternal();
 
-  const [day, setDay] = React.useState(today);
+  const [historicalDay, setHistoricalDay] = React.useState<string | null>(null);
+  const day = historicalDay && days.includes(historicalDay) ? historicalDay : today;
   const stripRef = React.useRef<HTMLDivElement | null>(null);
+  React.useEffect(() => {
+    if (historicalDay && !days.includes(historicalDay)) setHistoricalDay(null);
+  }, [days, historicalDay]);
   // The strip runs oldest to newest and can be wider than the screen: bring the
   // chosen day (today, at first) into view instead of leaving it off the edge.
   React.useEffect(() => {
@@ -84,7 +89,6 @@ export function WirdPage() {
 
   const list = React.useMemo(() => Object.values(items), [items]);
   const due = React.useMemo(() => dueOn(list, day), [list, day]);
-  const days = React.useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(today, i - 6)), [today]);
   const dayName = (iso: string) => {
     const ms = parseISO(iso);
     return ms === null ? "" : WEEKDAY_SHORT[new Date(ms).getUTCDay()];
@@ -165,7 +169,12 @@ export function WirdPage() {
             <div className="flex gap-2">
               {(Object.keys(KIND_LABEL) as WirdKind[]).map((k) => (
                 <button key={k} type="button" aria-pressed={draft.kind === k}
-                  onClick={() => setDraft({ ...draft, kind: k, unit: UNITS[k][0], auto: k === "quran" ? draft.auto : draft.auto === "quranAyahs" ? null : draft.auto })}
+                  onClick={() => {
+                    if (draft.kind === k) return;
+                    const unit = UNITS[k][0];
+                    const auto = isAutoLinkCompatible({ kind: k, unit, auto: draft.auto }) ? draft.auto : null;
+                    setDraft({ ...draft, kind: k, unit, auto });
+                  }}
                   className={cn("flex-1 py-2 rounded-2xl text-sm border", draft.kind === k ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}>
                   {KIND_LABEL[k]}
                 </button>
@@ -178,7 +187,11 @@ export function WirdPage() {
                 className="w-24 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2.5 text-sm" aria-label="المقدار"
               />
               {UNITS[draft.kind].length > 1 ? (
-                <Select value={draft.unit} onChange={(e) => setDraft({ ...draft, unit: e.target.value })} aria-label="الوحدة"
+                <Select value={draft.unit} onChange={(e) => {
+                  const unit = e.target.value;
+                  const auto = isAutoLinkCompatible({ kind: draft.kind, unit, auto: draft.auto }) ? draft.auto : null;
+                  setDraft({ ...draft, unit, auto });
+                }} aria-label="الوحدة"
                   className="flex-1 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-4 py-2.5 text-sm">
                   {UNITS[draft.kind].map((u) => <option key={u} value={u}>{u}</option>)}
                 </Select>
@@ -208,10 +221,15 @@ export function WirdPage() {
             <Select value={draft.auto ?? ""} onChange={(e) => setDraft({ ...draft, auto: (e.target.value || null) as WirdAuto | null })} aria-label="الربط التلقائي"
               className="w-full rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-4 py-2.5 text-sm">
               <option value="">بدون ربط (أسجّله بنفسي)</option>
-              {(Object.keys(AUTO_LABEL) as WirdAuto[]).filter((a) => a !== "quranAyahs" || draft.kind === "quran").map((a) => (
+              {(Object.keys(AUTO_LABEL) as WirdAuto[]).filter((a) => isAutoLinkCompatible({ kind: draft.kind, unit: draft.unit, auto: a })).map((a) => (
                 <option key={a} value={a}>{AUTO_LABEL[a]}</option>
               ))}
             </Select>
+            {draft.kind === "quran" && (
+              <p className="text-[11px] text-[var(--muted)] -mt-2">
+                القراءة التلقائية متاحة بوحدة الآية فقط؛ الصفحات والأجزاء تُسجَّل يدويًا.
+              </p>
+            )}
             <div className="flex gap-2 pt-1">
               <Button className="flex-1" onClick={save}>حفظ</Button>
               {draft.id && (
@@ -240,7 +258,7 @@ export function WirdPage() {
           const done = dueItems.filter((i) => ratio(countOn(log, i, d, external), i.target) >= 1).length;
           const sel = d === day;
           return (
-            <button key={d} type="button" role="tab" aria-selected={sel} onClick={() => setDay(d)}
+            <button key={d} type="button" role="tab" aria-selected={sel} onClick={() => setHistoricalDay(d === today ? null : d)}
               className={cn("shrink-0 w-[52px] rounded-2xl py-2 text-center border", sel ? "border-[var(--accent)] bg-[var(--card-2)]" : "border-[var(--stroke)] bg-[var(--card)]")}>
               <div className="text-[10px] text-[var(--muted)]">{d === today ? "اليوم" : dayName(d)}</div>
               <div className="text-sm font-semibold">{arNum(Number(d.slice(8)))}</div>
@@ -269,9 +287,9 @@ export function WirdPage() {
             const linked = !!it.auto && count > (log[`${day}|${it.id}`] ?? 0);
             const step = it.kind === "dhikr" && it.target >= 33 ? 10 : 1;
             return (
-              <div key={it.id} data-testid={`wird-${it.id}`} className="rounded-2xl bg-[var(--card)] px-4 py-3 space-y-2">
+            <div key={it.id} data-testid={`wird-${it.id}`} className="rounded-2xl bg-[var(--card)] px-4 py-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <button type="button" className="text-sm font-medium text-start flex-1" onClick={() => setDraft({ ...it })}>{it.title}</button>
+                <button type="button" className="text-sm font-medium text-start flex-1" onClick={() => setDraft({ ...it, auto: isAutoLinkCompatible(it) ? it.auto : null })}>{it.title}</button>
                   <span className="text-[11px] text-[var(--muted)]">{arNum(count)}/{arNum(it.target)} {it.unit}</span>
                 </div>
                 <div className="h-1.5 rounded-full bg-[var(--stroke)] overflow-hidden">

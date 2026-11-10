@@ -691,7 +691,7 @@ export function buildPrayerSchedule(timings: PrayerTimings, now = new Date()): P
 
   let current = [...primary].reverse().find((prayer) => prayer.at.getTime() <= now.getTime());
   if (!current) {
-    const lastPrayer = primary.at(-1);
+    const lastPrayer = primary[primary.length - 1];
     if (!lastPrayer) return null;
 
     const yesterday = new Date(lastPrayer.at);

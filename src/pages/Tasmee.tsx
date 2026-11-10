@@ -55,6 +55,7 @@ export function TasmeePage() {
   useScrollRestoration();
 
   const [db, setDb] = React.useState<QuranDB | null>(null);
+  const [quranLoadFailed, setQuranLoadFailed] = React.useState(false);
   const [surahId, setSurahId] = React.useState(1);
   const [started, setStarted] = React.useState(false);
   const [ayahIdx, setAyahIdx] = React.useState(0);
@@ -65,11 +66,29 @@ export function TasmeePage() {
 
   const [voiceOn, setVoiceOn] = React.useState(false);
   const recRef = React.useRef<SR | null>(null);
+  const sessionIdRef = React.useRef(0);
+  const gradedVerseRef = React.useRef<string | null>(null);
+  const quranLoadRequestRef = React.useRef(0);
+  const missedTimerRef = React.useRef<number | null>(null);
   const voiceSupported = React.useMemo(() => getSpeechRecognition() !== null, []);
 
-  React.useEffect(() => {
-    void loadQuranDB().then(setDb).catch(() => toast.error("تعذّر تحميل المصحف"));
+  const loadQuran = React.useCallback(async () => {
+    const requestId = ++quranLoadRequestRef.current;
+    setQuranLoadFailed(false);
+    try {
+      const loaded = await loadQuranDB();
+      if (requestId !== quranLoadRequestRef.current) return;
+      setDb(loaded);
+    } catch {
+      if (requestId !== quranLoadRequestRef.current) return;
+      setQuranLoadFailed(true);
+      toast.error("تعذّر تحميل المصحف");
+    }
   }, []);
+
+  React.useEffect(() => {
+    void loadQuran();
+  }, [loadQuran]);
 
   const surah = db?.find((s) => s.id === surahId) ?? null;
   const ayah = surah?.ayahs[ayahIdx] ?? "";
@@ -81,9 +100,13 @@ export function TasmeePage() {
     setVoiceOn(false);
   }, []);
 
-  React.useEffect(() => () => stopVoice(), [stopVoice]);
+  React.useEffect(() => () => {
+    quranLoadRequestRef.current += 1;
+    stopVoice();
+    if (missedTimerRef.current !== null) window.clearTimeout(missedTimerRef.current);
+  }, [stopVoice]);
 
-  const gradeAndNext = React.useCallback((res: AyahResult) => {
+  const commitGradeAndNext = React.useCallback((res: AyahResult) => {
     setResults((prev) => [...prev, res]);
     if (!surah || ayahIdx + 1 >= surah.ayahs.length) {
       setFinished(true);
@@ -94,6 +117,13 @@ export function TasmeePage() {
     setRevealed(0);
     setUsedHint(false);
   }, [surah, ayahIdx, stopVoice]);
+
+  const currentVerseKey = `${sessionIdRef.current}:${surahId}:${ayahIdx}`;
+  const gradeAndNext = React.useCallback((res: AyahResult) => {
+    if (gradedVerseRef.current === currentVerseKey) return;
+    gradedVerseRef.current = currentVerseKey;
+    commitGradeAndNext(res);
+  }, [commitGradeAndNext, currentVerseKey]);
 
   // ── Live voice following (تجريبي) ────────────────────────────────────────
   const revealedRef = React.useRef(0);
@@ -137,6 +167,8 @@ export function TasmeePage() {
   }, [stopVoice]);
 
   const startSession = () => {
+    sessionIdRef.current += 1;
+    gradedVerseRef.current = null;
     setStarted(true);
     setAyahIdx(0);
     setRevealed(0);
@@ -175,10 +207,20 @@ export function TasmeePage() {
               </option>
             ))}
           </Select>
-          <button type="button" onClick={startSession} disabled={!db}
-            className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-black/80 transition active:scale-[0.99] disabled:opacity-50">
-            {db ? "ابدأ التسميع" : "جارٍ تحميل المصحف…"}
-          </button>
+          {quranLoadFailed ? (
+            <div className="space-y-2" role="alert">
+              <p className="text-sm text-[var(--danger)]">تعذّر تحميل المصحف. أعد المحاولة للبدء.</p>
+              <button type="button" onClick={() => void loadQuran()}
+                className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-black/80 transition active:scale-[0.99]">
+                إعادة المحاولة
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={startSession} disabled={!db}
+              className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-black/80 transition active:scale-[0.99] disabled:opacity-50">
+              {db ? "ابدأ التسميع" : "جارٍ تحميل المصحف…"}
+            </button>
+          )}
           <p className="text-[11px] leading-6 text-[var(--muted-2)]">
             {voiceSupported
               ? "🎙️ جهازك يدعم المتابعة الصوتية الحية (تجريبي): فعِّل الميكروفون أثناء الجلسة وستنكشف الكلمات كلما تلوتَها. يعتمد التعرف على خدمة المتصفح أو النظام وقد تُعالَج الأصوات خارج الجهاز؛ أثر لا يحفظ تسجيلات صوتية."
@@ -231,7 +273,15 @@ export function TasmeePage() {
               <Check className="h-4 w-4" aria-hidden="true" /> {usedHint ? "أتممتها بمساعدة" : "أتقنتها"}
             </button>
             <button type="button"
-              onClick={() => { setRevealed(words.length); window.setTimeout(() => gradeAndNext("missed"), 900); }}
+              onClick={() => {
+                if (gradedVerseRef.current === currentVerseKey) return;
+                gradedVerseRef.current = currentVerseKey;
+                setRevealed(words.length);
+                missedTimerRef.current = window.setTimeout(() => {
+                  missedTimerRef.current = null;
+                  commitGradeAndNext("missed");
+                }, 900);
+              }}
               className="flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-bold transition active:scale-[0.99]"
               style={{ background: "color-mix(in srgb, var(--danger) 14%, transparent)", color: "var(--danger)", border: "1px solid color-mix(in srgb, var(--danger) 35%, transparent)" }}>
               <X className="h-4 w-4" aria-hidden="true" /> أخطأت — أرِني

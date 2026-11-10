@@ -24,10 +24,21 @@ describe("due days", () => {
 
 describe("progress", () => {
   it("takes the larger of the manual count and what the app already tracked", () => {
-    const it1 = item({ auto: "quranAyahs", target: 10 });
+    const it1 = item({ unit: "آية", auto: "quranAyahs", target: 10 });
     const log: WirdLog = { [wirdKey(END, "w1")]: 3 };
     expect(countOn(log, it1, END, () => 7)).toBe(7);
     expect(countOn(log, it1, END, () => 1)).toBe(3);
+  });
+  it.each(["وجه", "ربع", "حزب", "جزء"])("keeps legacy %s goals manual instead of comparing ayahs to that unit", (unit) => {
+    const legacy = item({ unit, target: 5, auto: "quranAyahs" });
+    const log: WirdLog = { [wirdKey(END, "w1")]: 2 };
+
+    expect(countOn(log, legacy, END, () => 80)).toBe(2);
+    expect(sanitizeItem(legacy)).toMatchObject({ unit, target: 5, auto: null });
+  });
+  it("keeps morning adhkar auto tracking unchanged", () => {
+    const morning = item({ kind: "dhikr", unit: "مرة", target: 1, auto: "morningAdhkar" });
+    expect(countOn({}, morning, END, () => 1)).toBe(1);
   });
   it("builds a seven-day row with the target met flagged", () => {
     const log: WirdLog = { [wirdKey(END, "w1")]: 5, [wirdKey("2026-10-16", "w1")]: 2 };

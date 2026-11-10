@@ -62,10 +62,15 @@ export function isDue(item: WirdItem, day: string): boolean {
 /** Count made on a day: the item's own log plus whatever the app already tracks for it. */
 export function countOn(log: WirdLog, item: WirdItem, day: string, external?: (auto: WirdAuto, day: string) => number): number {
   const own = whole(log[wirdKey(day, item.id)]);
-  const ext = item.auto && external ? whole(external(item.auto, day)) : 0;
+  const ext = item.auto && external && isAutoLinkCompatible(item) ? whole(external(item.auto, day)) : 0;
   // An auto-linked item shows the larger of the two, so a manual tap on a day the app
   // also tracked cannot make it look LESS done.
   return item.auto ? Math.max(own, ext) : own;
+}
+
+/** Quran ayah totals cannot be converted reliably into pages, quarters, hizb, or juz. */
+export function isAutoLinkCompatible(item: Pick<WirdItem, "kind" | "unit" | "auto">): boolean {
+  return item.auto !== "quranAyahs" || (item.kind === "quran" && item.unit === "آية");
 }
 
 export const ratio = (count: number, target: number) => (target <= 0 ? 0 : Math.min(1, count / target));
@@ -180,12 +185,14 @@ export function sanitizeItem(raw: unknown): WirdItem | null {
   const slot = SLOT_ORDER.includes(r.slot as WirdSlot) ? (r.slot as WirdSlot) : "any";
   const days = Array.isArray(r.days) ? [...new Set(r.days.map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))].sort() : [];
   const created = typeof r.createdISO === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.createdISO) ? r.createdISO : "1970-01-01";
-  const auto = AUTOS.includes(r.auto as WirdAuto) ? (r.auto as WirdAuto) : null;
+  const unit = typeof r.unit === "string" ? r.unit.trim().slice(0, 12) || "مرة" : "مرة";
+  const requestedAuto = AUTOS.includes(r.auto as WirdAuto) ? (r.auto as WirdAuto) : null;
+  const auto = isAutoLinkCompatible({ kind, unit, auto: requestedAuto }) ? requestedAuto : null;
   return {
     id,
     title,
     kind,
-    unit: typeof r.unit === "string" ? r.unit.trim().slice(0, 12) || "مرة" : "مرة",
+    unit,
     target: Math.max(1, whole(r.target, 10_000) || 1),
     slot,
     days: days.length === 7 ? [] : days,

@@ -50,6 +50,20 @@ Deno.serve(async (req: Request) => {
     const user = userData?.user;
     if (userErr || !user) return json({ error: "invalid session" }, 401);
 
+    // Register only identities whose secret matches the immutable server
+    // fingerprint. This covers both the identity already in account sync and
+    // an identity that exists only on this device. The database trigger uses
+    // the verified link to remove leaderboard rows atomically with Auth.
+    const body = await req.json().catch(() => ({}));
+    const localIdentity = body && typeof body === "object" && !Array.isArray(body)
+      ? (body as Record<string, unknown>).leaderboardIdentity ?? null
+      : null;
+    const { error: prepareErr } = await admin.rpc("prepare_account_leaderboard_deletion", {
+      p_auth_user_id: user.id,
+      p_local_identity: localIdentity,
+    });
+    if (prepareErr) return json({ error: prepareErr.message }, 500);
+
     // Both athar_sync and athar_profiles reference auth.users with ON DELETE
     // CASCADE. Delete the auth row once so its dependent rows are removed in
     // the same database transaction; separate REST deletes can otherwise

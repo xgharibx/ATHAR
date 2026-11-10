@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   beginAccountReminderTransition: vi.fn(),
   cancelRemindersForAccountSwitch: vi.fn<(owner: string, stillCurrent: () => boolean) => Promise<void>>(),
   completeAccountReminderTransition: vi.fn(),
+  getLastReminderOwner: vi.fn<() => string | null>(),
   events: [] as string[],
   getAccountImportChoice: vi.fn<() => "copy" | "keep" | null>(),
   hasLocalCompanionData: vi.fn<() => Promise<boolean>>(),
@@ -31,6 +32,7 @@ vi.mock("@/lib/reminders", () => ({
   beginAccountReminderTransition: mocks.beginAccountReminderTransition,
   cancelRemindersForAccountSwitch: mocks.cancelRemindersForAccountSwitch,
   completeAccountReminderTransition: mocks.completeAccountReminderTransition,
+  getLastReminderOwner: mocks.getLastReminderOwner,
 }));
 vi.mock("@/lib/syncClient", () => ({
   getSyncStatus: mocks.getSyncStatus,
@@ -95,6 +97,7 @@ beforeEach(() => {
   mocks.cancelRemindersForAccountSwitch.mockImplementation(async () => {
     mocks.events.push("cancel-reminders");
   });
+  mocks.getLastReminderOwner.mockReturnValue(null);
   setAccountStorageOwner("local");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
 });
@@ -109,6 +112,22 @@ afterEach(() => {
 });
 
 describe("account reminder transition", () => {
+  it("hydrates immediately on cold start when the persisted reminder schedule already belongs to this account", async () => {
+    mocks.auth.session = { user: { id: "account-a" } };
+    mocks.getLastReminderOwner.mockReturnValue("user:account-a");
+    mount();
+
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+
+    expect(container?.querySelector("output")?.getAttribute("data-ready")).toBe("true");
+    expect(mocks.cancelRemindersForAccountSwitch).not.toHaveBeenCalled();
+    expect(mocks.events).toEqual([
+      "begin-transition",
+      "hydrate:user:account-a",
+      "complete-transition",
+    ]);
+  });
+
   it("clears persisted reminders before hydrating the signed-out local scope on cold start", async () => {
     mount();
 

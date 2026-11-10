@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useNoorStore } from "@/store/noorStore";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { useQuranDB } from "@/data/useQuranDB";
 import { coerceCount } from "@/data/types";
 
@@ -586,7 +587,7 @@ export function InsightsPage() {
       let done = 0, total = 0;
       sec.content.forEach((item, i) => {
         const t = coerceCount(item.count);
-        const c = Math.min(t, Math.max(0, Number(progressMap[`${sec.id}:${i}`]) || 0));
+        const c = Math.min(t, Math.max(0, Number(progressMap[dhikrStateKey(sec.id, i, item.id)]) || 0));
         total += t;
         done += c;
       });
@@ -748,7 +749,7 @@ export function InsightsPage() {
         let done = 0, total = 0;
         s.content.forEach((item, i) => {
           const t = coerceCount(item.count);
-          const c = Math.min(t, Math.max(0, Number(progressMap[`${s.id}:${i}`]) || 0));
+          const c = Math.min(t, Math.max(0, Number(progressMap[dhikrStateKey(s.id, i, item.id)]) || 0));
           total += t;
           done += c;
         });

@@ -6,6 +6,7 @@
  */
 import { describe, expect, it, beforeEach } from "vitest";
 import { useNoorStore } from "@/store/noorStore";
+import { customCounterKey, QUICK_SEBHA_PHRASES } from "@/lib/sebhaCustom";
 
 function resetStore() {
   try { localStorage.clear(); } catch { /* ignore */ }
@@ -66,17 +67,66 @@ describe("Custom dhikr list CRUD", () => {
     expect(item?.target).toBe(50);
   });
 
-  it("deleteSebhaCustomItem removes from list and per-key count", () => {
+  it("deleteSebhaCustomItem removes the phrase counter and clears the active item", () => {
     const id = useNoorStore.getState().addSebhaCustomItem({
       phrase: "x", target: 33, color: "#fff",
     });
-    useNoorStore.setState((s) => ({
-      quickTasbeeh: { ...s.quickTasbeeh, [`custom:${id}`]: 7 },
-    }));
-    expect(useNoorStore.getState().quickTasbeeh[`custom:${id}`]).toBe(7);
+    useNoorStore.setState({
+      quickTasbeeh: { "custom:x": 7 },
+      sebhaCustom: { phrase: "x", target: 33 },
+      sebhaSelected: "custom",
+    });
     useNoorStore.getState().deleteSebhaCustomItem(id);
-    expect(useNoorStore.getState().sebhaCustomList.find((c) => c.id === id)).toBeUndefined();
-    expect(useNoorStore.getState().quickTasbeeh[`custom:${id}`]).toBeUndefined();
+    const state = useNoorStore.getState();
+    expect(state.sebhaCustomList.find((c) => c.id === id)).toBeUndefined();
+    expect(state.quickTasbeeh["custom:x"]).toBeUndefined();
+    expect(state.sebhaCustom).toBeNull();
+    expect(state.sebhaSelected).toBe("subhanallah");
+  });
+
+  it("keeps a shared phrase counter until its last custom entry is deleted", () => {
+    const firstId = useNoorStore.getState().addSebhaCustomItem({
+      phrase: "ذكر مشترك", target: 33, color: "#fff",
+    });
+    const secondId = useNoorStore.getState().addSebhaCustomItem({
+      phrase: " ذكر   مشترك ", target: 100, color: "#fff",
+    });
+    useNoorStore.setState({
+      quickTasbeeh: { "custom:ذكر مشترك": 8 },
+      sebhaCustom: { phrase: "ذكر مشترك", target: 33 },
+      sebhaSelected: "custom",
+    });
+
+    useNoorStore.getState().deleteSebhaCustomItem(firstId);
+    expect(useNoorStore.getState().quickTasbeeh["custom:ذكر مشترك"]).toBe(8);
+    expect(useNoorStore.getState().sebhaCustom?.phrase).toBe("ذكر مشترك");
+    expect(useNoorStore.getState().sebhaSelected).toBe("custom");
+
+    useNoorStore.getState().deleteSebhaCustomItem(secondId);
+    expect(useNoorStore.getState().quickTasbeeh["custom:ذكر مشترك"]).toBeUndefined();
+    expect(useNoorStore.getState().sebhaCustom).toBeNull();
+    expect(useNoorStore.getState().sebhaSelected).toBe("subhanallah");
+  });
+
+  it("preserves a phrase counter that is still available as a quick shortcut", () => {
+    const shortcut = QUICK_SEBHA_PHRASES.find((item) => item.phrase === "أستغفر الله");
+    expect(shortcut).toBeDefined();
+    const phrase = shortcut!.phrase;
+    const counterKey = customCounterKey(phrase);
+    const id = useNoorStore.getState().addSebhaCustomItem({
+      phrase, target: shortcut!.target, color: "#fff",
+    });
+    useNoorStore.getState().incQuickTasbeeh(counterKey, shortcut!.target);
+    useNoorStore.setState({
+      sebhaCustom: { phrase, target: shortcut!.target },
+      sebhaSelected: "custom",
+    });
+
+    useNoorStore.getState().deleteSebhaCustomItem(id);
+
+    expect(useNoorStore.getState().quickTasbeeh[counterKey]).toBe(1);
+    expect(useNoorStore.getState().sebhaCustom).toEqual({ phrase, target: shortcut!.target });
+    expect(useNoorStore.getState().sebhaSelected).toBe("custom");
   });
 
   it("reorderSebhaCustomItem swaps adjacent items", () => {

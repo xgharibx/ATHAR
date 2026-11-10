@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, Filter, Plus, ChevronDown } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
+import { getFirstAyahOfJuz, getHizbProgress, getJuzProgress, surahContainsJuz } from "@/lib/quranJuz";
 
 import { useQuranDB } from "@/data/useQuranDB";
 import { Card } from "@/components/ui/Card";
@@ -14,8 +15,10 @@ import { useNoorStore } from "@/store/noorStore";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useTodayKey } from "@/hooks/useTodayKey";
 import { SurahInfoPopover } from "@/components/quran/SurahInfoPopover";
-import { sajdaInSurah, loadQuranExtras, getEnglishRowPreview, type QuranExtras } from "@/data/quranExtras";
+import { sajdaInSurah, getEnglishRowPreview } from "@/data/quranExtras";
+import { useQuranExtras } from "@/hooks/useQuranExtras";
 import { parseDirectAyahQuery } from "@/data/quranDirectSearch";
 import { searchAyah, buildAyahIndex, type AyahHit } from "@/data/quranAyahIndex";
 type AyahHitLite = AyahHit;
@@ -23,6 +26,7 @@ import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { getReciter } from "@/lib/quranReciters";
 import { loadQuranPageMap } from "@/data/quranLoad";
 import { arNum } from "@/lib/formatNumber";
+import { countCompletedKhatmaDays, getKhatmaDayRange, getKhatmaPlanStatus, getKhatmaTimeline } from "@/lib/quranKhatma";
 
 
 function normalize(s: string) {
@@ -90,25 +94,6 @@ const DAILY_VERSES: Array<{ surahId: number; ayahIndex: number }> = [
 
 function getDailyVerseIdx(): number {
   return Math.floor(Date.now() / 86400000) % DAILY_VERSES.length;
-}
-
-function parseISODate(dateISO: string) {
-  const match = (dateISO ?? "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!match) return null;
-  const yyyy = Number(match[1]);
-  const mm = Number(match[2]);
-  const dd = Number(match[3]);
-  if (!yyyy || !mm || !dd) return null;
-  const date = new Date(yyyy, mm - 1, dd);
-  if (Number.isNaN(date.getTime())) return null;
-  return date;
-}
-
-function daysBetween(a: Date, b: Date) {
-  const ms = 24 * 60 * 60 * 1000;
-  const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
-  const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
-  return Math.floor((utcB - utcA) / ms);
 }
 
 /** Phase 2 — Surah+ayah search parsing moved to src/data/quranDirectSearch.ts
@@ -280,16 +265,14 @@ export function QuranPage() {
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
+  const khatmaScheduleVersion = useNoorStore((s) => s.khatmaScheduleVersion);
   const khatmaDone = useNoorStore((s) => s.khatmaDone);
 
   const recentSurahs = useNoorStore((s) => s.recentSurahs);
   const recordRecentSurah = useNoorStore((s) => s.recordRecentSurah);
   const removeRecentSurah = useNoorStore((s) => s.removeRecentSurah);
 
-  const todayISO = React.useMemo(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  }, []);
+  const todayISO = useTodayKey();
 
   const [query, setQuery] = React.useState("");
   // Defer ayah search so surah list stays responsive while user types
@@ -302,7 +285,7 @@ export function QuranPage() {
   const [reciterOpen, setReciterOpen] = React.useState(false);
   const [reciterQuery, setReciterQuery] = React.useState("");
   const [showTranslation, setShowTranslation] = React.useState(false);
-  const [extras, setExtras] = React.useState<QuranExtras | null>(null);
+  const extras = useQuranExtras(showTranslation || infoSurahId !== null);
   const [pageMap, setPageMap] = React.useState<Record<string, number> | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   // Pass A: inline surah detail with virtual pagination — `quranPageSize` ayahs
@@ -337,13 +320,6 @@ export function QuranPage() {
   React.useEffect(() => {
     setFilterJuz(parseJuzParam(searchParams.get("juz")));
   }, [searchParams]);
-
-  // Phase 3 — Lazy-load translation + tafsir bundles in the background
-  React.useEffect(() => {
-    if (showTranslation || infoSurahId !== null) {
-      void loadQuranExtras().then(setExtras).catch(() => {});
-    }
-  }, [showTranslation, infoSurahId]);
 
   // Phase 5 — Lazy-load mushaf page map for page-number badges in the list
   React.useEffect(() => {
@@ -430,11 +406,9 @@ export function QuranPage() {
     if (!data) return null;
     if (!khatmaStartISO || !khatmaDays) return null;
 
-    const start = parseISODate(khatmaStartISO);
-    const today = parseISODate(todayISO);
-    if (!start || !today) return null;
-
     const days = Math.max(1, Math.min(730, Math.floor(khatmaDays)));
+    const timeline = getKhatmaTimeline(khatmaStartISO, todayISO, days);
+    if (!timeline) return null;
     const flat: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
 
     for (const surah of data) {
@@ -447,30 +421,37 @@ export function QuranPage() {
 
     if (flat.length === 0) return null;
 
-    const chunk = Math.ceil(flat.length / days);
-    const dayIndexRaw = Math.max(0, daysBetween(start, today));
-    const isFinished = dayIndexRaw >= days;
-    const dayIndex = Math.min(dayIndexRaw, days - 1);
-    const startAt = Math.min(flat.length - 1, dayIndex * chunk);
-    const endAt = Math.min(flat.length, startAt + chunk) - 1;
-    const first = flat[startAt];
-    const last = flat[endAt];
+    const doneCount = countCompletedKhatmaDays(khatmaStartISO, days, khatmaDone);
+    const percent = Math.min(100, Math.round((doneCount / days) * 100));
+    const status = getKhatmaPlanStatus(timeline.elapsedDays, days, doneCount);
+    const doneToday = timeline.isWithinPlan && !!khatmaDone?.[todayISO];
 
-    if (!first || !last) return null;
-
-    const doneCount = Object.keys(khatmaDone ?? {}).filter((key) => khatmaDone[key]).length;
-    const doneToday = !!khatmaDone?.[todayISO];
-    const percent = days ? Math.round((doneCount / days) * 100) : 0;
+    let today: { first: (typeof flat)[number]; last: (typeof flat)[number] } | null = null;
+    let dayIndex = 0;
+    let chunk = 0;
+    if (timeline.isWithinPlan) {
+      dayIndex = timeline.elapsedDays;
+      const range = getKhatmaDayRange(dayIndex, days, flat.length, khatmaScheduleVersion ?? 1);
+      const first = flat[range.firstAyah - 1];
+      const last = flat[range.lastAyah - 1];
+      if (!first || !last) return null;
+      today = { first, last };
+      chunk = range.dailyTarget;
+    }
 
     return {
       days,
       chunk,
       dayIndex,
-      isFinished,
-      today: { first, last },
+      isFinished: status !== "active" || timeline.isUpcoming,
+      isExpired: status === "expired",
+      isCompleted: status === "completed",
+      isUpcoming: timeline.isUpcoming,
+      startsInDays: timeline.startsInDays,
+      today,
       meta: { doneCount, doneToday, percent }
     };
-  }, [data, khatmaDays, khatmaDone, khatmaStartISO, todayISO]);
+  }, [data, khatmaDays, khatmaDone, khatmaScheduleVersion, khatmaStartISO, todayISO]);
 
   // Daily verse of the day
   const dailyVerse = React.useMemo(() => {
@@ -607,7 +588,7 @@ export function QuranPage() {
         return pB - pA;
       });
     }
-    if (filterJuz !== null) base = base.filter((s) => getSurahJuz(s.id) === filterJuz);
+    if (filterJuz !== null) base = base.filter((s) => surahContainsJuz(s.id, s.ayahs.length, filterJuz));
     if (filterRevelation === "meccan") base = base.filter((s) => SURAH_REVELATION[s.id] !== "medinan");
     if (filterRevelation === "medinan") base = base.filter((s) => SURAH_REVELATION[s.id] === "medinan");
     return base;
@@ -616,18 +597,12 @@ export function QuranPage() {
   // Per-juz reading progress: juzNum → pct (0-100)
   const juzProgress = React.useMemo(() => {
     if (!data) return {} as Record<number, number>;
-    const acc: Record<number, { read: number; total: number }> = {};
-    for (const surah of data) {
-      const juz = getSurahJuz(surah.id);
-      if (!acc[juz]) acc[juz] = { read: 0, total: 0 };
-      acc[juz].total += surah.ayahs.length;
-      acc[juz].read += Math.min(surah.ayahs.length, readingHistory[String(surah.id)] ?? 0);
-    }
-    const result: Record<number, number> = {};
-    for (const [juzStr, { read, total }] of Object.entries(acc)) {
-      result[Number(juzStr)] = total > 0 ? Math.min(100, Math.round((read / total) * 100)) : 0;
-    }
-    return result;
+    return getJuzProgress(data, readingHistory);
+  }, [data, readingHistory]);
+
+  const hizbProgress = React.useMemo(() => {
+    if (!data) return {} as Record<number, number>;
+    return getHizbProgress(data, readingHistory);
   }, [data, readingHistory]);
 
   const ayahSearch = React.useMemo(() => {
@@ -834,7 +809,7 @@ export function QuranPage() {
               {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished && (
                 <span style={{ color: "var(--accent)", opacity: 1 }}>{arNum(khatma.meta.percent)}٪</span>
               )}
-              {khatmaStartISO && khatmaDays && khatma?.isFinished && (
+              {khatmaStartISO && khatmaDays && khatma?.isCompleted && (
                 <span style={{ color: "var(--ok)", opacity: 1 }}>✓</span>
               )}
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-40" aria-hidden="true"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -913,11 +888,36 @@ export function QuranPage() {
 
       </Card>
 
+      {mode === "surahs" && !query && khatma?.isUpcoming && (
+        <div
+          className="w-full rounded-3xl border p-5 quran-surface"
+          style={{
+            background: "color-mix(in srgb, var(--accent) 7%, var(--card))",
+            borderColor: "color-mix(in srgb, var(--accent) 22%, transparent)",
+          }}
+        >
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[var(--accent)]">
+            <span aria-hidden="true">📅</span>
+            <span>خطة تلاوة مجدولة</span>
+          </div>
+          <p className="mb-3 text-sm opacity-80">
+            تبدأ خطة التلاوة بعد {arNum(khatma.startsInDays)} يوم
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate("/quran/plans")}
+            className="text-xs font-semibold text-[var(--accent)] underline underline-offset-2"
+          >
+            عرض خطة التلاوة
+          </button>
+        </div>
+      )}
+
       {/* ── Today's khatma reading target ─────────────────── */}
-      {mode === "surahs" && !query && khatma && !khatma.isFinished && (
+      {mode === "surahs" && !query && khatma && !khatma.isFinished && khatma.today && (
         <button
           type="button"
-          onClick={() => navigate(`/mushaf?surah=${khatma.today.first.surahId}&ayah=${khatma.today.first.ayahIndex}`)}
+          onClick={() => navigate(`/mushaf?surah=${khatma.today!.first.surahId}&ayah=${khatma.today!.first.ayahIndex}`)}
           className="w-full text-right rounded-3xl border transition-all active:scale-[0.99] quran-surface overflow-hidden"
           style={{
             background: khatma.meta.doneToday
@@ -956,7 +956,7 @@ export function QuranPage() {
       )}
 
       {/* ── Khatma finished celebration ───────────────── */}
-      {mode === "surahs" && !query && khatma?.isFinished && (
+      {mode === "surahs" && !query && khatma?.isCompleted && (
         <div
           className="w-full text-center rounded-3xl border p-5 space-y-2"
           style={{
@@ -972,6 +972,20 @@ export function QuranPage() {
             className="mt-1 text-xs opacity-60 hover:opacity-100 transition underline underline-offset-2"
           >
             ابدأ ختمة جديدة
+          </button>
+        </div>
+      )}
+
+      {mode === "surahs" && !query && khatma?.isExpired && !khatma.isCompleted && (
+        <div className="w-full text-center rounded-3xl border p-5 space-y-2 quran-surface">
+          <div className="text-sm font-bold">انتهت مدة خطة الختمة</div>
+          <div className="text-xs opacity-55">يمكنك مراجعة تقدمك أو بدء خطة جديدة.</div>
+          <button
+            type="button"
+            onClick={() => navigate("/quran/plans")}
+            className="mt-1 text-xs opacity-60 hover:opacity-100 transition underline underline-offset-2"
+          >
+            مراجعة خطة التلاوة
           </button>
         </div>
       )}
@@ -1249,8 +1263,8 @@ export function QuranPage() {
               // Each juz has two hizbs; show which hizbs are touched
               const h1 = (j - 1) * 2 + 1;
               const h2 = (j - 1) * 2 + 2;
-              const h1Done = (juzProgress[h1] ?? 0) >= 100;
-              const h2Done = (juzProgress[h2] ?? 0) >= 100;
+              const h1Done = (hizbProgress[h1] ?? 0) >= 100;
+              const h2Done = (hizbProgress[h2] ?? 0) >= 100;
               return (
                 <div key={j} className="relative inline-flex flex-col items-center">
                   <button type="button"
@@ -1346,9 +1360,10 @@ export function QuranPage() {
               const currJuz = getSurahJuz(s.id);
               const prevJuz = idx > 0 ? getSurahJuz(sortedFiltered[idx - 1]!.id) : null;
               const showJuzHeader = sortMode === "mushaf" && !filterJuz && !query && (idx === 0 || currJuz !== prevJuz);
+              const juzStartAyah = filterJuz === null ? null : getFirstAyahOfJuz(s.id, s.ayahs.length, filterJuz);
               const sajdasHere = sajdaInSurah(s.id);
               const firstEnglish = showTranslation ? getEnglishRowPreview(extras, s.id) : null;
-              const mushafPage = pageMap ? pageMap[`${s.id}:1`] : undefined;
+              const mushafPage = pageMap ? pageMap[`${s.id}:${juzStartAyah ?? 1}`] : undefined;
               return (
                 <React.Fragment key={s.id}>
                   {showJuzHeader && (
@@ -1370,9 +1385,9 @@ export function QuranPage() {
                 <button type="button"
                   onClick={() => {
                     recordRecentSurah(s.id);
-                    navigate(`/mushaf?surah=${s.id}`);
+                    navigate(`/mushaf?surah=${s.id}${juzStartAyah === null ? "" : `&ayah=${juzStartAyah}`}`);
                   }}
-                  aria-label={`افتح سورة ${s.name} في المصحف — ${s.ayahs.length} آية`}
+                  aria-label={`افتح سورة ${s.name} في المصحف${juzStartAyah === null ? "" : ` عند الآية ${arNum(juzStartAyah)} في الجزء ${arNum(filterJuz!)}`} — ${s.ayahs.length} آية`}
                   className="min-w-0 flex-1 flex items-center gap-4 border-0 bg-transparent p-0 text-right text-inherit cursor-pointer focus:outline-none focus:bg-accent-8"
                 >
                   {/* Number badge */}

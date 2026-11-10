@@ -1,6 +1,8 @@
 import { AdhkarDBSchema, type AdhkarDB, type FlatDhikr, coerceCount, type RawAdhkarDB } from "./types";
 import { MY_ADHKAR_SECTION_ID, MY_ADHKAR_TITLE, mergeWithPacks } from "./packs";
 import { publicDataUrl } from "./publicAssetUrl";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
+import { getAccountStorageOwner, type AccountStorageOwner } from "@/lib/accountStorageScope";
 
 const SECTION_ORDER = [
   MY_ADHKAR_SECTION_ID,
@@ -82,8 +84,10 @@ export function warmBundledAdhkar(): Promise<unknown> {
   return bundledAdhkar;
 }
 
-/** Loads public adhkar, then merges the currently hydrated account's packs. */
-export async function loadAdhkarDB(): Promise<{ db: AdhkarDB; flat: FlatDhikr[] }> {
+/** Loads public adhkar, then merges only the requested account's packs. */
+export async function loadAdhkarDB(
+  owner: AccountStorageOwner = getAccountStorageOwner(),
+): Promise<{ db: AdhkarDB; flat: FlatDhikr[] }> {
   const json = await warmBundledAdhkar();
 
   const parsed: RawAdhkarDB = AdhkarDBSchema.parse(json);
@@ -99,7 +103,7 @@ export async function loadAdhkarDB(): Promise<{ db: AdhkarDB; flat: FlatDhikr[] 
     }))
   };
 
-  const mergedDb = mergeWithPacks(db);
+  const mergedDb = mergeWithPacks(db, owner);
   const dbWithPacks: AdhkarDB = {
     sections: orderedSections(ensureMyAdhkarSection(mergedDb.sections)),
   };
@@ -108,10 +112,11 @@ export async function loadAdhkarDB(): Promise<{ db: AdhkarDB; flat: FlatDhikr[] 
   for (const s of dbWithPacks.sections) {
     s.content.forEach((item, idx) => {
       flat.push({
-        key: `${s.id}:${idx}`,
+        key: dhikrStateKey(s.id, idx, item.id),
         sectionId: s.id,
         sectionTitle: s.title,
         index: idx,
+        itemId: item.id,
         text: item.text,
         benefit: item.benefit,
         source: item.source,

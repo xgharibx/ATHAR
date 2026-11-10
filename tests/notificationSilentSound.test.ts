@@ -41,6 +41,7 @@ import {
 } from "@/lib/reminders";
 import { NOTIFICATION_ACTION_TYPES, REMINDER_ACTION_TYPE_ID, CUSTOM_REMINDER_ACTION_TYPE_ID } from "@/lib/notificationActionTypes";
 import type { Reminders } from "@/store/noorStore";
+import { useNoorStore } from "@/store/noorStore";
 import { setAccountStorageOwner } from "@/lib/accountStorageScope";
 
 const PRAYER_ALERTS = { Fajr: true, Dhuhr: false, Asr: false, Maghrib: false, Isha: false };
@@ -85,6 +86,7 @@ beforeEach(() => {
   mocks.localNotifications.removeAllDeliveredNotifications.mockClear();
   mocks.localNotifications.checkPermissions.mockResolvedValue({ display: "granted" });
   mocks.localNotifications.schedule.mockClear();
+  useNoorStore.setState({ prayerLog: {} });
 });
 
 afterEach(() => {
@@ -130,6 +132,82 @@ describe("silent native notification sound payloads", () => {
     expect(morning).toHaveProperty("sound", "birds.caf");
   });
 
+  it("schedules daily Hadith when prayer alerts are disabled but its own setting is on", async () => {
+    const reminders = {
+      ...adhkarReminders(),
+      prayerAlertsEnabled: false,
+      dailyHadithNotif: true,
+    };
+
+    await syncReminders(reminders, { Fajr: "08:00" }, undefined, { Fajr: "08:05" });
+
+    const notifications = scheduledNotifications();
+    expect(notifications.find((notification) => notification.title === "أثر — حديث اليوم ﷺ"))
+      .toMatchObject({ schedule: { at: new Date(2026, 9, 2, 8, 0, 0) } });
+    expect(Object.hasOwn(notifications.find((notification) => notification.title === "أثر — حديث اليوم ﷺ")!, "sound")).toBe(false);
+    expect(notifications.some((notification) => notification.title === "أثر — الأذان")).toBe(false);
+  });
+
+  it("marks date-specific prayer notifications with their intended local wall time", () => {
+    const notifications = buildPrayerNotificationsForDays(
+      [{ dateISO: "2026-10-03", timings: { Fajr: "05:01" } }],
+      { channelId: "adhan", soundFile: "adhan.caf" },
+      PRAYER_ALERTS,
+      { channelId: "quiet" },
+      { includeDailyHadith: true, now: new Date(2026, 9, 2, 7, 0, 0) },
+    );
+    const wallClockNotifications = notifications.filter((notification) =>
+      notification.title === "أثر — الأذان" ||
+      notification.title === "أثر — تذكير لطيف" ||
+      notification.title === "أثر — حديث اليوم ﷺ",
+    );
+
+    expect(wallClockNotifications).toHaveLength(3);
+    for (const notification of wallClockNotifications) {
+      const at = notification.schedule?.at;
+      const extra = notification.extra as Record<string, unknown>;
+      expect(at).toBeInstanceOf(Date);
+      expect(extra).toMatchObject({
+        atharWallClockOnce: true,
+        atharWallClockDateISO: "2026-10-03",
+      });
+      expect(extra.atharWallClockTime).toBe(
+        `${String(at!.getHours()).padStart(2, "0")}:${String(at!.getMinutes()).padStart(2, "0")}`,
+      );
+    }
+  });
+
+  it("preserves tomorrow's prayer alarm when a refresh only provides today's times", async () => {
+    const reminders = { ...adhkarReminders(), prayerAlertsEnabled: true };
+    const today = { Fajr: "08:00" };
+    const tomorrow = { Fajr: "08:05" };
+
+    await syncReminders(reminders, today, undefined, tomorrow);
+    const tomorrowAlarm = scheduledNotifications().find((notification) =>
+      (notification.extra as { dateISO?: string; prayerName?: string } | undefined)?.dateISO === "2026-10-03" &&
+      (notification.extra as { prayerName?: string } | undefined)?.prayerName === "Fajr" &&
+      notification.title === "أثر — الأذان",
+    );
+    expect(tomorrowAlarm).toBeDefined();
+
+    await syncReminders(reminders, today);
+    const lastCancellation = mocks.localNotifications.cancel.mock.calls.at(-1)?.[0] as {
+      notifications?: Array<{ id: number }>;
+    } | undefined;
+
+    expect(lastCancellation?.notifications?.map(({ id }) => id)).not.toContain(tomorrowAlarm?.id);
+  });
+
+  it("does not restore the follow-up for a prayer already logged in the app store", async () => {
+    useNoorStore.setState({ prayerLog: { "2026-10-02": { Fajr: true } } });
+
+    await syncReminders({ ...adhkarReminders(), prayerAlertsEnabled: true }, { Fajr: "06:50" });
+
+    expect(scheduledNotifications().filter((notification) =>
+      (notification.extra as { prayerName?: string } | undefined)?.prayerName === "Fajr",
+    )).toEqual([]);
+  });
+
   it("sounds the recurring reminder again but keeps its snooze silent", async () => {
     mocks.capacitor.getPlatform.mockReturnValue("android");
 
@@ -161,6 +239,12 @@ describe("silent native notification sound payloads", () => {
       .toMatchObject({ channelId: "adhan", sound: "adhan_ahmad_al_nafees.mp3" });
     expect(notifications.find((item) => item.title === "أثر — الإفطار"))
       .toMatchObject({ channelId: "quiet", sound: "" });
+    expect(notifications.find((item) => item.title === "أثر — الإفطار")?.extra)
+      .toMatchObject({
+        atharWallClockOnce: true,
+        atharWallClockDateISO: "2026-03-05",
+        atharWallClockTime: "18:00",
+      });
   });
 
   it("allows Android adhkar reminders to fire during Doze", async () => {

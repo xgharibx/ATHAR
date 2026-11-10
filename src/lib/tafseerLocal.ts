@@ -29,10 +29,11 @@ export async function loadMuyassarCache(): Promise<TafseerBySurah> {
         _cache = data;
         return data;
       })
-      .catch(() => {
-        // Reset so next call retries
+      .catch((error: unknown) => {
+        // Reset so the next call can retry, but let callers distinguish an
+        // unavailable bundle from a successfully loaded bundle with no tafsir.
         _loadingPromise = null;
-        return {} as TafseerBySurah;
+        throw error;
       });
   }
   return _loadingPromise;

@@ -13,6 +13,7 @@ import { isDailySection } from "@/lib/dailySections";
 import { SharePosterModal } from "@/components/dhikr/SharePosterModal";
 import { doHaptic } from "@/lib/sebhaHaptics";
 import { animateDhikrCountPress } from "@/lib/dhikrPressFeedback";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 
 // Lazy-load heavy libraries — only imported when actually needed
 // Note: GSAP removed from hot path — ring + ripple now use CSS transitions
@@ -50,7 +51,8 @@ export function DhikrCard(props: {
 }) {
   const { sectionId, index, item, focusMode, sectionTitle } = props;
 
-  const key = `${sectionId}:${index}`;
+  const itemId = item.id;
+  const key = dhikrStateKey(sectionId, index, itemId);
   const prefs = useNoorStore((s) => s.prefs);
   const progress = useNoorStore((s) => Math.max(0, Number(s.progress[key]) || 0));
   const increment = useNoorStore((s) => s.increment);
@@ -143,7 +145,11 @@ export function DhikrCard(props: {
       if (dx > 0) {
         // De7: Right swipe → complete all remaining (single mutation)
         if (current < target) {
-          setItemCount({ sectionId, index, count: target });
+          setItemCount({ sectionId, index, count: target, itemId });
+          props.onCounted?.();
+          if (prefs.autoAdvanceDhikr && props.onComplete) {
+            setTimeout(() => { if (mountedRef.current) props.onComplete?.(); }, 184);
+          }
         }
         if (navigator.vibrate) navigator.vibrate([15, 10, 15]);
         toast.success("✓ تم إتمام الذكر", { duration: 1500 });
@@ -155,7 +161,7 @@ export function DhikrCard(props: {
         }
       } else {
         // De7: Left swipe → toggle favorite
-        toggleFavorite(sectionId, index);
+        toggleFavorite(sectionId, index, itemId);
         if (navigator.vibrate) navigator.vibrate(10);
         toast(fav ? "💔 أُزيل من المفضلة" : "❤️ أُضيف إلى المفضلة", { duration: 1500 });
         if (cardRef.current) {
@@ -251,7 +257,7 @@ export function DhikrCard(props: {
     // auto-advance re-fire and skip ahead repeatedly. Completion has to mean
     // the transition into the target, not merely sitting at it.
     const before = progress;
-    const next = increment({ sectionId, index, target });
+    const next = increment({ sectionId, index, target, itemId });
     tapCountRef.current++;
     props.onCounted?.();
 
@@ -424,7 +430,7 @@ export function DhikrCard(props: {
                   aria-label="مفضلة"
                   aria-pressed={fav}
                   tabIndex={actionsOpen ? 0 : -1}
-                  onClick={() => toggleFavorite(sectionId, index)}
+                  onClick={() => toggleFavorite(sectionId, index, itemId)}
                   className={cn(fav && "bg-accent-14 border-accent-24")}
                 >
                   <Heart size={16} aria-hidden="true" className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
@@ -543,7 +549,7 @@ export function DhikrCard(props: {
                 aria-label="تراجع خطوة"
                 onClick={() => {
                   if (isDailyLockedItem) return;
-                  decrement({ sectionId, index, target });
+                  decrement({ sectionId, index, target, itemId });
                 }}
                 className={cn((current <= 0 || isDailyLockedItem) && "opacity-40 pointer-events-none")}
               >
@@ -554,7 +560,7 @@ export function DhikrCard(props: {
                 <>
                   <button type="button"
                     className="shrink-0 whitespace-nowrap text-[11px] px-2.5 rounded-xl bg-danger-15 border border-danger-30 text-[var(--danger)] min-h-[44px] transition active:scale-[.97]"
-                    onClick={() => { resetItem(sectionId, index, target); setConfirmItemReset(false); }}
+                    onClick={() => { resetItem(sectionId, index, target, itemId); setConfirmItemReset(false); }}
                   >
                     تأكيد
                   </button>

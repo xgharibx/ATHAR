@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   requestPrayerLocation: vi.fn<() => Promise<boolean>>(),
   reminders: [],
   timings: { Fajr: "05:00", Sunrise: "06:20", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30" },
+  tomorrowTimings: { Fajr: "05:01", Sunrise: "06:21", Dhuhr: "12:01", Asr: "15:31", Maghrib: "18:01", Isha: "19:31" },
   prayerFetching: false,
   syncReminders: vi.fn().mockResolvedValue(undefined),
   toast: { error: vi.fn(), success: vi.fn() },
@@ -29,6 +30,7 @@ vi.mock("@/hooks/usePrayerTimes", () => ({
     },
     isLoading: false,
     isFetching: mocks.prayerFetching,
+    tomorrow: { data: { timings: mocks.tomorrowTimings } },
     refetch: vi.fn().mockResolvedValue({ data: { data: { timings: mocks.timings } } }),
   }),
 }));
@@ -69,6 +71,7 @@ beforeEach(() => {
   mocks.requestPrayerLocation.mockResolvedValue(true);
   mocks.prayerFetching = false;
   mocks.timings = { Fajr: "05:00", Sunrise: "06:20", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30" };
+  mocks.tomorrowTimings = { Fajr: "05:01", Sunrise: "06:21", Dhuhr: "12:01", Asr: "15:31", Maghrib: "18:01", Isha: "19:31" };
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   Object.defineProperty(window, "scrollTo", { configurable: true, value: vi.fn() });
   window.addEventListener("error", suppressExpectedRenderError);
@@ -125,6 +128,32 @@ function calendarDays(year: number, month: number) {
 }
 
 describe("Prayer Times location controls and calendar", () => {
+  it("refreshes today without dropping the already fetched tomorrow timings", async () => {
+    localStorage.clear();
+    const { PrayerTimesPage } = await import("@/pages/PrayerTimes");
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    await act(async () => {
+      root!.render(createElement(MemoryRouter, { future: { v7_startTransition: true, v7_relativeSplatPath: true } }, createElement(PrayerTimesPage)));
+    });
+    const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="تحديث المواقيت"]');
+    expect(refresh).not.toBeNull();
+
+    await act(async () => {
+      refresh!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mocks.syncReminders).toHaveBeenCalledWith([], {
+      Fajr: "05:00", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30",
+    }, undefined, {
+      Fajr: "05:01", Sunrise: "06:21", Dhuhr: "12:01", Asr: "15:31", Maghrib: "18:01", Isha: "19:31",
+    });
+  });
+
   it("shows one actionable error when the Hijri calendar request fails", async () => {
     mocks.calendarError = true;
     await renderMonthlyPrayerCalendar();
@@ -188,7 +217,7 @@ describe("Prayer Times location controls and calendar", () => {
     expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({ type: "athar:prayer-location-changed" }));
     expect(mocks.syncReminders).toHaveBeenCalledWith([], {
       Fajr: "05:00", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30",
-    });
+    }, undefined, mocks.tomorrowTimings);
     expect(mocks.toast.success).toHaveBeenCalledWith("تم إيقاف استخدام الموقع والعودة إلى القاهرة");
   });
 
@@ -204,6 +233,42 @@ describe("Prayer Times location controls and calendar", () => {
 
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("calendarByCity");
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("city=Cairo&country=Egypt");
+  });
+
+  it("keeps calendar dates and prayer times in the selected location timezone", async () => {
+    const previousTimezone = process.env.TZ;
+    try {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-11-15T12:00:00Z"));
+      process.env.TZ = "America/New_York";
+      localStorage.clear();
+      const november = calendarDays(2026, 11);
+      november[2]!.timings.Fajr = "04:42 (EET)";
+      november[2]!.timings.Dhuhr = "11:39 (EET)";
+      mocks.calendarData = { "2026-11": november };
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: november }) });
+      vi.stubGlobal("fetch", fetchMock);
+      const rerender = await renderMonthlyPrayerCalendar();
+      const firstQuery = mocks.queries.find((query) => query.queryKey?.[0] === "prayer-calendar" && query.queryKey?.[1] === 2026 && query.queryKey?.[2] === 11);
+      const firstKey = firstQuery?.queryKey;
+      const novemberThird = container!.querySelector<HTMLTableRowElement>("#pt-panel-monthly tbody tr:nth-child(3)");
+      expect(novemberThird?.cells[0]?.textContent).toContain("3");
+      expect(novemberThird?.cells[1]?.textContent).toContain("4:42");
+      await act(async () => { await firstQuery?.queryFn?.(); });
+
+      process.env.TZ = "UTC";
+      await rerender();
+      const secondQuery = mocks.queries.filter((query) => query.queryKey?.[0] === "prayer-calendar" && query.queryKey?.[1] === 2026 && query.queryKey?.[2] === 11).at(-1);
+      expect(secondQuery?.queryKey).toEqual(firstKey);
+      await act(async () => { await secondQuery?.queryFn?.(); });
+
+      const urls = fetchMock.mock.calls.map(([url]) => String(url));
+      expect(urls.map((url) => new URL(url).searchParams.has("timezonestring"))).toEqual([false, false]);
+    } finally {
+      if (previousTimezone === undefined) delete process.env.TZ;
+      else process.env.TZ = previousTimezone;
+      vi.useRealTimers();
+    }
   });
 
   it("rejects malformed successful calendar envelopes before the UI reads them", async () => {
@@ -254,6 +319,7 @@ describe("Prayer Times location controls and calendar", () => {
     const urls = fetchMock.mock.calls.map(([url]) => String(url));
     expect(urls.some((url) => url.includes("latitude=21.4225&longitude=39.8262"))).toBe(true);
     expect(urls.some((url) => url.includes("latitude=35.6762&longitude=139.6503"))).toBe(true);
+    expect(urls.map((url) => new URL(url).searchParams.has("timezonestring"))).toEqual([false, false]);
   });
 
   it("shows seven days when the current week crosses into the next month", async () => {
@@ -315,6 +381,6 @@ describe("Prayer Times location controls and calendar", () => {
 
     expect(mocks.syncReminders).toHaveBeenCalledWith([], {
       Fajr: "05:00", Dhuhr: "09:11", Asr: "15:30", Maghrib: "18:00", Isha: "19:30",
-    });
+    }, undefined, mocks.tomorrowTimings);
   });
 });

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useLocation } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
 import { cn } from "@/lib/utils";
 import { doHaptic } from "@/lib/sebhaHaptics";
@@ -15,6 +16,7 @@ const QUICK_TASBEEH_BOTTOM = "calc(var(--mobile-nav-height) + var(--sab) - 6px)"
 
 export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
   // All hooks must be declared before any early return
+  const location = useLocation();
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<TasbeehKey>("subhanallah");
   const storedTarget = useNoorStore((s) => s.sebhaTarget);
@@ -26,6 +28,8 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
 
   // Ref for the FAB trigger button (for focus return on dialog close)
   const fabRef = React.useRef<HTMLButtonElement>(null);
+  const previousPathname = React.useRef(location.pathname);
+  const restoreFocusOnClose = React.useRef(false);
 
   // Focus trap: cycle Tab/Shift+Tab within the open dialog
   const panelRef = React.useRef<HTMLDivElement>(null);
@@ -45,10 +49,28 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
       if (document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
   }, []);
-  // Return focus to FAB trigger when dialog closes
+  // Return focus only after the user has actually opened the panel. The FAB is
+  // lazy-loaded by AppShell, so focusing it on the initial closed render would
+  // steal keyboard focus from the page as soon as its chunk arrives.
   React.useEffect(() => {
-    if (!open && !drawerOpen) { fabRef.current?.focus(); }
+    if (open) {
+      restoreFocusOnClose.current = true;
+      return;
+    }
+    if (!restoreFocusOnClose.current) return;
+    restoreFocusOnClose.current = false;
+    if (!drawerOpen) fabRef.current?.focus();
   }, [open, drawerOpen]);
+  // The FAB lives beside the routed page in AppShell, so close its panel when
+  // navigation changes instead of leaving the old page's dialog over the new one.
+  React.useEffect(() => {
+    if (previousPathname.current === location.pathname) return;
+    previousPathname.current = location.pathname;
+    // Route changes hand focus to the destination page; do not treat this as
+    // a user dismissal that should return focus to the old page's FAB.
+    restoreFocusOnClose.current = false;
+    setOpen(false);
+  }, [location.pathname]);
   // Close expansion when the hamburger drawer opens
   React.useEffect(() => { if (drawerOpen) setOpen(false); }, [drawerOpen]);
   // Sync FAB target with Sebha stored target on open to prevent lock
@@ -120,6 +142,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
         onKeyDown={trapFocus}
         role="dialog"
         aria-modal="true"
+        data-state="open"
         aria-label="تسبيح سريع"
       >
         {/* Close */}
@@ -141,6 +164,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
             <button type="button"
               key={t.key}
               onClick={() => setSelected(t.key)}
+              aria-pressed={selected === t.key}
               className={cn(
                 "rounded-2xl px-2.5 py-3 text-sm border transition press-effect min-h-[44px]",
                 selected === t.key
@@ -158,6 +182,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
             <button type="button"
               key={value}
               onClick={() => setTarget(value as 33 | 100 | 1000)}
+              aria-pressed={target === value}
               className={cn(
                 "rounded-xl px-3 py-2 text-xs font-semibold transition",
                 target === value

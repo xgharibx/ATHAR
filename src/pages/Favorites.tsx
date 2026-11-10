@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, ArrowUpRight, Trash2, Copy, Check, CopyCheck, Share2, BookOpen, ScrollText, Bookmark, Star, Users } from "lucide-react";
+import { Heart, ArrowUpRight, Trash2, Copy, Check, CopyCheck, Share2, BookOpen, ScrollText, Bookmark, Star, Users, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
@@ -19,6 +19,8 @@ import { DUAS_CATEGORIES } from "@/data/duas";
 import { PROPHET_STORIES } from "@/data/prophetStories";
 import { COMPANIONS } from "@/data/companions";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
+import { AdhkarLoadStatus } from "@/components/home/AdhkarLoadStatus";
 
 function useLocalBookmarkSet(key: string): [Set<string>, (id: string) => void] {
   const [ids, setIds] = React.useState<Set<string>>(() => {
@@ -39,11 +41,13 @@ function useLocalBookmarkSet(key: string): [Set<string>, (id: string) => void] {
 }
 
 export function FavoritesPage() {
-  const { data } = useAdhkarDB();
+  const adhkarQuery = useAdhkarDB();
+  const { data } = adhkarQuery;
   const { data: quranData } = useQuranDB();
   const navigate = useNavigate();
   useScrollRestoration();
   const favorites = useNoorStore((s) => s.favorites);
+  const customPacks = useNoorStore((s) => s.customPacks);
   const toggleFavorite = useNoorStore((s) => s.toggleFavorite);
   const quranBookmarks = useNoorStore((s) => s.quranBookmarks);
   const toggleQuranBookmark = useNoorStore((s) => s.toggleQuranBookmark);
@@ -128,10 +132,28 @@ export function FavoritesPage() {
   const favKeys = React.useMemo(() => Object.keys(favorites).filter((k) => favorites[k]), [favorites]);
 
   const items = React.useMemo(() => {
-    if (!data) return [];
-    const map = new Map(data.flat.map((f) => [f.key, f]));
+    if (!data && customPacks.length === 0) return [];
+    const customPackItems: FlatDhikr[] = customPacks.flatMap((pack) => pack.items.map((item, index) => ({
+      key: dhikrStateKey(pack.id, index, item.id),
+      sectionId: pack.id,
+      sectionTitle: pack.title,
+      index,
+      itemId: item.id,
+      text: item.text,
+      count: item.count,
+    })));
+    const map = new Map([...(data?.flat ?? []), ...customPackItems].map((item) => [item.key, item]));
     return favKeys.map((k) => map.get(k)).filter(Boolean) as FlatDhikr[];
-  }, [data, favKeys]);
+  }, [customPacks, data, favKeys]);
+  const resolvedFavoriteKeys = React.useMemo(() => new Set(items.map((item) => item.key)), [items]);
+  const unresolvedFavoriteKeys = React.useMemo(
+    () => favKeys.filter((key) => !resolvedFavoriteKeys.has(key)),
+    [favKeys, resolvedFavoriteKeys],
+  );
+  const adhkarFavoritesNeedCatalog = unresolvedFavoriteKeys.length > 0;
+  const adhkarCatalogIdleWithoutData = !data && !adhkarQuery.isLoading && !adhkarQuery.isFetching && !adhkarQuery.error;
+  const shouldShowAdhkarCatalogStatus = (Boolean(adhkarQuery.error) && (adhkarFavoritesNeedCatalog || (Boolean(data) && items.length > 0)))
+    || (adhkarFavoritesNeedCatalog && adhkarCatalogIdleWithoutData);
 
   const copyAll = React.useCallback(async () => {
     if (items.length === 0) return;
@@ -355,7 +377,29 @@ export function FavoritesPage() {
       {/* ── Adhkar tab ── */}
       {activeTab === "adhkar" && (
       <Card className="p-5" role="tabpanel" id="fav-panel-adhkar" aria-labelledby="fav-tab-adhkar" tabIndex={0}>
-        {items.length === 0 ? (
+        {shouldShowAdhkarCatalogStatus && (
+          <AdhkarLoadStatus
+            hasData={Boolean(data)}
+            error={adhkarQuery.error ?? true}
+            isFetching={adhkarQuery.isFetching}
+            onRetry={() => { void adhkarQuery.refetch(); }}
+          />
+        )}
+        {adhkarFavoritesNeedCatalog && (adhkarQuery.isLoading || adhkarQuery.isFetching) && !adhkarQuery.error && (
+          <div role="status" aria-live="polite" className="flex items-center justify-center gap-2 py-8 text-sm opacity-70">
+            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+            جارٍ تحميل الأذكار المحفوظة…
+          </div>
+        )}
+        {adhkarFavoritesNeedCatalog && data && !adhkarQuery.error && !adhkarQuery.isLoading && !adhkarQuery.isFetching && (
+          <div role="status" aria-live="polite" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm">
+            <p className="m-0 opacity-80">تعذّر العثور على بعض الأذكار المحفوظة ضمن البيانات المتاحة.</p>
+            <Button variant="outline" size="sm" aria-label="إعادة تحميل الأذكار" onClick={() => { void adhkarQuery.refetch(); }}>
+              إعادة تحميل الأذكار
+            </Button>
+          </div>
+        )}
+        {items.length === 0 && adhkarFavoritesNeedCatalog ? null : items.length === 0 ? (
           <EmptyState
             variant="favorites"
             title="لا توجد مفضلة بعد"
@@ -402,7 +446,7 @@ export function FavoritesPage() {
 
                         {confirmDeleteKey === r.key ? (
                           <div className="flex flex-col gap-2">
-                            <Button variant="danger" size="sm" onClick={() => { toggleFavorite(r.sectionId, r.index); setConfirmDeleteKey(null); }}>
+                            <Button variant="danger" size="sm" onClick={() => { toggleFavorite(r.sectionId, r.index, r.itemId); setConfirmDeleteKey(null); }}>
                               تأكيد
                             </Button>
                             <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteKey(null)}>

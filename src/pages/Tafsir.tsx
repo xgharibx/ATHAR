@@ -49,9 +49,11 @@ export function TafsirPage() {
     requestedSource ?? "muyassar"
   );
   const [ayahs, setAyahs] = React.useState<string[]>([]);
+  const [loadedSelection, setLoadedSelection] = React.useState<string | null>(null);
   const tafsirEntries = React.useMemo(() => buildTafsirAyahEntries(ayahs), [ayahs]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const loadRequestId = React.useRef(0);
 
   React.useEffect(() => {
     if (requestedSurah !== null) setSelectedSurah(requestedSurah);
@@ -70,11 +72,14 @@ export function TafsirPage() {
   // "افتح في المصحف" for non-bundled editions aligns with the README/docs.
   const loadTafsirForSurah = React.useCallback(
     async (surahId: number, source: string) => {
+      const requestId = ++loadRequestId.current;
+      const isCurrentRequest = () => loadRequestId.current === requestId;
       setLoading(true);
       setError(null);
       try {
         if (source === "muyassar") {
           const cache = await loadMuyassarCache();
+          if (!isCurrentRequest()) return;
           const list = cache[String(surahId)] ?? [];
           if (!list || list.length === 0) {
             setAyahs([]);
@@ -82,21 +87,26 @@ export function TafsirPage() {
           } else {
             setAyahs(list as string[]);
           }
+          setLoadedSelection(`${surahId}:${source}`);
         } else {
           const { loadTafsirSurah } = await import("@/lib/tafsirEditions");
           const list = await loadTafsirSurah(source, surahId);
+          if (!isCurrentRequest()) return;
           if (!list || list.length === 0) {
             setAyahs([]);
             setError("سيتم تحميل التفسير عند فتح المصحف — الإصدار متاح هناك.");
           } else {
             setAyahs(list);
           }
+          setLoadedSelection(`${surahId}:${source}`);
         }
-      } catch (err) {
+      } catch {
+        if (!isCurrentRequest()) return;
         setAyahs([]);
         setError("تعذر تحميل التفسير. تأكد من الاتصال وحاول مجددًا.");
+        setLoadedSelection(`${surahId}:${source}`);
       } finally {
-        setLoading(false);
+        if (isCurrentRequest()) setLoading(false);
       }
     },
     []
@@ -105,10 +115,21 @@ export function TafsirPage() {
   React.useEffect(() => {
     if (selectedSurah === null) {
       setAyahs([]);
-      return;
+      setError(null);
+      setLoading(false);
+      setLoadedSelection(null);
+    } else {
+      void loadTafsirForSurah(selectedSurah, selectedSource);
     }
-    void loadTafsirForSurah(selectedSurah, selectedSource);
+    return () => {
+      loadRequestId.current += 1;
+    };
   }, [selectedSurah, selectedSource, loadTafsirForSurah]);
+
+  const selectionIsLoaded = selectedSurah !== null && loadedSelection === `${selectedSurah}:${selectedSource}`;
+  const currentLoading = selectedSurah !== null && (loading || !selectionIsLoaded);
+  const currentError = selectionIsLoaded ? error : null;
+  const currentEntries = selectionIsLoaded ? tafsirEntries : [];
 
   return (
     <div className="space-y-4 page-enter">
@@ -136,33 +157,24 @@ export function TafsirPage() {
             جارٍ تحميل قائمة السور…
           </div>
         ) : (
-          <div
-            className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1 py-1"
+          <select
             aria-label="قائمة السور"
-            role="listbox"
+            dir="rtl"
+            value={selectedSurah === null ? "" : String(selectedSurah)}
+            onChange={(event) => {
+              const surahId = Number(event.currentTarget.value);
+              if (!Number.isInteger(surahId) || surahId < 1 || surahId > 114) return;
+              setSelectedSurah(surahId);
+              setSelectedSource("muyassar");
+              navigate(`/tafsir?surah=${surahId}&source=muyassar`, { replace: true });
+            }}
+            className="w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-sm text-[var(--text)]"
           >
-            {surahs.slice(0, 30).map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => {
-                  setSelectedSurah(s.id);
-                  setSelectedSource("muyassar");
-                  navigate(`/tafsir?surah=${s.id}&source=muyassar`, { replace: true });
-                }}
-                aria-pressed={selectedSurah === s.id}
-                aria-label={`سورة ${s.name}`}
-                className={`shrink-0 px-3 py-2 rounded-2xl border text-xs transition ${
-                  selectedSurah === s.id
-                    ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                    : "bg-[var(--card)] border-[var(--stroke)] opacity-65 hover:opacity-100"
-                }`}
-              >
-                <span className="arabic-text">{s.name}</span>
-                <span className="ms-1 opacity-50 tabular-nums">{toArabicNumeral(s.id)}</span>
-              </button>
+            <option value="">اختر سورة</option>
+            {surahs.map((s) => (
+              <option key={s.id} value={s.id}>{`${s.name} ﴿${toArabicNumeral(s.id)}﴾`}</option>
             ))}
-          </div>
+          </select>
         )}
 
         <div className="mt-4 text-[11px] font-semibold opacity-50 uppercase tracking-wider mb-2">
@@ -204,13 +216,13 @@ export function TafsirPage() {
               <h2 className="arabic-text text-lg font-bold">{currentSurah.name}</h2>
             </div>
             <span className="text-[11px] opacity-55">
-              {loading
+              {currentLoading
                 ? "جارٍ التحميل…"
-                : `${arNum(tafsirEntries.length)} آية`}
+                : `${arNum(currentEntries.length)} آية`}
             </span>
           </div>
 
-          {!selectedSource.startsWith("muyassar") && !loading ? (
+          {!selectedSource.startsWith("muyassar") && !currentLoading ? (
             <div className="rounded-2xl border border-[var(--stroke)] p-4 text-xs leading-7 opacity-80">
               <p>
                 مفسر «{TAFSIR_EDITIONS.find((e) => e.slug === selectedSource)?.label ?? selectedSource}»
@@ -233,20 +245,20 @@ export function TafsirPage() {
             </div>
           ) : null}
 
-          {loading ? (
+          {currentLoading ? (
             <div className="flex items-center gap-2 text-sm opacity-65 py-3">
               <Loader2 size={14} className="animate-spin" aria-hidden="true" />
               جارٍ تحميل التفسير…
             </div>
           ) : null}
 
-          {error ? (
-            <div className="text-sm opacity-70 py-2">{error}</div>
+          {currentError ? (
+            <div className="text-sm opacity-70 py-2">{currentError}</div>
           ) : null}
 
-          {!loading && !error && tafsirEntries.length > 0 ? (
+          {!currentLoading && !currentError && currentEntries.length > 0 ? (
             <ol className="space-y-3 mt-2" aria-label={`تفسير ${currentSurah.name}`}>
-              {tafsirEntries.map(({ ayahNumber, text }) => (
+              {currentEntries.map(({ ayahNumber, text }) => (
                 <li
                   key={ayahNumber}
                   className="rounded-2xl border border-[var(--stroke)] p-3"

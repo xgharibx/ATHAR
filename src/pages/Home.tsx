@@ -19,7 +19,11 @@ import {
 } from "lucide-react";
 
 import { useStartupReady } from "@/hooks/useStartupReady";
+import { useCurrentHour } from "@/hooks/useCurrentHour";
+import { useHomePrayerClock } from "@/hooks/useHomePrayerClock";
 import { isStartupPending } from "@/lib/startup";
+import { getHomeAdhkarAction } from "@/lib/homeTimeActions";
+import { getHomePrayerContext } from "@/lib/homePrayerContext";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -39,12 +43,15 @@ import { useTodayKey } from "@/hooks/useTodayKey";
 import { formatPrayerHijriDate, type PrayerHijriDate, usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
-import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
+import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { DailyCarousel } from "@/components/ui/DailyCarousel";
+import { AdhkarLoadStatus } from "@/components/home/AdhkarLoadStatus";
 import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
 import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useScrollRestoration";
 import { toArabicNumeral } from "@/lib/quranMeta";
 import { arNum } from "@/lib/formatNumber";
+import { countCompletedKhatmaDays, getKhatmaTimeline } from "@/lib/quranKhatma";
 
 const HomePulse = React.lazy(() => import("@/components/brand/HomePulse"));
 
@@ -242,7 +249,7 @@ export function HomePage() {
   const newMuhasaba = useIsNew("muhasaba");
   const newQadaa = useIsNew("qadaa");
   const [initialLaunch] = React.useState(isStartupPending);
-  const { data, isLoading, error } = useAdhkarDB();
+  const { data, isLoading, isFetching, error, refetch } = useAdhkarDB();
   useStartupReady(!isLoading);
   const quran = useQuranDB();
   const activity = useNoorStore((s) => s.activity);
@@ -257,6 +264,7 @@ export function HomePage() {
   const sebhaTarget = useNoorStore((s) => s.sebhaTarget);
   const setSebhaTarget = useNoorStore((s) => s.setSebhaTarget);
   const tasbeehDailyLog = useNoorStore((s) => s.tasbeehDailyLog);
+  const tasbeehDayTotals = useNoorStore((s) => s.tasbeehDayTotals);
 
   const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
   const setDailyWirdDone = useNoorStore((s) => s.setDailyWirdDone);
@@ -270,6 +278,8 @@ export function HomePage() {
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const quranStreak = useNoorStore((s) => s.quranStreak);
   const prayerLog = useNoorStore((s) => s.prayerLog);
+  const dailyChecklistByDay = useNoorStore((s) => s.dailyChecklist);
+  const lastKnownFajrTime = useNoorStore((s) => s.lastKnownFajrTime);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
   const khatmaDone = useNoorStore((s) => s.khatmaDone);
@@ -496,6 +506,7 @@ export function HomePage() {
   const [activePhraseKey, setActivePhraseKey] = React.useState<QuickTasbeehKey | null>(null);
   const prayerTimes = usePrayerTimes();
   const civilTodayKey = useTodayKey();
+  const localHour = useCurrentHour();
   const todayTotal = React.useMemo(() => {
     const day = tasbeehDailyLog[civilTodayKey] ?? {};
     return Object.values(day).reduce((sum, value) => sum + (Number(value) || 0), 0);
@@ -510,7 +521,7 @@ export function HomePage() {
   }, [tasbeehDailyLog, civilTodayKey]);
   const worshipDayKey = useTodayKey({
     mode: "ibadah",
-    fajrTime: prayerTimes.data?.data?.timings?.Fajr,
+    fajrTime: prayerTimes.data?.data?.timings?.Fajr ?? lastKnownFajrTime ?? undefined,
   });
   const dailyChecklistToday = useNoorStore((s) => s.dailyChecklist[worshipDayKey] ?? {});
   const yesterdayKey = React.useMemo(() => shiftDateKey(worshipDayKey, -1), [worshipDayKey]);
@@ -635,8 +646,10 @@ export function HomePage() {
 
   const lastVisitedSection = React.useMemo(() => {
     if (!lastVisitedSectionId) return null;
-    return sections.find((s) => s.id === lastVisitedSectionId) ?? null;
-  }, [lastVisitedSectionId, sections]);
+    return sections.find((s) => s.id === lastVisitedSectionId)
+      ?? customPacks.find((pack) => pack.id === lastVisitedSectionId)
+      ?? null;
+  }, [lastVisitedSectionId, sections, customPacks]);
 
   const quickTotal = React.useMemo(() => {
     const target = tasbeehTarget;
@@ -661,17 +674,20 @@ export function HomePage() {
 
   // 5C: Quests + XP
   const questsData = React.useMemo(() => {
-    const prayersDone: Record<string, boolean> = prayerLog[civilTodayKey] ?? {};
     // Ayahs actually read today — not the cumulative furthest-reached total,
     // which used to inflate XP by summing every surah's high-water mark.
-    const ayahsToday = Number(quranDailyAyahs[civilTodayKey] ?? 0);
-    const scores = buildLeaderboardScoreStats({
+    const ayahsToday = Number(quranDailyAyahs[worshipDayKey] ?? 0);
+    const scores = buildLeaderboardScoreStatsForDay({
       sections: sections,
+      customPacks,
       progress: progressMap,
-      quranAyahsToday: ayahsToday,
-      prayersDone,
+      quranDailyAyahs,
+      dailyChecklist: dailyChecklistByDay,
+      prayerLog,
       quickTasbeeh,
-      todayISO: civilTodayKey,
+      tasbeehDayTotals,
+      todayISO: worshipDayKey,
+      civilTodayISO: civilTodayKey,
     });
     const totalXp = scores.global;
 
@@ -696,39 +712,25 @@ export function HomePage() {
 
     return { quests, doneCount, totalXp, xpLevel, xpPct };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs]);
+  }, [activity, civilTodayKey, customPacks, dailyChecklistByDay, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs, tasbeehDayTotals, worshipDayKey]);
 
-  const prayerContext = React.useMemo<PrayerContext>(() => {
-    const timings = prayerTimes.data?.data?.timings;
-    if (!timings) return { nextPrayer: null, nextPrayerMinutes: null };
-
-    const now = new Date();
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const prayerList = [
-      { label: "الفجر", value: timings.Fajr },
-      { label: "الظهر", value: timings.Dhuhr },
-      { label: "العصر", value: timings.Asr },
-      { label: "المغرب", value: timings.Maghrib },
-      { label: "العشاء", value: timings.Isha }
-    ]
-      .map((p) => {
-        const clean = String(p.value ?? "").trim().split(" ")[0] ?? "";
-        const [hh, mm] = clean.split(":").map((x) => Number.parseInt(x, 10));
-        if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
-        const at = new Date(dayStart);
-        at.setHours(hh, mm, 0, 0);
-        return { label: p.label, at };
-      })
-      .filter((p): p is { label: string; at: Date } => !!p);
-
-    const nextPrayer = prayerList.find((p) => p.at.getTime() > now.getTime()) ?? prayerList[0] ?? null;
-    const nextPrayerMinutes = nextPrayer ? Math.max(0, Math.floor((nextPrayer.at.getTime() - now.getTime()) / 60000)) : null;
-
-    return { nextPrayer, nextPrayerMinutes };
-  }, [prayerTimes.data?.data?.timings]);
+  const todayPrayerTimings = prayerTimes.data?.data?.timings;
+  const tomorrowPrayerDate = React.useMemo(() => {
+    const date = parseDateKey(civilTodayKey) ?? new Date();
+    date.setDate(date.getDate() + 1);
+    return date;
+  }, [civilTodayKey]);
+  const cachedTomorrowPrayerTimings = prayerTimes.tomorrow?.data?.timings;
+  const getPrayerTimingsForDate = prayerTimes.getPrayerTimingsForDate;
+  const tomorrowPrayerTimings = React.useMemo(() => {
+    if (cachedTomorrowPrayerTimings || !todayPrayerTimings) return cachedTomorrowPrayerTimings;
+    return getPrayerTimingsForDate(tomorrowPrayerDate);
+  }, [cachedTomorrowPrayerTimings, getPrayerTimingsForDate, todayPrayerTimings, tomorrowPrayerDate]);
+  useHomePrayerClock(todayPrayerTimings, tomorrowPrayerTimings, civilTodayKey);
+  const prayerContext: PrayerContext = getHomePrayerContext(todayPrayerTimings, tomorrowPrayerTimings, new Date());
 
   const smartNow = React.useMemo(() => {
-    const hour = new Date().getHours();
+    const hour = localHour;
     const periodLabel =
       hour < 5 ? "قبل الفجر" : hour < 12 ? "الصباح" : hour < 17 ? "بعد الظهر" : hour < 21 ? "المساء" : "الليل";
 
@@ -792,7 +794,7 @@ export function HomePage() {
     const streakRisk = hour >= 20 && todayActivity === 0;
 
     return { periodLabel, suggestedAction, missedYesterday, streakRisk, actionRoute, actionLabel };
-  }, [activity, civilTodayKey, dailyChecklistToday, dailyChecklistYesterday, isDailyWirdDone, prayerContext.nextPrayer, prefs.quranMushafPage]);
+  }, [activity, civilTodayKey, dailyChecklistToday, dailyChecklistYesterday, isDailyWirdDone, localHour, prayerContext.nextPrayer, prefs.quranMushafPage]);
 
   const adaptiveMission = React.useMemo(() => {
     const nextPrayer = prayerContext.nextPrayer;
@@ -906,14 +908,7 @@ export function HomePage() {
     toast.success(`تم إنجاز: ${item.title}`);
   }, [adaptiveMission.recoveryItem, toggleDailyChecklist, worshipDayKey]);
 
-  // Time-aware hero adhkar CTA — memoized; hour is stable for minutes at a time
-  const heroAdhkar = React.useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour >= 21 || hour < 4) return { id: "sleep",   label: "ابدأ بأذكار النوم" };
-    if (hour >= 15)              return { id: "evening", label: "ابدأ بأذكار المساء" };
-    return                              { id: "morning", label: "ابدأ بأذكار الصباح" };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [civilTodayKey]);
+  const heroAdhkar = getHomeAdhkarAction(localHour);
 
   if (isLoading) {
     return (
@@ -935,24 +930,15 @@ export function HomePage() {
       </div>
     );
   }
-  if (error || !data) {
+  if (!data) {
     return (
-      <div className="p-6">
-        <Card className="p-6">
-          <div className="text-lg font-semibold">حدث خطأ</div>
-          <div className="opacity-70 mt-2 text-sm leading-6">
-            لم نستطع تحميل قاعدة الأذكار. تأكد من وجود الملف{" "}
-            <code className="px-2 py-1 rounded-lg bg-[var(--card)] border border-[var(--stroke)]">
-              public/data/adhkar
-            </code>
-          </div>
-        </Card>
-      </div>
+      <AdhkarLoadStatus hasData={false} error={error ?? true} isFetching={isFetching} onRetry={() => { void refetch(); }} />
     );
   }
 
   return (
     <div className={initialLaunch ? "space-y-3" : "space-y-3 page-enter"}>
+      <AdhkarLoadStatus hasData error={error} isFetching={isFetching} onRetry={() => { void refetch(); }} />
       <Card className="p-5 overflow-hidden relative">
         {/* Two quiet doors to the tables, in the corner the decoration used to fill. */}
         <div className="absolute top-3 left-3 z-10 grid grid-cols-2 gap-2">
@@ -1115,7 +1101,7 @@ export function HomePage() {
                   let done = 0;
                   const total = pack.items.length;
                   pack.items.forEach((item, i) => {
-                    const have = Math.min(item.count, Math.max(0, Number(progressMap[`${pack.id}:${i}`]) || 0));
+                    const have = Math.min(item.count, Math.max(0, Number(progressMap[dhikrStateKey(pack.id, i, item.id)]) || 0));
                     if (have >= item.count) done++;
                   });
                   const isComplete = total > 0 && done === total;
@@ -1157,7 +1143,7 @@ export function HomePage() {
                   const total = section.content.length;
                   section.content.forEach((item, i) => {
                     const need = coerceCount(item.count);
-                    const have = Math.min(need, Math.max(0, Number(progressMap[`${section.id}:${i}`]) || 0));
+                    const have = Math.min(need, Math.max(0, Number(progressMap[dhikrStateKey(section.id, i, item.id)]) || 0));
                     if (have >= need) done++;
                   });
                   const isComplete = total > 0 && done === total;
@@ -1740,15 +1726,12 @@ export function HomePage() {
 
       {/* ختمة القرآن */}
       {khatmaStartISO && khatmaDays && (() => {
-        const start = new Date(khatmaStartISO);
-        const end = new Date(start.getTime() + khatmaDays * 86400000);
-        const now = Date.now();
-        if (now >= end.getTime()) return null; // finished
-        const totalMs = end.getTime() - start.getTime();
-        const elapsedMs = now - start.getTime();
-        const pct = Math.min(100, Math.round((elapsedMs / totalMs) * 100));
-        const daysLeft = Math.ceil((end.getTime() - now) / 86400000);
-        const doneCount = Object.values(khatmaDone ?? {}).filter(Boolean).length;
+        const timeline = getKhatmaTimeline(khatmaStartISO, civilTodayKey, khatmaDays);
+        if (!timeline || timeline.isExpired) return null;
+        const pct = timeline.isUpcoming
+          ? 0
+          : Math.max(0, Math.min(100, Math.round((timeline.elapsedDays / khatmaDays) * 100)));
+        const doneCount = countCompletedKhatmaDays(khatmaStartISO, khatmaDays, khatmaDone);
         return (
           <button
             type="button"
@@ -1761,7 +1744,10 @@ export function HomePage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>ختمة القرآن</span>
-                <span className="text-xs tabular-nums opacity-70">تبقى {arNum(daysLeft)} يوم · {arNum(doneCount)}س/{arNum(khatmaDays)}</span>
+                <span className="text-xs tabular-nums opacity-70">
+                  {timeline.isUpcoming ? `تبدأ بعد ${arNum(timeline.startsInDays)} يوم` : `تبقى ${arNum(timeline.daysRemaining)} يوم`}
+                  {` · ${arNum(doneCount)}س/${arNum(khatmaDays)}`}
+                </span>
               </div>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}>
                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: "var(--accent)" }} />

@@ -90,7 +90,7 @@ export function OnboardingFlow() {
       void requestPrayerLocation()
         .then((locationSaved) => {
           if (locationSaved) {
-            void queryClient.invalidateQueries({ queryKey: ["prayer-times", "v3"] }).catch(() => undefined);
+            void queryClient.invalidateQueries({ queryKey: ["prayer-times", "v4"] }).catch(() => undefined);
           }
         })
         .catch(() => undefined);

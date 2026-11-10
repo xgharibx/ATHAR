@@ -1138,7 +1138,7 @@ export function PrayerTimesPage() {
       Asr: timings.Asr,
       Maghrib: timings.Maghrib,
       Isha: timings.Isha,
-    }).then(() => {
+    }, undefined, prayerTimes.tomorrow?.data?.timings).then(() => {
       if (cancelled) return;
       toast.success(pendingLocationRefresh.successMessage);
       setPendingLocationRefresh(null);
@@ -1151,7 +1151,7 @@ export function PrayerTimesPage() {
     });
 
     return () => { cancelled = true; };
-  }, [pendingLocationRefresh, prayerLocationIdentity, prayerTimes.data, prayerTimes.error, prayerTimes.isFetching, reminders]);
+  }, [pendingLocationRefresh, prayerLocationIdentity, prayerTimes.data, prayerTimes.error, prayerTimes.isFetching, prayerTimes.tomorrow?.data?.timings, reminders]);
 
   async function refreshPrayerTimes() {
     setManualRefreshing(true);
@@ -1159,7 +1159,12 @@ export function PrayerTimesPage() {
       const result = await prayerTimes.refetch();
       if (result.error || !result.data?.data?.timings) throw result.error ?? new Error("refresh failed");
       const rt = result.data.data.timings;
-      await syncReminders(reminders, { Fajr: rt.Fajr, Dhuhr: rt.Dhuhr, Asr: rt.Asr, Maghrib: rt.Maghrib, Isha: rt.Isha });
+      await syncReminders(
+        reminders,
+        { Fajr: rt.Fajr, Dhuhr: rt.Dhuhr, Asr: rt.Asr, Maghrib: rt.Maghrib, Isha: rt.Isha },
+        undefined,
+        prayerTimes.tomorrow?.data?.timings,
+      );
       toast.success("تم تحديث مواقيت الصلاة");
     } catch { toast.error("تعذر تحديث المواقيت الآن"); }
     finally { setManualRefreshing(false); }

@@ -196,7 +196,10 @@ async function load(opts: {
   transportRace?: "read" | "commit" | "ack";
 }) {
   vi.resetModules();
-  const databaseNamespace = opts.databaseNamespace ?? `sync-test-${++databaseSerial}`;
+  // Each test gets an isolated database namespace. The multi-device cases
+  // still pass the same explicit namespace to their separate module contexts,
+  // while rerunning the suite cannot inherit a previous run's durable receipt.
+  const databaseNamespace = `${testDatabaseScope}::${opts.databaseNamespace ?? `sync-test-${++databaseSerial}`}`;
   const st = makeStore(opts.local);
   const userId = opts.userId ?? "user-a";
   const server = opts.server ?? makeSharedServer(opts.rows ?? []);
@@ -278,13 +281,10 @@ async function load(opts: {
 }
 
 let databaseSerial = 0;
+let testDatabaseScope = "";
 
 beforeEach(() => {
-  indexedDB.deleteDatabase("athar-sync-v1");
-  indexedDB.deleteDatabase("athar-sync-v1::user-a");
-  indexedDB.deleteDatabase("athar-sync-v1::user-b");
-  indexedDB.deleteDatabase("athar-sync-v1::sync-device-a");
-  indexedDB.deleteDatabase("athar-sync-v1::sync-device-b");
+  testDatabaseScope = `run-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   localStorage.clear();
 });
 
@@ -564,7 +564,8 @@ describe("concurrency", () => {
     const aRun = a.mod.syncNow();
     await commitStarted;
     const bRun = b.mod.syncNow();
-    expect(await bRun).toBe(true);
+    const bResult = await bRun;
+    expect(bResult, JSON.stringify({ status: b.mod.getSyncStatus(), commits: server.rpcCalls.filter((call) => call.name === "athar_sync_commit_batch").length })).toBe(true);
     releaseCommit();
     expect(await aRun).toBe(true);
     expect(server.serverRows.find((row) => row.kind === "progress")?.payload)
@@ -675,7 +676,8 @@ describe("concurrency", () => {
       .toEqual({ customReminders: [edited] });
     expect(a.current().customReminders).toEqual([edited]);
     expect(b.current().customReminders).toEqual([edited]);
-    expect(server.rpcCalls.filter((call) => call.name === "athar_sync_commit_batch")).toHaveLength(3);
+    const commits = server.rpcCalls.filter((call) => call.name === "athar_sync_commit_batch");
+    expect(commits, JSON.stringify(commits.map(({ args }) => ({ id: args.p_request_id, device: args.p_device_id, expected: (args.p_writes as RpcWrite[]).map((write) => [write.kind, write.expected_revision]) })))).toHaveLength(3);
   });
 
   it("retries a stale multi-document batch without partially applying it", async () => {

@@ -1,16 +1,34 @@
 # Athar accounts — setup checklist
 
-> ## Current verification status — 2026-10-03
+> ## Current verification status — 2026-11-09
 >
-> The production Supabase project is reachable and its migration ledger records
-> `20261003132940_athar_sync_revision_protocol`. Read-only catalog checks
-> confirm the `athar_sync.revision` column, both batch RPCs, their private
-> implementations, and the receipt table. The RPC grants and receipt-table
-> isolation were checked. Staging pgTAP and signed-in account round-trips are
-> still unverified: Supabase branching is unavailable on the current plan, and
-> this machine has no local PostgreSQL runtime. The later write-cutoff SQL is
-> staged under `supabase/release-gates/`, outside the directory consumed by
-> routine `supabase db push`; legacy direct writes remain enabled.
+> The production project `ojstudhmcypoqfnwugbf` is `ACTIVE_HEALTHY`; all 34
+> local migrations match the live ledger through `20261109073146`. Read-only
+> checks on 9 November confirmed 282 `athar_sync` documents (about 616 KB),
+> 233 sync-table reads and 103 revision commits plus 103 acknowledgements
+> returning HTTP 200 in the preceding 24-hour request window, and an overall
+> database size of 22 MB. This is evidence that the backend sync path is serving
+> successfully, not a cross-device test using the owner's own account. Staging
+> pgTAP and a signed-in account round-trip remain unverified: no disposable
+> paid Supabase branch was created, and this machine has no local PostgreSQL
+> runtime. The later write-cutoff and server payload-limit SQL remain under
+> `supabase/release-gates/`, outside the directory consumed by routine
+> `supabase db push`; legacy direct writes remain enabled and the active RPC
+> does not yet enforce the app's document-size limit.
+>
+> The leaderboard function is active at version 35. In the preceding 24-hour
+> logs, v35 returned 375 HTTP 200 and 21 HTTP 400 responses, with no 503s;
+> v34 returned 907 HTTP 200 and one HTTP 400, also with no 503s. The older v33
+> deployment accounted for 3,926 HTTP 503 responses in that window. The database
+> currently has 1,537 profiles (about 912 KB), 6,959 rollups (about 2.3 MB),
+> and 1,242 score events (about 4.0 MB). Both daily cleanup jobs are active and
+> last succeeded on 9 November: raw score events are retained for seven days,
+> alias audits for 30 days, and daily rollups for the current year. Score-event
+> and section-row limits apply per identity, not across the whole project. This
+> reduces growth but is **not a hard database-size cap**; new identities and
+> current-year rollups can still accumulate. The organization is on the Free
+> plan and the database is currently 22 MB. Do not promise that future database
+> quota exhaustion is impossible.
 >
 > **For a new environment or staging verification:** apply
 > `20261003132940_athar_sync_revision_protocol.sql` after its prerequisite
@@ -146,13 +164,16 @@ put that key in `.env.local` or anywhere client-side.
 
 ---
 
-## 7. Protect the paid Companion endpoint
+## 7. Protect the Companion endpoint
 
-The Companion now requires a signed-in account for AI replies. Quran, adhkar,
-and locally stored data remain available to guests. Its Edge Function validates
-the Supabase session and reserves a maximum of 30 requests per UTC day and 5 per
-rolling minute in a service-only table; it does not store prompt or response
-content in that table.
+AI replies are available to guests as well as signed-in users. The Edge Function
+verifies signed-in sessions, applies tighter per-IP throttling to guest traffic,
+and reserves requests against a shared daily spend ceiling. Signed-in requests
+also have a 30-request daily and 5-per-minute per-account limit. Quota tables
+store counters only, never prompt or response text. On iOS, a brief one-time
+consent dialog must appear before the first message is sent to MiniMax, with a
+withdrawal control in Settings; a privacy-policy link alone does not capture
+explicit permission before that transfer.
 
 Before deploying:
 
@@ -164,8 +185,9 @@ Before deploying:
 2. Set `MINIMAX_API_KEY` as an Edge Function secret only. Never use a `VITE_`
    variable for the provider key.
 3. Deploy with `supabase functions deploy companion`.
-4. Test missing/invalid sessions, concurrent quota reservations, per-minute
-   and per-day limits, and oversized request rejection against staging.
+4. Test guest and invalid-session handling, concurrent quota reservations,
+   per-minute and per-day limits, and oversized request rejection against
+   staging.
 
 The production project already has the Companion quota and shared budget
 migrations and deployed function updates. Use the project migration ledger and
@@ -179,11 +201,11 @@ Once accounts ship you are collecting personal data, so:
   user content, synced progress, and each network data flow; link the account
   deletion path.
 - Publish a user-facing privacy policy before store release. Companion sends
-  conversation history and selected progress/profile context through Supabase
-  to MiniMax. The current MiniMax API terms permit inputs and outputs to be
-  used to improve services; confirm the terms and retention applicable to the
-  project account before enabling this for users. Location coordinates are also
-  sent to Aladhan when online prayer-time calculation is used.
+  recent conversation history and, when the user has enabled the relevant
+  context options, selected progress/profile context through Supabase to
+  MiniMax. Verify current MiniMax retention and data-use terms before release.
+  Location coordinates are also sent to Aladhan when online prayer-time
+  calculation is used.
 
 > **iOS note:** offering Google/email sign-in means the App Store build will
 > need **Sign in with Apple** (App Store rule 4.8) before it can be approved.

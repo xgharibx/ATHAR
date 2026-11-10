@@ -30,6 +30,7 @@ import { StartupReady } from "@/components/StartupReady";
 import { useStartupReady } from "@/hooks/useStartupReady";
 import { warmBundledAdhkar } from "@/data/load";
 import { afterStartupReady } from "@/lib/startup";
+import { resetScrollForRouteChange } from "@/hooks/useScrollRestoration";
 
 /** Wraps a lazy route element with Suspense + per-route RouteErrorBoundary */
 function S({ children }: { children: React.ReactNode }) {
@@ -194,7 +195,9 @@ function AppContent() {
   const onboardingDone = useNoorStore((s) => s.onboardingDone);
   const sectionCompletions = useNoorStore((s) => s.sectionCompletions);
   const progress = useNoorStore((s) => s.progress);
+  const migratedDhikrStateKeys = useNoorStore((s) => s.migratedDhikrStateKeys);
   const location = useLocation();
+  const previousScrollPathname = React.useRef(location.pathname);
   const prayerTimes = usePrayerTimes();
 
   React.useEffect(() => {
@@ -258,18 +261,23 @@ function AppContent() {
     const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const doneToday = (id: string) => (sectionCompletions[id] ?? []).includes(todayISO);
     const startedToday = (id: string) =>
-      Object.entries(progress).some(([k, v]) => k.startsWith(`${id}:`) && Number(v) > 0);
+      Object.entries(progress).some(([k, v]) =>
+        k.startsWith(`${id}:`) && !migratedDhikrStateKeys[k] && Number(v) > 0,
+      );
     return {
       morningDone: doneToday("morning"),
       morningStarted: startedToday("morning"),
       eveningDone: doneToday("evening"),
       eveningStarted: startedToday("evening"),
     };
-  }, [sectionCompletions, progress]);
+  }, [sectionCompletions, migratedDhikrStateKeys, progress]);
 
-  // Scroll to top on page navigation (skip for hash-only changes)
-  React.useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  // Persist the outgoing page before resetting the shared window scroll. Its
+  // exit animation may keep the old route mounted for 180ms.
+  React.useLayoutEffect(() => {
+    const previousPathname = previousScrollPathname.current;
+    resetScrollForRouteChange(location.pathname, previousPathname);
+    previousScrollPathname.current = location.pathname;
   }, [location.pathname]);
 
   React.useEffect(() => {

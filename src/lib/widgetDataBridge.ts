@@ -55,6 +55,12 @@ export type AdhkarWidgetPayload = {
 };
 
 export type WirdWidgetPayload = {
+  /** Civil day retained for compatibility with older widget binaries. */
+  day: string;
+  /** Fajr-based day that owns the Quran daily counter. */
+  ibadahDay: string;
+  /** Last known local Fajr time; native widgets use it to expire values on redraw. */
+  fajrTime: string;
   ayahsRead: number;
   dailyGoal: number;
   currentSurah: string;
@@ -71,7 +77,11 @@ export type QadaaWidgetPayload = {
   quotaLeft: number;
   streak: number;
   fastRemaining: number;
+  /** Device-local calendar day; `ibadahDay` retains the app's Fajr-based day key. */
   day: string;
+  ibadahDay: string;
+  /** Last known local Fajr time; native widgets use it to expire daily values on redraw. */
+  fajrTime: string;
   /** One row per prayer owed: remaining, made up in total, made up today, today's share. */
   prayers: Array<{ k: string; rem: number; dn: number; td: number; qt: number }>;
   /** Widget-ledger counters already folded into the numbers above, so taps made since are layered on top. */
@@ -127,16 +137,19 @@ async function clearQiblaWidget(key: string): Promise<void> {
 
 /**
  * Count how many adhkar items have been started in a section.
- * Key format in noorStore.progress: "${sectionId}:${originalIndex}"
+ * Key format in noorStore.progress: legacy index or stable custom item ID.
  * An item counts as "done" if its progress value is > 0.
  */
 function countSectionItemsDone(
   progress: Record<string, number>,
   sectionId: string,
+  migratedDhikrStateKeys: Record<string, boolean> = {},
 ): number {
   let done = 0;
   for (const key of Object.keys(progress)) {
     if (key.startsWith(`${sectionId}:`)) {
+      const suffix = key.slice(sectionId.length + 1);
+      if (/^(0|[1-9]\d*)$/.test(suffix) && migratedDhikrStateKeys[key]) continue;
       const val = progress[key];
       if (typeof val === "number" && val > 0) done++;
     }
@@ -154,6 +167,7 @@ export async function syncAdhkarWidget(): Promise<void> {
   const KEY = "noor_widget_adhkar_v1";
   const state = useNoorStore.getState();
   const progress = state.progress ?? {};
+  const migratedDhikrStateKeys = state.migratedDhikrStateKeys ?? {};
   const sectionCompletions = state.sectionCompletions ?? {};
   const today = todayISO();
 
@@ -163,11 +177,11 @@ export async function syncAdhkarWidget(): Promise<void> {
 
   const morningDone = morningCompleted
     ? MORNING_TOTAL
-    : countSectionItemsDone(progress, "morning");
+    : countSectionItemsDone(progress, "morning", migratedDhikrStateKeys);
 
   const eveningDone = eveningCompleted
     ? EVENING_TOTAL
-    : countSectionItemsDone(progress, "evening");
+    : countSectionItemsDone(progress, "evening", migratedDhikrStateKeys);
 
   const payload: AdhkarWidgetPayload = {
     morning: { done: morningDone,  total: MORNING_TOTAL },
@@ -191,8 +205,9 @@ export async function syncWirdWidget(): Promise<void> {
   const KEY = "noor_widget_wird_v1";
   const state = useNoorStore.getState();
   const today = todayISO();
+  const ibadahDay = ibadahDayKeyOf(state);
 
-  const ayahsRead   = (state.quranDailyAyahs ?? {})[today] ?? 0;
+  const ayahsRead   = (state.quranDailyAyahs ?? {})[ibadahDay] ?? 0;
   const dailyGoal   = (state.prefs as Preferences).quranDailyGoal ?? 10;
   const lastRead    = state.quranLastRead;
   const surahId     = lastRead?.surahId ?? 1;
@@ -200,6 +215,9 @@ export async function syncWirdWidget(): Promise<void> {
   const currentSurah = SURAH_NAMES[surahId - 1] ?? "";
 
   const payload: WirdWidgetPayload = {
+    day: today,
+    ibadahDay,
+    fajrTime: state.lastKnownFajrTime ?? "",
     ayahsRead,
     dailyGoal,
     currentSurah,
@@ -236,7 +254,9 @@ export async function syncQadaaWidget(): Promise<void> {
     quotaLeft: q.quotaLeftTotal,
     streak: q.streak,
     fastRemaining: q.fastRemaining,
-    day: q.today,
+    day: todayISO(),
+    ibadahDay: q.today,
+    fajrTime: state.lastKnownFajrTime ?? "",
     prayers: PRAYER_KEYS.filter((k) => q.owed[k] > 0 || q.remaining[k] > 0).map((k) => ({
       k,
       rem: q.remaining[k],
@@ -258,25 +278,28 @@ export async function syncWirdTableWidget(): Promise<void> {
   const KEY = "noor_widget_wirdtable_v1";
   const state = useNoorStore.getState();
   const items = Object.values(state.wirdItems ?? {});
-  const day = ibadahDayKeyOf(state);
+  const ibadahDay = ibadahDayKeyOf(state);
+  const day = todayISO();
   const log = state.wirdLog ?? {};
   const sections = state.sectionCompletions ?? {};
   const external = (auto: WirdAuto, d: string) =>
     auto === "quranAyahs"
       ? (state.quranDailyAyahs ?? {})[d] ?? 0
       : (sections[auto === "morningAdhkar" ? "morning" : "evening"] ?? []).includes(d) ? 1 : 0;
-  const due = dueOn(items, day);
-  const met = (i: WirdItem) => countOn(log, i, day, external) >= i.target;
+  const due = dueOn(items, ibadahDay);
+  const met = (i: WirdItem) => countOn(log, i, ibadahDay, external) >= i.target;
   const pending = due.find((i) => !met(i)) ?? null;
   const payload = {
     configured: items.length > 0,
     total: due.length,
     done: due.filter(met).length,
     next: pending
-      ? { title: pending.title, count: countOn(log, pending, day, external), target: pending.target, unit: pending.unit }
+      ? { title: pending.title, count: countOn(log, pending, ibadahDay, external), target: pending.target, unit: pending.unit }
       : null,
-    streak: items.length ? Math.max(0, ...items.map((i) => wirdStreak(log, i, day, external))) : 0,
+    streak: items.length ? Math.max(0, ...items.map((i) => wirdStreak(log, i, ibadahDay, external))) : 0,
     day,
+    ibadahDay,
+    fajrTime: state.lastKnownFajrTime ?? "",
     updatedAt: new Date().toISOString(),
   };
   const value = JSON.stringify(payload);

@@ -49,57 +49,77 @@ export function HadithSharhPage() {
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(false);
   const [hadith, setHadith] = React.useState<SharhHadith | null>(null);
+  const viewRequestId = React.useRef(0);
 
-  const run = React.useCallback(async (task: () => Promise<void>) => {
+  const run = React.useCallback(async (task: () => Promise<void>, isCurrent: () => boolean = () => true) => {
     setLoading(true);
     setOffline(false);
     try {
       await task();
     } catch {
-      setOffline(true);
+      if (isCurrent()) setOffline(true);
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, []);
 
   // Load per view
   React.useEffect(() => {
+    const requestId = ++viewRequestId.current;
+    const isCurrent = () => viewRequestId.current === requestId;
+
     if (view.kind === "roots") {
-      void run(async () => setRoots(await fetchSharhRoots()));
+      setChildren([]);
+      void run(async () => {
+        const nextRoots = await fetchSharhRoots();
+        if (isCurrent()) setRoots(nextRoots);
+      }, isCurrent);
     } else if (view.kind === "category") {
+      setChildren([]);
       void run(async () => {
         const kids = await fetchSharhChildren(view.root.id);
+        if (!isCurrent()) return;
         if (kids.length === 0) {
           // Leaf root — jump straight to its hadith list
           setView({ kind: "list", category: view.root });
           return;
         }
         setChildren(kids);
-      });
+      }, isCurrent);
     } else if (view.kind === "list") {
       setItems([]);
       setPage(1);
       void run(async () => {
         const p = await fetchSharhList(view.category.id, 1);
+        if (!isCurrent()) return;
         setItems(p.items);
         setHasMore(p.hasMore);
-      });
+      }, isCurrent);
     } else if (view.kind === "hadith") {
       setHadith(null);
-      void run(async () => setHadith(await fetchSharhHadith(view.id)));
+      void run(async () => {
+        const nextHadith = await fetchSharhHadith(view.id);
+        if (isCurrent()) setHadith(nextHadith);
+      }, isCurrent);
     }
+    return () => {
+      if (viewRequestId.current === requestId) viewRequestId.current++;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
 
   const loadMore = React.useCallback(() => {
     if (view.kind !== "list") return;
     const next = page + 1;
+    const requestId = viewRequestId.current;
+    const isCurrent = () => viewRequestId.current === requestId;
     void run(async () => {
       const p = await fetchSharhList(view.category.id, next);
+      if (!isCurrent()) return;
       setItems((prev) => [...prev, ...p.items]);
       setHasMore(p.hasMore);
       setPage(next);
-    });
+    }, isCurrent);
   }, [view, page, run]);
 
   const share = React.useCallback(async (h: SharhHadith) => {
@@ -116,7 +136,10 @@ export function HadithSharhPage() {
   const back = () => {
     if (view.kind === "hadith" && view.backTo) setView({ kind: "list", category: view.backTo });
     else if (view.kind === "list") setView({ kind: "roots" });
-    else if (view.kind === "category") setView({ kind: "roots" });
+    else if (view.kind === "category") {
+      setChildren([]);
+      setView({ kind: "roots" });
+    }
     else navigate("/library");
   };
 
@@ -152,7 +175,10 @@ export function HadithSharhPage() {
         <div className="mt-5 grid gap-2">
           {roots.map((c) => (
             <button type="button" key={c.id}
-              onClick={() => setView({ kind: "category", root: c })}
+              onClick={() => {
+                setChildren([]);
+                setView({ kind: "category", root: c });
+              }}
               className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3.5 text-start transition hover:bg-[var(--card-2)]">
               <div>
                 <div className="text-sm font-semibold">{c.title}</div>

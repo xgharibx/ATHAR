@@ -15,6 +15,7 @@ import { useQuranPageIndex } from "@/data/useQuranPageIndex";
 import { buildPageIndexForCache } from "@/data/pageIndexBuilder";
 import { useNoorStore } from "@/store/noorStore";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { useTodayKey } from "@/hooks/useTodayKey";
 import { getHizbForAyah, getJuzForAyah, getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import type { TranslationId } from "@/lib/quranTranslations";
@@ -36,6 +37,7 @@ import {
 } from "@/lib/radioPlayer";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { ShareAyahModal } from "@/components/quran/ShareAyahModal";
+import { MemorizationAyahContent } from "@/components/quran/MemorizationAyahContent";
 import { FocusManagedDialog } from "@/components/ui/FocusManagedDialog";
 import { cacheAudioUrlsWithinBudget, MUSHAF_AUDIO_CACHE_NAME } from "@/lib/offlineAudioCache";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
@@ -47,6 +49,7 @@ import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { QURAN_TRANSLATION_CACHE_EXPIRED_EVENT } from "@/lib/quranIDB";
 import { TranslationPicker } from "@/components/quran/TranslationPicker";
 import toast from "react-hot-toast";
+import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 
 // ── Types ─────────────────────────────────────────────────────
 // PageItem is sourced from src/data/pageIndexBuilder.ts so Mushaf and the
@@ -211,7 +214,10 @@ export function MushafPage() {
   const markQuranPageReviewed = useNoorStore((s) => s.markQuranPageReviewed);
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
+  const khatmaDays = useNoorStore((s) => s.khatmaDays);
   const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
+  const todayISO = useTodayKey();
+  const canLogKhatmaToday = Boolean(khatmaStartISO && khatmaDays && isKhatmaDateWithinPlan(todayISO, khatmaStartISO, khatmaDays));
   const lastRead = useNoorStore((s) => s.quranLastRead);
 
   const totalPages = pmData?.totalPages ?? 604;
@@ -457,6 +463,20 @@ export function MushafPage() {
   const selectedItemRef = React.useRef<PageItem | null>(null);
   React.useEffect(() => { selectedItemRef.current = selectedItem; }, [selectedItem]);
 
+  // A selected ayah belongs to the page it came from. Clear it before the
+  // next page is painted so its action bar and focus-dimming never apply to a
+  // different page. Deep-link selection below can still select its target.
+  React.useLayoutEffect(() => {
+    if (!selectedItem) return;
+    const remainsOnPage = pageItems.some((item) =>
+      item.surahId === selectedItem.surahId && item.originalAyah === selectedItem.originalAyah
+    );
+    if (!remainsOnPage) {
+      selectedItemRef.current = null;
+      setSelectedItem(null);
+    }
+  }, [pageItems, selectedItem]);
+
   // Auto-select ayah when navigating from ?surah=X&ayah=Y deeplinks.
   // Keyed on params + page so the selection fires every time the user lands on
   // a new surah/ayah deep-link (the previous one-shot ref made subsequent
@@ -473,18 +493,20 @@ export function MushafPage() {
   // Q9: Per-ayah reveal in memorization mode (must be before handleAyahTap)
   const [memorizationMode, setMemorizationMode] = React.useState(false);
   const [revealedItems, setRevealedItems] = React.useState<Set<string>>(new Set());
+  const toggleAyahReveal = React.useCallback((key: string) => {
+    setRevealedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }, []);
 
   const handleAyahTap = React.useCallback((e: React.MouseEvent, item: PageItem) => {
     e.stopPropagation();
     if (item.isBasmalahHeader || item.displayAyah === 0) return;
     // Q9: In memorization mode, clicking reveals/hides the ayah instead of selecting it
     if (memorizationMode) {
-      const k = `${item.surahId}:${item.displayAyah}`;
-      setRevealedItems((prev) => {
-        const n = new Set(prev);
-        if (n.has(k)) n.delete(k); else n.add(k);
-        return n;
-      });
+      toggleAyahReveal(`${item.surahId}:${item.displayAyah}`);
       return;
     }
     const isSame = selectedItemRef.current?.surahId === item.surahId && selectedItemRef.current?.originalAyah === item.originalAyah;
@@ -499,7 +521,7 @@ export function MushafPage() {
     // top/bottom bars pop back in every single tap. The chrome stays visible
     // for 5s on a new selection so it doesn't blink away too fast either.
     if (!isSame) flashChrome(5000);
-  }, [flashChrome, memorizationMode, recordQuranRead, setLastRead]);
+  }, [flashChrome, memorizationMode, recordQuranRead, setLastRead, toggleAyahReveal]);
 
   // Note sheet
   const [noteSheetOpen, setNoteSheetOpen] = React.useState(false);
@@ -621,16 +643,32 @@ export function MushafPage() {
     setPrefs({ mushafInlineTafseer: inlineTafseer });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inlineTafseer]);
-  const [inlineTafseerSource, setInlineTafseerSource] = React.useState<string>(
+  const [inlineTafseerSource, setInlineTafseerSourceState] = React.useState<string>(
     requestedTafsirSource ?? "muyassar"
   );
-  React.useEffect(() => {
-    if (!requestedTafsirSource) return;
-    setInlineTafseerSource(requestedTafsirSource);
-    setInlineTafseer(true);
-  }, [requestedTafsirSource, setInlineTafseer]);
   const [inlineTafseerData, setInlineTafseerData] = React.useState<Record<number, string[]>>({});
   const [inlineTafseerLoading, setInlineTafseerLoading] = React.useState(false);
+  const [inlineTafseerError, setInlineTafseerError] = React.useState(false);
+  const [tafsirRetry, setTafsirRetry] = React.useState(0);
+  const setInlineTafseerSource = React.useCallback((source: string) => {
+    if (source !== inlineTafseerSource) {
+      // Never leave commentary from the old edition visible while the chosen
+      // source is loading; the cache is source-keyed but rendered data is
+      // surah-keyed, so clear it at the source-selection boundary.
+      setInlineTafseerData({});
+      setInlineTafseerLoading(true);
+      setInlineTafseerError(false);
+    }
+    setInlineTafseerSourceState(source);
+  }, [inlineTafseerSource]);
+  React.useEffect(() => {
+    if (!requestedTafsirSource) return;
+    setInlineTafseerData({});
+    setInlineTafseerError(false);
+    setInlineTafseerLoading(true);
+    setInlineTafseerSourceState(requestedTafsirSource);
+    setInlineTafseer(true);
+  }, [requestedTafsirSource, setInlineTafseer]);
 
   // Phase 2A: Word-by-word translation
   // Phase 2B: WBW data used by Tajweed mode
@@ -780,7 +818,18 @@ export function MushafPage() {
         goPageRef.current(targetPage);
       }
       audio.volume = audioVolume;
-      audio.play().catch(() => toast.error("تعذر تشغيل التلاوة"));
+      const handlePlaybackFailure = () => {
+        // A late error from an old request must not stop a newer ayah.
+        if (audioRef.current !== audio) return;
+        audioRef.current = null;
+        audioPlayRef.current.active = false;
+        audioPlayRef.current.advance = false;
+        audio.pause();
+        setPlayingKey(null);
+        toast.error("تعذر تشغيل التلاوة");
+      };
+      audio.onerror = handlePlaybackFailure;
+      audio.play().catch(handlePlaybackFailure);
       audio.onended = () => {
         // Guard: if component unmounted or a newer audio took over, bail out
         if (audioRef.current !== audio) return;
@@ -1005,15 +1054,16 @@ export function MushafPage() {
     const sid = tafsirItem.surahId;
     let mounted = true;
     setInlineTafseerLoading(true);
+    setInlineTafseerError(false);
     loadTafsirCached(inlineTafseerSource, sid)
       .then((ayahs) => {
         if (!mounted) return;
         setInlineTafseerData((prev) => ({ ...prev, [sid]: ayahs }));
       })
-      .catch(() => {})
+      .catch(() => { if (mounted) setInlineTafseerError(true); })
       .finally(() => { if (mounted) setInlineTafseerLoading(false); });
     return () => { mounted = false; };
-  }, [tafsirItem, inlineTafseerSource, loadTafsirCached]);
+  }, [tafsirItem, inlineTafseerSource, loadTafsirCached, tafsirRetry]);
 
   // Mutashabihat: look up similar-ayah matches for the open ayah once the Quran DB is loaded
   React.useEffect(() => {
@@ -1678,15 +1728,23 @@ export function MushafPage() {
         <div className="mushaf-mem-banner" onClick={(e) => e.stopPropagation()}>
           <span>🧠 وضع الحفظ · اضغط على الآية لكشفها</span>
           <span className="mushaf-mem-counter">
-            {revealedItems.size}/{playableItems.length}
+            {playableItems.filter((item) => revealedItems.has(`${item.surahId}:${item.displayAyah}`)).length}/{playableItems.length}
           </span>
           <button type="button"
             className="mushaf-mem-btn"
-            onClick={() => setRevealedItems(new Set(playableItems.map((i) => `${i.surahId}:${i.displayAyah}`)))}
+            onClick={() => setRevealedItems((previous) => {
+              const next = new Set(previous);
+              for (const item of playableItems) next.add(`${item.surahId}:${item.displayAyah}`);
+              return next;
+            })}
           >إظهار الكل</button>
           <button type="button"
             className="mushaf-mem-btn"
-            onClick={() => setRevealedItems(new Set())}
+            onClick={() => setRevealedItems((previous) => {
+              const next = new Set(previous);
+              for (const item of playableItems) next.delete(`${item.surahId}:${item.displayAyah}`);
+              return next;
+            })}
           >إخفاء الكل</button>
         </div>
       )}
@@ -1814,29 +1872,35 @@ export function MushafPage() {
                     const isPlaying = playingKey === k;
 
                     const ayahSpan = (
-                      <span
+                      <MemorizationAyahContent
                         key={k}
-                        ref={isPlaying ? (el: HTMLSpanElement | null) => { playingSpanRef.current = el; } : undefined}
-                        className={`mushaf-ayah-span${isSel ? " selected" : ""}${hl ? ` hl-${hl}` : ""}${memorizationMode && !isRevealed ? " mem-hidden" : ""}${isSearchMatch ? " search-match" : ""}${isPlaying ? " playing" : ""}`}
-                        translate="no"
-                        style={{
-                          // Q16: Focus dimming
-                          opacity: selectedItem && !isSel ? 0.3 : 1,
-                          transition: "opacity 0.18s",
-                          ...(hl && !isSel ? {
-                            background: HL_COLORS[hl].bg,
-                            boxShadow: `inset 0 -2px 0 ${HL_COLORS[hl].dot}`,
-                          } : {}),
-                        }}
-                        onPointerDown={(e) => handlePointerDown(e, item)}
-                        onPointerUp={handlePointerUp}
-                        onPointerLeave={handlePointerUp}
-                        onPointerCancel={handlePointerUp}
-                        onClick={(e) => {
-                          if (longPressFired.current) { longPressFired.current = false; return; }
-                          handleAyahTap(e, item);
-                        }}
+                        enabled={memorizationMode}
+                        hidden={!isRevealed}
+                        label={`${isRevealed ? "إخفاء" : "كشف"} الآية ${toArabicNumeral(item.displayAyah)} من سورة ${item.surahName}`}
+                        onToggle={() => toggleAyahReveal(k)}
                       >
+                        <span
+                          ref={isPlaying ? (el: HTMLSpanElement | null) => { playingSpanRef.current = el; } : undefined}
+                          className={`mushaf-ayah-span${isSel ? " selected" : ""}${hl ? ` hl-${hl}` : ""}${isSearchMatch ? " search-match" : ""}${isPlaying ? " playing" : ""}`}
+                          translate="no"
+                          style={{
+                            // Q16: Focus dimming
+                            opacity: selectedItem && !isSel ? 0.3 : 1,
+                            transition: "opacity 0.18s",
+                            ...(hl && !isSel ? {
+                              background: HL_COLORS[hl].bg,
+                              boxShadow: `inset 0 -2px 0 ${HL_COLORS[hl].dot}`,
+                            } : {}),
+                          }}
+                          onPointerDown={(e) => handlePointerDown(e, item)}
+                          onPointerUp={handlePointerUp}
+                          onPointerLeave={handlePointerUp}
+                          onPointerCancel={handlePointerUp}
+                          onClick={(e) => {
+                            if (longPressFired.current) { longPressFired.current = false; return; }
+                            handleAyahTap(e, item);
+                          }}
+                        >
                         {/* Phase 2B: Tajweed coloring OR plain text; each word becomes a tap
                             target for its translation/transliteration when wbwMode is on */}
                         {wbwVerse ? (
@@ -1875,7 +1939,8 @@ export function MushafPage() {
                             {transText}
                           </p>
                         ) : null}
-                      </span>
+                        </span>
+                      </MemorizationAyahContent>
                     );
 
                     // Q11-B: When inline tafseer is on, wrap ayah in block layout with tafseer below
@@ -2471,6 +2536,16 @@ export function MushafPage() {
                   <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" aria-hidden="true" />
                   جارٍ تحميل التفسير…
                 </span>
+              ) : inlineTafseerError ? (
+                <div className="flex flex-col items-center gap-2 text-center" role="alert">
+                  <span className="text-xs">تعذر تحميل التفسير. تحقق من الاتصال ثم أعد المحاولة.</span>
+                  <button
+                    type="button"
+                    className="mushaf-mem-btn"
+                    aria-label="إعادة محاولة تحميل التفسير"
+                    onClick={() => setTafsirRetry((attempt) => attempt + 1)}
+                  >إعادة المحاولة</button>
+                </div>
               ) : inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
                 <p className="opacity-90 leading-8">{inlineTafseerData[tafsirItem.surahId][tafsirItem.originalAyah]}</p>
               ) : (
@@ -2809,14 +2884,12 @@ export function MushafPage() {
             </div>
 
             {/* ── سجّل ورد اليوم — only when khatma plan active ── */}
-            {khatmaStartISO && (
+            {canLogKhatmaToday && (
               <button type="button"
                 className="w-full flex items-center gap-3 rounded-2xl p-3.5 mb-4 text-right transition active:scale-[0.98]"
                 style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }}
                 onClick={() => {
-                  const d = new Date();
-                  const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-                  setKhatmaDone(iso, true);
+                  setKhatmaDone(todayISO, true);
                   recordQuranRead(playableItems.length);
                   setShowMoreSheet(false);
                   toast.success("✓ سُجِّل ورد اليوم 🌟");

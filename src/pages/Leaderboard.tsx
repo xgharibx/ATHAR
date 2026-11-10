@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
-import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
+import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
 import { useNoorStore, type LocalFriend, type GroupKhatmaState } from "@/store/noorStore";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { cn } from "@/lib/utils";
+import { createRandomId } from "@/lib/randomId";
 import {
   type LeaderboardBoard,
   type LeaderboardEntry,
@@ -47,11 +48,17 @@ export function LeaderboardPage() {
   const { data } = useAdhkarDB();
   useScrollRestoration();
   const prayerTimes = usePrayerTimes();
-  const todayKey = useTodayKey({ mode: "ibadah", fajrTime: prayerTimes.data?.data?.timings?.Fajr });
+  const lastKnownFajrTime = useNoorStore((s) => s.lastKnownFajrTime);
+  const effectiveFajr = prayerTimes.data?.data?.timings?.Fajr ?? lastKnownFajrTime ?? undefined;
+  const todayKey = useTodayKey({ mode: "ibadah", fajrTime: effectiveFajr });
+  const civilTodayKey = useTodayKey();
   const progress = useNoorStore((s) => s.progress);
-  const quranAyahsToday = useNoorStore((s) => s.quranDailyAyahs[todayKey] ?? 0);
-  const prayersDone = useNoorStore((s) => s.dailyChecklist[todayKey] ?? {});
+  const customPacks = useNoorStore((s) => s.customPacks);
+  const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
+  const dailyChecklist = useNoorStore((s) => s.dailyChecklist);
+  const prayerLog = useNoorStore((s) => s.prayerLog);
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
+  const tasbeehDayTotals = useNoorStore((s) => s.tasbeehDayTotals);
 
   const endpoint = (import.meta.env.VITE_LEADERBOARD_ENDPOINT as string | undefined) ?? "";
   const [identity] = React.useState(() => getLeaderboardIdentity());
@@ -104,15 +111,19 @@ export function LeaderboardPage() {
 
   const stats = React.useMemo(
     () =>
-      buildLeaderboardScoreStats({
+      buildLeaderboardScoreStatsForDay({
         sections,
+        customPacks,
         progress,
-        quranAyahsToday,
-        prayersDone,
+        quranDailyAyahs,
+        dailyChecklist,
+        prayerLog,
         quickTasbeeh,
-        todayISO: todayKey
+        tasbeehDayTotals,
+        todayISO: todayKey,
+        civilTodayISO: civilTodayKey,
       }),
-    [prayersDone, progress, quranAyahsToday, quickTasbeeh, sections, todayKey]
+    [civilTodayKey, customPacks, dailyChecklist, prayerLog, progress, quranDailyAyahs, quickTasbeeh, sections, tasbeehDayTotals, todayKey]
   );
 
   const myStats = React.useMemo(() => {
@@ -1268,7 +1279,7 @@ function GroupKhatmaCard() {
     });
 
     setGroupKhatma({
-      groupId: crypto.randomUUID().replace(/-/g, "").slice(0, 16),
+      groupId: createRandomId().replace(/-/g, "").slice(0, 16),
       groupName: groupName.trim(),
       members,
       createdAt: new Date().toISOString()

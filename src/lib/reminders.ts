@@ -149,6 +149,11 @@ function notificationIdsForBothDateSlots(ids: readonly number[]): number[] {
   return [0, 1].flatMap((slot) => ids.map((id) => id + slot * NOTIFICATION_DATE_SLOT_OFFSET));
 }
 
+function notificationIdsForDateSlot(ids: readonly number[], dateISO: string): number[] {
+  const slot = notificationDateSlot(dateISO);
+  return ids.map((id) => id + slot * NOTIFICATION_DATE_SLOT_OFFSET);
+}
+
 function dateSlotIdForAction(baseId: number, dateISO?: string): number | null {
   const today = getLocalDateKey();
   const targetDate = dateISO ?? today;
@@ -399,6 +404,15 @@ function dateAtLocalTime(dateISO: string, hhmm: string): Date | null {
   return getLocalDateKey(at) === dateISO ? at : null;
 }
 
+/** Native one-shot prayer alarms must follow the device's local wall clock after timezone changes. */
+function wallClockNotificationExtra(at: Date) {
+  return {
+    atharWallClockOnce: true,
+    atharWallClockDateISO: getLocalDateKey(at),
+    atharWallClockTime: `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`,
+  };
+}
+
 export async function playReminderSoundPreview(soundProfile: ReminderSoundProfile, onDone?: () => void) {
   const sound = getReminderSoundOption(soundProfile);
   await playSoundPreview(`/sounds/reminders/${sound.fileName}`, `reminder:${soundProfile}`, 0.85, onDone);
@@ -636,7 +650,11 @@ export function buildPrayerNotificationsForDays(
   audio: NotificationAudioConfig,
   enabledPrayers: PrayerAlertPreferences,
   quiet: NotificationAudioConfig,
-  options: { includeDailyHadith?: boolean; now?: Date } = {},
+  options: {
+    includeDailyHadith?: boolean;
+    now?: Date;
+    prayerLog?: Record<string, Record<string, boolean>>;
+  } = {},
 ): LocalNotification[] {
   const now = options.now ?? new Date();
   return days.slice(0, 2).flatMap((day) => {
@@ -647,9 +665,32 @@ export function buildPrayerNotificationsForDays(
       if (!enabledPrayers[prayerName]) return [];
 
       const at = dateAtLocalTime(day.dateISO, day.timings[prayerName] ?? "");
-      if (!at || at.getTime() <= now.getTime() + 30_000) return [];
+      if (!at) return [];
 
-      const extra = { prayerName, dateISO: day.dateISO };
+      const extra = { prayerName, dateISO: day.dateISO, ...wallClockNotificationExtra(at) };
+      const followUpAt = new Date(at.getTime() + 30 * 60_000);
+      const prayerWasLogged = options.prayerLog?.[day.dateISO]?.[prayerName] === true;
+      const shouldScheduleFollowUp = !prayerWasLogged && followUpAt.getTime() > now.getTime() + 30_000;
+      const followUp = {
+        id: notificationIdForDate(PRAYER_FOLLOWUP_IDS[prayerName], day.dateISO),
+        title: "أثر — تذكير لطيف",
+        body: PRAYER_FOLLOWUP_PHRASES[prayerName],
+        channelId: quiet.channelId,
+        ...notificationSound(quiet.soundFile),
+        smallIcon: REMINDER_NOTIFICATION_ICON,
+        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+        iconColor: REMINDER_ICON_COLOR,
+        schedule: withAndroidDozeDelivery({ at: followUpAt }),
+        actionTypeId: PRAYER_ACTION_TYPE_ID,
+        extra: { ...extra, ...wallClockNotificationExtra(followUpAt) },
+      };
+
+      // If the app resumes after the Adhan but before its gentle follow-up,
+      // restore only the still-pending follow-up. Never replay a past Adhan.
+      if (at.getTime() <= now.getTime() + 30_000) {
+        return shouldScheduleFollowUp ? [followUp] : [];
+      }
+
       const main = {
         id: notificationIdForDate(PRAYER_NOTIFICATION_IDS[prayerName], day.dateISO),
         title: "أثر — الأذان",
@@ -664,24 +705,8 @@ export function buildPrayerNotificationsForDays(
         extra,
       };
 
-      // Vibration only. The adhan belongs to the adhan; hearing it again half an
-      // hour later, as a nudge, is startling rather than helpful.
-      const followUpAt = new Date(at.getTime() + 30 * 60_000);
-      const followUp = {
-        id: notificationIdForDate(PRAYER_FOLLOWUP_IDS[prayerName], day.dateISO),
-        title: "أثر — تذكير لطيف",
-        body: PRAYER_FOLLOWUP_PHRASES[prayerName],
-        channelId: quiet.channelId,
-        ...notificationSound(quiet.soundFile),
-        smallIcon: REMINDER_NOTIFICATION_ICON,
-        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-        iconColor: REMINDER_ICON_COLOR,
-        schedule: withAndroidDozeDelivery({ at: followUpAt }),
-        actionTypeId: PRAYER_ACTION_TYPE_ID,
-        extra,
-      };
-
-      return [main, followUp];
+      // The gentle follow-up stays silent; only the main Adhan uses sound.
+      return shouldScheduleFollowUp ? [main, followUp] : [main];
     });
 
     if (isRamadan(dayStart)) notifications.push(...buildRamadanNotifications(
@@ -692,6 +717,20 @@ export function buildPrayerNotificationsForDays(
       if (hadith) notifications.push(hadith);
     }
     return notifications;
+  });
+}
+
+/** Build the optional Fajr Hadith independently of the prayer-alert setting. */
+export function buildDailyHadithNotificationsForDays(
+  days: PrayerNotificationDay[],
+  audio: NotificationAudioConfig,
+  now = new Date(),
+): LocalNotification[] {
+  return days.slice(0, 2).flatMap((day) => {
+    const dayStart = parseDateKey(day.dateISO);
+    if (!dayStart || getLocalDateKey(dayStart) !== day.dateISO) return [];
+    const notification = buildDailyHadithNotification(day, audio, now);
+    return notification ? [notification] : [];
   });
 }
 
@@ -717,7 +756,7 @@ function buildRamadanNotifications(
         largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
         iconColor: REMINDER_ICON_COLOR,
         schedule: withAndroidDozeDelivery({ at: suhoorAt }),
-        extra: { dateISO: day.dateISO },
+        extra: { dateISO: day.dateISO, ...wallClockNotificationExtra(suhoorAt) },
       });
     }
   }
@@ -734,7 +773,7 @@ function buildRamadanNotifications(
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
       schedule: withAndroidDozeDelivery({ at: iftarAt }),
-      extra: { dateISO: day.dateISO },
+      extra: { dateISO: day.dateISO, ...wallClockNotificationExtra(iftarAt) },
     });
   }
 
@@ -763,7 +802,7 @@ function buildDailyHadithNotification(
     largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
     iconColor: REMINDER_ICON_COLOR,
     schedule: withAndroidDozeDelivery({ at: fajrAt }),
-    extra: { dateISO: day.dateISO },
+    extra: { dateISO: day.dateISO, ...wallClockNotificationExtra(fajrAt) },
   };
 }
 
@@ -910,7 +949,7 @@ function nextReminderOwnerRequestAtMs(): number {
 }
 const LAST_REMINDER_OWNER_STORAGE_KEY = "athar:reminder-owner";
 
-function getLastReminderOwner(): AccountStorageOwner | null {
+export function getLastReminderOwner(): AccountStorageOwner | null {
   try {
     if (typeof globalThis.localStorage === "undefined") return null;
     const owner = globalThis.localStorage.getItem(LAST_REMINDER_OWNER_STORAGE_KEY);
@@ -1041,10 +1080,20 @@ async function syncRemindersForOwner(
   }
 
   const reminderIds = Object.values(REMINDER_IDS);
-  const prayerIds = notificationIdsForBothDateSlots(Object.values(PRAYER_NOTIFICATION_IDS));
-  const followUpIds = notificationIdsForBothDateSlots(Object.values(PRAYER_FOLLOWUP_IDS));
-  const ramadanIds = notificationIdsForBothDateSlots(Object.values(RAMADAN_IDS));
   const shouldRefreshPrayerNotifications = !reminders.prayerAlertsEnabled || !!prayerTimings;
+  const todayISO = getLocalDateKey();
+  const prayerIdsForRefresh = (ids: readonly number[]) => {
+    if (!shouldRefreshPrayerNotifications) return [];
+    // A caller may only have today's times available. Keep tomorrow's already
+    // scheduled alarms until tomorrow's refreshed timings are ready.
+    if (reminders.prayerAlertsEnabled && prayerTimings && !tomorrowPrayerTimings) {
+      return notificationIdsForDateSlot(ids, todayISO);
+    }
+    return notificationIdsForBothDateSlots(ids);
+  };
+  const prayerIds = prayerIdsForRefresh(Object.values(PRAYER_NOTIFICATION_IDS));
+  const followUpIds = prayerIdsForRefresh(Object.values(PRAYER_FOLLOWUP_IDS));
+  const ramadanIds = prayerIdsForRefresh(Object.values(RAMADAN_IDS));
 
   await LocalNotifications.cancel({
     notifications: notificationRefs([
@@ -1073,7 +1122,6 @@ async function syncRemindersForOwner(
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
     if (getAccountStorageOwner() !== owner) return;
-    const todayISO = getLocalDateKey();
     const scheduleDays: PrayerNotificationDay[] = [
       { dateISO: todayISO, timings: prayerTimings },
       ...(tomorrowPrayerTimings ? [{ dateISO: shiftDateKey(todayISO, 1), timings: tomorrowPrayerTimings }] : []),
@@ -1083,8 +1131,19 @@ async function syncRemindersForOwner(
       prayerNotificationAudio,
       { ...DEFAULT_PRAYER_ALERTS, ...reminders.prayerAlerts },
       quiet,
-      { includeDailyHadith: reminders.dailyHadithNotif },
+      {
+        includeDailyHadith: false,
+        prayerLog: useNoorStore.getState().prayerLog,
+      },
     ));
+  }
+
+  if (reminders.dailyHadithNotif && prayerTimings) {
+    const scheduleDays: PrayerNotificationDay[] = [
+      { dateISO: todayISO, timings: prayerTimings },
+      ...(tomorrowPrayerTimings ? [{ dateISO: shiftDateKey(todayISO, 1), timings: tomorrowPrayerTimings }] : []),
+    ];
+    notifications.push(...buildDailyHadithNotificationsForDays(scheduleDays, quiet));
   }
 
   if (!notifications.length) return;

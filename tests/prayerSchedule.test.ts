@@ -103,6 +103,18 @@ describe("buildPrayerSchedule", () => {
     expect(schedule!.next.name).toBe("Fajr");
   });
 
+  it("calculates pre-Fajr prayer state when Array.prototype.at is unavailable", () => {
+    const originalAt = Array.prototype.at;
+    Object.defineProperty(Array.prototype, "at", { configurable: true, value: undefined });
+    try {
+      const schedule = buildPrayerSchedule(CAIRO_2026_07_09, at(2, 0));
+      expect(schedule?.current.name).toBe("Isha");
+      expect(schedule?.next.name).toBe("Fajr");
+    } finally {
+      Object.defineProperty(Array.prototype, "at", { configurable: true, value: originalAt });
+    }
+  });
+
   it("never produces a negative countdown", () => {
     for (let h = 0; h < 24; h += 3) {
       const schedule = buildPrayerSchedule(CAIRO_2026_07_09, at(h, 0));

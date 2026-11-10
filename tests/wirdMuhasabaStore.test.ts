@@ -94,6 +94,19 @@ describe("wird items and counts", () => {
     expect(store().muhasabaLog["2026-10-16|fajr"]).toBe(4);
     expect(store().muhasabaGender).toBe("female");
   });
+  it("restores an old page-based Quran goal without ayah auto-counting or losing its manual history", async () => {
+    const day = "2026-10-16";
+    const blob = {
+      ...store().exportState(),
+      wirdItems: { w1: item({ unit: "جزء", target: 1, auto: "quranAyahs", days: [5] }) },
+      wirdLog: { [`${day}|w1`]: 3 },
+    };
+
+    await store().importState(blob);
+
+    expect(store().wirdItems.w1).toMatchObject({ unit: "جزء", target: 1, auto: null, days: [5] });
+    expect(store().wirdLog[`${day}|w1`]).toBe(3);
+  });
 });
 
 describe("syncing", () => {

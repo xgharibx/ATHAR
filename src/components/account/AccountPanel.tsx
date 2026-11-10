@@ -46,10 +46,13 @@ export function AccountPanel() {
   const [email, setEmail] = React.useState("");
   const [busy, setBusy] = React.useState<null | "google" | "email" | "out" | "delete">(null);
   const [linkSent, setLinkSent] = React.useState(false);
-  const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [confirmDeleteFor, setConfirmDeleteFor] = React.useState<string | null>(null);
   const [showSignOutAnyway, setShowSignOutAnyway] = React.useState(false);
 
-  React.useEffect(() => setShowSignOutAnyway(false), [session?.user?.id]);
+  React.useEffect(() => {
+    setShowSignOutAnyway(false);
+    setConfirmDeleteFor(null);
+  }, [session?.user?.id]);
 
   if (!configured || !isAuthConfigured()) return null;
 
@@ -58,6 +61,7 @@ export function AccountPanel() {
   const showGoogle = Capacitor.getPlatform() !== "ios";
 
   const user = session?.user ?? null;
+  const confirmDelete = Boolean(user?.id && confirmDeleteFor === user.id);
 
   const doGoogle = async () => {
     setBusy("google");
@@ -101,20 +105,15 @@ export function AccountPanel() {
   };
 
   const doDelete = async () => {
+    const confirmedUserId = confirmDeleteFor;
+    if (!confirmedUserId || confirmedUserId !== user?.id) return;
     setBusy("delete");
-    // The leaderboard identity is local-first but account-owned after sync.
-    // Flush it before Auth deletion so the database trigger can verify and
-    // purge that identity atomically with the account.
-    const flushed = await flushCloudSync().catch(() => false);
-    if (!flushed) {
-      setBusy(null);
-      toast.error("لم تكتمل المزامنة بعد. ابقَ مسجّل الدخول وأعد المحاولة عند توفر الاتصال.");
-      return;
-    }
-
-    const res = await deleteAccount();
+    // Deletion has its own verified identity handoff. Do not make account
+    // deletion depend on flushing unrelated app data, which may be large or
+    // temporarily unsyncable.
+    const res = await deleteAccount(confirmedUserId);
     setBusy(null);
-    setConfirmDelete(false);
+    setConfirmDeleteFor(null);
     if (res.ok) toast.success("تم حذف الحساب وبياناته من السحابة");
     else toast.error(res.error ?? "تعذّر حذف الحساب");
   };
@@ -198,7 +197,7 @@ export function AccountPanel() {
 
             <button
               type="button"
-              onClick={() => setConfirmDelete((v) => !v)}
+              onClick={() => setConfirmDeleteFor((current) => current === user.id ? null : user.id)}
               disabled={busy !== null}
               className="inline-flex items-center gap-1.5 rounded-xl border border-danger-30 bg-danger-15 px-3 py-2 text-xs font-semibold text-[var(--danger)] transition active:scale-95 disabled:opacity-50"
             >
@@ -242,7 +241,7 @@ export function AccountPanel() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setConfirmDelete(false)}
+                  onClick={() => setConfirmDeleteFor(null)}
                   className="rounded-lg border border-[var(--stroke)] px-3 py-1.5 text-xs"
                 >
                   تراجع

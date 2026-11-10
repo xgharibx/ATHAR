@@ -175,7 +175,19 @@ export function buildQadaaSummary(input: QadaaInput): QadaaSummary {
   const todayComplete = quotaTotal > 0 && quotaLeftTotal === 0;
 
   // Pace and dates
-  const pace = paceFromHistory(dayTotals, today);
+  // The all-time daily total includes both prayers and fasts. Use the
+  // per-key history for this 14-day prayer estimate so a fast cannot make
+  // the user appear to be clearing prayer debt faster than they are.
+  const prayerPaceHistory = Object.fromEntries(
+    lastNDays({}, today, 14).map(({ iso }) => [
+      iso,
+      PRAYER_KEYS.reduce((sum, key) => {
+        if (key === "witr" && !includeWitr) return sum;
+        return sum + Math.max(0, Math.floor(dayKinds[`${iso}|${prayerKey(key)}`] ?? 0));
+      }, 0),
+    ]),
+  );
+  const pace = paceFromHistory(prayerPaceHistory, today);
   const planDays = planDaysToFinish(plan, remainingAtStart, today);
   const planFinish = finishDate(plan, remainingAtStart, today);
   const paceFinish = remainingTotal > 0 ? projectFinish(remainingTotal, pace, today) : null;

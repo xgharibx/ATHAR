@@ -2,8 +2,10 @@
 import { persist, createJSONStorage } from "zustand/middleware";
 import { isDailySection } from "@/lib/dailySections";
 import type { CustomAdhkarPack } from "@/data/types";
+import { createDhikrItemId, dhikrStateKey, newDhikrItemId } from "@/lib/dhikrItemIdentity";
 import type { CustomReminder } from "@/data/reminderTypes";
 import { getIbadahDateKey, getLocalDateKey } from "@/lib/dayBoundaries";
+import { customCounterKey, isQuickSebhaPhrase } from "@/lib/sebhaCustom";
 import {
   idbSetHadithBookmark,
   idbSetHadithProgress,
@@ -26,6 +28,7 @@ import { foldTopics, channelNameStopwords } from "@/lib/shortsTopics";
 import { parsePrayerKey, parseFastKey, type Madhhab, type PlanMode } from "@/lib/qadaa";
 import { sanitizeItem as sanitizeWirdItem, sanitizeLog as sanitizeWirdLog, pruneWirdLog, type WirdItem } from "@/lib/wird";
 import { pruneLog as pruneMuhasabaLog } from "@/lib/muhasaba";
+import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 import {
   accountScopedLocalStorage,
   getAccountStorageOwner,
@@ -62,7 +65,7 @@ function migrateSharedCustomTasbeehCounter(state: Partial<NoorState>): Partial<N
   const phrase = state.sebhaCustom?.phrase?.replace(/\s+/g, " ").trim();
   if (!phrase) return {};
 
-  const key = `custom:${phrase}`;
+  const key = customCounterKey(phrase);
   const out: Partial<NoorState> = {};
 
   const move = <T extends Record<string, number>>(map: T | undefined): T | undefined => {
@@ -276,6 +279,7 @@ export type ExportBlobV1 = {
   reminders?: Reminders;
   progress: Record<string, number>;
   favorites: Record<string, boolean>;
+  migratedDhikrStateKeys?: Record<string, boolean>;
   libraryFavorites?: Record<string, boolean>;
   activity: Record<string, number>;
   quickTasbeeh?: Record<string, number>;
@@ -322,6 +326,7 @@ export type ExportBlobV1 = {
   dailyWirdStartISO?: string | null;
   khatmaStartISO?: string | null;
   khatmaDays?: number | null;
+  khatmaScheduleVersion?: 1 | 2 | null;
   khatmaDone?: Record<string, boolean>;
   lastDailyResetISO?: string | null;
   lastCivilResetISO?: string | null;
@@ -348,8 +353,9 @@ export type ExportBlobV1 = {
 type NoorState = {
   prefs: Preferences;
   reminders: Reminders;
-  progress: Record<string, number>; // key: `${sectionId}:${index}`
+  progress: Record<string, number>; // catalog key: `${sectionId}:${index}`; custom key: `${sectionId}:item:${itemId}`
   favorites: Record<string, boolean>;
+  migratedDhikrStateKeys: Record<string, boolean>;
   libraryFavorites: Record<string, boolean>; // key: `${collectionId}:${entryId}`
   videoLibraryProgress: Record<string, VideoLibraryProgress>; // key: videoId
   videoLibraryBookmarks: Record<string, boolean>; // key: videoId
@@ -543,6 +549,8 @@ type NoorState = {
   // Khatma plan
   khatmaStartISO: string | null;
   khatmaDays: number | null;
+  /** Missing/null means a plan created before balanced schedules (legacy v1). */
+  khatmaScheduleVersion: 1 | 2 | null;
   khatmaDone: Record<string, boolean>; // dateISO -> done
   setKhatmaPlan: (opts: { startISO: string; days: number }) => void;
   setKhatmaDone: (dateISO: string, done: boolean) => void;
@@ -551,13 +559,14 @@ type NoorState = {
   setPrefs: (partial: Partial<Preferences>) => void;
   setReminders: (partial: Partial<Reminders>) => void;
 
-  increment: (opts: { sectionId: string; index: number; target: number }) => number;
-  decrement: (opts: { sectionId: string; index: number; target?: number }) => number;
-  setItemCount: (opts: { sectionId: string; index: number; count: number }) => void;
-  resetItem: (sectionId: string, index: number, target?: number) => void;
+  increment: (opts: { sectionId: string; index: number; target: number; itemId?: string }) => number;
+  decrement: (opts: { sectionId: string; index: number; target?: number; itemId?: string }) => number;
+  setItemCount: (opts: { sectionId: string; index: number; count: number; itemId?: string }) => void;
+  resetItem: (sectionId: string, index: number, target?: number, itemId?: string) => void;
   resetSection: (sectionId: string) => void;
 
-  toggleFavorite: (sectionId: string, index: number) => void;
+  toggleFavorite: (sectionId: string, index: number, itemId?: string) => void;
+  migrateDhikrItemState: (sectionId: string, items: Array<{ index: number; itemId: string }>) => void;
   toggleLibraryFavorite: (collectionId: string, entryId: string) => void;
   setVideoProgress: (videoId: string, opts: { seconds: number; duration: number; completed?: boolean }) => void;
   markVideoComplete: (videoId: string, duration?: number) => void;
@@ -634,8 +643,9 @@ type NoorState = {
   addCustomPack: (pack: Omit<CustomAdhkarPack, "id" | "createdAt">) => string;
   updateCustomPack: (id: string, patch: Partial<Pick<CustomAdhkarPack, "title" | "items">>) => void;
   deleteCustomPack: (id: string) => void;
-  removeCustomPackItem: (packId: string, itemIndex: number) => void;
-  updateCustomPackItem: (packId: string, itemIndex: number, patch: { text: string; count: number }) => void;
+  removeCustomPackItem: (packId: string, itemIndex: number) => boolean;
+  removeSectionItemState: (sectionId: string, itemIndex: number, itemCountBeforeDeletion: number, itemId?: string) => void;
+  updateCustomPackItem: (packId: string, itemIndex: number, patch: { text: string; count: number }, itemId?: string) => void;
 
   // O-3: Custom reminders created by the AI companion (`create_reminder` tool).
   // Persisted via Zustand's `persist` middleware (small, personal, must be
@@ -866,6 +876,155 @@ function normalizeSectionOrder(savedOrder: number[] | undefined, itemCount: numb
   return order;
 }
 
+function sectionLayoutAfterDeletion(
+  state: Pick<NoorState, "sectionItemOrder" | "sectionResume">,
+  sectionId: string,
+  itemIndex: number,
+  itemCountBeforeDeletion: number,
+): Pick<NoorState, "sectionItemOrder" | "sectionResume"> {
+  if (!Number.isInteger(itemIndex) || itemIndex < 0 || !Number.isInteger(itemCountBeforeDeletion) || itemIndex >= itemCountBeforeDeletion) {
+    return { sectionItemOrder: state.sectionItemOrder, sectionResume: state.sectionResume };
+  }
+  const oldOrder = normalizeSectionOrder(state.sectionItemOrder[sectionId], itemCountBeforeDeletion);
+  const removedDisplayIndex = oldOrder.indexOf(itemIndex);
+  const nextOrder = oldOrder
+    .filter((index) => index !== itemIndex)
+    .map((index) => index > itemIndex ? index - 1 : index);
+
+  const sectionItemOrder = { ...state.sectionItemOrder };
+  if (state.sectionItemOrder[sectionId]) {
+    if (nextOrder.length > 0) sectionItemOrder[sectionId] = nextOrder;
+    else delete sectionItemOrder[sectionId];
+  }
+
+  const sectionResume = { ...state.sectionResume };
+  const resume = sectionResume[sectionId];
+  if (resume) {
+    if (nextOrder.length === 0) {
+      delete sectionResume[sectionId];
+    } else {
+      const shift = removedDisplayIndex >= 0 && removedDisplayIndex < resume.index ? 1 : 0;
+      sectionResume[sectionId] = {
+        ...resume,
+        index: Math.max(0, Math.min(nextOrder.length - 1, resume.index - shift)),
+      };
+    }
+  }
+
+  return {
+    sectionItemOrder,
+    sectionResume,
+  };
+}
+
+function removeDhikrItemState(
+  state: Pick<NoorState, "progress" | "favorites" | "migratedDhikrStateKeys" | "sectionItemOrder" | "sectionResume">,
+  sectionId: string,
+  itemIndex: number,
+  itemCountBeforeDeletion: number,
+  itemId?: string,
+): Pick<NoorState, "progress" | "favorites" | "migratedDhikrStateKeys" | "sectionItemOrder" | "sectionResume"> {
+  const progress = { ...state.progress };
+  const favorites = { ...state.favorites };
+  const migratedDhikrStateKeys = { ...state.migratedDhikrStateKeys };
+  const legacyKey = `${sectionId}:${itemIndex}`;
+  delete progress[legacyKey];
+  delete favorites[legacyKey];
+  migratedDhikrStateKeys[legacyKey] = true;
+  const prefix = `${sectionId}:`;
+  for (const map of [progress, favorites] as Array<Record<string, unknown>>) {
+    for (const key of Object.keys(map)) {
+      if (!key.startsWith(prefix)) continue;
+      const rawIndex = key.slice(prefix.length);
+      if (!/^(0|[1-9]\d*)$/.test(rawIndex) || Number(rawIndex) < itemCountBeforeDeletion) continue;
+      delete map[key];
+      migratedDhikrStateKeys[key] = true;
+    }
+  }
+  if (itemId) {
+    const stableKey = dhikrStateKey(sectionId, itemIndex, itemId);
+    delete progress[stableKey];
+    delete favorites[stableKey];
+  }
+  return {
+    progress,
+    favorites,
+    migratedDhikrStateKeys,
+    ...sectionLayoutAfterDeletion(state, sectionId, itemIndex, itemCountBeforeDeletion),
+  };
+}
+
+function clearSectionItemState(
+  state: Pick<NoorState, "progress" | "favorites" | "sectionItemOrder" | "sectionResume" | "sectionCompletions">,
+  sectionId: string,
+): Pick<NoorState, "progress" | "favorites" | "sectionItemOrder" | "sectionResume" | "sectionCompletions"> {
+  const prefix = `${sectionId}:`;
+  const withoutSectionKeys = <T,>(map: Record<string, T>) => Object.fromEntries(
+    Object.entries(map).filter(([key]) => !key.startsWith(prefix)),
+  ) as Record<string, T>;
+  const sectionItemOrder = { ...state.sectionItemOrder };
+  const sectionResume = { ...state.sectionResume };
+  const sectionCompletions = { ...state.sectionCompletions };
+  delete sectionItemOrder[sectionId];
+  delete sectionResume[sectionId];
+  delete sectionCompletions[sectionId];
+  return {
+    progress: withoutSectionKeys(state.progress),
+    favorites: withoutSectionKeys(state.favorites),
+    sectionItemOrder,
+    sectionResume,
+    sectionCompletions,
+  };
+}
+
+function normalizeCustomPackItemIds(packs: CustomAdhkarPack[] | undefined): CustomAdhkarPack[] {
+  if (!Array.isArray(packs)) return [];
+  return packs.filter((pack) => pack && typeof pack.id === "string" && Array.isArray(pack.items))
+    .map((pack) => ({
+      ...pack,
+      items: pack.items.map((item, index) => ({
+        ...item,
+        id: item.id || createDhikrItemId(`${pack.id}/custom`, index, item.text),
+      })),
+    }));
+}
+
+function normalizeNewCustomPackItems(items: CustomAdhkarPack["items"]): CustomAdhkarPack["items"] {
+  return items.map((item) => ({
+    ...item,
+    id: item.id || newDhikrItemId(),
+  }));
+}
+
+function migrateCustomPackIndexState(
+  state: Pick<NoorState, "customPacks" | "progress" | "favorites"> & { migratedDhikrStateKeys?: Record<string, boolean> },
+): Pick<NoorState, "customPacks" | "progress" | "favorites" | "migratedDhikrStateKeys"> {
+  const customPacks = normalizeCustomPackItemIds(state.customPacks);
+  const progress = { ...state.progress };
+  const favorites = { ...state.favorites };
+  const migratedDhikrStateKeys = { ...(state.migratedDhikrStateKeys ?? {}) };
+
+  for (const pack of customPacks) {
+    pack.items.forEach((item, index) => {
+      const legacyKey = `${pack.id}:${index}`;
+      const stableKey = dhikrStateKey(pack.id, index, item.id);
+      if (!migratedDhikrStateKeys[legacyKey]) {
+        if (legacyKey in progress) {
+          progress[stableKey] = Math.max(toSafeInt(progress[stableKey]), toSafeInt(progress[legacyKey]));
+          delete progress[legacyKey];
+        }
+        if (legacyKey in favorites) {
+          favorites[stableKey] = Boolean(favorites[stableKey]) || Boolean(favorites[legacyKey]);
+          delete favorites[legacyKey];
+        }
+        migratedDhikrStateKeys[legacyKey] = true;
+      }
+    });
+  }
+
+  return { customPacks, progress, favorites, migratedDhikrStateKeys };
+}
+
 function normalizePrayerSoundProfile(value: unknown): PrayerSoundProfile {
   if (typeof value !== "string") {
     return DEFAULT_REMINDERS.prayerSoundProfile;
@@ -1087,6 +1246,7 @@ export const useNoorStore = create<NoorState>()(
       reminders: DEFAULT_REMINDERS,
       progress: {},
       favorites: {},
+      migratedDhikrStateKeys: {},
       libraryFavorites: {},
       videoLibraryProgress: {},
       videoLibraryBookmarks: {},
@@ -1264,17 +1424,22 @@ export const useNoorStore = create<NoorState>()(
           const done = { ...st.qadaaDone };
           if (had - 1 > 0) done[key] = had - 1;
           else delete done[key];
-          // Take it off today's tally too, but only if today has one to give:
-          // an undo after the day rolled over must not drive a count below zero.
+          // Daily history is per key. Only reduce today's total when this
+          // exact prayer/fast was logged today; an unrelated same-day entry
+          // must survive undoing an older completion.
           const day = ibadahDayKeyOf(st);
-          const today = st.qadaaDayTotals[day] ?? 0;
           const totals = { ...st.qadaaDayTotals };
-          if (today > 1) totals[day] = today - 1;
-          else delete totals[day];
           const kinds = { ...st.qadaaDayKinds };
           const dk = dayKindKey(day, key);
-          if ((kinds[dk] ?? 0) > 1) kinds[dk] = (kinds[dk] ?? 0) - 1;
-          else delete kinds[dk];
+          const todayKindCount = kinds[dk] ?? 0;
+          if (todayKindCount > 0) {
+            const todayTotal = totals[day] ?? 0;
+            if (todayTotal > 1) totals[day] = todayTotal - 1;
+            else delete totals[day];
+
+            if (todayKindCount > 1) kinds[dk] = todayKindCount - 1;
+            else delete kinds[dk];
+          }
           return { qadaaDone: done, qadaaDayTotals: totals, qadaaDayKinds: kinds };
         });
       },
@@ -1407,12 +1572,38 @@ export const useNoorStore = create<NoorState>()(
           sebhaCustomList: s.sebhaCustomList.map((c) => (c.id === id ? { ...c, ...patch } : c)),
         })),
       deleteSebhaCustomItem: (id) =>
-        set((s) => ({
-          sebhaCustomList: s.sebhaCustomList.filter((c) => c.id !== id),
-          quickTasbeeh: Object.fromEntries(
-            Object.entries(s.quickTasbeeh).filter(([k]) => k !== `custom:${id}`)
-          ),
-        })),
+        set((s) => {
+          const deleted = s.sebhaCustomList.find((item) => item.id === id);
+          if (!deleted) return {};
+
+          const sebhaCustomList = s.sebhaCustomList.filter((item) => item.id !== id);
+          const counterKey = customCounterKey(deleted.phrase);
+          // Phrase counters can be shared by duplicate custom entries; only
+          // discard the count when no saved entry still uses that phrase.
+          const samePhraseRemains = counterKey === "custom"
+            || isQuickSebhaPhrase(deleted.phrase)
+            || sebhaCustomList.some((item) => customCounterKey(item.phrase) === counterKey);
+          const clearsActiveCustom = !samePhraseRemains
+            && s.sebhaCustom !== null
+            && customCounterKey(s.sebhaCustom.phrase) === counterKey;
+
+          return {
+            sebhaCustomList,
+            ...(!samePhraseRemains && counterKey !== "custom"
+              ? {
+                  quickTasbeeh: Object.fromEntries(
+                    Object.entries(s.quickTasbeeh).filter(([key]) => key !== counterKey),
+                  ),
+                }
+              : {}),
+            ...(clearsActiveCustom
+              ? {
+                  sebhaCustom: null,
+                  ...(s.sebhaSelected === "custom" ? { sebhaSelected: "subhanallah" } : {}),
+                }
+              : {}),
+          };
+        }),
       reorderSebhaCustomList: (id, direction) =>
         set((s) => {
           const idx = s.sebhaCustomList.findIndex((c) => c.id === id);
@@ -1634,12 +1825,18 @@ export const useNoorStore = create<NoorState>()(
 
       khatmaStartISO: null,
       khatmaDays: null,
+      khatmaScheduleVersion: null,
       khatmaDone: {},
       setKhatmaPlan: ({ startISO, days }) =>
-        set({ khatmaStartISO: startISO, khatmaDays: days, khatmaDone: {} }),
-      setKhatmaDone: (dateISO, done) =>
-        set((s) => ({ khatmaDone: { ...s.khatmaDone, [dateISO]: !!done } })),
-      resetKhatma: () => set({ khatmaStartISO: null, khatmaDays: null, khatmaDone: {} }),
+        set({ khatmaStartISO: startISO, khatmaDays: days, khatmaScheduleVersion: 2, khatmaDone: {} }),
+      setKhatmaDone: (dateISO, done) => {
+        if (done) {
+          const { khatmaStartISO, khatmaDays } = get();
+          if (!khatmaStartISO || !khatmaDays || !isKhatmaDateWithinPlan(dateISO, khatmaStartISO, khatmaDays)) return;
+        }
+        set((s) => ({ khatmaDone: { ...s.khatmaDone, [dateISO]: !!done } }));
+      },
+      resetKhatma: () => set({ khatmaStartISO: null, khatmaDays: null, khatmaScheduleVersion: null, khatmaDone: {} }),
 
       setPrefs: (partial) =>
         set((s) => ({
@@ -1657,9 +1854,9 @@ export const useNoorStore = create<NoorState>()(
           }
         })),
 
-      increment: ({ sectionId, index, target }) => {
+      increment: ({ sectionId, index, target, itemId }) => {
         get().ensureDailyResets();
-        const key = `${sectionId}:${index}`;
+        const key = dhikrStateKey(sectionId, index, itemId);
         const current = toSafeInt(get().progress[key]);
         if (current >= target) return current;
         const next = current + 1;
@@ -1672,9 +1869,9 @@ export const useNoorStore = create<NoorState>()(
         return next;
       },
 
-      decrement: ({ sectionId, index, target }) => {
+      decrement: ({ sectionId, index, target, itemId }) => {
         get().ensureDailyResets();
-        const key = `${sectionId}:${index}`;
+        const key = dhikrStateKey(sectionId, index, itemId);
         const current = toSafeInt(get().progress[key]);
 
         if (isDailySection(sectionId) && target && current >= target) {
@@ -1686,15 +1883,15 @@ export const useNoorStore = create<NoorState>()(
         return next;
       },
 
-      setItemCount: ({ sectionId, index, count }) => {
+      setItemCount: ({ sectionId, index, count, itemId }) => {
         get().ensureDailyResets();
-        const key = `${sectionId}:${index}`;
+        const key = dhikrStateKey(sectionId, index, itemId);
         set((s) => ({ progress: { ...s.progress, [key]: Math.max(0, count) } }));
       },
 
-      resetItem: (sectionId, index, _target) => {
+      resetItem: (sectionId, index, _target, itemId) => {
         get().ensureDailyResets();
-        const key = `${sectionId}:${index}`;
+        const key = dhikrStateKey(sectionId, index, itemId);
 
         set((s) => {
           const next = { ...s.progress };
@@ -1719,9 +1916,41 @@ export const useNoorStore = create<NoorState>()(
         });
       },
 
-      toggleFavorite: (sectionId, index) => {
-        const key = `${sectionId}:${index}`;
+      toggleFavorite: (sectionId, index, itemId) => {
+        const key = dhikrStateKey(sectionId, index, itemId);
         set((s) => ({ favorites: { ...s.favorites, [key]: !s.favorites[key] } }));
+      },
+
+      migrateDhikrItemState: (sectionId, items) => {
+        if (!items.length) return;
+        set((s) => {
+          const progress = { ...s.progress };
+          const favorites = { ...s.favorites };
+          const migratedDhikrStateKeys = { ...s.migratedDhikrStateKeys };
+          let changed = false;
+
+          for (const item of items) {
+            if (!item.itemId || !Number.isInteger(item.index) || item.index < 0) continue;
+            const legacyKey = `${sectionId}:${item.index}`;
+            const stableKey = dhikrStateKey(sectionId, item.index, item.itemId);
+            if (migratedDhikrStateKeys[legacyKey]) continue;
+
+            if (legacyKey in progress) {
+              progress[stableKey] = Math.max(toSafeInt(progress[stableKey]), toSafeInt(progress[legacyKey]));
+              delete progress[legacyKey];
+              changed = true;
+            }
+            if (legacyKey in favorites) {
+              favorites[stableKey] = Boolean(favorites[stableKey]) || Boolean(favorites[legacyKey]);
+              delete favorites[legacyKey];
+              changed = true;
+            }
+            migratedDhikrStateKeys[legacyKey] = true;
+            changed = true;
+          }
+
+          return changed ? { progress, favorites, migratedDhikrStateKeys } : {};
+        });
       },
 
       toggleLibraryFavorite: (collectionId, entryId) => {
@@ -1896,6 +2125,7 @@ export const useNoorStore = create<NoorState>()(
           reminders: s.reminders,
           progress: s.progress,
           favorites: s.favorites,
+          migratedDhikrStateKeys: s.migratedDhikrStateKeys,
           libraryFavorites: s.libraryFavorites,
           videoLibraryProgress: s.videoLibraryProgress,
           videoLibraryBookmarks: s.videoLibraryBookmarks,
@@ -1929,6 +2159,7 @@ export const useNoorStore = create<NoorState>()(
           dailyWirdStartISO: s.dailyWirdStartISO,
           khatmaStartISO: s.khatmaStartISO,
           khatmaDays: s.khatmaDays,
+          khatmaScheduleVersion: s.khatmaScheduleVersion,
           khatmaDone: s.khatmaDone,
           lastDailyResetISO: s.lastCivilResetISO,
           lastCivilResetISO: s.lastCivilResetISO,
@@ -1979,6 +2210,7 @@ export const useNoorStore = create<NoorState>()(
           },
           progress: sanitizeNumberMap(blob.progress),
           favorites: blob.favorites ?? {},
+          migratedDhikrStateKeys: blob.migratedDhikrStateKeys ?? get().migratedDhikrStateKeys ?? {},
           libraryFavorites: blob.libraryFavorites ?? {},
           videoLibraryProgress: blob.videoLibraryProgress ?? {},
           videoLibraryBookmarks: blob.videoLibraryBookmarks ?? {},
@@ -1999,6 +2231,7 @@ export const useNoorStore = create<NoorState>()(
           dailyWirdStartISO: blob.dailyWirdStartISO ?? null,
           khatmaStartISO: blob.khatmaStartISO ?? null,
           khatmaDays: blob.khatmaDays ?? null,
+          khatmaScheduleVersion: blob.khatmaScheduleVersion === 2 ? 2 : blob.khatmaScheduleVersion === 1 ? 1 : null,
           khatmaDone: blob.khatmaDone ?? {},
           lastCivilResetISO: blob.lastCivilResetISO ?? blob.lastDailyResetISO ?? null,
           lastIbadahResetISO: blob.lastIbadahResetISO ?? blob.lastDailyResetISO ?? null,
@@ -2046,7 +2279,7 @@ export const useNoorStore = create<NoorState>()(
           sectionCompletions: (blob.sectionCompletions && typeof blob.sectionCompletions === 'object'
             ? blob.sectionCompletions
             : {}) as Record<string, string[]>,
-          customPacks: Array.isArray(blob.customPacks) ? blob.customPacks : [],
+          customPacks: normalizeCustomPackItemIds(Array.isArray(blob.customPacks) ? blob.customPacks : []),
           customReminders: Array.isArray(blob.customReminders) ? blob.customReminders : [],
           hadithBookmarks: blob.hadithBookmarks ?? {},
           hadithProgress: blob.hadithProgress ?? {},
@@ -2147,6 +2380,7 @@ export const useNoorStore = create<NoorState>()(
         dailyWirdStartISO: null,
         khatmaStartISO: null,
         khatmaDays: null,
+        khatmaScheduleVersion: null,
         khatmaDone: {},
       }),
 
@@ -2256,19 +2490,68 @@ export const useNoorStore = create<NoorState>()(
         }),
 
       addCustomPack: (pack) => {
-        const id = `custom_${Date.now()}`;
-        const full: CustomAdhkarPack = { ...pack, id, createdAt: new Date().toISOString() };
+        const randomId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+        const id = `custom_${randomId.replace(/-/g, "")}`;
+        const full: CustomAdhkarPack = {
+          ...pack,
+          id,
+          items: normalizeNewCustomPackItems(pack.items),
+          createdAt: new Date().toISOString(),
+        };
         set((s) => ({ customPacks: [...s.customPacks, full] }));
         return id;
       },
       updateCustomPack: (id, patch) =>
-        set((s) => ({ customPacks: s.customPacks.map((p) => p.id === id ? { ...p, ...patch } : p) })),
+        set((s) => ({ customPacks: s.customPacks.map((p) => {
+          if (p.id !== id) return p;
+          if (!patch.items) return { ...p, ...patch };
+          const existingIds = new Set(p.items.map((item) => item.id).filter((value): value is string => !!value));
+          return {
+            ...p,
+            ...patch,
+            items: patch.items.map((item) => ({
+              ...item,
+              id: item.id && existingIds.has(item.id)
+                ? item.id
+                : item.id || newDhikrItemId(),
+            })),
+          };
+        }) })),
       deleteCustomPack: (id) =>
-        set((s) => ({ customPacks: s.customPacks.filter((p) => p.id !== id) })),
-      removeCustomPackItem: (packId, itemIndex) =>
-        set((s) => ({ customPacks: s.customPacks.map((p) => p.id !== packId ? p : { ...p, items: p.items.filter((_, i) => i !== itemIndex) }) })),
-      updateCustomPackItem: (packId, itemIndex, patch) =>
-        set((s) => ({ customPacks: s.customPacks.map((p) => p.id !== packId ? p : { ...p, items: p.items.map((it, i) => i !== itemIndex ? it : { ...it, ...patch }) }) })),
+        set((s) => {
+          if (!s.customPacks.some((pack) => pack.id === id)) return {};
+          return {
+            customPacks: s.customPacks.filter((pack) => pack.id !== id),
+            ...clearSectionItemState(s, id),
+          };
+        }),
+      removeCustomPackItem: (packId, itemIndex) => {
+        const pack = get().customPacks.find((candidate) => candidate.id === packId);
+        if (!pack || !Number.isInteger(itemIndex) || itemIndex < 0 || itemIndex >= pack.items.length) return false;
+        const item = pack.items[itemIndex];
+        if (!item) return false;
+        set((s) => {
+          const currentPack = s.customPacks.find((candidate) => candidate.id === packId);
+          if (!currentPack?.items.some((candidate) => candidate.id === item.id)) return {};
+          return {
+            customPacks: s.customPacks.map((candidate) => candidate.id !== packId
+              ? candidate
+              : { ...candidate, items: candidate.items.filter((entry) => entry.id !== item.id) }),
+            ...removeDhikrItemState(s, packId, itemIndex, currentPack.items.length, item.id),
+          };
+        });
+        return true;
+      },
+      removeSectionItemState: (sectionId, itemIndex, itemCountBeforeDeletion, itemId) =>
+        set((s) => removeDhikrItemState(s, sectionId, itemIndex, itemCountBeforeDeletion, itemId)),
+      updateCustomPackItem: (packId, itemIndex, patch, itemId) =>
+        set((s) => ({ customPacks: s.customPacks.map((p) => p.id !== packId ? p : {
+          ...p,
+          items: p.items.map((it, i) => {
+            const selected = itemId ? it.id === itemId : i === itemIndex;
+            return selected ? { ...it, ...patch, id: it.id ?? newDhikrItemId() } : it;
+          }),
+        }) })),
 
       // 3E: Section completion history
       sectionCompletions: {},
@@ -2436,7 +2719,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 37,
+      version: 38,
       migrate: (persisted: unknown, previousVersion: number) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -2444,6 +2727,19 @@ export const useNoorStore = create<NoorState>()(
           state.reminders && typeof state.reminders === "object" ? state.reminders : undefined;
         const mergedReminders = { ...DEFAULT_REMINDERS, ...persistedReminders };
         const normalizedPrefs = normalizePrefs(persistedPrefs);
+        const persistedCustomPacks = Array.isArray(state.customPacks) ? state.customPacks : [];
+        const baseDhikrMigration = {
+          customPacks: persistedCustomPacks,
+          progress: sanitizeNumberMap(state.progress),
+          favorites: state.favorites ?? {},
+          migratedDhikrStateKeys: (state as Partial<NoorState>).migratedDhikrStateKeys ?? {},
+        };
+        const customDhikrMigration = previousVersion < 38
+          ? migrateCustomPackIndexState(baseDhikrMigration)
+          : {
+              ...baseDhikrMigration,
+              customPacks: normalizeCustomPackItemIds(persistedCustomPacks),
+            };
         // Apply the historic v27 default only once; preserve later user choices.
         if (previousVersion < 27) normalizedPrefs.mushafTajweedMode = true;
 
@@ -2456,7 +2752,9 @@ export const useNoorStore = create<NoorState>()(
             prayerSoundProfile: normalizePrayerSoundProfile(mergedReminders.prayerSoundProfile),
             prayerAlerts: normalizePrayerAlerts(mergedReminders.prayerAlerts),
           },
-          progress: sanitizeNumberMap(state.progress),
+          progress: customDhikrMigration.progress,
+          favorites: customDhikrMigration.favorites,
+          migratedDhikrStateKeys: customDhikrMigration.migratedDhikrStateKeys,
           videoLibraryProgress: ((state as Partial<NoorState>).videoLibraryProgress && typeof (state as Partial<NoorState>).videoLibraryProgress === "object" ? (state as Partial<NoorState>).videoLibraryProgress : {}) as Record<string, VideoLibraryProgress>,
           videoLibraryBookmarks: ((state as Partial<NoorState>).videoLibraryBookmarks && typeof (state as Partial<NoorState>).videoLibraryBookmarks === "object" ? (state as Partial<NoorState>).videoLibraryBookmarks : {}) as Record<string, boolean>,
           videoLibraryLastVideoId: (state as Partial<NoorState>).videoLibraryLastVideoId ?? null,
@@ -2503,7 +2801,7 @@ export const useNoorStore = create<NoorState>()(
           wirdLog: sanitizeWirdLog((state as Partial<NoorState>).wirdLog),
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
-          customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],
+          customPacks: customDhikrMigration.customPacks,
           customReminders: Array.isArray((state as Partial<NoorState>).customReminders) ? (state as Partial<NoorState>).customReminders! : [],
           sectionCompletions: (state as Partial<NoorState>).sectionCompletions ?? {},
           sebhaSessions: Array.isArray((state as Partial<NoorState>).sebhaSessions) ? (state as Partial<NoorState>).sebhaSessions! : [],

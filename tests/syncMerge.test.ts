@@ -7,6 +7,8 @@ import {
   kindForField,
   mergeDoc,
 } from "@/lib/syncMerge";
+import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
+import { createDhikrItemId } from "@/lib/dhikrItemIdentity";
 
 const noBase = { remoteNewer: false, base: null };
 
@@ -16,6 +18,11 @@ describe("bucketize / debucketize", () => {
     expect(b.progress).toEqual({ progress: { a: 1 } });
     expect(b.favorites).toEqual({ favorites: { x: true } });
     expect(b.settings).toEqual({ prefs: { theme: "layl" } });
+  });
+
+  it("routes the Khatma schedule version with the rest of Quran plan progress", () => {
+    expect(kindForField("khatmaScheduleVersion")).toBe("progress");
+    expect(bucketize({ khatmaScheduleVersion: 2 }).progress).toEqual({ khatmaScheduleVersion: 2 });
   });
 
   it("sends unknown fields to settings so a new field still syncs", () => {
@@ -134,6 +141,36 @@ describe("three-way merge propagates real changes", () => {
     );
     expect(merged.quranReadingHistory).toEqual({ "1": 12 });
     expect(merged.shortsSeen).toEqual({ "channel-a": 300 });
+  });
+});
+
+describe("Khatma schedule compatibility across app versions", () => {
+  it("keeps a v2 schedule marker when an older device syncs the same plan without that field", () => {
+    const base = { khatmaStartISO: "2026-01-01", khatmaDays: 30, khatmaScheduleVersion: 2 };
+    const merged = mergeDoc(
+      base,
+      { khatmaStartISO: "2026-01-01", khatmaDays: 30 },
+      { remoteNewer: true, base },
+    );
+
+    expect(merged).toMatchObject({
+      khatmaStartISO: "2026-01-01",
+      khatmaDays: 30,
+      khatmaScheduleVersion: 2,
+    });
+  });
+
+  it("does not carry a schedule marker onto a different plan created by an older device", () => {
+    const base = { khatmaStartISO: "2026-01-01", khatmaDays: 30, khatmaScheduleVersion: 2 };
+    const merged = mergeDoc(
+      base,
+      { khatmaStartISO: "2026-02-01", khatmaDays: 60 },
+      { remoteNewer: true, base },
+    );
+
+    expect(merged.khatmaStartISO).toBe("2026-02-01");
+    expect(merged.khatmaDays).toBe(60);
+    expect(merged).not.toHaveProperty("khatmaScheduleVersion");
   });
 });
 
@@ -350,6 +387,108 @@ describe("nested maps", () => {
 });
 
 describe("custom pack deletion conflicts", () => {
+  it("isolates a delayed counter for a deleted item and excludes it from score", () => {
+    const itemA = { id: "item-a", text: "الأول", count: 10 };
+    const itemB = { id: "item-b", text: "المحذوف", count: 10 };
+    const itemC = { id: "item-c", text: "الأخير", count: 10 };
+    const base = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [itemA, itemB, itemC] }],
+      progress: { "trip:item:item-b": 2, "trip:item:item-c": 4 },
+      migratedDhikrStateKeys: { "trip:0": true, "trip:1": true, "trip:2": true },
+    };
+    const local = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [itemA, itemC] }],
+      progress: { "trip:item:item-c": 4 },
+      migratedDhikrStateKeys: base.migratedDhikrStateKeys,
+    };
+    const remote = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [itemA, itemB, itemC] }],
+      progress: { "trip:item:item-b": 3, "trip:item:item-c": 4 },
+      migratedDhikrStateKeys: base.migratedDhikrStateKeys,
+    };
+
+    const merged = mergeDoc(local, remote, { remoteNewer: true, base });
+    const mergedPack = (merged.customPacks as typeof base.customPacks)[0];
+    expect(mergedPack?.items.map((item) => item.id)).toEqual(["item-a", "item-c"]);
+    expect(merged.progress).toMatchObject({ "trip:item:item-b": 3, "trip:item:item-c": 4 });
+
+    const score = buildLeaderboardScoreStats({
+      sections: [],
+      customPacks: merged.customPacks as typeof base.customPacks,
+      progress: merged.progress as Record<string, number>,
+      quranAyahsToday: 0,
+      prayersDone: {},
+      quickTasbeeh: {},
+      todayISO: "2026-11-09",
+    });
+    expect(score.dhikr).toBe(4);
+  });
+
+  it("keeps a delayed legacy-device index update away from the surviving item", () => {
+    const legacyItems = ["الأول", "المحذوف", "الأخير"].map((text, index) => ({ text, count: 10, id: createDhikrItemId("trip/custom", index, text) }));
+    const [itemA, itemB, itemC] = legacyItems;
+    const base = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [
+        { text: itemA!.text, count: 10 }, { text: itemB!.text, count: 10 }, { text: itemC!.text, count: 10 },
+      ] }],
+      progress: { "trip:1": 2, "trip:2": 4 },
+    };
+    const local = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [itemA!, itemC!] }],
+      progress: { [`trip:item:${encodeURIComponent(itemC!.id)}`]: 4 },
+      migratedDhikrStateKeys: { "trip:0": true, "trip:1": true, "trip:2": true },
+    };
+    const remote = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [
+        { text: itemA!.text, count: 10 }, { text: itemB!.text, count: 10 }, { text: itemC!.text, count: 10 },
+      ] }],
+      progress: { "trip:1": 3, "trip:2": 4 },
+    };
+
+    const merged = mergeDoc(local, remote, { remoteNewer: true, base });
+    const mergedItems = (merged.customPacks as Array<{ items: Array<{ id: string; text: string }> }>)[0]!.items;
+    expect(mergedItems.map((item) => item.id)).toEqual([itemA!.id, itemC!.id]);
+    expect(merged.progress).toMatchObject({ [`trip:item:${encodeURIComponent(itemC!.id)}`]: 4, "trip:1": 3 });
+    const score = buildLeaderboardScoreStats({
+      sections: [],
+      customPacks: merged.customPacks as typeof local.customPacks,
+      progress: merged.progress as Record<string, number>,
+      quranAyahsToday: 0,
+      prayersDone: {},
+      quickTasbeeh: {},
+      todayISO: "2026-11-09",
+    });
+    expect(score.dhikr).toBe(4);
+  });
+
+  it("matches a shifted legacy item by its text before reconciling the pack", () => {
+    const texts = ["الأول", "المحذوف", "الأخير"];
+    const stableItems = texts.map((text, index) => ({
+      id: createDhikrItemId("trip/custom", index, text), text, count: 10,
+    }));
+    const [itemA, , itemC] = stableItems;
+    const base = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: texts.map((text) => ({ text, count: 10 })) }],
+      progress: { "trip:1": 2, "trip:2": 4 },
+    };
+    const local = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [itemA!, itemC!] }],
+      progress: { [`trip:item:${encodeURIComponent(itemC!.id)}`]: 4 },
+      migratedDhikrStateKeys: { "trip:0": true, "trip:1": true, "trip:2": true },
+    };
+    const shiftedLegacyRemote = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [
+        { text: texts[0], count: 10 }, { text: texts[2], count: 10 },
+      ] }],
+      progress: { "trip:1": 7 },
+    };
+
+    const merged = mergeDoc(local, shiftedLegacyRemote, { remoteNewer: true, base });
+    const items = (merged.customPacks as Array<{ items: Array<{ id: string }> }>)[0]!.items;
+    expect(items.map((item) => item.id)).toEqual([itemA!.id, itemC!.id]);
+    expect(merged.progress).toMatchObject({ [`trip:item:${encodeURIComponent(itemC!.id)}`]: 4, "trip:1": 7 });
+  });
+
   it("keeps an edited pack when the other device deletes it", () => {
     const base = { dataPacks: [{ packId: "p", title: "Old", sections: [] }] };
     const edited = [{ packId: "p", title: "Edited", sections: [] }];
@@ -527,6 +666,13 @@ describe("leaderboard identity", () => {
     expect(mergeDoc({ leaderboardIdentity: A }, { leaderboardIdentity: B }, noBase).leaderboardIdentity).toEqual(A);
   });
 
+  it("uses the synced secret to repair a stale local credential for the same identity", () => {
+    const local = { id: "anon_shared", secret: "stale-local-secret", joinedAt: "2026-01-05" };
+    const remote = { id: "anon_shared", secret: "verified-cloud-secret", joinedAt: "2026-01-05" };
+    expect(mergeDoc({ leaderboardIdentity: local }, { leaderboardIdentity: remote }, noBase)
+      .leaderboardIdentity).toEqual(remote);
+  });
+
   it("is symmetric, so both devices converge instead of fighting", () => {
     const fromA = mergeDoc({ leaderboardIdentity: A }, { leaderboardIdentity: B }, noBase);
     const fromB = mergeDoc({ leaderboardIdentity: B }, { leaderboardIdentity: A }, noBase);
@@ -545,6 +691,23 @@ describe("leaderboard identity", () => {
       mergeDoc({ leaderboardIdentity: A }, { leaderboardIdentity: { id: "no_secret" } }, noBase)
         .leaderboardIdentity,
     ).toEqual(A);
+  });
+
+  it("preserves a synced identity when local storage cannot export it", () => {
+    const base = { leaderboardIdentity: A };
+    expect(mergeDoc({}, { leaderboardIdentity: A }, { remoteNewer: true, base }))
+      .toEqual({ leaderboardIdentity: A });
+  });
+
+  it("does not treat a missing remote identity as a deletion", () => {
+    expect(mergeDoc({ leaderboardIdentity: A }, {}, { remoteNewer: true, base: { leaderboardIdentity: A } }))
+      .toEqual({ leaderboardIdentity: A });
+  });
+
+  it("does not adopt the legacy shared emergency identity from the cloud", () => {
+    expect(mergeDoc({}, {
+      leaderboardIdentity: { id: "anon_fallback", secret: "fallback_secret" },
+    }, noBase)).toEqual({});
   });
 });
 

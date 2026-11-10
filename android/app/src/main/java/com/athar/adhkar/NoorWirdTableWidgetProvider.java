@@ -47,32 +47,47 @@ public class NoorWirdTableWidgetProvider extends AtharWidgetProvider {
             String json = WidgetData.readJson(context, WIDGET_KEY);
             JSONObject p = json != null ? new JSONObject(json) : null;
             if (p != null && p.optBoolean("configured", false)) {
-                int total = Math.max(0, p.optInt("total", 0));
-                int done = Math.max(0, Math.min(total, p.optInt("done", 0)));
-                progress = total > 0 ? done / (float) total : 0f;
-                if (total == 0) {
+                String currentDay = WidgetDayFreshness.currentIbadahDayKey(
+                    new java.util.Date(), p.optString("fajrTime", ""));
+                String storedDay = p.optString("ibadahDay", p.optString("day", ""));
+                boolean currentIbadahDay = WidgetDayFreshness.isCurrentDay(storedDay, currentDay);
+                int total = Math.max(0, WidgetDayFreshness.valueForDay(
+                    storedDay, currentDay, p.optInt("total", 0)));
+                int done = Math.max(0, Math.min(total, WidgetDayFreshness.valueForDay(
+                    storedDay, currentDay, p.optInt("done", 0))));
+                int streak = Math.max(0, WidgetDayFreshness.valueForDay(
+                    storedDay, currentDay, p.optInt("streak", 0)));
+                if (!currentIbadahDay) {
                     views.setTextViewText(R.id.wt_ayahs_read, "—");
-                    views.setTextViewText(R.id.wt_goal_label, "لا ورد مستحقّ اليوم");
-                } else if (done >= total) {
-                    views.setTextViewText(R.id.wt_ayahs_read, "✓");
-                    views.setTextViewText(R.id.wt_goal_label, "أتممتَ أوراد اليوم");
-                } else {
-                    views.setTextViewText(R.id.wt_ayahs_read, ar(done) + "/" + ar(total) + " اليوم");
-                    views.setTextViewText(R.id.wt_goal_label, "من أوراد اليوم");
-                }
-                JSONObject next = p.optJSONObject("next");
-                if (next != null) {
-                    // One line: a second row does not fit at the default 4x2 height.
-                    views.setTextViewText(R.id.wt_surah_name, next.optString("title", "")
-                        + " · " + ar(next.optInt("count", 0)) + "/" + ar(next.optInt("target", 1)));
+                    views.setTextViewText(R.id.wt_goal_label, "افتح التطبيق لتحديث أوراد اليوم");
+                    views.setTextViewText(R.id.wt_surah_name, "");
                     views.setViewVisibility(R.id.wt_ayah_ref, android.view.View.GONE);
+                    views.setTextViewText(R.id.wt_progress_label, "");
                 } else {
-                    views.setTextViewText(R.id.wt_surah_name, total > 0 ? "بارك الله فيك" : "");
-                    views.setViewVisibility(R.id.wt_ayah_ref, android.view.View.GONE);
+                    progress = total > 0 ? done / (float) total : 0f;
+                    if (total == 0) {
+                        views.setTextViewText(R.id.wt_ayahs_read, "—");
+                        views.setTextViewText(R.id.wt_goal_label, "لا ورد مستحقّ اليوم");
+                    } else if (done >= total) {
+                        views.setTextViewText(R.id.wt_ayahs_read, "✓");
+                        views.setTextViewText(R.id.wt_goal_label, "أتممتَ أوراد اليوم");
+                    } else {
+                        views.setTextViewText(R.id.wt_ayahs_read, ar(done) + "/" + ar(total) + " اليوم");
+                        views.setTextViewText(R.id.wt_goal_label, "من أوراد اليوم");
+                    }
+                    JSONObject next = p.optJSONObject("next");
+                    if (next != null) {
+                        // One line: a second row does not fit at the default 4x2 height.
+                        views.setTextViewText(R.id.wt_surah_name, next.optString("title", "")
+                            + " · " + ar(next.optInt("count", 0)) + "/" + ar(next.optInt("target", 1)));
+                        views.setViewVisibility(R.id.wt_ayah_ref, android.view.View.GONE);
+                    } else {
+                        views.setTextViewText(R.id.wt_surah_name, total > 0 ? "بارك الله فيك" : "");
+                        views.setViewVisibility(R.id.wt_ayah_ref, android.view.View.GONE);
+                    }
+                    views.setTextViewText(R.id.wt_progress_label,
+                        streak > 1 ? ar(streak) + " أيام متتابعة" : "");
                 }
-                int streak = Math.max(0, p.optInt("streak", 0));
-                views.setTextViewText(R.id.wt_progress_label,
-                    streak > 1 ? ar(streak) + " أيام متتابعة" : "");
             } else {
                 views.setTextViewText(R.id.wt_ayahs_read, "--");
                 views.setTextViewText(R.id.wt_goal_label, "أنشئ أورادك من التطبيق");
