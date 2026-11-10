@@ -41,6 +41,8 @@ const DEVICE_KEY = "athar_device_id_v1";
 const MAX_CONFLICT_ATTEMPTS = 4;
 const SYNC_REQUEST_TIMEOUT_MS = 15_000;
 const SYNC_REQUEST_TIMEOUT_MESSAGE = "انتهت مهلة المزامنة. تحقق من اتصالك ثم أعد المحاولة.";
+const SYNC_SESSION_CHECK_FAILED_MESSAGE = "تعذّر التحقق من جلسة الحساب. سنحاول المزامنة تلقائيًا.";
+const SYNC_SESSION_EXPIRED_MESSAGE = "تعذّر استعادة جلسة الحساب. أعد تسجيل الدخول ثم حاول المزامنة.";
 const MAX_SYNC_DOCUMENT_BYTES = 4 * 1024 * 1024;
 const MAX_SYNC_BATCH_BYTES = 5 * 1024 * 1024;
 const SYNC_PAYLOAD_TOO_LARGE_MESSAGE = "بياناتك أكبر من حد المزامنة؛ بقيت محفوظة على هذا الجهاز.";
@@ -841,13 +843,31 @@ async function runSync(generation: number): Promise<boolean> {
   const sessionRead = await readSessionForSync();
   if (!isCurrent()) return false;
   if (sessionRead.status !== "resolved") {
-    setStatus({ phase: "error", error: "تعذّر التحقق من جلسة الحساب", pending: false });
+    if (owner === "local") {
+      setStatus({ phase: "idle", error: null, pending: false });
+      return false;
+    }
+    const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+    setStatus({
+      phase: offline ? "offline" : "error",
+      error: offline ? null : SYNC_SESSION_CHECK_FAILED_MESSAGE,
+      pending: true,
+    });
+    if (!offline) scheduleRetry();
     return false;
   }
   const session = sessionRead.session;
   const userId = session?.user?.id;
   const accessToken = session?.access_token;
-  if (!userId || !accessToken) return false;
+  if (!userId || !accessToken) {
+    if (owner === "local") {
+      setStatus({ phase: "idle", error: null, pending: false });
+      return false;
+    }
+    setStatus({ phase: "error", error: SYNC_SESSION_EXPIRED_MESSAGE, pending: true });
+    scheduleRetry();
+    return false;
+  }
   // Pin this run's token on every request. The shared SDK resolves its bearer
   // asynchronously and could otherwise send A's payload with a newer B token.
   // Background auth recovery can precede React's owner transition. Never

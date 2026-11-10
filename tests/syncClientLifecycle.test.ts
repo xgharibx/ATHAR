@@ -39,7 +39,10 @@ async function setup(options?: { metadata?: boolean; initialState?: Record<strin
   let packs = [{ packId: "my_adhkar_pack", name: "Mine", sections: [{ id: "my_adhkar", content: [{ text: "original", count: 1 }] }] }];
   let identity = { id: "synthetic-a", secret: "synthetic-only", joinedAt: "2026-01-01" };
   let sessionUser = "synthetic-a";
+  let hasPersistedSession = true;
   let sessionReadHangs = false;
+  let sessionReadOutcome: "session" | "empty" | "error" = "session";
+  let sessionReadCount = 0;
   let exportNumber = 0;
   let onSelect: (() => void | Promise<void>) | undefined;
   const writes: Array<Array<{ kind: string; expected_revision: number | null; payload: Record<string, unknown> }>> = [];
@@ -47,10 +50,14 @@ async function setup(options?: { metadata?: boolean; initialState?: Record<strin
   const rows = [{ user_id: "synthetic-a", kind: "progress", payload: { progress: { a: 1, remote: 9 } }, updated_at: new Date().toISOString(), revision: 1 }];
   const receipts = new Map<string, { requestId: string; writes: string; revisions: Record<string, number> }>();
   vi.doMock("@/lib/authClient", () => ({
-    getPersistedAccountStorageOwner: () => `user:${sessionUser}`,
-    getSession: () => sessionReadHangs
-      ? new Promise<null>(() => {})
-      : Promise.resolve({ user: { id: sessionUser }, access_token: `synthetic-token-${sessionUser}` }),
+    getPersistedAccountStorageOwner: () => hasPersistedSession ? `user:${sessionUser}` : "local",
+    getSession: () => {
+      sessionReadCount += 1;
+      if (sessionReadHangs) return new Promise<null>(() => {});
+      if (sessionReadOutcome === "empty") return Promise.resolve(null);
+      if (sessionReadOutcome === "error") return Promise.reject(new Error("temporary session read failure"));
+      return Promise.resolve({ user: { id: sessionUser }, access_token: `synthetic-token-${sessionUser}` });
+    },
     getSupabase: () => ({ from: () => ({
       select: () => ({ eq: (_key: string, userId: string) => queryWithHeaders((async () => {
         const snapshot = rows.filter((row) => row.user_id === userId).map((row) => structuredClone(row));
@@ -135,6 +142,14 @@ async function setup(options?: { metadata?: boolean; initialState?: Record<strin
       sessionUser = id;
       if (switchOwner) setAccountStorageOwner(`user:${id}`);
     },
+    returnEmptySession: () => { sessionReadOutcome = "empty"; },
+    rejectSessionRead: () => { sessionReadOutcome = "error"; },
+    sessionReads: () => sessionReadCount,
+    clearPersistedSession: (outcome: "empty" | "error" = "empty") => {
+      hasPersistedSession = false;
+      sessionReadOutcome = outcome;
+      setAccountStorageOwner("local");
+    },
     hangSessionRead: () => { sessionReadHangs = true; },
   };
 }
@@ -191,7 +206,93 @@ describe("cloud sync snapshot and lifecycle", () => {
     const result = await Promise.race([sync, Promise.resolve("still-running" as const)]);
 
     expect(result).toBe(false);
-    expect(s.mod.getSyncStatus().phase).not.toBe("syncing");
+    expect(s.mod.getSyncStatus()).toMatchObject({
+      phase: "error",
+      pending: true,
+      error: expect.stringContaining("جلسة الحساب"),
+    });
+    expect(vi.getTimerCount()).toBe(1);
+  });
+
+  it("shows and retries when a cached account has no refreshable session", async () => {
+    const s = await setup();
+    s.returnEmptySession();
+
+    expect(await s.mod.syncNow()).toBe(false);
+    expect(s.mod.getSyncStatus()).toMatchObject({
+      phase: "error",
+      pending: true,
+      error: expect.stringContaining("تعذّر استعادة جلسة الحساب"),
+    });
+    expect(vi.getTimerCount()).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(s.sessionReads()).toBe(2);
+    expect(s.mod.getSyncStatus().phase).toBe("error");
+    expect(vi.getTimerCount()).toBe(1);
+  });
+
+  it("retries a transient saved-session read failure", async () => {
+    const s = await setup();
+    s.rejectSessionRead();
+
+    expect(await s.mod.syncNow()).toBe(false);
+    expect(s.mod.getSyncStatus()).toMatchObject({
+      phase: "error",
+      pending: true,
+      error: expect.stringContaining("جلسة الحساب"),
+    });
+    expect(vi.getTimerCount()).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(s.sessionReads()).toBe(2);
+    expect(vi.getTimerCount()).toBe(1);
+  });
+
+  it("cancels a saved-session retry when cloud sync stops", async () => {
+    const s = await setup();
+    s.rejectSessionRead();
+
+    expect(await s.mod.syncNow()).toBe(false);
+    expect(vi.getTimerCount()).toBe(1);
+
+    s.mod.stopCloudSync();
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(s.sessionReads()).toBe(1);
+    expect(vi.getTimerCount()).toBe(0);
+    expect(s.mod.getSyncStatus()).toMatchObject({ phase: "idle", error: null, pending: false });
+  });
+
+  it("does not retry when there is no signed-in account", async () => {
+    const s = await setup();
+    s.clearPersistedSession();
+
+    expect(await s.mod.syncNow()).toBe(false);
+    expect(s.mod.getSyncStatus()).toMatchObject({ phase: "idle", error: null, pending: false });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("keeps local-only use idle when the session lookup fails", async () => {
+    const s = await setup();
+    s.clearPersistedSession("error");
+
+    expect(await s.mod.syncNow()).toBe(false);
+    expect(s.mod.getSyncStatus()).toMatchObject({ phase: "idle", error: null, pending: false });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("keeps local-only use idle when the session lookup times out", async () => {
+    const s = await setup();
+    s.clearPersistedSession();
+    s.hangSessionRead();
+
+    const sync = s.mod.syncNow();
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    expect(await sync).toBe(false);
+    expect(s.mod.getSyncStatus()).toMatchObject({ phase: "idle", error: null, pending: false });
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("keeps custom adhkar added while the remote fetch is pending", async () => {
