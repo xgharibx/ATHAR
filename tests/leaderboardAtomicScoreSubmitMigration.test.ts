@@ -21,4 +21,15 @@ describe("leaderboard score submission transaction migration", () => {
     expect(sql).toMatch(/revoke all on function public\.leaderboard_submit_score_snapshot\(text, text, jsonb, jsonb\)\s+from public, anon, authenticated/i);
     expect(sql).toMatch(/grant execute on function public\.leaderboard_submit_score_snapshot\(text, text, jsonb, jsonb\)\s+to service_role/i);
   });
+
+  it("does not let an older offline snapshot lower a newer stored score", () => {
+    expect(migrationName).toBeTruthy();
+    const sql = fs.readFileSync(path.join(migrations, migrationName!), "utf8");
+    const rollupUpsert = sql.slice(sql.indexOf("on conflict (day, period, board, section_id, user_id) do update set"));
+
+    expect(rollupUpsert).toMatch(/excluded\.generated_at\s*>\s*public\.leaderboard_rollups\.generated_at/i);
+    expect(rollupUpsert).toMatch(/else greatest\(public\.leaderboard_rollups\.score, excluded\.score\)/i);
+    expect(rollupUpsert).toMatch(/then excluded\.score/i);
+    expect(rollupUpsert).toMatch(/else public\.leaderboard_rollups\.generated_at/i);
+  });
 });

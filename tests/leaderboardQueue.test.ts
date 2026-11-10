@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { enqueuePayload, flushQueue, getRateLimitBackoffRemainingMs, isRateLimited } from "@/lib/leaderboard";
+import {
+  buildSubmitPayload,
+  enqueuePayload,
+  flushQueue,
+  getRateLimitBackoffRemainingMs,
+  isRateLimited,
+} from "@/lib/leaderboard";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -40,6 +46,36 @@ function readQueue() {
 }
 
 describe("leaderboard offline queue", () => {
+  it("keeps the original timestamp and checksum for a snapshot queued over 36 hours offline", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-09T00:00:00.000Z"));
+    const day = "2026-11-09";
+    const scores = { global: 18, dhikr: 18, quran: 0, prayers: 0, tasbeehDaily: 0, sections: {} };
+    const queued = await buildSubmitPayload(day, scores);
+    vi.setSystemTime(new Date("2026-11-10T13:00:00.000Z"));
+    enqueuePayload(queued);
+
+    let submitted: typeof queued | null = null;
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      submitted = JSON.parse(String(init?.body)) as typeof queued;
+      const age = Date.now() - Date.parse(submitted.generatedAt);
+      return age > 4 * 24 * 60 * 60 * 1000 || age < -36 * 60 * 60 * 1000
+        ? new Response("stale snapshot", { status: 400 })
+        : new Response(JSON.stringify({ ok: true }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await flushQueue("https://leaderboard.example/submit");
+
+    expect(result).toMatchObject({ ok: true, sent: 1 });
+    expect(readQueue()).toEqual([]);
+    expect(submitted).not.toBeNull();
+    expect(submitted!.generatedAt).toBe(queued.generatedAt);
+    expect(submitted!.checksum).toBe(queued.checksum);
+    expect(submitted!.day).toBe(day);
+    expect(submitted!.scores).toEqual(scores);
+  });
+
   it("keeps the newest complete snapshot for an identity and day", () => {
     const now = Date.now();
     const first = makePayload({ global: 10, generatedAt: new Date(now).toISOString() });

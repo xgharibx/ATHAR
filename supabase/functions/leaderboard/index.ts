@@ -24,7 +24,11 @@ const MAX_SECTION_ITEMS = 64;
 const MAX_SECTION_ID_LENGTH = 80;
 const MAX_REQUEST_BODY_BYTES = 64 * 1024;
 const MAX_DAY_SKEW = 3;
-const MAX_GENERATED_AT_SKEW_MS = 36 * 60 * 60 * 1000;
+const MAX_GENERATED_AT_FUTURE_SKEW_MS = 36 * 60 * 60 * 1000;
+// Keep the snapshot's original ordering timestamp when an app reconnects
+// after being offline. The accepted day window is three days; one extra day
+// allows for local-time/UTC rollover while still bounding stale submissions.
+const MAX_GENERATED_AT_PAST_SKEW_MS = (MAX_DAY_SKEW + 1) * 24 * 60 * 60 * 1000;
 const MAX_ALIAS_LENGTH = 40;
 const limiter = new Map();
 const blocklistCache = { loadedAt: 0, rows: [] };
@@ -695,7 +699,8 @@ function validatePayload(payload) {
   if (!validDay(payload.day)) return { ok: false, reason: "bad-day" };
   if (Math.abs(dayDiff(payload.day)) > MAX_DAY_SKEW) return { ok: false, reason: "day-skew" };
   if (!payload.generatedAt || Number.isNaN(Date.parse(payload.generatedAt))) return { ok: false, reason: "bad-generatedAt" };
-  if (Math.abs(Date.now() - Date.parse(payload.generatedAt)) > MAX_GENERATED_AT_SKEW_MS) {
+  const generatedAtSkew = Date.parse(payload.generatedAt) - Date.now();
+  if (generatedAtSkew > MAX_GENERATED_AT_FUTURE_SKEW_MS || generatedAtSkew < -MAX_GENERATED_AT_PAST_SKEW_MS) {
     return { ok: false, reason: "generatedAt-skew" };
   }
   if (!payload.checksum || !/^[a-f0-9]{64}$/i.test(String(payload.checksum))) {
