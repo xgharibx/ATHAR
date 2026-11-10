@@ -43,22 +43,33 @@ let ensureAllWbwPromise: Promise<void> | null = null;
 
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
-async function idbGet(surahId: number): Promise<WbwSurah | null> {
+async function idbGetRow(surahId: number): Promise<WbwCacheRow | null> {
   try {
     const db = getDB();
     const key = `wbw_${surahId}`;
     const row = await db.wbwCache.get(key);
     if (!row) return null;
     const now = Date.now();
-    if (!Number.isFinite(row.cachedAt) || row.cachedAt > now || now - row.cachedAt > MAX_AGE_MS ||
-      row.key !== key || !isValidWbwSurah(surahId, row.data)) {
+    if (!Number.isFinite(row.cachedAt) || row.cachedAt > now || row.key !== key || !isValidWbwSurah(surahId, row.data)) {
       await db.wbwCache.delete(key);
       return null;
     }
-    return row.data;
+    return row;
   } catch {
     return null;
   }
+}
+
+async function idbGet(surahId: number): Promise<WbwSurah | null> {
+  const row = await idbGetRow(surahId);
+  if (!row || Date.now() - row.cachedAt > MAX_AGE_MS) return null;
+  return row.data;
+}
+
+/** Keep a previously downloaded, validated chapter available if refresh fails. */
+async function idbGetStale(surahId: number): Promise<WbwSurah | null> {
+  const row = await idbGetRow(surahId);
+  return row?.data ?? null;
 }
 
 async function idbSet(surahId: number, data: WbwSurah): Promise<void> {
@@ -177,6 +188,8 @@ export async function loadWbwSurah(surahId: number): Promise<WbwSurah> {
     if (!resp.ok) throw new Error(`WBW fetch failed: ${resp.status}`);
     json = parseQuranComResponse(await resp.json(), surahId);
   } catch (error) {
+    const stale = await idbGetStale(surahId);
+    if (stale) return stale;
     if (timedOut) throw new Error("Quran.com word-by-word request timed out");
     throw error;
   } finally {
