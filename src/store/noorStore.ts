@@ -28,6 +28,7 @@ import { foldTopics, channelNameStopwords } from "@/lib/shortsTopics";
 import { parsePrayerKey, parseFastKey, type Madhhab, type PlanMode } from "@/lib/qadaa";
 import { sanitizeItem as sanitizeWirdItem, sanitizeLog as sanitizeWirdLog, pruneWirdLog, type WirdItem } from "@/lib/wird";
 import { pruneLog as pruneMuhasabaLog } from "@/lib/muhasaba";
+import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 import {
   accountScopedLocalStorage,
   getAccountStorageOwner,
@@ -325,6 +326,7 @@ export type ExportBlobV1 = {
   dailyWirdStartISO?: string | null;
   khatmaStartISO?: string | null;
   khatmaDays?: number | null;
+  khatmaScheduleVersion?: 1 | 2 | null;
   khatmaDone?: Record<string, boolean>;
   lastDailyResetISO?: string | null;
   lastCivilResetISO?: string | null;
@@ -547,6 +549,8 @@ type NoorState = {
   // Khatma plan
   khatmaStartISO: string | null;
   khatmaDays: number | null;
+  /** Missing/null means a plan created before balanced schedules (legacy v1). */
+  khatmaScheduleVersion: 1 | 2 | null;
   khatmaDone: Record<string, boolean>; // dateISO -> done
   setKhatmaPlan: (opts: { startISO: string; days: number }) => void;
   setKhatmaDone: (dateISO: string, done: boolean) => void;
@@ -1821,12 +1825,18 @@ export const useNoorStore = create<NoorState>()(
 
       khatmaStartISO: null,
       khatmaDays: null,
+      khatmaScheduleVersion: null,
       khatmaDone: {},
       setKhatmaPlan: ({ startISO, days }) =>
-        set({ khatmaStartISO: startISO, khatmaDays: days, khatmaDone: {} }),
-      setKhatmaDone: (dateISO, done) =>
-        set((s) => ({ khatmaDone: { ...s.khatmaDone, [dateISO]: !!done } })),
-      resetKhatma: () => set({ khatmaStartISO: null, khatmaDays: null, khatmaDone: {} }),
+        set({ khatmaStartISO: startISO, khatmaDays: days, khatmaScheduleVersion: 2, khatmaDone: {} }),
+      setKhatmaDone: (dateISO, done) => {
+        if (done) {
+          const { khatmaStartISO, khatmaDays } = get();
+          if (!khatmaStartISO || !khatmaDays || !isKhatmaDateWithinPlan(dateISO, khatmaStartISO, khatmaDays)) return;
+        }
+        set((s) => ({ khatmaDone: { ...s.khatmaDone, [dateISO]: !!done } }));
+      },
+      resetKhatma: () => set({ khatmaStartISO: null, khatmaDays: null, khatmaScheduleVersion: null, khatmaDone: {} }),
 
       setPrefs: (partial) =>
         set((s) => ({
@@ -2149,6 +2159,7 @@ export const useNoorStore = create<NoorState>()(
           dailyWirdStartISO: s.dailyWirdStartISO,
           khatmaStartISO: s.khatmaStartISO,
           khatmaDays: s.khatmaDays,
+          khatmaScheduleVersion: s.khatmaScheduleVersion,
           khatmaDone: s.khatmaDone,
           lastDailyResetISO: s.lastCivilResetISO,
           lastCivilResetISO: s.lastCivilResetISO,
@@ -2220,6 +2231,7 @@ export const useNoorStore = create<NoorState>()(
           dailyWirdStartISO: blob.dailyWirdStartISO ?? null,
           khatmaStartISO: blob.khatmaStartISO ?? null,
           khatmaDays: blob.khatmaDays ?? null,
+          khatmaScheduleVersion: blob.khatmaScheduleVersion === 2 ? 2 : blob.khatmaScheduleVersion === 1 ? 1 : null,
           khatmaDone: blob.khatmaDone ?? {},
           lastCivilResetISO: blob.lastCivilResetISO ?? blob.lastDailyResetISO ?? null,
           lastIbadahResetISO: blob.lastIbadahResetISO ?? blob.lastDailyResetISO ?? null,
@@ -2368,6 +2380,7 @@ export const useNoorStore = create<NoorState>()(
         dailyWirdStartISO: null,
         khatmaStartISO: null,
         khatmaDays: null,
+        khatmaScheduleVersion: null,
         khatmaDone: {},
       }),
 

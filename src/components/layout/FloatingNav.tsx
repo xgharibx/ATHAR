@@ -5,11 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
 import { warmYouTubeApi } from "@/lib/youtubePlayer";
 import { useQadaa } from "@/hooks/useQadaa";
-
-function todayISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+import { useTodayKey } from "@/hooks/useTodayKey";
+import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 
 const NAV_ITEMS = [
   { path: "/", label: "الرئيسية", icon: House },
@@ -67,13 +64,13 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   const khatmaDone = useNoorStore((s) => s.khatmaDone);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
-  const todayCount = activity[todayISO()] ?? 0;
+  const today = useTodayKey();
+  const todayCount = activity[today] ?? 0;
 
   const khatmaDueToday = React.useMemo(() => {
     if (!khatmaStartISO || !khatmaDays) return false;
-    const today = todayISO();
-    return !(khatmaDone?.[today] ?? false);
-  }, [khatmaStartISO, khatmaDays, khatmaDone]);
+    return isKhatmaDateWithinPlan(today, khatmaStartISO, khatmaDays) && !(khatmaDone?.[today] ?? false);
+  }, [khatmaStartISO, khatmaDays, khatmaDone, today]);
 
   React.useEffect(() => {
     let mounted = true;

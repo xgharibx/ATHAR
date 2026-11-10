@@ -51,6 +51,7 @@ import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
 import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useScrollRestoration";
 import { toArabicNumeral } from "@/lib/quranMeta";
 import { arNum } from "@/lib/formatNumber";
+import { countCompletedKhatmaDays, getKhatmaTimeline } from "@/lib/quranKhatma";
 
 const HomePulse = React.lazy(() => import("@/components/brand/HomePulse"));
 
@@ -1725,15 +1726,12 @@ export function HomePage() {
 
       {/* ختمة القرآن */}
       {khatmaStartISO && khatmaDays && (() => {
-        const start = new Date(khatmaStartISO);
-        const end = new Date(start.getTime() + khatmaDays * 86400000);
-        const now = Date.now();
-        if (now >= end.getTime()) return null; // finished
-        const totalMs = end.getTime() - start.getTime();
-        const elapsedMs = now - start.getTime();
-        const pct = Math.min(100, Math.round((elapsedMs / totalMs) * 100));
-        const daysLeft = Math.ceil((end.getTime() - now) / 86400000);
-        const doneCount = Object.values(khatmaDone ?? {}).filter(Boolean).length;
+        const timeline = getKhatmaTimeline(khatmaStartISO, civilTodayKey, khatmaDays);
+        if (!timeline || timeline.isExpired) return null;
+        const pct = timeline.isUpcoming
+          ? 0
+          : Math.max(0, Math.min(100, Math.round((timeline.elapsedDays / khatmaDays) * 100)));
+        const doneCount = countCompletedKhatmaDays(khatmaStartISO, khatmaDays, khatmaDone);
         return (
           <button
             type="button"
@@ -1746,7 +1744,10 @@ export function HomePage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>ختمة القرآن</span>
-                <span className="text-xs tabular-nums opacity-70">تبقى {arNum(daysLeft)} يوم · {arNum(doneCount)}س/{arNum(khatmaDays)}</span>
+                <span className="text-xs tabular-nums opacity-70">
+                  {timeline.isUpcoming ? `تبدأ بعد ${arNum(timeline.startsInDays)} يوم` : `تبقى ${arNum(timeline.daysRemaining)} يوم`}
+                  {` · ${arNum(doneCount)}س/${arNum(khatmaDays)}`}
+                </span>
               </div>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}>
                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: "var(--accent)" }} />

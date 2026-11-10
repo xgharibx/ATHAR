@@ -8,17 +8,32 @@ import { computeScores, hasMetrics, FARD_PRAYERS_PER_DAY } from "../supabase/fun
 /** Execute the deployed handler source with only external database I/O replaced. */
 function server(
   claim: { data: boolean | null; error: { message: string } | null },
-  options: { failFirstRollupUpsert?: boolean } = {},
+  options: { failFirstAtomicRollup?: boolean } = {},
 ) {
   let handler: (req: Request) => Promise<Response>;
   const mutations: string[] = [];
   const writes: Array<{ table: string; operation: string; value: unknown }> = [];
   const storedEvents: Array<Record<string, unknown>> = [];
-  let rollupUpserts = 0;
+  let atomicRollupCalls = 0;
   const db = {
-    rpc: async (name: string) => {
+    rpc: async (name: string, args?: Record<string, unknown>) => {
       if (name === "leaderboard_claim_identity") return claim;
       mutations.push(name);
+      if (name === "leaderboard_submit_score_snapshot") {
+        atomicRollupCalls += 1;
+        writes.push({ table: "leaderboard_score_events", operation: "atomic-rpc", value: args });
+        if (options.failFirstAtomicRollup && atomicRollupCalls === 1) {
+          return { data: null, error: { message: "synthetic atomic snapshot failure" } };
+        }
+        const event = args?.p_event as Record<string, unknown> | undefined;
+        const duplicate = event && storedEvents.some((previous) =>
+          previous.checksum === event.checksum || JSON.stringify(previous.payload) === JSON.stringify(event.payload));
+        if (event && !duplicate) storedEvents.push(event);
+        return {
+          data: { ok: true, deduped: Boolean(duplicate), event_capped: false, section_capped: false },
+          error: null,
+        };
+      }
       return { data: null, error: null };
     },
     from(table: string) {
@@ -52,12 +67,6 @@ function server(
         upsert(value: unknown) {
           operation = "upsert";
           writes.push({ table, operation, value });
-          if (table === "leaderboard_rollups") {
-            rollupUpserts += 1;
-            if (options.failFirstRollupUpsert && rollupUpserts === 1) {
-              operationError = { message: "synthetic rollup failure" };
-            }
-          }
           return this;
         },
         delete() { operation = "delete"; return this; },
@@ -118,7 +127,7 @@ function server(
   }));
   const submit = async (fingerprint = "a".repeat(64), overrides: Record<string, unknown> = {}) =>
     submitRaw(JSON.stringify({ ...validSubmission(fingerprint), ...overrides }));
-  return { validSubmission, submit, submitRaw, sendRequest, mutations, writes, rollupUpserts: () => rollupUpserts };
+  return { validSubmission, submit, submitRaw, sendRequest, mutations, writes, atomicRollupCalls: () => atomicRollupCalls };
 }
 
 describe("leaderboard identity ownership", () => {
@@ -137,7 +146,9 @@ describe("leaderboard identity ownership", () => {
   it("lets the identity owner continue recording scores", async () => {
     const edge = server({ data: true, error: null });
     expect((await edge.submit()).status).toBe(200);
-    expect(edge.mutations).toContain("leaderboard_rollups:upsert");
+    expect(edge.mutations).toContain("leaderboard_submit_score_snapshot");
+    expect(edge.mutations).not.toContain("leaderboard_upsert_rollups_batch");
+    expect(edge.writes.some((write) => write.table === "leaderboard_score_events" && write.operation === "insert")).toBe(false);
   });
 
   it("rejects malformed ownership credentials before any database mutation", async () => {
@@ -204,10 +215,11 @@ describe("leaderboard identity ownership", () => {
     });
 
     expect(response.status).toBe(200);
-    const inserted = edge.writes.find((write) => write.table === "leaderboard_score_events")?.value as
-      Array<{ payload: Record<string, unknown> }> | undefined;
-    expect(Object.keys(inserted?.[0]?.payload ?? {})).toEqual(["scores"]);
-    expect(inserted?.[0]?.payload.scores).toMatchObject({
+    const submit = edge.writes.find((write) => write.table === "leaderboard_score_events" && write.operation === "atomic-rpc")?.value as
+      { p_event?: { payload?: Record<string, unknown> } } | undefined;
+    const savedPayload = submit?.p_event?.payload;
+    expect(Object.keys(savedPayload ?? {})).toEqual(["scores"]);
+    expect(savedPayload?.scores).toMatchObject({
       global: 50,
       dhikr: 3,
       quran: 1,
@@ -215,20 +227,20 @@ describe("leaderboard identity ownership", () => {
       tasbeehDaily: 4,
       sections: { morning: 3 },
     });
-    expect(inserted?.[0]?.payload.scores.sections).not.toHaveProperty("x".repeat(81));
+    expect(savedPayload?.scores).not.toHaveProperty("x".repeat(81));
   });
 
-  it("repairs a rollup after the event was saved but its first upsert failed", async () => {
-    const edge = server({ data: true, error: null }, { failFirstRollupUpsert: true });
+  it("retries safely when the atomic score transaction fails", async () => {
+    const edge = server({ data: true, error: null }, { failFirstAtomicRollup: true });
 
     expect((await edge.submit()).status).toBe(500);
-    expect(edge.rollupUpserts()).toBe(1);
+    expect(edge.atomicRollupCalls()).toBe(1);
 
     const retry = await edge.submit();
 
     expect(retry.status).toBe(200);
-    expect(await retry.json()).toMatchObject({ deduped: true });
-    expect(edge.rollupUpserts()).toBe(2);
-    expect(edge.writes.filter((write) => write.table === "leaderboard_score_events" && write.operation === "insert")).toHaveLength(1);
+    expect(await retry.json()).not.toHaveProperty("deduped");
+    expect(edge.atomicRollupCalls()).toBe(2);
+    expect(edge.writes.filter((write) => write.table === "leaderboard_score_events" && write.operation === "atomic-rpc")).toHaveLength(2);
   });
 });

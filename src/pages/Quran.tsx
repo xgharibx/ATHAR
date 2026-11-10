@@ -15,6 +15,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useTodayKey } from "@/hooks/useTodayKey";
 import { SurahInfoPopover } from "@/components/quran/SurahInfoPopover";
 import { sajdaInSurah, getEnglishRowPreview } from "@/data/quranExtras";
 import { useQuranExtras } from "@/hooks/useQuranExtras";
@@ -25,6 +26,7 @@ import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { getReciter } from "@/lib/quranReciters";
 import { loadQuranPageMap } from "@/data/quranLoad";
 import { arNum } from "@/lib/formatNumber";
+import { countCompletedKhatmaDays, getKhatmaDayRange, getKhatmaPlanStatus } from "@/lib/quranKhatma";
 
 
 function normalize(s: string) {
@@ -282,16 +284,14 @@ export function QuranPage() {
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
+  const khatmaScheduleVersion = useNoorStore((s) => s.khatmaScheduleVersion);
   const khatmaDone = useNoorStore((s) => s.khatmaDone);
 
   const recentSurahs = useNoorStore((s) => s.recentSurahs);
   const recordRecentSurah = useNoorStore((s) => s.recordRecentSurah);
   const removeRecentSurah = useNoorStore((s) => s.removeRecentSurah);
 
-  const todayISO = React.useMemo(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  }, []);
+  const todayISO = useTodayKey();
 
   const [query, setQuery] = React.useState("");
   // Defer ayah search so surah list stays responsive while user types
@@ -442,30 +442,32 @@ export function QuranPage() {
 
     if (flat.length === 0) return null;
 
-    const chunk = Math.ceil(flat.length / days);
     const dayIndexRaw = Math.max(0, daysBetween(start, today));
-    const isFinished = dayIndexRaw >= days;
     const dayIndex = Math.min(dayIndexRaw, days - 1);
-    const startAt = Math.min(flat.length - 1, dayIndex * chunk);
-    const endAt = Math.min(flat.length, startAt + chunk) - 1;
+    const range = getKhatmaDayRange(dayIndex, days, flat.length, khatmaScheduleVersion ?? 1);
+    const startAt = range.firstAyah - 1;
+    const endAt = range.lastAyah - 1;
     const first = flat[startAt];
     const last = flat[endAt];
 
     if (!first || !last) return null;
 
-    const doneCount = Object.keys(khatmaDone ?? {}).filter((key) => khatmaDone[key]).length;
+    const doneCount = countCompletedKhatmaDays(khatmaStartISO, days, khatmaDone);
     const doneToday = !!khatmaDone?.[todayISO];
-    const percent = days ? Math.round((doneCount / days) * 100) : 0;
+    const percent = Math.min(100, Math.round((doneCount / days) * 100));
+    const status = getKhatmaPlanStatus(dayIndexRaw, days, doneCount);
 
     return {
       days,
-      chunk,
+      chunk: range.dailyTarget,
       dayIndex,
-      isFinished,
+      isFinished: status !== "active",
+      isExpired: status === "expired",
+      isCompleted: status === "completed",
       today: { first, last },
       meta: { doneCount, doneToday, percent }
     };
-  }, [data, khatmaDays, khatmaDone, khatmaStartISO, todayISO]);
+  }, [data, khatmaDays, khatmaDone, khatmaScheduleVersion, khatmaStartISO, todayISO]);
 
   // Daily verse of the day
   const dailyVerse = React.useMemo(() => {
@@ -823,7 +825,7 @@ export function QuranPage() {
               {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished && (
                 <span style={{ color: "var(--accent)", opacity: 1 }}>{arNum(khatma.meta.percent)}٪</span>
               )}
-              {khatmaStartISO && khatmaDays && khatma?.isFinished && (
+              {khatmaStartISO && khatmaDays && khatma?.isCompleted && (
                 <span style={{ color: "var(--ok)", opacity: 1 }}>✓</span>
               )}
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-40" aria-hidden="true"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -945,7 +947,7 @@ export function QuranPage() {
       )}
 
       {/* ── Khatma finished celebration ───────────────── */}
-      {mode === "surahs" && !query && khatma?.isFinished && (
+      {mode === "surahs" && !query && khatma?.isCompleted && (
         <div
           className="w-full text-center rounded-3xl border p-5 space-y-2"
           style={{
@@ -961,6 +963,20 @@ export function QuranPage() {
             className="mt-1 text-xs opacity-60 hover:opacity-100 transition underline underline-offset-2"
           >
             ابدأ ختمة جديدة
+          </button>
+        </div>
+      )}
+
+      {mode === "surahs" && !query && khatma?.isExpired && !khatma.isCompleted && (
+        <div className="w-full text-center rounded-3xl border p-5 space-y-2 quran-surface">
+          <div className="text-sm font-bold">انتهت مدة خطة الختمة</div>
+          <div className="text-xs opacity-55">يمكنك مراجعة تقدمك أو بدء خطة جديدة.</div>
+          <button
+            type="button"
+            onClick={() => navigate("/quran/plans")}
+            className="mt-1 text-xs opacity-60 hover:opacity-100 transition underline underline-offset-2"
+          >
+            مراجعة خطة التلاوة
           </button>
         </div>
       )}

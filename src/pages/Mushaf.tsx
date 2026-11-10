@@ -15,6 +15,7 @@ import { useQuranPageIndex } from "@/data/useQuranPageIndex";
 import { buildPageIndexForCache } from "@/data/pageIndexBuilder";
 import { useNoorStore } from "@/store/noorStore";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { useTodayKey } from "@/hooks/useTodayKey";
 import { getHizbForAyah, getJuzForAyah, getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import type { TranslationId } from "@/lib/quranTranslations";
@@ -48,6 +49,7 @@ import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { QURAN_TRANSLATION_CACHE_EXPIRED_EVENT } from "@/lib/quranIDB";
 import { TranslationPicker } from "@/components/quran/TranslationPicker";
 import toast from "react-hot-toast";
+import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 
 // ── Types ─────────────────────────────────────────────────────
 // PageItem is sourced from src/data/pageIndexBuilder.ts so Mushaf and the
@@ -212,7 +214,10 @@ export function MushafPage() {
   const markQuranPageReviewed = useNoorStore((s) => s.markQuranPageReviewed);
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
+  const khatmaDays = useNoorStore((s) => s.khatmaDays);
   const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
+  const todayISO = useTodayKey();
+  const canLogKhatmaToday = Boolean(khatmaStartISO && khatmaDays && isKhatmaDateWithinPlan(todayISO, khatmaStartISO, khatmaDays));
   const lastRead = useNoorStore((s) => s.quranLastRead);
 
   const totalPages = pmData?.totalPages ?? 604;
@@ -2879,14 +2884,12 @@ export function MushafPage() {
             </div>
 
             {/* ── سجّل ورد اليوم — only when khatma plan active ── */}
-            {khatmaStartISO && (
+            {canLogKhatmaToday && (
               <button type="button"
                 className="w-full flex items-center gap-3 rounded-2xl p-3.5 mb-4 text-right transition active:scale-[0.98]"
                 style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }}
                 onClick={() => {
-                  const d = new Date();
-                  const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-                  setKhatmaDone(iso, true);
+                  setKhatmaDone(todayISO, true);
                   recordQuranRead(playableItems.length);
                   setShowMoreSheet(false);
                   toast.success("✓ سُجِّل ورد اليوم 🌟");

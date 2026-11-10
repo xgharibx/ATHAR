@@ -20,6 +20,11 @@ describe("bucketize / debucketize", () => {
     expect(b.settings).toEqual({ prefs: { theme: "layl" } });
   });
 
+  it("routes the Khatma schedule version with the rest of Quran plan progress", () => {
+    expect(kindForField("khatmaScheduleVersion")).toBe("progress");
+    expect(bucketize({ khatmaScheduleVersion: 2 }).progress).toEqual({ khatmaScheduleVersion: 2 });
+  });
+
   it("sends unknown fields to settings so a new field still syncs", () => {
     // Guards the trap where someone adds a field to exportState() and forgets
     // the FIELD_KIND map — it must degrade to syncing, never to silence.
@@ -136,6 +141,36 @@ describe("three-way merge propagates real changes", () => {
     );
     expect(merged.quranReadingHistory).toEqual({ "1": 12 });
     expect(merged.shortsSeen).toEqual({ "channel-a": 300 });
+  });
+});
+
+describe("Khatma schedule compatibility across app versions", () => {
+  it("keeps a v2 schedule marker when an older device syncs the same plan without that field", () => {
+    const base = { khatmaStartISO: "2026-01-01", khatmaDays: 30, khatmaScheduleVersion: 2 };
+    const merged = mergeDoc(
+      base,
+      { khatmaStartISO: "2026-01-01", khatmaDays: 30 },
+      { remoteNewer: true, base },
+    );
+
+    expect(merged).toMatchObject({
+      khatmaStartISO: "2026-01-01",
+      khatmaDays: 30,
+      khatmaScheduleVersion: 2,
+    });
+  });
+
+  it("does not carry a schedule marker onto a different plan created by an older device", () => {
+    const base = { khatmaStartISO: "2026-01-01", khatmaDays: 30, khatmaScheduleVersion: 2 };
+    const merged = mergeDoc(
+      base,
+      { khatmaStartISO: "2026-02-01", khatmaDays: 60 },
+      { remoteNewer: true, base },
+    );
+
+    expect(merged.khatmaStartISO).toBe("2026-02-01");
+    expect(merged.khatmaDays).toBe(60);
+    expect(merged).not.toHaveProperty("khatmaScheduleVersion");
   });
 });
 

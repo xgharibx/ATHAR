@@ -826,21 +826,6 @@ function aggregateRows(input, strategy = "sum") {
   return [...map.values()];
 }
 
-function scoreSignature(scores) {
-  const sections = Object.entries(scores?.sections ?? {})
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([sectionId, score]) => [sectionId, clampInt(score)]);
-
-  return JSON.stringify({
-    global: clampInt(scores?.global),
-    dhikr: clampInt(scores?.dhikr),
-    quran: clampInt(scores?.quran),
-    prayers: clampInt(scores?.prayers),
-    tasbeehDaily: clampInt(scores?.tasbeehDaily),
-    sections
-  });
-}
-
 function aggregateRollupRows(input) {
   const byDay = new Map();
 
@@ -936,137 +921,58 @@ denoRuntime.serve(async (req) => {
       return json({ ok: true, hidden: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, joinedAt: profileResult.joinedAt });
     }
 
-    const incomingScoreSignature = scoreSignature(payload.scores);
-    let deduped = false;
-    let capped = false;
-
-    const lastSnapshotRes = await db
-      .from("leaderboard_score_events")
-      .select("payload")
-      .eq("day", payload.day)
-      .eq("user_id", payload.identity.id)
-      .eq("board", "global")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!lastSnapshotRes.error && lastSnapshotRes.data?.payload?.scores) {
-      const previousScoreSignature = scoreSignature(lastSnapshotRes.data.payload.scores);
-      if (previousScoreSignature === incomingScoreSignature) {
-        deduped = true;
-      }
-    }
-
-    if (!deduped) {
-      const duplicateRes = await db
-        .from("leaderboard_score_events")
-        .select("id")
-        .eq("day", payload.day)
-        .eq("user_id", payload.identity.id)
-        .eq("checksum", payload.checksum)
-        .limit(1);
-
-      if (!duplicateRes.error && (duplicateRes.data?.length ?? 0) > 0) {
-        deduped = true;
-      }
-    }
-
     const rows = eventRows(payload, aliasDecision.alias);
-
-    // The database trigger atomically enforces the per-identity/day audit cap.
-    // If it skips an event at the cap, this insert still succeeds and the score
-    // rollups below continue updating; the event table is only audit history.
-    if (!deduped) {
-      // One audit row per submission, not one per board and section. Every row used to
-      // carry the whole payload, so a submission wrote ~37 copies of it; the only
-      // reader (the dedup checks above) looks at the "global" row, whose payload
-      // already holds every score. Per-board history lives in leaderboard_rollups.
-      const insertEvents = await db
-        .from("leaderboard_score_events")
-        .insert(rows.filter((r) => r.board === "global"))
-        .select("id");
-      if (insertEvents.error) return json({ ok: false, error: "event-insert-failed" }, 500);
-      capped = Array.isArray(insertEvents.data) && insertEvents.data.length === 0;
-    }
-
-    // Update ONLY this user's rollup rows.
-    //
-    // This previously rebuilt the entire day for every board on every single
-    // submission: select all users' events, delete all rollups for the day,
-    // re-insert them. That is O(all users) work for one person's tap, it got
-    // slower as the app grew, and between the delete and the insert the board
-    // was actually empty for anyone reading it. Two concurrent submissions
-    // could also interleave and drop each other's rows.
-    //
-    // A rollup has always been "this user's best score for this day", so it can
-    // be computed from the incoming payload plus whatever is already stored,
-    // with no reference to anyone else.
+    // Audit + rollups commit together under the same identity lock used by
+    // account deletion. A delete racing after profile setup either waits and
+    // removes the complete snapshot, or wins and makes this write return
+    // identity-deleted without recreating score rows.
     const publicAlias = publicAliasOrCanonical(payload.identity.id, aliasDecision.alias, null, []);
-
-    const existingRes = await db
-      .from("leaderboard_rollups")
-      .select("board,section_id,score,generated_at")
-      .eq("day", payload.day)
-      .eq("period", "daily")
-      .eq("user_id", payload.identity.id);
-
-    const existing = new Map();
-    for (const row of existingRes.data ?? []) {
-      existing.set(`${row.board}::${row.section_id ?? ""}`, {
-        score: clampInt(row.score),
-        generatedAt: row.generated_at ? Date.parse(row.generated_at) : NaN
-      });
-    }
-
     const now = new Date().toISOString();
-    const incomingGeneratedAt = Date.parse(payload.generatedAt);
-
-    const rollupRows = rows.map((r) => {
-      const prior = existing.get(`${r.board}::${r.section_id ?? ""}`);
-      const incoming = clampInt(r.score);
-
-      // A rollup is "this user's total for this day". max() alone was a
-      // defence against out-of-order delivery — a stale submission arriving
-      // late must not drag the day back down — but it also made any wrong-high
-      // value permanent, which is what let the Fajr carry-over bug stick for a
-      // whole day. Ordering by the CLIENT's generatedAt answers the question
-      // properly: a genuinely newer snapshot is the current total and wins
-      // outright, higher OR lower. Anything we cannot order still falls back
-      // to max(), so late arrivals stay harmless.
-      let score;
-      if (!prior) {
-        score = incoming;
-      } else if (
-        Number.isFinite(incomingGeneratedAt) &&
-        Number.isFinite(prior.generatedAt) &&
-        incomingGeneratedAt > prior.generatedAt
-      ) {
-        score = incoming;
-      } else {
-        score = Math.max(prior.score, incoming);
-      }
-
-      return {
+    const rollupRows = rows.map((r) => ({
         day: payload.day,
         period: "daily",
         board: r.board,
         section_id: r.section_id,
         user_id: payload.identity.id,
         alias: publicAlias,
-        score,
+        score: clampInt(r.score),
         generated_at: payload.generatedAt,
         updated_at: now
-      };
-    });
+      }));
 
-    if (rollupRows.length > 0) {
-      const rollupUpsert = await db
-        .from("leaderboard_rollups")
-        .upsert(rollupRows, { onConflict: "day,period,board,section_id,user_id" });
-      if (rollupUpsert.error) return json({ ok: false, error: "rollup-upsert-failed" }, 500);
+    const scoreEvent = rows.find((row) => row.board === "global");
+    if (!scoreEvent) return json({ ok: false, error: "score-event-missing" }, 500);
+
+    const submission = await db.rpc("leaderboard_submit_score_snapshot", {
+      p_user_id: payload.identity.id,
+      p_fingerprint_hash: payload.identity.fingerprint,
+      p_event: scoreEvent,
+      p_rows: rollupRows,
+    });
+    if (submission.error) {
+      console.error("leaderboard score snapshot failed", submission.error);
+      const unavailable = isMissingFunctionError(submission.error) || isMissingRelationError(submission.error);
+      return json({ ok: false, error: unavailable ? "score-service-unavailable" : "score-submit-failed" }, unavailable ? 503 : 500);
     }
 
-    return json({ ok: true, ...(deduped ? { deduped: true } : {}), alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt, capped });
+    const result = submission.data;
+    if (!result?.ok) {
+      if (result?.reason === "identity-deleted") {
+        return json({ ok: false, error: "identity-deleted" }, 409);
+      }
+      return json({ ok: false, error: "score-submit-rejected" }, 403);
+    }
+
+    return json({
+      ok: true,
+      ...(result.deduped ? { deduped: true } : {}),
+      alias: aliasDecision.alias,
+      aliasStatus: aliasDecision.status,
+      hidden: false,
+      joinedAt: profileResult.joinedAt,
+      capped: Boolean(result.event_capped),
+      sectionCapped: Boolean(result.section_capped),
+    });
   }
 
   if (req.method === "GET") {

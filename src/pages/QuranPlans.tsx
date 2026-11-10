@@ -8,8 +8,10 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useTodayKey } from "@/hooks/useTodayKey";
 import { arNum } from "@/lib/formatNumber";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { countCompletedKhatmaDays, getKhatmaDayRange, getKhatmaPlanStatus, getKhatmaTimeline } from "@/lib/quranKhatma";
 
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -24,12 +26,6 @@ function parseISO(iso: string): Date | null {
   if (!m) return null;
   const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
   return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function daysBetween(a: Date, b: Date): number {
-  const ms = 24 * 60 * 60 * 1000;
-  return Math.floor((Date.UTC(b.getFullYear(), b.getMonth(), b.getDate()) -
-                     Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())) / ms);
 }
 
 function addDays(iso: string, n: number): string {
@@ -141,6 +137,7 @@ export function QuranPlansPage() {
 
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
+  const khatmaScheduleVersion = useNoorStore((s) => s.khatmaScheduleVersion);
   const khatmaDone = useNoorStore((s) => s.khatmaDone);
   const setKhatmaPlan = useNoorStore((s) => s.setKhatmaPlan);
   const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
@@ -148,7 +145,7 @@ export function QuranPlansPage() {
   const quranStreak = useNoorStore((s) => s.quranStreak);
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
 
-  const today = todayISO();
+  const today = useTodayKey();
   const [showPresets, setShowPresets] = React.useState(false);
   const [confirmReset, setConfirmReset] = React.useState(false);
   const [customDays, setCustomDays] = React.useState("120");
@@ -156,32 +153,33 @@ export function QuranPlansPage() {
   // ── Active plan computation ──────────────────────────────────────────────────
   const activePlan = React.useMemo(() => {
     if (!khatmaStartISO || !khatmaDays) return null;
-    const start = parseISO(khatmaStartISO);
-    const todayDate = parseISO(today);
-    if (!start || !todayDate) return null;
-
-    const days = Math.max(1, khatmaDays);
+    const days = Math.max(1, Math.min(730, Math.floor(khatmaDays)));
+    const timeline = getKhatmaTimeline(khatmaStartISO, today, days);
+    if (!timeline) return null;
     const endISO = addDays(khatmaStartISO, days);
-    const elapsed = Math.max(0, daysBetween(start, todayDate));
-    const isFinished = elapsed >= days;
+    const rawElapsed = timeline.elapsedDays;
+    const elapsed = Math.max(0, rawElapsed);
     const dayIndex = Math.min(elapsed, days - 1);
-    const dailyAyahs = Math.ceil(TOTAL_QURAN_AYAHS / days);
-    const targetTotal = Math.min(TOTAL_QURAN_AYAHS, (dayIndex + 1) * dailyAyahs);
-    const doneCount = Object.keys(khatmaDone ?? {}).filter((k) => khatmaDone[k]).length;
-    const doneToday = !!khatmaDone?.[today];
-    const pct = Math.round((doneCount / days) * 100);
+    const range = getKhatmaDayRange(dayIndex, days, TOTAL_QURAN_AYAHS, khatmaScheduleVersion ?? 1);
+    const doneCount = countCompletedKhatmaDays(khatmaStartISO, days, khatmaDone);
+    const doneToday = timeline.isWithinPlan && !!khatmaDone?.[today];
+    const pct = Math.min(100, Math.round((doneCount / days) * 100));
     const todayAyahs = quranDailyAyahs?.[today] ?? 0;
+    const status = getKhatmaPlanStatus(rawElapsed, days, doneCount);
 
     // Preset name lookup
     const preset = PLAN_PRESETS.find((p) => p.days === days);
     const name = preset?.name ?? `ختمة في ${toArabicNumeral(days)} يوماً`;
 
     return {
-      name, days, dailyAyahs, endISO, elapsed, isFinished,
-      dayIndex, targetTotal, doneCount, doneToday, pct,
+      name, days, dailyAyahs: range.dailyTarget, startAyah: range.firstAyah,
+      endISO, elapsed, isFinished: status !== "active",
+      isExpired: status === "expired", isCompleted: status === "completed",
+      isUpcoming: timeline.isUpcoming, startsInDays: timeline.startsInDays,
+      dayIndex, targetTotal: range.lastAyah, doneCount, doneToday, pct,
       todayAyahs,
     };
-  }, [khatmaStartISO, khatmaDays, khatmaDone, today, quranDailyAyahs]);
+  }, [khatmaStartISO, khatmaDays, khatmaScheduleVersion, khatmaDone, today, quranDailyAyahs]);
 
   // ── Today's reading progress (% of daily target) ──────────────────────────
   const todayReadPct = React.useMemo(() => {
@@ -190,9 +188,8 @@ export function QuranPlansPage() {
   }, [activePlan]);
 
   const todayStartRef = React.useMemo(() => {
-    if (!activePlan) return null;
-    const startGlobal = Math.max(1, activePlan.targetTotal - activePlan.dailyAyahs + 1);
-    const ref = globalAyahToRef(startGlobal);
+    if (!activePlan || activePlan.isFinished) return null;
+    const ref = globalAyahToRef(activePlan.startAyah);
     if (!ref || !quranData) return null;
     const surahName = quranData.find((s) => s.id === ref.surahId)?.name ?? null;
     return { ...ref, surahName };
@@ -260,8 +257,12 @@ export function QuranPlansPage() {
             <div>
               <div className="text-sm font-bold opacity-90">{activePlan.name}</div>
               <div className="text-xs opacity-50 mt-0.5">
-                {activePlan.isFinished
-                  ? "أنهيت الخطة 🎉"
+                {activePlan.isCompleted
+                  ? "أتممت الخطة 🎉"
+                  : activePlan.isExpired
+                    ? "انتهت مدة الخطة"
+                    : activePlan.isUpcoming
+                      ? `تبدأ في ${fmtDate(khatmaStartISO!)}`
                   : `تنتهي ${fmtDate(activePlan.endISO)}`}
               </div>
             </div>
@@ -305,7 +306,7 @@ export function QuranPlansPage() {
           })()}
 
           {/* Today's reading */}
-          <div>
+          {!activePlan.isFinished && !activePlan.isUpcoming && <div>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-semibold opacity-80">ورد اليوم</span>
               <span className="text-xs opacity-50">
@@ -323,16 +324,16 @@ export function QuranPlansPage() {
               <div className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
                 style={{ width: `${todayReadPct}%` }} />
             </div>
-          </div>
+          </div>}
           {/* Today start position */}
-          {todayStartRef && !activePlan.doneToday && (
+          {todayStartRef && !activePlan.doneToday && !activePlan.isUpcoming && (
             <div className="text-[11px] opacity-55 text-center -mt-1">
               ابدأ من: <span className="font-semibold arabic-text">{todayStartRef.surahName}</span> آية {arNum(todayStartRef.ayahIndex)}
             </div>
           )}
 
           {/* Mark today done / CTA */}
-          {activePlan.isFinished ? (
+          {activePlan.isCompleted ? (
             <div
               className="rounded-2xl p-4 text-center space-y-2"
               style={{ background: "color-mix(in srgb, var(--ok) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--ok) 30%, transparent)" }}
@@ -343,6 +344,25 @@ export function QuranPlansPage() {
               <Button className="w-full mt-2 text-sm" onClick={() => { resetKhatma(); setShowPresets(true); }}>
                 ابدأ ختمة جديدة
               </Button>
+            </div>
+          ) : activePlan.isExpired ? (
+            <div
+              className="rounded-2xl p-4 text-center space-y-2"
+              style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
+            >
+              <div className="text-sm font-bold">انتهت مدة الخطة قبل إكمال جميع أيامها</div>
+              <div className="text-xs opacity-60">تقدمك محفوظ. يمكنك اختيار خطة جديدة للمتابعة.</div>
+              <Button className="w-full mt-2 text-sm" onClick={() => setShowPresets(true)}>
+                اختر خطة جديدة
+              </Button>
+            </div>
+          ) : activePlan.isUpcoming ? (
+            <div
+              className="rounded-2xl p-4 text-center space-y-1.5"
+              style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
+            >
+              <div className="text-sm font-bold">خطة التلاوة مجدولة</div>
+              <div className="text-xs opacity-60">تبدأ بعد {toArabicNumeral(activePlan.startsInDays)} يوم — يمكنك البدء عند موعدها</div>
             </div>
           ) : (
           <div className="flex gap-2">
@@ -361,7 +381,7 @@ export function QuranPlansPage() {
               variant="ghost"
               className="text-sm px-4"
               onClick={() => {
-                const ref = globalAyahToRef(Math.max(1, activePlan.targetTotal - activePlan.dailyAyahs + 1));
+                const ref = globalAyahToRef(activePlan.startAyah);
                 if (ref) navigate(`/mushaf?surah=${ref.surahId}&ayah=${ref.ayahIndex}`);
                 else navigate("/mushaf");
               }}
@@ -455,7 +475,7 @@ export function QuranPlansPage() {
                   <span className="text-xl w-8 text-center">{preset.emoji}</span>
                   <div className="flex-1">
                     <div className="text-sm font-semibold">{preset.name}</div>
-                    <div className="text-[10px] opacity-50">{preset.subtitle} · {toArabicNumeral(daily)} آية</div>
+                    <div className="text-[10px] opacity-50">{preset.subtitle} · حتى {toArabicNumeral(daily)} آية يومياً</div>
                   </div>
                   {isActive && (
                     <span className="text-[10px] bg-[var(--accent)] text-[var(--bg)] rounded-full px-2 py-0.5 font-bold shrink-0">
@@ -492,7 +512,7 @@ export function QuranPlansPage() {
             </div>
             <div id="custom-days-hint" className="text-[10px] opacity-40 mt-1 text-right">
               {Number(customDays) > 0
-                ? `${toArabicNumeral(Math.ceil(TOTAL_QURAN_AYAHS / Math.max(1, Number(customDays))))} آية يومياً`
+                ? `حتى ${toArabicNumeral(Math.ceil(TOTAL_QURAN_AYAHS / Math.max(1, Number(customDays))))} آية يومياً`
                 : "أدخل عدداً بين ٧ و٧٣٠"}
             </div>
           </div>

@@ -50,32 +50,37 @@ export function HadithSharhPage() {
   const [hasMore, setHasMore] = React.useState(false);
   const [hadith, setHadith] = React.useState<SharhHadith | null>(null);
 
-  const run = React.useCallback(async (task: () => Promise<void>) => {
+  const run = React.useCallback(async (task: () => Promise<void>, isCurrent: () => boolean = () => true) => {
     setLoading(true);
     setOffline(false);
     try {
       await task();
     } catch {
-      setOffline(true);
+      if (isCurrent()) setOffline(true);
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, []);
 
   // Load per view
   React.useEffect(() => {
     if (view.kind === "roots") {
+      setChildren([]);
       void run(async () => setRoots(await fetchSharhRoots()));
     } else if (view.kind === "category") {
+      let active = true;
+      setChildren([]);
       void run(async () => {
         const kids = await fetchSharhChildren(view.root.id);
+        if (!active) return;
         if (kids.length === 0) {
           // Leaf root — jump straight to its hadith list
           setView({ kind: "list", category: view.root });
           return;
         }
         setChildren(kids);
-      });
+      }, () => active);
+      return () => { active = false; };
     } else if (view.kind === "list") {
       setItems([]);
       setPage(1);
@@ -116,7 +121,10 @@ export function HadithSharhPage() {
   const back = () => {
     if (view.kind === "hadith" && view.backTo) setView({ kind: "list", category: view.backTo });
     else if (view.kind === "list") setView({ kind: "roots" });
-    else if (view.kind === "category") setView({ kind: "roots" });
+    else if (view.kind === "category") {
+      setChildren([]);
+      setView({ kind: "roots" });
+    }
     else navigate("/library");
   };
 
@@ -152,7 +160,10 @@ export function HadithSharhPage() {
         <div className="mt-5 grid gap-2">
           {roots.map((c) => (
             <button type="button" key={c.id}
-              onClick={() => setView({ kind: "category", root: c })}
+              onClick={() => {
+                setChildren([]);
+                setView({ kind: "category", root: c });
+              }}
               className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3.5 text-start transition hover:bg-[var(--card-2)]">
               <div>
                 <div className="text-sm font-semibold">{c.title}</div>

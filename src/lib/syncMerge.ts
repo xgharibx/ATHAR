@@ -95,6 +95,7 @@ const FIELD_KIND: Record<string, SyncKind> = {
   dailyWirdStartISO: "progress",
   khatmaStartISO: "progress",
   khatmaDays: "progress",
+  khatmaScheduleVersion: "progress",
   khatmaDone: "progress",
   sebhaSessions: "progress",
   sebhaCustom: "progress",
@@ -1028,6 +1029,22 @@ export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions):
     }
 
     out[field] = mergeFieldValue(field, l, r, b, hasBase, remoteNewer);
+  }
+
+  // Older app versions do not export this field. Keep the schedule version
+  // attached to an unchanged plan so an older device cannot silently switch a
+  // newer device's active plan back to the legacy ayah partition.
+  const mergedStart = out.khatmaStartISO;
+  const mergedDays = out.khatmaDays;
+  if (mergedStart && mergedDays != null && out.khatmaScheduleVersion == null) {
+    for (const source of [normalizedLocal, normalizedRemote]) {
+      const samePlan = source.khatmaStartISO === mergedStart && source.khatmaDays === mergedDays;
+      const version = source.khatmaScheduleVersion;
+      if (samePlan && (version === 1 || version === 2)) {
+        out.khatmaScheduleVersion = version;
+        break;
+      }
+    }
   }
 
   return out;
