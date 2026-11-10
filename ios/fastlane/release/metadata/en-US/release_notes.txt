@@ -1,0 +1,6 @@
+• A faster start with the original animated intro, stars visible from launch, and smoother movement between sections.
+• Quran memorization mode is back, with improvements to reading, tafsir, and offline use.
+• Prayer time and Qibla improvements.
+• New adhan and reminder sounds, with an audible first reminder and later reminders kept silent.
+• Improvements to adhkar, tasbih, saved progress, Ask Athar, privacy, sync, and leaderboard data handling.
+• General stability, performance, and usability improvements.

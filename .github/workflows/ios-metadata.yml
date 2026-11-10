@@ -1,6 +1,6 @@
 name: iOS store listing
 
-# Pushes the active Arabic metadata and screenshots from ios/fastlane/release/ to App Store Connect.
+# Pushes the active Arabic and English metadata and screenshots from ios/fastlane/release/ to App Store Connect.
 # Run it after the app record exists in App Store Connect. Does not upload a build and
 # does not submit for review. Needs the same App Store Connect API key secrets as iOS Build.
 on:
