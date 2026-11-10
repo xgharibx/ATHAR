@@ -23,7 +23,7 @@ import { getPersistedAccountStorageOwner } from "@/lib/authClient";
 import { getAccountStorageOwner, normalizeAccountStorageOwner, type AccountStorageOwner } from "@/lib/accountStorageScope";
 import { hydrateAccountStorageOwner } from "@/store/noorStore";
 import { copyLocalDataIntoAccount, getAccountImportChoice, hasLocalCompanionData as inspectLocalCompanionData, hasLocalDataToImport, setAccountImportChoice } from "@/lib/accountDataImport";
-import { beginAccountReminderTransition, cancelRemindersForAccountSwitch, completeAccountReminderTransition } from "@/lib/reminders";
+import { beginAccountReminderTransition, cancelRemindersForAccountSwitch, completeAccountReminderTransition, getLastReminderOwner } from "@/lib/reminders";
 
 export type AccountScopeState = {
   ready: boolean;
@@ -96,21 +96,30 @@ export function useCloudSync(): AccountScopeState {
         if (!alive || targetOwnerRef.current !== targetOwner) return;
         throw new Error("تعذّر التحقق من جلسة الحساب الحالية");
       }
-      if (needsInitialReminderCleanup.current || getAccountStorageOwner() !== targetOwner) {
-        // Clear persisted OS/browser reminders before exposing even the local
-        // scope. The in-memory owner resets to "local" after process restart,
-        // so an owner comparison alone cannot identify alarms from a prior run.
+      const isInitialHydration = needsInitialReminderCleanup.current;
+      const ownerChanged = !isInitialHydration && getAccountStorageOwner() !== targetOwner;
+      if (isInitialHydration || ownerChanged) {
+        // A process restart resets the in-memory owner to "local". On startup,
+        // the persisted reminder owner is the authoritative way to decide
+        // whether OS/browser alarms belong to this account already. Reuse a
+        // matching schedule without waiting on native cancellation; unknown or
+        // different owners still get the conservative cleanup before hydration.
+        const shouldCancelReminders = isInitialHydration
+          ? getLastReminderOwner() !== targetOwner
+          : ownerChanged;
         beginAccountReminderTransition();
-        // Do not hydrate the new account if cancellation fails. The existing
-        // retry/error screen lets the user retry without exposing stale alarms.
-        await cancelRemindersForAccountSwitch(
-          targetOwner,
-          stillCurrent,
-        );
-        if (!alive) return;
-        if (!await stillCurrent()) {
-          if (!alive || targetOwnerRef.current !== targetOwner) return;
-          throw new Error("تغيّرت جلسة الحساب قبل اكتمال تبديل التذكيرات");
+        if (shouldCancelReminders) {
+          // Do not hydrate the new account if cancellation fails. The existing
+          // retry/error screen lets the user retry without exposing stale alarms.
+          await cancelRemindersForAccountSwitch(
+            targetOwner,
+            stillCurrent,
+          );
+          if (!alive) return;
+          if (!await stillCurrent()) {
+            if (!alive || targetOwnerRef.current !== targetOwner) return;
+            throw new Error("تغيّرت جلسة الحساب قبل اكتمال تبديل التذكيرات");
+          }
         }
         needsInitialReminderCleanup.current = false;
       }

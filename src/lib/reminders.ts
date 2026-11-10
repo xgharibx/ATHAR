@@ -711,6 +711,20 @@ export function buildPrayerNotificationsForDays(
   });
 }
 
+/** Build the optional Fajr Hadith independently of the prayer-alert setting. */
+export function buildDailyHadithNotificationsForDays(
+  days: PrayerNotificationDay[],
+  audio: NotificationAudioConfig,
+  now = new Date(),
+): LocalNotification[] {
+  return days.slice(0, 2).flatMap((day) => {
+    const dayStart = parseDateKey(day.dateISO);
+    if (!dayStart || getLocalDateKey(dayStart) !== day.dateISO) return [];
+    const notification = buildDailyHadithNotification(day, audio, now);
+    return notification ? [notification] : [];
+  });
+}
+
 // N4: Build Ramadan suhoor & iftar notifications from date-specific timings.
 function buildRamadanNotifications(
   day: PrayerNotificationDay,
@@ -926,7 +940,7 @@ function nextReminderOwnerRequestAtMs(): number {
 }
 const LAST_REMINDER_OWNER_STORAGE_KEY = "athar:reminder-owner";
 
-function getLastReminderOwner(): AccountStorageOwner | null {
+export function getLastReminderOwner(): AccountStorageOwner | null {
   try {
     if (typeof globalThis.localStorage === "undefined") return null;
     const owner = globalThis.localStorage.getItem(LAST_REMINDER_OWNER_STORAGE_KEY);
@@ -1109,10 +1123,18 @@ async function syncRemindersForOwner(
       { ...DEFAULT_PRAYER_ALERTS, ...reminders.prayerAlerts },
       quiet,
       {
-        includeDailyHadith: reminders.dailyHadithNotif,
+        includeDailyHadith: false,
         prayerLog: useNoorStore.getState().prayerLog,
       },
     ));
+  }
+
+  if (reminders.dailyHadithNotif && prayerTimings) {
+    const scheduleDays: PrayerNotificationDay[] = [
+      { dateISO: todayISO, timings: prayerTimings },
+      ...(tomorrowPrayerTimings ? [{ dateISO: shiftDateKey(todayISO, 1), timings: tomorrowPrayerTimings }] : []),
+    ];
+    notifications.push(...buildDailyHadithNotificationsForDays(scheduleDays, quiet));
   }
 
   if (!notifications.length) return;

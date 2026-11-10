@@ -146,6 +146,10 @@ export function DhikrCard(props: {
         // De7: Right swipe → complete all remaining (single mutation)
         if (current < target) {
           setItemCount({ sectionId, index, count: target, itemId });
+          props.onCounted?.();
+          if (prefs.autoAdvanceDhikr && props.onComplete) {
+            setTimeout(() => { if (mountedRef.current) props.onComplete?.(); }, 184);
+          }
         }
         if (navigator.vibrate) navigator.vibrate([15, 10, 15]);
         toast.success("✓ تم إتمام الذكر", { duration: 1500 });

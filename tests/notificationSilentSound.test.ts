@@ -132,6 +132,22 @@ describe("silent native notification sound payloads", () => {
     expect(morning).toHaveProperty("sound", "birds.caf");
   });
 
+  it("schedules daily Hadith when prayer alerts are disabled but its own setting is on", async () => {
+    const reminders = {
+      ...adhkarReminders(),
+      prayerAlertsEnabled: false,
+      dailyHadithNotif: true,
+    };
+
+    await syncReminders(reminders, { Fajr: "08:00" }, undefined, { Fajr: "08:05" });
+
+    const notifications = scheduledNotifications();
+    expect(notifications.find((notification) => notification.title === "أثر — حديث اليوم ﷺ"))
+      .toMatchObject({ schedule: { at: new Date(2026, 9, 2, 8, 0, 0) } });
+    expect(Object.hasOwn(notifications.find((notification) => notification.title === "أثر — حديث اليوم ﷺ")!, "sound")).toBe(false);
+    expect(notifications.some((notification) => notification.title === "أثر — الأذان")).toBe(false);
+  });
+
   it("preserves tomorrow's prayer alarm when a refresh only provides today's times", async () => {
     const reminders = { ...adhkarReminders(), prayerAlertsEnabled: true };
     const today = { Fajr: "08:00" };
