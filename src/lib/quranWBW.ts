@@ -1,7 +1,8 @@
 /**
  * Word-by-word + Tajweed Quran data — Phase 2A/2B
  * Fetches per-word Arabic, translation, transliteration, and tajweed markup
- * from quran.com API v4. Caches in IndexedDB (Dexie) for at most seven days.
+ * from quran.com API v4. Cached chapters older than seven days are refreshed
+ * on use; a validated offline copy remains available if refresh fails.
  *
  * API: https://api.quran.com/api/v4/verses/by_chapter/{id}?language=en&words=true&word_fields=text_uthmani,text_uthmani_tajweed,translation,transliteration&per_page=300
  */

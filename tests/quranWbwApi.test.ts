@@ -73,14 +73,33 @@ describe("Quran.com word-by-word API boundary", () => {
   it("refreshes an IndexedDB response once it is older than seven days", async () => {
     const now = Date.UTC(2026, 0, 1);
     const clock = vi.spyOn(Date, "now").mockReturnValue(now);
-    const fetchMock = vi.fn().mockResolvedValue(response(validPayload(4)));
+    const updatedPayload = validPayload(4);
+    updatedPayload.verses[0]!.words[0]!.translation.text = "Updated offline translation";
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(validPayload(4)))
+      .mockResolvedValueOnce(response(updatedPayload));
     vi.stubGlobal("fetch", fetchMock);
 
-    await loadWbwSurah(4);
+    const original = await loadWbwSurah(4);
     clock.mockReturnValue(now + 8 * 24 * 60 * 60 * 1000);
-    await loadWbwSurah(4);
+    const refreshed = await loadWbwSurah(4);
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(refreshed).not.toEqual(original);
+    expect(refreshed[1]?.[0]?.tr).toBe("Updated offline translation");
+
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("noor-wbw-cache-v4");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const row = await new Promise<unknown>((resolve, reject) => {
+      const request = database.transaction("wbwCache").objectStore("wbwCache").get("wbw_4");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    database.close();
+    expect(row).toMatchObject({ key: "wbw_4", data: refreshed, cachedAt: now + 8 * 24 * 60 * 60 * 1000 });
   });
 
   it("keeps expired downloaded data available when its offline refresh fails", async () => {
