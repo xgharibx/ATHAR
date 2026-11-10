@@ -159,7 +159,6 @@ jobs:
             -authenticationKeyID "$APPSTORE_KEY_ID" \
             -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
             CODE_SIGN_STYLE=Automatic \
             archive
 
