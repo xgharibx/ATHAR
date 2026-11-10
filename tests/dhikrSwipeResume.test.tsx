@@ -7,6 +7,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
 import { useNoorStore } from "@/store/noorStore";
 
+// This test covers swipe persistence, not the browser canvas used by completion
+// confetti. Keep the animation isolated so jsdom does not leave a live RAF loop.
+vi.mock("@/lib/celebrate", () => ({ celebrate: vi.fn().mockResolvedValue(undefined) }));
+
 let root: Root | undefined;
 let container: HTMLDivElement | undefined;
 
