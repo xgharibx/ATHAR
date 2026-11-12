@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { StartupReady } from "@/components/StartupReady";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import * as startup from "@/lib/startup";
+import { Capacitor } from "@capacitor/core";
 
 const html = fs.readFileSync("index.html", "utf8");
 let root: Root | undefined;
@@ -20,10 +21,22 @@ afterEach(() => {
   root = undefined;
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
   document.body.innerHTML = "";
 });
 
 describe("launch surface", () => {
+  it("shows the branded intro on a fast native iOS launch", async () => {
+    vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+    vi.spyOn(Capacitor, "getPlatform").mockReturnValue("ios");
+    startup.markStartupReady();
+    startup.markStartupReady();
+    expect(startup.isStartupPending()).toBe(true);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(startup.isStartupPending()).toBe(false);
+    expect(document.getElementById("app-loader")?.style.opacity).toBe("0");
+  });
+
   it("runs optional startup callbacks once after readiness and cancels unmounted subscribers", () => {
     expect(startup).toHaveProperty("afterStartupReady");
     const run = vi.fn();

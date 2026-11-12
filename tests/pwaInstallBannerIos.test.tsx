@@ -12,6 +12,7 @@ import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
+import { Capacitor } from "@capacitor/core";
 
 const IPHONE_UA =
   "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1";
@@ -51,9 +52,17 @@ afterEach(() => {
   act(() => { root?.unmount(); });
   container?.remove();
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("PwaInstallBanner on iOS", () => {
+  it("never advertises installation inside the native iOS app", () => {
+    setUA(IPHONE_UA);
+    vi.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
+    mount();
+    act(() => { vi.advanceTimersByTime(4000); window.dispatchEvent(new Event("beforeinstallprompt")); });
+    expect(container.textContent).toBe("");
+  });
   it("shows Share instructions after the delay, with no install button", () => {
     setUA(IPHONE_UA);
     mount();

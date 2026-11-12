@@ -1,3 +1,5 @@
+import { Capacitor } from "@capacitor/core";
+
 const STARTUP_READY_EVENT = "athar-startup-ready";
 
 /** Subscribe once, or run immediately when the initial route is already ready. */
@@ -19,13 +21,28 @@ export function isStartupPending(): boolean {
 /** Reveal the app only after a usable route or recovery screen has committed. */
 export function markStartupReady(): void {
   const loader = document.getElementById("app-loader");
-  if (!loader || loader.getAttribute("data-hidden") === "true") return;
+  if (!loader || loader.getAttribute("data-hidden") === "true" || loader.dataset.revealScheduled === "true") return;
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+  if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios" && !reducedMotion) {
+    // Fast iOS starts can otherwise dismiss the intro before its text animates in.
+    loader.dataset.revealScheduled = "true";
+    window.setTimeout(() => {
+      delete loader.dataset.revealScheduled;
+      revealStartup(loader, reducedMotion);
+    }, 1000);
+    return;
+  }
+  revealStartup(loader, reducedMotion);
+}
+
+function revealStartup(loader: HTMLElement, reducedMotion: boolean): void {
+  if (!loader.isConnected || loader.getAttribute("data-hidden") === "true") return;
   loader.setAttribute("data-hidden", "true");
   loader.setAttribute("aria-hidden", "true");
   loader.style.pointerEvents = "none";
   loader.style.opacity = "0";
   // The app is already usable underneath; the old fade never gates startup work.
-  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+  if (reducedMotion) {
     loader.style.display = "none";
   } else {
     window.setTimeout(() => { loader.style.display = "none"; }, 700);

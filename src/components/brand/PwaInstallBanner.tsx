@@ -17,6 +17,7 @@
  * dismissal is remembered.
  */
 import { useState, useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 
 const DISMISSED_KEY = "noor_pwa_install_dismissed";
 /** Delay before appearing, so it doesn't collide with first paint. */
@@ -55,6 +56,7 @@ export function PwaInstallBanner() {
   const [ios, setIos] = useState(false);
 
   useEffect(() => {
+    if (Capacitor.isNativePlatform()) return;
     if (localStorage.getItem(DISMISSED_KEY)) return;
     // Already installed → nothing to advertise.
     if (isStandalone()) return;
