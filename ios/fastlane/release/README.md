@@ -1,6 +1,6 @@
 # Active App Store upload set
 
-Fastlane reads the listing and screenshots from this release directory. The active listing includes Arabic (Saudi Arabia) and English (U.S.) text. The app interface is currently Arabic, so the same Arabic-interface screenshots are used in both store localizations. The active metadata also includes the app categories, copyright, and review contact/notes.
+Fastlane reads the listing and screenshots from this release directory. Arabic (Saudi Arabia) is the sole active listing localization. English files are retained as an archive and are not uploaded. The active metadata also includes the app categories, copyright, and review contact/notes.
 
 ## Screenshots
 
