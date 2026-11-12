@@ -1,0 +1,74 @@
+name: Capture iOS store screens
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: Build current app assets
+        env:
+          VITE_LEADERBOARD_ENDPOINT: ${{ secrets.VITE_LEADERBOARD_ENDPOINT }}
+          VITE_LEADERBOARD_ANON_KEY: ${{ secrets.VITE_LEADERBOARD_ANON_KEY }}
+          VITE_COMPANION_PROXY_URL: ${{ secrets.VITE_COMPANION_PROXY_URL }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://ojstudhmcypoqfnwugbf.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          npm ci
+          npm run build
+          npx cap sync ios
+      - name: Build for iPhone Simulator
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App \
+            -configuration Debug -sdk iphonesimulator \
+            -derivedDataPath "$RUNNER_TEMP/athar-simulator" CODE_SIGNING_ALLOWED=NO build
+      - name: Capture current screens without system bars
+        shell: bash
+        run: |
+          set -euo pipefail
+          device=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; a=[x for group in d.values() for x in group if x.get("isAvailable") and x["name"] in ("iPhone 17 Pro", "iPhone 16 Pro")]; a.sort(key=lambda x: (x["name"] != "iPhone 17 Pro")); print(a[0]["udid"] if a else "")')
+          test -n "$device" || { echo 'No supported iPhone simulator available'; exit 1; }
+          xcrun simctl boot "$device" || true
+          xcrun simctl bootstatus "$device" -b
+          app="$RUNNER_TEMP/athar-simulator/Build/Products/Debug-iphonesimulator/App.app"
+          index="$app/public/index.html"
+          test -f "$index"
+          cp "$index" "$RUNNER_TEMP/athar-index-original.html"
+          /usr/libexec/PlistBuddy -c 'Add :UIStatusBarHidden bool YES' "$app/Info.plist" || /usr/libexec/PlistBuddy -c 'Set :UIStatusBarHidden YES' "$app/Info.plist"
+          mkdir -p "$RUNNER_TEMP/athar-captures"
+          for page in companion ijaz; do
+            PAGE="$page" INDEX="$index" ORIGINAL="$RUNNER_TEMP/athar-index-original.html" python3 - <<'PY'
+          import os
+          html = open(os.environ['ORIGINAL'], encoding='utf-8').read()
+          page = os.environ['PAGE']
+          setup = '''<script>
+          localStorage.setItem("noor_store_v1", JSON.stringify({state:{onboardingDone:true},version:38}));
+          localStorage.setItem("noor_companion_profile_v1", JSON.stringify({level:"regular",goals:["consistency"],concerns:["none"],greetingName:"",onboarded:true,createdAt:1,includePersonalContext:false}));
+          history.replaceState(null,"","/''' + page + '''");
+          </script>'''
+          assert '</head>' in html
+          open(os.environ['INDEX'], 'w', encoding='utf-8').write(html.replace('</head>', setup + '</head>', 1))
+          PY
+            xcrun simctl terminate "$device" com.athar.adhkar 2>/dev/null || true
+            xcrun simctl uninstall "$device" com.athar.adhkar 2>/dev/null || true
+            xcrun simctl install "$device" "$app"
+            xcrun simctl launch "$device" com.athar.adhkar
+            sleep 35
+            xcrun simctl io "$device" screenshot "$RUNNER_TEMP/athar-captures/$page.png"
+          done
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ios-store-captures
+          path: ${{ runner.temp }}/athar-captures/*.png
+          if-no-files-found: error
+          retention-days: 7
