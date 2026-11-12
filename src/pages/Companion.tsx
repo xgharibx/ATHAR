@@ -1106,7 +1106,8 @@ export function CompanionPage() {
               rows={1}
               placeholder="اكتب سؤالك لرفيق أثر…"
               aria-label="رسالتك"
-              className="form-field-readable max-h-32 flex-1 resize-none rounded-xl border border-transparent bg-transparent px-3 py-2 text-sm focus:outline-none"
+              style={{ fontSize: "max(16px, 1rem)" }}
+              className="form-field-readable max-h-32 min-w-0 flex-1 resize-none rounded-xl border border-transparent bg-transparent px-3 py-2 text-base focus:outline-none"
             />
             {isBusy ? (
               <button type="button"

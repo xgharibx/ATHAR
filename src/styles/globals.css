@@ -3162,6 +3162,12 @@ body.companion-focus .fab {
   transition: opacity 300ms ease, transform 300ms ease;
 }
 
+/* The fixed chat composer owns the lower edge on this route. The charity
+   footer remains available on other pages and must not sit behind the input. */
+body.companion-focus .app-footer {
+  display: none;
+}
+
 /* -------------------------------------------------------
    Dhikr scroll -- hide app topbar when compact bar shows
    ------------------------------------------------------- */
