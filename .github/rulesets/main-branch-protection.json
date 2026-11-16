@@ -28,8 +28,7 @@
         "strict_required_status_checks_policy": false,
         "required_status_checks": [
           { "context": "Typecheck, lint, test, build" },
-          { "context": "Analyze (JavaScript and TypeScript)" },
-          { "context": "Vulnerabilities and licences" }
+          { "context": "Analyze (JavaScript and TypeScript)" }
         ]
       }
     }

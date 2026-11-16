@@ -6,7 +6,7 @@ How Athar is protected, what is configured where, and what to do when something 
 
 | Area | Control |
 |---|---|
-| Source | Secret scanning with push protection; CodeQL analysis; dependency review on every pull request; Dependabot updates; workflow actions pinned to exact commits; workflows run with read-only tokens unless a job needs more |
+| Source | Secret scanning with push protection; CodeQL analysis; an audit of shipped dependencies and a licence test on every pull request; Dependabot updates; workflow actions pinned to exact commits; workflows run with read-only tokens unless a job needs more |
 | Web app | Content security policy with hashed inline scripts; no source maps; debug logging stripped; React DevTools hook disabled; no secrets in the bundle |
 | API | Row-level security on every table; anonymous role has no table privileges; server-only tables carry an explicit deny policy; functions run with a fixed search path |
 | Edge functions | Server-held provider keys; per-user, per-address and global quotas; request size limits; only known request fields forwarded to the model; account deletion verifies the caller's own session |
@@ -34,7 +34,7 @@ Names only. Values live in the service that uses them and are never committed.
 **GitHub repository**
 
 - Import `.github/rulesets/main-branch-protection.json` (see the README beside it).
-- Code security: secret scanning, push protection, Dependabot alerts, Dependabot security updates and private vulnerability reporting all on.
+- Code security: dependency graph, secret scanning, push protection, Dependabot alerts, Dependabot security updates and private vulnerability reporting all on.
 - Actions: default workflow permissions read-only; do not allow Actions to approve pull requests.
 - Features: turn off Wiki and Projects if unused; enable automatic deletion of merged branches.
 

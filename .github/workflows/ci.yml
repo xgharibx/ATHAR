@@ -35,6 +35,11 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Fails on a known vulnerability in anything that ships in the app.
+      # Licences of shipped packages are enforced by the test suite.
+      - name: Audit shipped dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
       - name: Typecheck
         run: npm run typecheck
 

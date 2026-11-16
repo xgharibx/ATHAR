@@ -10,6 +10,6 @@ What it enforces:
 
 - `main` cannot be deleted or force-pushed.
 - Every change arrives through a pull request with resolved review threads.
-- The CI, CodeQL and dependency-review checks must pass.
+- The CI and CodeQL checks must pass. CI includes the audit of shipped dependencies and the licence test.
 
 The scheduled store-version job commits to `main` directly. After importing, add **GitHub Actions** to the ruleset's bypass list so that job keeps working.

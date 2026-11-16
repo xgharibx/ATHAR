@@ -6,7 +6,7 @@ Athar is proprietary software (see [LICENSE](LICENSE)). It incorporates and conn
 
 The app is built with open-source packages, including React, Vite, Tailwind CSS, Capacitor, the Supabase client, Three.js, Framer Motion, Dexie, Zustand and others.
 
-The copyright notice and licence text of every package that ships in the app are generated at build time and published with it at <https://www.athark.org/third-party-licenses.txt>. A test fails the build if a shipped package carries a copyleft or unreviewed licence, and a pull-request check blocks new dependencies under such licences. The native projects additionally use the dependencies declared in `android/` (Gradle) and `ios/` (CocoaPods).
+The copyright notice and licence text of every package that ships in the app are generated at build time and published with it at <https://www.athark.org/third-party-licenses.txt>. A test fails the build if a shipped package carries a copyleft or unreviewed licence. The native projects additionally use the dependencies declared in `android/` (Gradle) and `ios/` (CocoaPods).
 
 ## Religious texts and content
 
