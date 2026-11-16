@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { vendorChunk } from "./tools/build/vendorChunks";
+import { hardenHtmlPlugin } from "./tools/build/hardenHtml";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,7 +66,14 @@ export default defineConfig(({ mode }) => {
     // version.json at runtime.
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
+  // Production bundles ship without debug statements or verbose logging.
+  // Warnings and errors are kept so real failures remain diagnosable.
+  esbuild: mode === "production"
+    ? { drop: ["debugger"], pure: ["console.log", "console.debug", "console.info", "console.trace"], legalComments: "none" }
+    : undefined,
   build: {
+    // Never publish source maps: they would expose the original source tree.
+    sourcemap: false,
     chunkSizeWarningLimit: 900,
     rollupOptions: {
       output: {
@@ -75,6 +83,7 @@ export default defineConfig(({ mode }) => {
   },
   plugins: [
     emitVersionManifest(),
+    hardenHtmlPlugin(),
     // B1: Force application/manifest+json on every .webmanifest response.
     //     VitePWA generates manifest.webmanifest at build time but the dev
     //     server's static middleware has been observed sending HTML on some

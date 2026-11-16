@@ -1,0 +1,45 @@
+Athar Proprietary Software License
+
+Copyright (c) 2026 Athar (https://www.athark.org). All rights reserved.
+
+1. Ownership. This repository, including its source code, designs, text,
+   graphics, data compilations and documentation (the "Software"), is the
+   confidential and proprietary property of Athar and its licensors. It is
+   protected by copyright and other intellectual property laws.
+
+2. No licence granted. No right or licence is granted to any person, whether
+   expressly, by implication, by estoppel or otherwise, except under a separate
+   written agreement signed by Athar. Access to the Software, including through
+   a public or private source repository, does not grant any right to use it.
+
+3. Restrictions. Without the prior written permission of Athar you may not:
+   (a) copy, reproduce, publish or distribute the Software or any part of it;
+   (b) modify, adapt, translate or create derivative works from the Software;
+   (c) sell, sublicense, rent, lease or otherwise make the Software available
+       to any third party;
+   (d) use the Software, or any part of it, to build, train or operate a
+       competing product or service;
+   (e) remove or alter any copyright, trademark or other proprietary notice.
+
+4. Trademarks. The "Athar" name, the "أثر" wordmark, logos and app icons are
+   trademarks of Athar. Nothing in this licence grants any right to use them.
+
+5. Third-party material. The Software incorporates open-source components and
+   third-party content that remain the property of their respective owners and
+   are provided under their own licence terms. Those terms govern that
+   material; see NOTICE.md. Nothing in this licence restricts rights granted
+   by those terms.
+
+6. No warranty. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+
+7. Limitation of liability. TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO
+   EVENT SHALL ATHAR OR ITS LICENSORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+8. Termination. Any use of the Software in breach of this licence ends all
+   permissions previously granted in writing and may result in legal action.
+
+Licensing and permission requests: amr@gharib.dev

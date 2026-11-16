@@ -227,7 +227,7 @@ export function CompanionModal(props: {
   const [partialStopped, setPartialStopped] = React.useState(false);
   const busyRef = React.useRef(false);
   const abortRef = React.useRef<AbortController | null>(null);
-  // Claude-style follow-the-stream scrolling within the modal's own scroller.
+  // Follow-the-stream scrolling within the modal's own scroller.
   const { scrollerRef, endRef, atBottom, scrollToBottom, stickToBottom } = useStickToBottom();
   const titleRef = React.useRef<string>("");
   /** Store references minted by dispatchCreateReminder during this turn's onToolCalls, in
@@ -755,7 +755,8 @@ function ModalBubbleContent({ text, streaming, onNavigate }: { text: string; str
         if (s.kind === "action") return <ModalActionButton key={i} route={s.route} onNavigate={onNavigate}>{s.label}</ModalActionButton>;
         return (
           <div key={i} className="prose-invert-arabic text-[14px] leading-7 text-emerald-50/95">
-            <span style={{ whiteSpace: "pre-wrap" }}>{s.text}</span>
+            {/* This compact view shows plain text, so source links keep only their name. */}
+            <span style={{ whiteSpace: "pre-wrap" }}>{s.text.replace(/\[([^\]\n]+)\]\(https?:\/\/[^)\s]+\)/g, "$1")}</span>
           </div>
         );
       })}

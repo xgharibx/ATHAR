@@ -71,7 +71,7 @@ describe("Companion first-turn retrieval", () => {
     const systemText = mocks.request?.system?.map((block) => block.text).join("\n") ?? "";
     expect(systemText).toContain("نص مرجعي يجب أن يصل إلى أول إجابة للمستخدم");
     expect(systemText).toContain("tafsir:2:255");
-    expect(systemText).toContain("لديك ثلاث أدوات تستخدمها متى لزم:");
+    expect(systemText).toContain("لديك هذه الأدوات تستخدمها متى لزم:");
   });
 
   it.each([

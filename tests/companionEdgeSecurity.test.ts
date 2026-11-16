@@ -11,6 +11,7 @@ type Options = {
   quotaError?: boolean;
   upstreamFailure?: boolean;
   upstreamTimeout?: boolean;
+  rejectWebSearch?: boolean;
 };
 
 function edge(options: Options = {}) {
@@ -43,6 +44,10 @@ function edge(options: Options = {}) {
   const corsJs = ts.transpileModule(corsSource, {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
   }).outputText;
+  const sourcesPath = path.resolve("supabase/functions/companion/sources.ts");
+  const sourcesJs = ts.transpileModule(fs.readFileSync(sourcesPath, "utf8").replace(/^export /gm, ""), {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
+  }).outputText;
   const sandbox = {
     console,
     createClient: (...args: unknown[]) => { clientConfig = args; return client; },
@@ -54,7 +59,8 @@ function edge(options: Options = {}) {
     fetch: async (_url: string, init: RequestInit) => {
       calls.push({ type: "upstream", detail: init });
       if (options.upstreamTimeout || options.upstreamFailure) throw new Error("synthetic upstream failure");
-      return new Response("synthetic-upstream", { status: 200, headers: { "Content-Type": "text/plain" } });
+      const rejected = options.rejectWebSearch && String(init.body).includes("web_search_20250305");
+      return new Response("synthetic-upstream", { status: rejected ? 400 : 200, headers: { "Content-Type": "text/plain" } });
     },
     AbortSignal: {
       timeout: (ms: number) => options.upstreamTimeout
@@ -75,6 +81,7 @@ function edge(options: Options = {}) {
   };
   const context = vm.createContext(sandbox);
   vm.runInContext(corsJs, context);
+  vm.runInContext(sourcesJs, context);
   vm.runInContext(js, context);
 
   const sendRaw = (body: string, authorization?: string) => handler(new Request("https://synthetic.invalid/companion/v1/messages", {
@@ -133,7 +140,7 @@ describe("Companion Edge Function access controls", () => {
     expect(app.calls.map((call) => call.type)).toEqual(["rpc", "upstream"]);
     expect(app.calls[0]?.detail).toMatchObject({
       name: "reserve_companion_anonymous_request",
-      args: { p_request_bytes: expect.any(Number), p_max_output_tokens: 512 },
+      args: { p_request_bytes: expect.any(Number), p_max_output_tokens: 4096 },
     });
   });
 
@@ -203,7 +210,7 @@ describe("Companion Edge Function access controls", () => {
       args: {
         p_user_id: "synthetic-user-id",
         p_request_bytes: new TextEncoder().encode(raw).byteLength,
-        p_max_output_tokens: 512,
+        p_max_output_tokens: 4096,
       },
     });
   });
@@ -269,7 +276,7 @@ describe("Companion Edge Function access controls", () => {
     });
     const upstreamCall = app.calls.find((call) => call.type === "upstream");
     expect(JSON.parse(String((upstreamCall?.detail as RequestInit).body))).toMatchObject({
-      max_tokens: 4096,
+      max_tokens: 8192,
     });
   });
 
@@ -289,7 +296,7 @@ describe("Companion Edge Function access controls", () => {
     });
     const upstreamCall = app.calls.find((call) => call.type === "upstream");
     expect(JSON.parse(String((upstreamCall?.detail as RequestInit).body))).toMatchObject({
-      max_tokens: 4096,
+      max_tokens: 8192,
     });
   });
 
@@ -399,5 +406,68 @@ describe("Companion Edge Function access controls", () => {
     expect(response.status).toBe(413);
     expect(cancelled).toBe(true);
     expect(app.calls).toEqual([]);
+  });
+  const upstreamBodies = (app: ReturnType<typeof edge>) => app.calls
+    .filter((call) => call.type === "upstream")
+    .map((call) => JSON.parse(String((call.detail as RequestInit).body)) as Record<string, unknown>);
+
+  it("forwards only known fields and locks the model and reasoning settings", async () => {
+    const app = edge();
+    const response = await app.sendRaw(JSON.stringify({
+      model: "some-other-model",
+      max_tokens: 512,
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content: "synthetic question" }],
+      temperature: 2,
+      thinking: { type: "disabled" },
+      tool_choice: { type: "any" },
+      metadata: { user_id: "x" },
+      mcp_servers: [{ url: "https://attacker.invalid" }],
+    }), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    const [body] = upstreamBodies(app);
+    expect(Object.keys(body ?? {}).sort()).toEqual(["max_tokens", "messages", "model", "output_config", "stream", "system"]);
+    expect(body).toMatchObject({ model: "MiniMax-M3.1-Flash", output_config: { effort: "medium" } });
+  });
+
+  it("replaces a caller's web search definition with the server's restricted one", async () => {
+    const app = edge();
+    const response = await app.sendRaw(JSON.stringify({
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content: "synthetic question" }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 50, allowed_domains: ["attacker.invalid"] }],
+    }), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    const [body] = upstreamBodies(app);
+    const tools = body?.tools as Array<Record<string, unknown>>;
+    expect(tools).toHaveLength(1);
+    expect(tools[0]).toMatchObject({ type: "web_search_20250305", name: "web_search", max_uses: 2 });
+    expect(tools[0]?.allowed_domains).toContain("dorar.net");
+    expect(tools[0]?.allowed_domains).not.toContain("attacker.invalid");
+    expect(JSON.stringify(body?.system)).toContain("البحث في الإنترنت");
+  });
+
+  it("does not enable web search unless the caller asks for it", async () => {
+    const app = edge();
+    await app.send("Bearer synthetic-user-token");
+    const [body] = upstreamBodies(app);
+    expect(JSON.stringify(body)).not.toContain("web_search");
+  });
+
+  it("falls back to an answer without search when the provider rejects the search tool", async () => {
+    const app = edge({ rejectWebSearch: true });
+    const response = await app.sendRaw(JSON.stringify({
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content: "synthetic question" }],
+      tools: [{ type: "web_search_20250305", name: "web_search" }],
+    }), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    const bodies = upstreamBodies(app);
+    expect(bodies).toHaveLength(2);
+    expect(JSON.stringify(bodies[1])).not.toContain("web_search");
+    expect(app.calls.filter((call) => call.type === "rpc")).toHaveLength(1);
   });
 });

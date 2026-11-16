@@ -9,19 +9,32 @@
  * the caller's JWT first and only ever deletes *that* user — it never accepts a
  * user id from the request body, which would let anyone delete anyone.
  */
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+const ALLOWED_ORIGINS = new Set([
+  "https://www.athark.org",
+  "https://athark.org",
+  "capacitor://localhost",
+  "https://localhost",
+]);
+
+function corsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+  if (ALLOWED_ORIGINS.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
+  return headers;
+}
 
 Deno.serve(async (req: Request) => {
+  const CORS = corsHeaders(req);
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), {
       status,
-      headers: { ...CORS, "Content-Type": "application/json" },
+      headers: { ...CORS, "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
 
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -62,17 +75,25 @@ Deno.serve(async (req: Request) => {
       p_auth_user_id: user.id,
       p_local_identity: localIdentity,
     });
-    if (prepareErr) return json({ error: prepareErr.message }, 500);
+    if (prepareErr) {
+      console.error("delete-account: prepare failed", prepareErr.message);
+      return json({ error: "deletion-failed" }, 500);
+    }
 
     // Both athar_sync and athar_profiles reference auth.users with ON DELETE
     // CASCADE. Delete the auth row once so its dependent rows are removed in
     // the same database transaction; separate REST deletes can otherwise
     // erase data and then fail while leaving the account active.
     const { error: delErr } = await admin.auth.admin.deleteUser(user.id);
-    if (delErr) return json({ error: delErr.message }, 500);
+    if (delErr) {
+      console.error("delete-account: delete failed", delErr.message);
+      return json({ error: "deletion-failed" }, 500);
+    }
 
     return json({ ok: true });
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : "unexpected error" }, 500);
+    // Internal details stay in the function logs; callers get a stable code.
+    console.error("delete-account: unexpected", e instanceof Error ? e.message : e);
+    return json({ error: "unexpected-error" }, 500);
   }
 });

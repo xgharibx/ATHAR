@@ -293,11 +293,21 @@ function readAdminToken(req) {
   return "";
 }
 
+/** Compare secrets without revealing, through timing, how much matched. */
+function constantTimeEqual(a, b) {
+  const left = new TextEncoder().encode(a);
+  const right = new TextEncoder().encode(b);
+  let diff = left.length ^ right.length;
+  const length = Math.max(left.length, right.length);
+  for (let i = 0; i < length; i += 1) diff |= (left[i] ?? 0) ^ (right[i] ?? 0);
+  return diff === 0;
+}
+
 function requireAdmin(req, denoEnv) {
   const expected = denoEnv.get("LEADERBOARD_ADMIN_TOKEN") ?? "";
   if (!expected) return { ok: false, status: 500, error: "admin-secret-missing" };
   const got = readAdminToken(req);
-  if (!got || got !== expected) return { ok: false, status: 401, error: "forbidden" };
+  if (!got || !constantTimeEqual(got, expected)) return { ok: false, status: 401, error: "forbidden" };
   return { ok: true };
 }
 

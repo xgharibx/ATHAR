@@ -13,11 +13,27 @@ name: iOS Build
 #   APPSTORE_KEY_ID          — App Store Connect API key ID
 #   APPSTORE_ISSUER_ID       — App Store Connect API issuer ID
 #   APPSTORE_PRIVATE_KEY     — contents of the App Store Connect API .p8 key
+# macOS runners are billed at a much higher rate than Linux runners, so the
+# automatic runs are limited to changes that can affect the native project.
 on:
   push:
     branches: [main]
+    paths:
+      - "ios/**"
+      - "capacitor.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "tools/scripts/patch-capacitor-plugins.mjs"
+      - ".github/workflows/ios-build.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "ios/**"
+      - "capacitor.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "tools/scripts/patch-capacitor-plugins.mjs"
+      - ".github/workflows/ios-build.yml"
   workflow_dispatch:
     inputs:
       upload:
@@ -25,9 +41,17 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ios:
     runs-on: macos-26
+    timeout-minutes: 45
     env:
       HAS_P12: ${{ secrets.IOS_DIST_CERT_P12 != '' }}
     steps:

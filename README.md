@@ -1,80 +1,79 @@
-# NŪR — Ultimate Adhkar PWA (React + Vite + TypeScript)
+# Athar
 
-A high-end **Adhkar** web app with:
-- **Beautiful glass UI**, smooth motion, and micro-interactions
-- **Tasbeeh counter** (tap / press & hold), progress ring, and completion confetti
-- **Favorites**, local progress tracking, and insights (streak)
-- **Command Palette** (Ctrl/⌘ + K) for fast search and navigation
-- **Offline-first PWA** (installable, works without internet)
-- **3D Noor background** (Three.js / React Three Fiber)
-- **Data packs**: import extra `JSON` packs and the app auto-merges them
+Athar (أثر) is an Islamic companion app for adhkar, Quran, prayer times and daily worship. It ships from one codebase as a web app, an Android app and an iOS app.
 
-> Data comes from: `public/data/adhkar.json` (from your GitHub repo).
+- Web: <https://www.athark.org>
+- Android: `com.athar.adhkar` on Google Play
+- iOS and Huawei AppGallery: built from the same sources
 
----
+## Features
 
-## Quick start
+- Adhkar collections with a tasbeeh counter, favourites and progress tracking
+- Quran reader (Mushaf), tafsir, translations, memorisation and recitation tools
+- Prayer times, Qibla direction and reminders
+- Hadith library and learning content
+- "Ask Athar", an optional assistant for Islamic questions
+- Optional accounts with cloud sync and leaderboards
+- Offline-first: core content works without a connection
+
+## Technology
+
+| Layer | Stack |
+|---|---|
+| App | React 18, TypeScript, Vite, Tailwind CSS |
+| Mobile | Capacitor 6 (Android, iOS) |
+| Backend | Supabase (Auth, Postgres, Edge Functions) |
+| Tests | Vitest, pgTAP |
+
+## Getting started
+
+Requirements: Node.js 24 and npm.
 
 ```bash
 npm install
+cp .env.example .env.local   # then fill in the values
 npm run dev
 ```
 
-Open the printed local URL.
+## Scripts
 
-## Build
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start the development server |
+| `npm run build` | Type-check and build the web app |
+| `npm run lint` | Lint the app and Edge Functions |
+| `npm run test` | Run the unit tests |
+| `npm run verify` | Run every release check, then build |
+| `npm run android` | Build, sync and open the Android project |
+| `npm run ios` | Build, sync and open the iOS project (macOS) |
 
-```bash
-npm run build
-npm run preview
-```
+## Repository layout
 
-## Add your Adhkar data
+| Path | Contents |
+|---|---|
+| `src/` | Application source |
+| `public/` | Static assets and bundled content |
+| `android/`, `ios/`, `huawei/` | Native projects and store material |
+| `supabase/` | Database migrations, Edge Functions and database tests |
+| `tests/` | Unit tests |
+| `tools/` | Build, release and content-sync scripts |
+| `docs/` | Setup guides and release checklists |
 
-Main dataset:
-- `public/data/adhkar.json`
+## Configuration
 
-You can also import extra packs from:
-- **Sources** page → “Import JSON pack”.
+Client configuration is read from `VITE_*` variables; see `.env.example`. Server credentials are stored only as Supabase Edge Function secrets and must never be given a `VITE_` prefix or committed.
 
-Supported JSON formats:
-1) Full DB:
-```json
-{ "sections": [ { "id": "morning", "title": "...", "content": [ { "text": "...", "count": 1 } ] } ] }
-```
+## Releases
 
-2) Single section export (created by the app):
-```json
-{ "id": "evening", "title": "...", "items": [ { "text": "...", "count": 1 } ] }
-```
+- Web: deployed by the `Deploy GitHub Pages` workflow on every push to `main`.
+- Android: see `tools/android/README.md` and `docs/RELEASE_CHECKLIST_MOBILE_AR.md`.
+- iOS: see `docs/RELEASE_CHECKLIST_IOS_AR.md` and the `iOS Build` workflow.
+- Backend: see `docs/ACCOUNTS_SETUP.md`.
 
----
+## Security
 
-## Android APK (Capacitor)
-
-See: `tools/android/README.md` and `RELEASE_CHECKLIST_MOBILE_AR.md`
-
-## iOS App (Capacitor)
-
-The same web code ships to iOS via the `ios/` Xcode project:
-
-```bash
-npm run ios        # build web → sync ios → open Xcode (requires macOS)
-```
-
-No Mac? The `iOS Build` GitHub Actions workflow builds (and optionally
-uploads to TestFlight) on a macOS runner.
-
-See: `RELEASE_CHECKLIST_IOS_AR.md`
-
----
-
-## Notes / authenticity
-
-Always verify text authenticity and sources before publishing. This project includes “Sources” + “Data pack import” features to help you maintain a clean and auditable dataset.
-
----
+Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
-Your choice — this repository is generated for you. If you include 3rd-party datasets, respect their licenses and attribution.
+Copyright © 2026 Athar. All rights reserved. This is proprietary software; see [LICENSE](LICENSE). Third-party content and open-source components are listed in [NOTICE.md](NOTICE.md).
