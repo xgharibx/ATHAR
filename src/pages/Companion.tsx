@@ -244,7 +244,7 @@ export function CompanionPage() {
 
   const busyRef = React.useRef(false);
   const abortRef = React.useRef<AbortController | null>(null);
-  // Claude-style follow-the-stream scrolling: sticks to the bottom only while
+  // Follow-the-stream scrolling: sticks to the bottom only while
   // the reader is already there, and lets go the moment they scroll up.
   const { endRef, atBottom, scrollToBottom, stickToBottom } = useStickToBottom();
   /** Store references minted by dispatchCreateReminderPage during this turn's onToolCalls,
@@ -367,7 +367,7 @@ export function CompanionPage() {
   }, [streamingText, stickToBottom]);
 
   // Focused-chat mode: on this route the composer owns the bottom of the
-  // screen (like Claude), so the global floating tab-bar + FABs are hidden to
+  // screen, so the global floating tab-bar + FABs are hidden to
   // stop the old "two stacked bars fighting over the bottom" clutter. The top
   // bar's menu still provides navigation away.
   React.useEffect(() => {

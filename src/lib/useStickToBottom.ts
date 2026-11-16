@@ -1,12 +1,12 @@
 import * as React from "react";
 
 /**
- * Claude-style "stick to bottom" for a streaming chat.
+ * "Stick to bottom" behaviour for a streaming chat.
  *
  * The old behavior scrolled to the end on *every* streamed token, which
  * fought the reader the moment they scrolled up to re-read something. This
  * follows the stream only while the reader is already at the bottom, and the
- * instant they scroll away it lets go — exactly like Claude / ChatGPT.
+ * instant they scroll away it lets go, as in modern chat applications.
  *
  * Usage:
  *   const { scrollerRef, endRef, atBottom, scrollToBottom, stickToBottom } = useStickToBottom();

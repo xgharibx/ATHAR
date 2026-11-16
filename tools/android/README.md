@@ -43,4 +43,4 @@ npm run android
 - The app works offline thanks to the service worker (PWA).
 - إذا لم يكن مجلد `android/` موجودًا بعد، فهذه خطوة طبيعية: أنشئه أولاً عبر `npm run android:add`.
 - بعد أي تعديل على الواجهة أو الأصول، شغّل `npm run build` ثم `npm run android:sync` قبل فتح Android Studio.
-- راجع أيضًا ملف الإطلاق العام [RELEASE_CHECKLIST_AR.md](c:\Users\Amrab\Downloads\noor-adhkar\RELEASE_CHECKLIST_AR.md) قبل التجهيز النهائي.
+- راجع أيضًا ملف الإطلاق العام [RELEASE_CHECKLIST_AR.md](../../docs/RELEASE_CHECKLIST_AR.md) قبل التجهيز النهائي.

@@ -227,7 +227,7 @@ export function CompanionModal(props: {
   const [partialStopped, setPartialStopped] = React.useState(false);
   const busyRef = React.useRef(false);
   const abortRef = React.useRef<AbortController | null>(null);
-  // Claude-style follow-the-stream scrolling within the modal's own scroller.
+  // Follow-the-stream scrolling within the modal's own scroller.
   const { scrollerRef, endRef, atBottom, scrollToBottom, stickToBottom } = useStickToBottom();
   const titleRef = React.useRef<string>("");
   /** Store references minted by dispatchCreateReminder during this turn's onToolCalls, in
