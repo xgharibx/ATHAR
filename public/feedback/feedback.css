@@ -1,0 +1,111 @@
+@import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap");
+
+/*
+ * Athar feedback — a stand-alone, self-contained surface.
+ * All atmosphere is fixed / clipped, so it can NEVER enlarge the scroll area.
+ * Typography: Amiri for calligraphic headings, Noto Naskh Arabic for readable body.
+ */
+html,body{margin:0;max-width:100%;overflow-x:clip}
+body{padding:0}
+.af-page,.af-page *,.af-page *::before,.af-page *::after{box-sizing:border-box}
+.af-page{
+  --af-ink:#f4f1e7;--af-gold:#d6b876;--af-subtle:#b4c7b9;--af-stroke:rgba(215,191,127,.19);
+  position:relative;isolation:isolate;display:flow-root;min-height:100vh;min-height:100dvh;
+  width:100%;max-width:100%;overflow-x:clip;margin:0;padding:0 17px 36px;
+  color:var(--af-ink);
+  font:500 16px/1.85 "Noto Naskh Arabic","Amiri",Tahoma,serif;
+  background:linear-gradient(180deg,#124435 0%,#08271e 23%,#041912 58%,#010c09 100%);
+  color-scheme:dark;overscroll-behavior-x:none;
+}
+.af-page::before{
+  content:"";pointer-events:none;position:fixed;inset:0;z-index:-2;
+  background:
+    radial-gradient(ellipse 76% 35% at 49% -9%,rgba(120,182,135,.31),transparent 76%),
+    radial-gradient(ellipse 47% 40% at 105% 20%,rgba(44,127,101,.22),transparent 82%),
+    radial-gradient(ellipse 40% 24% at -12% 63%,rgba(77,136,103,.12),transparent 92%);
+}
+.af-stars{pointer-events:none;position:fixed;inset:0;z-index:-1;overflow:hidden;opacity:.85}
+.af-stars::before,.af-stars::after{content:"";position:absolute;inset:0;background-repeat:repeat;animation:af-shimmer 15s ease-in-out infinite alternate}
+.af-stars::before{
+  background-image:
+    radial-gradient(circle at 6% 18%,#d8e2ca 0 1px,transparent 1.5px),
+    radial-gradient(circle at 21% 8%,#decf9d 0 1.2px,transparent 1.6px),
+    radial-gradient(circle at 33% 31%,#fff8dd 0 .7px,transparent 1.3px),
+    radial-gradient(circle at 54% 15%,#c1d6c9 0 .85px,transparent 1.4px),
+    radial-gradient(circle at 70% 43%,#e4ce97 0 1.05px,transparent 1.5px),
+    radial-gradient(circle at 88% 11%,#cfe2d1 0 1px,transparent 1.6px),
+    radial-gradient(circle at 92% 65%,#fff6d6 0 .85px,transparent 1.4px),
+    radial-gradient(circle at 12% 78%,#ded6b9 0 1px,transparent 1.5px),
+    radial-gradient(circle at 42% 82%,#c7d7c7 0 1px,transparent 1.5px);
+  background-size:380px 420px;opacity:.48;
+}
+.af-stars::after{
+  background-image:
+    radial-gradient(circle at 16% 29%,#fff7d5 0 .6px,transparent 1.1px),
+    radial-gradient(circle at 38% 72%,#d4e4d8 0 .7px,transparent 1.2px),
+    radial-gradient(circle at 57% 52%,#d8c992 0 .7px,transparent 1.2px),
+    radial-gradient(circle at 76% 22%,#d1e6db 0 .7px,transparent 1.2px),
+    radial-gradient(circle at 89% 88%,#fff3d4 0 .9px,transparent 1.3px);
+  background-size:260px 290px;opacity:.5;animation-delay:-6s;animation-duration:20s
+}
+@keyframes af-shimmer{from{opacity:.27}to{opacity:.8}}
+.af-wrap{position:relative;width:100%;max-width:604px;margin:0 auto;padding-top:clamp(26px,5vw,48px)}
+.af-hero{text-align:center;margin-bottom:23px;max-width:100%}
+.af-wordmark{display:flex;flex-direction:column;align-items:center;gap:1px;text-decoration:none;width:max-content;max-width:100%;margin:0 auto;color:var(--af-gold)}
+.af-fingerprint{display:block;width:54px;height:51px;opacity:.94;filter:drop-shadow(0 5px 14px rgba(208,178,95,.16))}
+.af-signature{font:700 35px/.99 "Amiri","Noto Naskh Arabic",serif;letter-spacing:-1.3px;color:#f2dba5;text-shadow:0 3px 23px rgba(231,199,121,.18)}
+.af-kicker{display:flex;align-items:center;justify-content:center;gap:12px;letter-spacing:.16em;font-size:10px;font-weight:700;color:#d6bc85;margin:23px 0 3px}
+.af-kicker::before,.af-kicker::after{content:"";width:45px;max-width:11vw;height:1px;background:linear-gradient(90deg,transparent,#caa9697a,transparent)}
+.af-hero h1{font:700 clamp(30px,6vw,42px)/1.45 "Amiri","Noto Naskh Arabic",serif;margin:4px 0 7px;color:#fff4db;text-wrap:balance;text-shadow:0 5px 25px #0006}
+.af-hero p{max-width:470px;margin:0 auto;color:#c9d6ca;font-size:clamp(14px,3.5vw,16px);line-height:2.05;text-wrap:pretty}
+.af-panel{
+  position:relative;max-width:100%;border:1px solid var(--af-stroke);border-radius:27px;
+  padding:clamp(21px,5.1vw,37px);background:linear-gradient(148deg,rgba(30,72,55,.77),rgba(8,36,27,.89) 38%,rgba(5,25,20,.95));
+  box-shadow:0 26px 90px rgba(0,0,0,.3),inset 0 1px 0 rgba(248,223,166,.10);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow:hidden;
+}
+.af-panel::before{content:"";pointer-events:none;position:absolute;inset:0 18% auto;height:1px;background:linear-gradient(90deg,transparent,#ead4a4a4,transparent)}
+.af-intro{font-size:14px;color:#d5dcca;margin:0 0 27px;text-align:center}
+.af-fieldset{min-width:0;border:0;margin:0 0 24px;padding:0}
+.af-label,.af-legend{display:block;font-weight:700;font-size:17px;color:#fff1d4;margin:0 0 11px;font-family:"Noto Naskh Arabic","Amiri",serif}
+.af-legend{padding:0}
+.af-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.af-choice{position:relative;min-width:0;cursor:pointer}
+.af-choice input{position:absolute;width:1px;height:1px;opacity:0;inset-inline-start:10px;top:10px}
+.af-choice-text{
+  display:flex;align-items:center;justify-content:center;text-align:center;min-width:0;min-height:66px;
+  padding:10px 7px;border:1px solid rgba(227,205,153,.17);border-radius:15px;
+  background:rgba(225,244,226,.055);font-size:14px;line-height:1.65;color:#d5ded4;
+  transition:background .18s,border-color .18s,box-shadow .18s;
+}
+.af-choice input:checked+.af-choice-text{background:rgba(197,158,87,.16);border-color:#d2ae71;color:#fff1cf;box-shadow:inset 0 0 0 1px #e3be7659}
+.af-choice input:focus-visible+.af-choice-text{outline:2px solid #e8cf93;outline-offset:3px}
+.af-field{margin-bottom:22px;min-width:0}
+.af-input,.af-textarea{
+  display:block;width:100%;max-width:100%;min-width:0;border-radius:14px;
+  border:1px solid rgba(215,199,151,.24);background:rgba(0,16,12,.31);
+  padding:13px 15px;color:#fff9e9;outline:none;font:500 16px/1.8 "Noto Naskh Arabic","Amiri",serif;
+  transition:border-color .18s,box-shadow .18s;
+}
+.af-input::placeholder,.af-textarea::placeholder{color:#aab9ad;opacity:1}
+.af-input:focus,.af-textarea:focus{border-color:#d4b776;box-shadow:0 0 0 3px rgba(217,188,122,.13)}
+.af-textarea{min-height:165px;resize:none;overflow-y:auto}
+.af-hint{font-size:12px;color:#b2c4b5;line-height:1.9;margin:6px 0 0}
+.af-share{min-width:0;border:1px solid rgba(212,189,133,.23);border-radius:16px;margin:0 0 21px;padding:14px 15px 9px}
+.af-share legend{padding:0 7px;color:#fbeccc;font-weight:700;font-size:14px;max-width:100%;line-height:1.9}
+.af-share .af-hint{margin:0 0 12px}
+.af-radio{display:flex;align-items:flex-start;gap:11px;cursor:pointer;font-size:14px;line-height:1.95;color:#e0e8db;margin:9px 0}
+.af-radio input{flex:none;width:17px;height:17px;accent-color:#d8bc80;margin:7px 0 0}
+.af-note{font-size:12px;line-height:2;color:#cad9cb;padding:14px 16px;background:rgba(181,212,180,.07);border-radius:14px;border-inline-start:2px solid #a88e58;margin:0 0 21px}
+.af-submit{display:block;width:100%;min-height:56px;border:1px solid #e0c18b;background:linear-gradient(110deg,#dfc28d,#efdaae);border-radius:15px;color:#163727;font:700 17px/1.5 "Noto Naskh Arabic","Amiri",serif;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.18);transition:filter .17s,transform .17s}
+.af-submit:hover:not(:disabled){filter:brightness(1.05);transform:translateY(-1px)}
+.af-submit:disabled{opacity:.6;cursor:wait}
+.af-status{text-align:center;min-height:1.4em;color:#ffb5aa;margin:12px 0 0;font-size:14px}
+.af-status[data-success="true"]{color:#b9ebc3}
+.af-privacy-escape{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;border:0!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+.af-footer{text-align:center;margin:27px auto 0;max-width:100%;color:#b5c6b6}
+.af-back{display:inline-flex;align-items:center;justify-content:center;gap:10px;max-width:100%;border:1px solid rgba(213,189,130,.32);border-radius:999px;padding:10px 24px;color:#f5dfaf;text-decoration:none;font-weight:700;font-size:15px;background:rgba(15,51,37,.45)}
+.af-back:hover,.af-back:focus-visible{background:rgba(37,84,57,.7)}
+.af-footer-sign{font:400 13px/2 "Amiri","Noto Naskh Arabic",serif;color:#b2bfae;margin:15px auto 0}
+@media(max-width:380px){.af-page{padding-inline:11px}.af-panel{padding:18px 14px}.af-choices{gap:8px}.af-choice-text{font-size:13px;min-height:66px}.af-share{padding-inline:11px}}
+@media(prefers-reduced-motion:reduce){.af-stars::before,.af-stars::after{animation:none}.af-choice-text,.af-submit{transition:none}.af-submit:hover:not(:disabled){transform:none}}

@@ -31,6 +31,7 @@ import { useStartupReady } from "@/hooks/useStartupReady";
 import { warmBundledAdhkar } from "@/data/load";
 import { afterStartupReady } from "@/lib/startup";
 import { resetScrollForRouteChange } from "@/hooks/useScrollRestoration";
+import { FeedbackPage } from "@/pages/Feedback";
 
 /** Wraps a lazy route element with Suspense + per-route RouteErrorBoundary */
 function S({ children }: { children: React.ReactNode }) {
@@ -116,6 +117,11 @@ export default function App() {
     void loadHomeRoute().catch(() => undefined);
     void warmBundledAdhkar().catch(() => undefined);
   }, [location.pathname]);
+
+  // Feedback is public: do not block it on auth hydration or onboarding.
+  if (/^\/feedback(?:\/|$)/.test(location.pathname)) {
+    return <FeedbackPage />;
+  }
 
   if (accountScope.needsImportChoice) {
     return (

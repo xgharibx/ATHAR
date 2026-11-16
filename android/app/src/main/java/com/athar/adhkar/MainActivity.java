@@ -41,7 +41,7 @@ public class MainActivity extends BridgeActivity {
         // app, so an in-app check alone never reaches them.
         UpdateCheckWorker.schedule(this);
 
-        pendingRoute = readRoute(getIntent());
+        pendingRoute = isReturnFromFeedback(getIntent()) ? "/" : readRoute(getIntent());
         pendingAuthUrl = readAuthUrl(getIntent());
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -56,7 +56,14 @@ public class MainActivity extends BridgeActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        handleWidgetRoute(intent);
+        if (isReturnFromFeedback(intent)) {
+            // Launch the app home without touching the OAuth callback handler.
+            routeDeliveryGeneration++;
+            pendingRoute = "/";
+            injectPendingRoute();
+        } else {
+            handleWidgetRoute(intent);
+        }
         String authUrl = readAuthUrl(intent);
         if (authUrl != null) {
             pendingAuthUrl = authUrl;
@@ -86,6 +93,19 @@ public class MainActivity extends BridgeActivity {
             "window.dispatchEvent(new Event('athar-app-resume'))",
             null
         );
+    }
+
+    /** Strict matching for the public feedback page's open-app link. */
+    private static boolean isReturnFromFeedback(Intent intent) {
+        if (intent == null) return false;
+        android.net.Uri uri = intent.getData();
+        if (uri == null) return false;
+        String path = uri.getPath();
+        return "app.athar".equals(uri.getScheme())
+            && "open".equals(uri.getHost())
+            && uri.getPort() == -1
+            && uri.getUserInfo() == null
+            && (path == null || path.isEmpty() || "/".equals(path));
     }
 
     /** The OAuth callback, or null for any other intent. */
