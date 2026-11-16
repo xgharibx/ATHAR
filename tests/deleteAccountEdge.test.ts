@@ -39,7 +39,7 @@ function createDeleteAccountEdge(options: DeleteOptions = {}) {
   }));
   const source = fs.readFileSync(path.resolve("supabase/functions/delete-account/index.ts"), "utf8")
     .replace(
-      'import { createClient } from "https://esm.sh/@supabase/supabase-js@2";',
+      'import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";',
       "const { createClient } = mocks;",
     );
   const js = ts.transpileModule(source, {
@@ -137,7 +137,7 @@ describe("delete-account Edge Function safeguards", () => {
     });
 
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: "identity could not be verified" });
+    expect(await response.json()).toEqual({ error: "deletion-failed" });
     expect(edge.calls).toEqual([
       "getUser:synthetic-user-token",
       "rpc:prepare_account_leaderboard_deletion:synthetic-user:local_123",
@@ -150,7 +150,7 @@ describe("delete-account Edge Function safeguards", () => {
     const response = await edge.request("POST", "Bearer synthetic-user-token");
 
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: "auth deletion failed" });
+    expect(await response.json()).toEqual({ error: "deletion-failed" });
     expect(edge.calls).toEqual([
       "getUser:synthetic-user-token",
       "rpc:prepare_account_leaderboard_deletion:synthetic-user:none",

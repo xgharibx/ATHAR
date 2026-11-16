@@ -821,6 +821,11 @@ export function buildWeeklyReflectionPrompt(): string {
 
 /* ─── Streaming chat ─────────────────────────────────────────────────────── */
 
+function isUnsupportedToolError(err: unknown): boolean {
+  const candidate = err as { status?: unknown; message?: unknown };
+  return candidate?.status === 400 && /unrecognized tool definition/i.test(String(candidate?.message ?? ""));
+}
+
 const EMPTY_REPLY_MESSAGE = "تعذَّر إكمال الجواب هذه المرة. أعد إرسال سؤالك أو صُغه بطريقةٍ أخرى.";
 
 export type CompanionErrorKind =
@@ -1056,31 +1061,6 @@ export async function streamCompanionReply(
       retrieval.text,
     ].filter(Boolean).join("\n\n");
 
-    const stream = client.messages.stream({
-      model: MODEL,
-      // Reasoning counts toward this limit, so it is well above the length of
-      // a visible reply.
-      max_tokens: 8192,
-      system: [
-        { type: "text", text: SYSTEM_CORE, cache_control: { type: "ephemeral" } },
-        { type: "text", text: dynamicContext },
-      ],
-      tools: [...COMPANION_TOOLS, WEB_SEARCH_TOOL],
-      messages: outbound.messages.map((m) => ({ role: m.role, content: m.content })),
-    });
-
-    onAbort = () => {
-      try { stream.controller?.abort?.(); } catch { /* ignore */ }
-    };
-
-    if (abortSignal) {
-      if (abortSignal.aborted) {
-        onAbort();
-      } else {
-        abortSignal.addEventListener("abort", onAbort, { once: true });
-      }
-    }
-
     let full = "";
     const sanitizer = createCompanionStreamSanitizer();
     const emit = (clean: string) => {
@@ -1088,13 +1068,46 @@ export async function streamCompanionReply(
       full += clean;
       cb.onText(clean);
     };
-    for await (const event of stream) {
-      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-        emit(sanitizer.push(event.delta.text));
+    let activeStream: { controller?: { abort?: () => void } } | null = null;
+    onAbort = () => {
+      try { activeStream?.controller?.abort?.(); } catch { /* ignore */ }
+    };
+
+    const run = async (withWebSearch: boolean) => {
+      const stream = client.messages.stream({
+        model: MODEL,
+        // Reasoning counts toward this limit, so it is well above the length
+        // of a visible reply.
+        max_tokens: 8192,
+        system: [
+          { type: "text", text: SYSTEM_CORE, cache_control: { type: "ephemeral" } },
+          { type: "text", text: dynamicContext },
+        ],
+        tools: withWebSearch ? [...COMPANION_TOOLS, WEB_SEARCH_TOOL] : COMPANION_TOOLS,
+        messages: outbound.messages.map((m) => ({ role: m.role, content: m.content })),
+      });
+      activeStream = stream;
+      if (abortSignal?.aborted) onAbort?.();
+      for await (const event of stream) {
+        if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+          emit(sanitizer.push(event.delta.text));
+        }
       }
+      return stream.finalMessage();
+    };
+
+    if (abortSignal && !abortSignal.aborted) abortSignal.addEventListener("abort", onAbort, { once: true });
+
+    let finalMsg: Awaited<ReturnType<typeof run>>;
+    try {
+      finalMsg = await run(true);
+    } catch (err) {
+      // A server that predates web search rejects the tool before producing
+      // any output; ask again without it rather than fail the question.
+      if (!isUnsupportedToolError(err) || full) throw err;
+      finalMsg = await run(false);
     }
     emit(sanitizer.flush());
-    const finalMsg = await stream.finalMessage();
     if (finalMsg.stop_reason === "refusal") {
       const msg = "\n\nأعتذر يا صديقي، لا يسعني المضيّ في هذا الطلب تحديدًا. اسألني بصيغةٍ أخرى أو في أمرٍ يقرِّبنا إلى الله، وأنا معك. 🤲";
       full += msg;
