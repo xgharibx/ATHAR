@@ -11,7 +11,8 @@ type Options = {
   quotaError?: boolean;
   upstreamFailure?: boolean;
   upstreamTimeout?: boolean;
-  rejectWebSearch?: boolean;
+  searchContent?: unknown[];
+  searchFailure?: boolean;
 };
 
 function edge(options: Options = {}) {
@@ -59,8 +60,14 @@ function edge(options: Options = {}) {
     fetch: async (_url: string, init: RequestInit) => {
       calls.push({ type: "upstream", detail: init });
       if (options.upstreamTimeout || options.upstreamFailure) throw new Error("synthetic upstream failure");
-      const rejected = options.rejectWebSearch && String(init.body).includes("web_search_20250305");
-      return new Response("synthetic-upstream", { status: rejected ? 400 : 200, headers: { "Content-Type": "text/plain" } });
+      if (String(init.body).includes("web_search_20250305")) {
+        if (options.searchFailure) return new Response("search unavailable", { status: 500 });
+        return new Response(JSON.stringify({ content: options.searchContent ?? [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response("synthetic-upstream", { status: 200, headers: { "Content-Type": "text/plain" } });
     },
     AbortSignal: {
       timeout: (ms: number) => options.upstreamTimeout
@@ -428,46 +435,68 @@ describe("Companion Edge Function access controls", () => {
     expect(response.status).toBe(200);
     const [body] = upstreamBodies(app);
     expect(Object.keys(body ?? {}).sort()).toEqual(["max_tokens", "messages", "model", "output_config", "stream", "system"]);
-    expect(body).toMatchObject({ model: "MiniMax-M3.1-Flash", output_config: { effort: "medium" } });
+    expect(body).toMatchObject({ model: "MiniMax-M3.1-Flash", output_config: { effort: "low" } });
   });
 
-  it("replaces a caller's web search definition with the server's restricted one", async () => {
-    const app = edge();
-    const response = await app.sendRaw(JSON.stringify({
-      system: "synthetic system prompt",
-      messages: [{ role: "user", content: "synthetic question" }],
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 50, allowed_domains: ["attacker.invalid"] }],
-    }), "Bearer synthetic-user-token");
+  const searchQuestion = {
+    system: "synthetic system prompt",
+    messages: [{ role: "user", content: "synthetic question that is long enough to search" }],
+    tools: [{ type: "web_search_20250305", name: "web_search", allowed_domains: ["attacker.invalid"] }],
+  };
+  const searchContent = [{
+    type: "web_search_tool_result",
+    content: [
+      { type: "web_search_result", title: "Untrusted", url: "https://www.youtube.com/watch?v=x", content: "untrusted text" },
+      { type: "web_search_result", title: "Lookalike", url: "https://dorar.net.attacker.invalid/a", content: "lookalike text" },
+      { type: "web_search_result", title: "Plain http", url: "http://dorar.net/a", content: "insecure text" },
+      { type: "web_search_result", title: "Trusted", url: "https://www.islamweb.net/ar/fatwa/1", content: "trusted text" },
+    ],
+  }];
+
+  it("runs the search itself and gives the model only trusted results", async () => {
+    const app = edge({ searchContent });
+    const response = await app.sendRaw(JSON.stringify(searchQuestion), "Bearer synthetic-user-token");
 
     expect(response.status).toBe(200);
-    const [body] = upstreamBodies(app);
-    const tools = body?.tools as Array<Record<string, unknown>>;
-    expect(tools).toHaveLength(1);
-    expect(tools[0]).toMatchObject({ type: "web_search_20250305", name: "web_search", max_uses: 2 });
-    expect(tools[0]?.allowed_domains).toContain("dorar.net");
-    expect(tools[0]?.allowed_domains).not.toContain("attacker.invalid");
-    expect(JSON.stringify(body?.system)).toContain("البحث في الإنترنت");
+    const [search, answer] = upstreamBodies(app);
+    expect(search).toMatchObject({ model: "MiniMax-M3.1-Flash", stream: false });
+    expect(JSON.stringify(search?.tools)).not.toContain("attacker.invalid");
+    const system = JSON.stringify(answer?.system);
+    expect(system).toContain("https://www.islamweb.net/ar/fatwa/1");
+    expect(system).toContain("trusted text");
+    expect(system).not.toContain("youtube.com");
+    expect(system).not.toContain("attacker.invalid");
+    expect(system).not.toContain("insecure text");
+    // The answering call never receives the provider's unfiltered search tool.
+    expect(JSON.stringify(answer)).not.toContain("web_search_20250305");
+    expect(app.calls.filter((call) => call.type === "rpc")).toHaveLength(1);
   });
 
-  it("does not enable web search unless the caller asks for it", async () => {
-    const app = edge();
+  it("does not search unless the caller asks for it", async () => {
+    const app = edge({ searchContent });
     await app.send("Bearer synthetic-user-token");
-    const [body] = upstreamBodies(app);
-    expect(JSON.stringify(body)).not.toContain("web_search");
+    expect(upstreamBodies(app)).toHaveLength(1);
   });
 
-  it("falls back to an answer without search when the provider rejects the search tool", async () => {
-    const app = edge({ rejectWebSearch: true });
-    const response = await app.sendRaw(JSON.stringify({
-      system: "synthetic system prompt",
-      messages: [{ role: "user", content: "synthetic question" }],
-      tools: [{ type: "web_search_20250305", name: "web_search" }],
+  it("does not search for a greeting", async () => {
+    const app = edge({ searchContent });
+    await app.sendRaw(JSON.stringify({
+      ...searchQuestion,
+      messages: [{ role: "user", content: "hello" }],
     }), "Bearer synthetic-user-token");
+    expect(upstreamBodies(app)).toHaveLength(1);
+  });
+
+  it.each([
+    ["the search fails", { searchFailure: true }],
+    ["no result is from a trusted source", { searchContent: [{ type: "web_search_tool_result", content: [{ url: "https://example.com/", title: "x", content: "y" }] }] }],
+  ])("still answers, without search results, when %s", async (_label, options) => {
+    const app = edge(options);
+    const response = await app.sendRaw(JSON.stringify(searchQuestion), "Bearer synthetic-user-token");
 
     expect(response.status).toBe(200);
     const bodies = upstreamBodies(app);
     expect(bodies).toHaveLength(2);
-    expect(JSON.stringify(bodies[1])).not.toContain("web_search");
-    expect(app.calls.filter((call) => call.type === "rpc")).toHaveLength(1);
+    expect(bodies[1]?.system).toBe("synthetic system prompt");
   });
 });
