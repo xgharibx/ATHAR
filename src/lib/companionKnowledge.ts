@@ -341,6 +341,7 @@ function normalizeQuranQuote(value: string): string {
 }
 
 const HADITH_BLOCK_RE = /^[ \t]*:{3,}hadith[ \t]*\r?\n([\s\S]*?)^[ \t]*:{3,}[ \t]*$/gim;
+const SERVER_VERIFIED_HADITH_RE = /المصدر:[^\n]*\|[ \t]*الدرجة:/;
 function hasUnclosedHadithBlock(text: string): boolean {
   let insideHadith = false;
   for (const line of text.split(/\r?\n/)) {
@@ -451,6 +452,10 @@ async function verifyMarkedHadithBlocks(text: string): Promise<string[]> {
   HADITH_BLOCK_RE.lastIndex = 0;
   const blocks = Array.from(text.matchAll(HADITH_BLOCK_RE));
   for (const block of blocks) {
+    // A block carrying a source and grading line was inserted by the server
+    // from the hadith encyclopedia after verification; its wording is not the
+    // model's, so there is nothing to re-check against the local books.
+    if (SERVER_VERIFIED_HADITH_RE.test(block[1] ?? "")) continue;
     const { quote, citations, hasUnparsedSource } = parseHadithBlock(block[1] ?? "");
     if (!quote || normalizeHadithTokens(quote).join("").length < 10 || citations.length === 0 || citations.length > 8 || hasUnparsedSource) {
       notes.add("يتضمن الرد حديثًا موسومًا لكن الاقتباس أو المرجع غير مكتمل؛ لم أتمكن من التحقق منه.");

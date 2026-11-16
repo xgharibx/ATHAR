@@ -4,6 +4,8 @@ import vm from "node:vm";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
+const quranJson = fs.readFileSync(path.resolve("public/data/quran.json"), "utf8");
+
 type Options = {
   userId?: string | null;
   userLookupError?: boolean;
@@ -12,6 +14,11 @@ type Options = {
   upstreamFailure?: boolean;
   upstreamTimeout?: boolean;
   searchContent?: unknown[];
+  planContent?: unknown[];
+  dorarHtml?: string;
+  quranUnavailable?: boolean;
+  answer?: string;
+  retryAnswer?: string;
   searchFailure?: boolean;
 };
 
@@ -40,15 +47,15 @@ function edge(options: Options = {}) {
   const js = ts.transpileModule(source, {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
   }).outputText;
-  const corsPath = path.resolve("supabase/functions/companion/cors.ts");
-  const corsSource = fs.readFileSync(corsPath, "utf8").replace(/^export /gm, "");
-  const corsJs = ts.transpileModule(corsSource, {
-    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
-  }).outputText;
-  const sourcesPath = path.resolve("supabase/functions/companion/sources.ts");
-  const sourcesJs = ts.transpileModule(fs.readFileSync(sourcesPath, "utf8").replace(/^export /gm, ""), {
-    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
-  }).outputText;
+  // Supporting modules are loaded into the same context, in dependency order.
+  const moduleJs = ["text", "quran", "hadith", "sources", "evidence", "guard", "prompt", "stream", "cors"] /* dependency order */.map((name) => {
+    const moduleSource = fs.readFileSync(path.resolve(`supabase/functions/companion/${name}.ts`), "utf8")
+      .replace(/^import .*;\r?\n/gm, "")
+      .replace(/^export /gm, "");
+    return ts.transpileModule(moduleSource, {
+      compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
+    }).outputText;
+  });
   const sandbox = {
     console,
     createClient: (...args: unknown[]) => { clientConfig = args; return client; },
@@ -57,12 +64,36 @@ function edge(options: Options = {}) {
     Headers,
     URL,
     TextDecoder,
-    fetch: async (_url: string, init: RequestInit) => {
+    TextEncoder,
+    ReadableStream,
+    fetch: async (url: string, init: RequestInit = {}) => {
+      if (String(url).includes("quran.json")) {
+        return new Response(options.quranUnavailable ? "unavailable" : quranJson, { status: options.quranUnavailable ? 503 : 200 });
+      }
+      if (String(url).includes("dorar.net")) {
+        calls.push({ type: "dorar", detail: { url: decodeURIComponent(String(url)) } });
+        return new Response(JSON.stringify({ ahadith: { result: options.dorarHtml ?? "" } }), { status: 200 });
+      }
+      if (String(init.body).includes('"find_evidence"')) {
+        calls.push({ type: "plan", detail: init });
+        return new Response(JSON.stringify({ content: options.planContent ?? [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
       calls.push({ type: "upstream", detail: init });
       if (options.upstreamTimeout || options.upstreamFailure) throw new Error("synthetic upstream failure");
       if (String(init.body).includes("web_search_20250305")) {
         if (options.searchFailure) return new Response("search unavailable", { status: 500 });
         return new Response(JSON.stringify({ content: options.searchContent ?? [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (options.answer !== undefined) {
+        const retried = String(init.body).includes("تنبيه أخير");
+        const text = retried && options.retryAnswer !== undefined ? options.retryAnswer : options.answer;
+        return new Response(JSON.stringify({ content: [{ type: "text", text }] }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         });
@@ -87,8 +118,7 @@ function edge(options: Options = {}) {
     },
   };
   const context = vm.createContext(sandbox);
-  vm.runInContext(corsJs, context);
-  vm.runInContext(sourcesJs, context);
+  for (const js of moduleJs) vm.runInContext(js, context);
   vm.runInContext(js, context);
 
   const sendRaw = (body: string, authorization?: string) => handler(new Request("https://synthetic.invalid/companion/v1/messages", {
@@ -144,7 +174,7 @@ describe("Companion Edge Function access controls", () => {
     const response = await app.send("Bearer synthetic-publishable-key");
 
     expect(response.status).toBe(200);
-    expect(app.calls.map((call) => call.type)).toEqual(["rpc", "upstream"]);
+    expect(app.calls.map((call) => call.type)).toEqual(["rpc", "plan", "upstream"]);
     expect(app.calls[0]?.detail).toMatchObject({
       name: "reserve_companion_anonymous_request",
       args: { p_request_bytes: expect.any(Number), p_max_output_tokens: 4096 },
@@ -186,7 +216,7 @@ describe("Companion Edge Function access controls", () => {
     const response = await app.send("Bearer synthetic-user-token");
 
     expect(response.status).toBe(200);
-    expect(app.calls.map((call) => call.type)).toEqual(["auth", "rpc", "upstream"]);
+    expect(app.calls.map((call) => call.type)).toEqual(["auth", "rpc", "plan", "upstream"]);
     expect(app.calls[1]?.detail).toMatchObject({
       name: "reserve_companion_request",
       args: { p_user_id: "synthetic-user-id" },
@@ -352,7 +382,7 @@ describe("Companion Edge Function access controls", () => {
     const response = await app.send("Bearer synthetic-user-token");
 
     expect(response.status).toBe(502);
-    expect(app.calls.map((call) => call.type)).toEqual(["auth", "rpc", "upstream"]);
+    expect(app.calls.map((call) => call.type)).toEqual(["auth", "rpc", "plan", "upstream"]);
   });
 
   it.each(["null", "[]", "\"text\"", "42"])(
@@ -374,7 +404,7 @@ describe("Companion Edge Function access controls", () => {
     const response = await app.send("Bearer synthetic-user-token");
 
     expect(response.status).toBe(504);
-    expect(app.calls.map((call) => call.type)).toEqual(["auth", "rpc", "upstream"]);
+    expect(app.calls.map((call) => call.type)).toEqual(["auth", "rpc", "plan", "upstream"]);
   });
 
   it("measures request size in UTF-8 bytes instead of JavaScript characters", async () => {
@@ -497,6 +527,93 @@ describe("Companion Edge Function access controls", () => {
     expect(response.status).toBe(200);
     const bodies = upstreamBodies(app);
     expect(bodies).toHaveLength(2);
-    expect(bodies[1]?.system).toBe("synthetic system prompt");
+    const system = JSON.stringify(bodies[1]?.system);
+    expect(system).toContain("synthetic system prompt");
+    expect(system).not.toContain("### نتائج بحث من مصادر موثوقة");
+    expect(system).not.toContain("example.com");
+  });
+  const dorarHtml = `<div class="hadith" style="text-align:justify;">1 -  إنَّما الأعمالُ بالنِّيَّاتِ، وإنَّما لِكُلِّ امرئٍ ما نَوَى  .</div>
+<div class="hadith-info">
+    <span class="info-subtitle">الراوي:</span> عمر بن الخطاب</span>
+    <span class="info-subtitle">المحدث:</span> البخاري
+    <span class="info-subtitle">المصدر:</span>  صحيح البخاري
+    <span class="info-subtitle">الصفحة أو الرقم:</span>  1
+    <span class="info-subtitle">خلاصة حكم المحدث:</span>  <span >[صحيح]</span>
+</div>`;
+  const planContent = [{ type: "tool_use", name: "find_evidence", input: { hadith_queries: ["الأعمال بالنيات"], quran_refs: ["98:5"] } }];
+  const longQuestion = {
+    system: "synthetic system prompt",
+    messages: [{ role: "user", content: "ما أهمية النية في العبادات وما الدليل عليها؟" }],
+  };
+
+  it("gathers authentic hadith and verses and gives them to the answering call", async () => {
+    const app = edge({ planContent, dorarHtml });
+    const response = await app.sendRaw(JSON.stringify(longQuestion), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    expect(app.calls.filter((call) => call.type === "dorar")).toHaveLength(1);
+    // The wording of this question also starts a trusted-source search.
+    const bodies = upstreamBodies(app);
+    expect(bodies).toHaveLength(2);
+    const system = JSON.stringify(bodies[1]?.system);
+    expect(system).toContain("[H1] «إنما الأعمال بالنيات");
+    expect(system).toContain("[98:5]");
+    expect(system).toContain("قواعد الاستشهاد");
+  });
+
+  it("replaces what the model quotes with verified text and removes inventions", async () => {
+    const answer = [
+      "النية أساس العمل.",
+      ":::hadith(H1)",
+      ":::",
+      ":::verse(98:5)",
+      ":::",
+      "وقال النبي ﷺ: «من نوى خيرًا في التطبيق كُتب له أجر سبعين شهيدًا» رواه مسلم.",
+      "قال تعالى: ﴿ومن نوى خيرًا فله الجنة بغير حساب ولا عقاب﴾",
+    ].join("\n");
+    const app = edge({ planContent, dorarHtml, answer });
+    const response = await app.sendRaw(JSON.stringify(longQuestion), "Bearer synthetic-user-token");
+    const text = (await response.json() as { content: Array<{ text: string }> }).content[0]?.text ?? "";
+
+    expect(text).toContain("«إنَّما الأعمالُ بالنِّيَّاتِ، وإنَّما لِكُلِّ امرئٍ ما نَوَى»");
+    expect(text).toContain("المصدر: صحيح البخاري (1)");
+    expect(text).toContain("— سورة البينة: ٥");
+    expect(text).not.toContain("سبعين شهيدًا");
+    expect(text).not.toContain("بغير حساب");
+    expect(text).toContain("حُذف نصٌّ منسوب إلى السنة");
+    expect(text).toContain("حُذف نصٌّ لم يطابق المصحف");
+  });
+
+  it("removes every hadith and verse when no evidence could be gathered", async () => {
+    const answer = "قال النبي ﷺ: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى»\n:::verse(98:5)\n:::";
+    const app = edge({ quranUnavailable: true, answer });
+    const response = await app.sendRaw(JSON.stringify(longQuestion), "Bearer synthetic-user-token");
+    const text = (await response.json() as { content: Array<{ text: string }> }).content[0]?.text ?? "";
+
+    expect(text).not.toContain("الأعمال بالنيات");
+    expect(text).toContain("حُذف نصٌّ منسوب إلى السنة");
+    expect(text).toContain("حُذف نصٌّ لم يطابق المصحف");
+  });
+
+  it("skips evidence gathering for a greeting", async () => {
+    const app = edge({ planContent, dorarHtml });
+    await app.sendRaw(JSON.stringify({ system: "synthetic system prompt", messages: [{ role: "user", content: "hello" }] }), "Bearer synthetic-user-token");
+    expect(app.calls.filter((call) => call.type === "plan" || call.type === "dorar")).toHaveLength(0);
+  });
+  const english = "The hadith is not authentic; scholars graded it as fabricated and it has no sound chain.";
+
+  it("regenerates a reply that is not in Arabic", async () => {
+    const app = edge({ answer: english, retryAnswer: "هذا الحديث لا يصح، وقد حكم عليه أهل العلم بالوضع." });
+    const response = await app.sendRaw(JSON.stringify(longQuestion), "Bearer synthetic-user-token");
+    const text = (await response.json() as { content: Array<{ text: string }> }).content[0]?.text ?? "";
+    expect(text).toBe("هذا الحديث لا يصح، وقد حكم عليه أهل العلم بالوضع.");
+    expect(app.calls.filter((call) => call.type === "rpc")).toHaveLength(1);
+  });
+
+  it("gives a plain message when the regenerated reply is unusable too", async () => {
+    const app = edge({ answer: english });
+    const response = await app.sendRaw(JSON.stringify(longQuestion), "Bearer synthetic-user-token");
+    const text = (await response.json() as { content: Array<{ text: string }> }).content[0]?.text ?? "";
+    expect(text).toContain("تعذَّر إعداد جوابٍ موثوقٍ");
   });
 });
