@@ -31,6 +31,7 @@ import { useStartupReady } from "@/hooks/useStartupReady";
 import { warmBundledAdhkar } from "@/data/load";
 import { afterStartupReady } from "@/lib/startup";
 import { resetScrollForRouteChange } from "@/hooks/useScrollRestoration";
+import { FeedbackPage } from "@/pages/Feedback";
 
 /** Wraps a lazy route element with Suspense + per-route RouteErrorBoundary */
 function S({ children }: { children: React.ReactNode }) {
@@ -109,6 +110,10 @@ export default function App() {
   const accountScope = useCloudSync();
   const location = useLocation();
   useStartupReady(accountScope.needsImportChoice || Boolean(accountScope.error));
+  // Feedback is public: do not block it on auth hydration or onboarding.
+  if (/^\/feedback(?:\/|$)/.test(location.pathname)) {
+    return <FeedbackPage />;
+  }
   React.useEffect(() => {
     if (location.pathname !== "/") return;
     // Overlap public Home resources with session and account hydration without
