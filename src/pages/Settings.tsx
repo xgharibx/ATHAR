@@ -1691,7 +1691,17 @@ export function SettingsPage() {
         >
           سياسة الخصوصية
         </a>
+        <span aria-hidden="true"> · </span>
+        <a
+          href="https://www.athark.org/terms.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block min-h-[44px] py-3 underline underline-offset-4"
+        >
+          شروط الاستخدام
+        </a>
         <div>ATHAR • أثر · v{pkgJson.version}</div>
+        <div>© {new Date().getFullYear()} أثر — جميع الحقوق محفوظة</div>
       </div>
 
       <ReciterPicker

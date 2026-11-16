@@ -1,0 +1,22 @@
+# Consistent line endings for text on every platform.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.mp3 binary
+*.woff2 binary
+*.keystore binary
+*.jks binary
+
+# Bundled content and lockfiles are data, not source: keep them out of
+# language statistics and collapse them in reviews.
+public/data/** linguist-generated
+package-lock.json linguist-generated
+ios/App/Podfile.lock linguist-generated
+src/ijaz/data/** linguist-generated
