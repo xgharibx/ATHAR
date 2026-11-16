@@ -110,10 +110,6 @@ export default function App() {
   const accountScope = useCloudSync();
   const location = useLocation();
   useStartupReady(accountScope.needsImportChoice || Boolean(accountScope.error));
-  // Feedback is public: do not block it on auth hydration or onboarding.
-  if (/^\/feedback(?:\/|$)/.test(location.pathname)) {
-    return <FeedbackPage />;
-  }
   React.useEffect(() => {
     if (location.pathname !== "/") return;
     // Overlap public Home resources with session and account hydration without
@@ -121,6 +117,11 @@ export default function App() {
     void loadHomeRoute().catch(() => undefined);
     void warmBundledAdhkar().catch(() => undefined);
   }, [location.pathname]);
+
+  // Feedback is public: do not block it on auth hydration or onboarding.
+  if (/^\/feedback(?:\/|$)/.test(location.pathname)) {
+    return <FeedbackPage />;
+  }
 
   if (accountScope.needsImportChoice) {
     return (
