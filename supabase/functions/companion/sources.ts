@@ -94,3 +94,41 @@ export function buildTrustedResultsBlock(results: TrustedSearchResult[]): string
 
 ${lines.join("\n\n")}`;
 }
+
+/** The name shown for a link to each trusted site, whatever the model called it. */
+const SOURCE_NAMES: Record<string, string> = {
+  "dorar.net": "الدرر السنية",
+  "islamweb.net": "إسلام ويب",
+  "islamqa.info": "الإسلام سؤال وجواب",
+  "binbaz.org.sa": "موقع الشيخ ابن باز",
+  "binothaimeen.net": "موقع الشيخ ابن عثيمين",
+  "alifta.gov.sa": "الرئاسة العامة للبحوث العلمية والإفتاء",
+  "dar-alifta.org": "دار الإفتاء المصرية",
+  "aliftaa.jo": "دائرة الإفتاء الأردنية",
+  "quran.com": "القرآن الكريم",
+  "quranenc.com": "موسوعة القرآن الكريم",
+  "sunnah.com": "موسوعة السنة",
+  "hadeethenc.com": "موسوعة الأحاديث النبوية",
+  "shamela.ws": "المكتبة الشاملة",
+};
+
+export function sourceNameFor(url: string): string | null {
+  if (!isTrustedSourceUrl(url)) return null;
+  const host = new URL(url).hostname.toLowerCase().replace(/\.$/, "");
+  const domain = TRUSTED_SOURCE_DOMAINS.find((candidate) => host === candidate || host.endsWith(`.${candidate}`));
+  return domain ? SOURCE_NAMES[domain] ?? null : null;
+}
+
+/**
+ * Rewrite markdown links: a link to a trusted site gets that site's proper
+ * name, and a link to anywhere else is reduced to plain text or removed.
+ */
+export function normalizeSourceLinks(text: string, allowedUrls: ReadonlySet<string> | null): string {
+  return text.replace(/\[([^\]\n]*)\]\((https?:\/\/[^)\s]+)\)/g, (_match, label: string, url: string) => {
+    const name = sourceNameFor(url);
+    // Only addresses that were actually returned by the search are kept, so
+    // the model cannot invent a page on a trusted site.
+    if (!name || (allowedUrls && !allowedUrls.has(url))) return "";
+    return `[${name}](${url})`;
+  });
+}

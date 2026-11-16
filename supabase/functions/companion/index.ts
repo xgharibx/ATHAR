@@ -7,13 +7,21 @@
  * function injects the upstream key, applies CORS, and streams SSE through.
  *
  * Only an explicit set of request fields is forwarded, and generation settings
- * are owned by the server. When a client asks for web search, the function
- * runs the search itself and gives the model only results from the trusted
- * source list.
+ * are owned by the server.
+ *
+ * Before answering, the function gathers the texts the model may quote:
+ * authentic hadith from the Dorar encyclopedia, exact Quran text, and, when a
+ * client asks for web search, excerpts from the trusted source list only. The
+ * reply then passes through a guard that replaces every verse and hadith with
+ * its verified text and removes any that cannot be verified.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { companionCorsHeaders } from "./cors.ts";
+import { EVIDENCE_STEP_SYSTEM, EVIDENCE_TOOL, buildEvidenceBlock, gatherHadith, gatherVerses, loadQuran, readEvidencePlan } from "./evidence.ts";
+import { ReplyGuard, UNAVAILABLE_REPLY, finalizeReply, isUsableReply } from "./guard.ts";
+import { CLIENT_BASE_PROMPT_OPENING, SERVER_SYSTEM_PROMPT } from "./prompt.ts";
 import { SEARCH_STEP_SYSTEM, buildTrustedResultsBlock, selectTrustedResults } from "./sources.ts";
+import { guardMessage, guardSseStream } from "./stream.ts";
 
 const COMPANION_TOOL_NAMES = new Set(["next_step", "cite", "search_library", "create_reminder"]);
 const MAX_SYSTEM_CHARS = 20_000;
@@ -42,6 +50,13 @@ const SEARCH_MAX_TOKENS = 2048;
 const SEARCH_MAX_QUESTION_CHARS = 600;
 // Greetings and one-word messages are never worth a search.
 const SEARCH_MIN_QUESTION_CHARS = 15;
+// The evidence step decides which source texts to fetch; it is short.
+const EVIDENCE_TIMEOUT_MS = 15_000;
+const EVIDENCE_MAX_TOKENS = 1024;
+const EVIDENCE_CONTEXT_MESSAGES = 3;
+const EVIDENCE_CONTEXT_CHARS = 600;
+const RETRY_TIMEOUT_MS = 40_000;
+const RETRY_INSTRUCTION = "تنبيه أخير: اكتب الجواب كله بالعربية الفصحى، بحروف عربية فقط، في فقرات قصيرة واضحة. لا تكتب بأي لغة أخرى ولا بحروف لاتينية.";
 const MAX_BODY_BYTES = 256 * 1024;
 const UPSTREAM_TIMEOUT_MS = 60_000;
 const WINDOW_MS = 60_000;
@@ -56,6 +71,12 @@ function reasoningSettings(effort: string): Record<string, unknown> {
     ? { output_config: { effort } }
     : {};
 }
+
+/** Wording that marks a question as needing a scholarly ruling or explanation. */
+const RULING_QUESTION =
+  /حكم|يجوز|حلال|حرام|مكروه|واجب|فرض|سنة|سنّة|مستحب|بدعة|يبطل|يفسد|كفار|قضاء|فدية|زكاة|صيام|صوم|صلاة|طهار|وضوء|غسل|تيمم|نجاس|حج|عمرة|نكاح|طلاق|ميراث|ربا|فتوى|تفسير|معنى|صحة حديث|صحّة حديث|درجة حديث|الدليل|دليل/;
+
+const NO_PLAN = { hadithQueries: [] as string[], quranReferences: [] as string[], needsSources: false };
 
 type CompanionTextMessage = { role: "user" | "assistant"; content: string };
 type BoundedMessagesResult =
@@ -267,13 +288,18 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   // model; whatever a caller names is replaced with it. The provider's own
   // search tool is never handed to the answering call: its results are
   // unfiltered, so the search runs as a separate step below.
-  const buildUpstreamBody = (trustedResultsBlock: string): Record<string, unknown> => {
-    const system = trustedResultsBlock
-      ? [
-        ...(Array.isArray(body.system) ? body.system : [{ type: "text", text: systemText }]),
-        { type: "text", text: trustedResultsBlock },
-      ]
-      : body.system;
+  const buildUpstreamBody = (serverBlocks: string[]): Record<string, unknown> => {
+    // The base instructions are the server's. What a client sends after its
+    // own base instructions (date, page context, library excerpts) is kept.
+    const clientBlocks: Array<{ type: string; text: string }> = (Array.isArray(body.system) ? body.system : [body.system])
+      .map((block) => (typeof block === "string" ? block : String((block as { text?: unknown } | null)?.text ?? "")))
+      .filter((text) => text && !text.trimStart().startsWith(CLIENT_BASE_PROMPT_OPENING))
+      .map((text) => ({ type: "text", text }));
+    const system = [
+      { type: "text", text: SERVER_SYSTEM_PROMPT },
+      ...clientBlocks,
+      ...serverBlocks.filter(Boolean).map((text) => ({ type: "text", text })),
+    ];
     return {
       model: MINIMAX_MODEL,
       max_tokens: maxOutputTokens,
@@ -332,37 +358,117 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     "anthropic-version": ANTHROPIC_VERSION,
   };
 
-  // Search step: one provider search, then keep only results from the trusted
-  // list. Any failure here simply means the answer is written without them.
-  let trustedResultsBlock = "";
   const question = boundedMessages.messages[boundedMessages.messages.length - 1]?.content.trim() ?? "";
-  if (webSearchRequested && question.length >= SEARCH_MIN_QUESTION_CHARS) {
+  const substantive = question.length >= SEARCH_MIN_QUESTION_CHARS;
+
+  // Evidence step: ask which hadith and verses bear on the question, then
+  // fetch authentic narrations and the exact verse texts. Any failure simply
+  // leaves less to quote; it never lets unverified text through.
+  const planEvidence = async () => {
+    if (!substantive) return NO_PLAN;
+    let recent = boundedMessages.messages.slice(-EVIDENCE_CONTEXT_MESSAGES);
+    while (recent[0]?.role === "assistant") recent = recent.slice(1);
+    const response = await fetch(MINIMAX_UPSTREAM, {
+      method: "POST",
+      headers: upstreamHeaders,
+      body: JSON.stringify({
+        model: MINIMAX_MODEL,
+        max_tokens: EVIDENCE_MAX_TOKENS,
+        stream: false,
+        system: EVIDENCE_STEP_SYSTEM,
+        messages: recent.map((message) => ({ role: message.role, content: message.content.slice(0, EVIDENCE_CONTEXT_CHARS) })),
+        tools: [EVIDENCE_TOOL],
+        ...reasoningSettings("low"),
+      }),
+      signal: AbortSignal.timeout(EVIDENCE_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      await response.body?.cancel().catch(() => undefined);
+      return NO_PLAN;
+    }
+    return readEvidencePlan((await response.json() as { content?: unknown }).content);
+  };
+
+  // Search step: one provider search, then keep only results from the trusted
+  // list. The provider does not enforce a domain restriction itself.
+  const searchTrustedSources = async (wanted: boolean) => {
+    if (!wanted || !substantive) return [];
+    const response = await fetch(MINIMAX_UPSTREAM, {
+      method: "POST",
+      headers: upstreamHeaders,
+      body: JSON.stringify({
+        model: MINIMAX_MODEL,
+        max_tokens: SEARCH_MAX_TOKENS,
+        stream: false,
+        system: SEARCH_STEP_SYSTEM,
+        messages: [{ role: "user", content: question.slice(0, SEARCH_MAX_QUESTION_CHARS) }],
+        tools: [{ type: "web_search_20250305", name: WEB_SEARCH_TOOL_NAME }],
+        ...reasoningSettings("low"),
+      }),
+      signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      await response.body?.cancel().catch(() => undefined);
+      return [];
+    }
+    return selectTrustedResults((await response.json() as { content?: unknown }).content);
+  };
+
+  // A question that needs a ruling is answered from trusted sources, whether
+  // or not the client asked for a search. When the wording already shows
+  // that, the search starts at once, alongside the evidence step.
+  const searchEarly = webSearchRequested || RULING_QUESTION.test(question);
+  const earlySearch = searchTrustedSources(searchEarly).catch(() => []);
+  const [plan, quran] = await Promise.all([
+    planEvidence().catch(() => NO_PLAN),
+    loadQuran(denoRuntime.env.get("QURAN_DATA_URL")),
+  ]);
+  const [hadith, webResults] = await Promise.all([
+    gatherHadith(plan.hadithQueries),
+    searchEarly ? earlySearch : searchTrustedSources(plan.needsSources).catch(() => []),
+  ]);
+  const verses = gatherVerses(quran, plan.quranReferences);
+
+  const guardContext = {
+    quran,
+    hadith,
+    // The app's own library excerpts arrive in the system prompt; together
+    // with the trusted web excerpts they are the only other quotable text.
+    trustedTexts: [systemText, ...webResults.map((result) => result.excerpt)],
+    sourceUrls: webResults.map((result) => result.url),
+    userTexts: boundedMessages.messages.filter((message) => message.role === "user").slice(-2).map((message) => message.content),
+  };
+  const serverBlocks = [
+    webResults.length > 0 ? buildTrustedResultsBlock(webResults) : "",
+    buildEvidenceBlock(hadith, verses),
+  ];
+
+  // Every reply is cleaned and verified before it reaches the reader. A reply
+  // that is not usable Arabic is regenerated once; if that fails too, the
+  // reader gets a plain message instead of fragments.
+  const finalize = async (rawText: string): Promise<string> => {
+    if (isUsableReply(rawText)) return finalizeReply(rawText, new ReplyGuard(guardContext));
     try {
-      const searchResponse = await fetch(MINIMAX_UPSTREAM, {
+      const retry = await fetch(MINIMAX_UPSTREAM, {
         method: "POST",
         headers: upstreamHeaders,
-        body: JSON.stringify({
-          model: MINIMAX_MODEL,
-          max_tokens: SEARCH_MAX_TOKENS,
-          stream: false,
-          system: SEARCH_STEP_SYSTEM,
-          messages: [{ role: "user", content: question.slice(0, SEARCH_MAX_QUESTION_CHARS) }],
-          tools: [{ type: "web_search_20250305", name: WEB_SEARCH_TOOL_NAME }],
-          ...reasoningSettings("low"),
-        }),
-        signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
+        body: JSON.stringify({ ...buildUpstreamBody([...serverBlocks, RETRY_INSTRUCTION]), stream: false, tools: undefined }),
+        signal: AbortSignal.timeout(RETRY_TIMEOUT_MS),
       });
-      if (searchResponse.ok) {
-        const searchResult = await searchResponse.json() as { content?: unknown };
-        const trusted = selectTrustedResults(searchResult.content);
-        if (trusted.length > 0) trustedResultsBlock = buildTrustedResultsBlock(trusted);
+      if (retry.ok) {
+        const content = (await retry.json() as { content?: unknown }).content;
+        const text = Array.isArray(content)
+          ? content.map((block) => ((block as { type?: unknown })?.type === "text" ? String((block as { text?: unknown }).text ?? "") : "")).join("")
+          : "";
+        if (text.trim() && isUsableReply(text)) return finalizeReply(text, new ReplyGuard(guardContext));
       } else {
-        await searchResponse.body?.cancel().catch(() => undefined);
+        await retry.body?.cancel().catch(() => undefined);
       }
     } catch {
-      trustedResultsBlock = "";
+      // fall through to the plain message
     }
-  }
+    return UNAVAILABLE_REPLY;
+  };
 
   const upstreamSignal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
   let upstream: Response;
@@ -370,7 +476,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     upstream = await fetch(MINIMAX_UPSTREAM, {
       method: "POST",
       headers: upstreamHeaders,
-      body: JSON.stringify(buildUpstreamBody(trustedResultsBlock)),
+      body: JSON.stringify(buildUpstreamBody(serverBlocks)),
       signal: upstreamSignal,
     });
   } catch {
@@ -378,8 +484,21 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   }
 
   const headers = new Headers(companionCorsHeaders(req));
-  const contentType = upstream.headers.get("content-type");
+  const contentType = upstream.headers.get("content-type") ?? "";
   if (contentType) headers.set("Content-Type", contentType);
   headers.set("Cache-Control", "no-store");
+  if (!upstream.ok || !upstream.body) return new Response(upstream.body, { status: upstream.status, headers });
+
+  // Every reply passes through the guard before it reaches the reader.
+  if (contentType.includes("text/event-stream")) {
+    return new Response(guardSseStream(upstream.body, finalize), { status: upstream.status, headers });
+  }
+  if (contentType.includes("application/json")) {
+    try {
+      return new Response(JSON.stringify(await guardMessage(await upstream.json(), finalize)), { status: upstream.status, headers });
+    } catch {
+      return jsonError(req, "model service unavailable", 502);
+    }
+  }
   return new Response(upstream.body, { status: upstream.status, headers });
 });
