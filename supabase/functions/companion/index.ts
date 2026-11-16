@@ -6,13 +6,14 @@
  * here if attempted. The client SDK points its base URL at this function; the
  * function injects the upstream key, applies CORS, and streams SSE through.
  *
- * Only an explicit set of request fields is forwarded. Generation settings and
- * the web-search configuration are owned by the server, so a direct caller
- * cannot widen them.
+ * Only an explicit set of request fields is forwarded, and generation settings
+ * are owned by the server. When a client asks for web search, the function
+ * runs the search itself and gives the model only results from the trusted
+ * source list.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { companionCorsHeaders } from "./cors.ts";
-import { TRUSTED_SOURCE_DOMAINS, WEB_SEARCH_SYSTEM_RULES } from "./sources.ts";
+import { SEARCH_STEP_SYSTEM, buildTrustedResultsBlock, selectTrustedResults } from "./sources.ts";
 
 const COMPANION_TOOL_NAMES = new Set(["next_step", "cite", "search_library", "create_reminder"]);
 const MAX_SYSTEM_CHARS = 20_000;
@@ -20,20 +21,27 @@ const MAX_MESSAGES = 16;
 const MAX_HISTORY_CHARS = 48_000;
 const MAX_LATEST_USER_MESSAGE_CHARS = 8_000;
 
-const MINIMAX_MODEL = "MiniMax-M3.1-Flash";
+const MINIMAX_MODEL: string = "MiniMax-M3.1-Flash";
 const MINIMAX_UPSTREAM = "https://api.minimax.io/anthropic/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
 
 // This model always reasons before answering, and reasoning tokens count
 // toward max_tokens. The floor keeps a small client value from ending a reply
-// before any visible text; the effort level keeps reasoning proportionate.
+// before any visible text. Measured against the live service, "low" effort
+// answered in about a quarter of the time of "medium" with cleaner Arabic,
+// and "high" exceeded the request timeout.
 const MAX_TOKENS_CAP = 8192;
 const MIN_MAX_TOKENS = 4096;
-const REASONING_EFFORT = "medium";
+const REASONING_EFFORT = "low";
 // The quota functions accept at most this many output tokens per reservation.
 const MAX_RESERVED_OUTPUT_TOKENS = 4096;
 const WEB_SEARCH_TOOL_NAME = "web_search";
-const WEB_SEARCH_MAX_USES = 2;
+// The search step runs before the answer and must not hold it up for long.
+const SEARCH_TIMEOUT_MS = 20_000;
+const SEARCH_MAX_TOKENS = 2048;
+const SEARCH_MAX_QUESTION_CHARS = 600;
+// Greetings and one-word messages are never worth a search.
+const SEARCH_MIN_QUESTION_CHARS = 15;
 const MAX_BODY_BYTES = 256 * 1024;
 const UPSTREAM_TIMEOUT_MS = 60_000;
 const WINDOW_MS = 60_000;
@@ -41,6 +49,13 @@ const MAX_REQ_PER_WINDOW = 24;
 const MAX_ANON_REQ_PER_WINDOW = 5;
 const MAX_TRACKED_CLIENTS = 4096;
 const limiter = new Map<string, { count: number; startAt: number }>();
+
+/** The two supported models take different reasoning controls. */
+function reasoningSettings(effort: string): Record<string, unknown> {
+  return MINIMAX_MODEL === "MiniMax-M3.1-Flash"
+    ? { output_config: { effort } }
+    : {};
+}
 
 type CompanionTextMessage = { role: "user" | "assistant"; content: string };
 type BoundedMessagesResult =
@@ -249,20 +264,14 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   const reservedOutputTokens = Math.min(maxOutputTokens, MAX_RESERVED_OUTPUT_TOKENS);
 
   // Rebuild the upstream request from known fields only. The app ships one
-  // model; whatever a caller names is replaced with it.
-  const buildUpstreamBody = (withWebSearch: boolean): Record<string, unknown> => {
-    const tools = withWebSearch
-      ? [...clientTools, {
-        type: "web_search_20250305",
-        name: WEB_SEARCH_TOOL_NAME,
-        max_uses: WEB_SEARCH_MAX_USES,
-        allowed_domains: TRUSTED_SOURCE_DOMAINS,
-      }]
-      : clientTools;
-    const system = withWebSearch
+  // model; whatever a caller names is replaced with it. The provider's own
+  // search tool is never handed to the answering call: its results are
+  // unfiltered, so the search runs as a separate step below.
+  const buildUpstreamBody = (trustedResultsBlock: string): Record<string, unknown> => {
+    const system = trustedResultsBlock
       ? [
         ...(Array.isArray(body.system) ? body.system : [{ type: "text", text: systemText }]),
-        { type: "text", text: WEB_SEARCH_SYSTEM_RULES },
+        { type: "text", text: trustedResultsBlock },
       ]
       : body.system;
     return {
@@ -271,8 +280,8 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
       stream: body.stream === true,
       system,
       messages: boundedMessages.messages,
-      ...(tools.length > 0 ? { tools } : {}),
-      output_config: { effort: REASONING_EFFORT },
+      ...(clientTools.length > 0 ? { tools: clientTools } : {}),
+      ...reasoningSettings(REASONING_EFFORT),
     };
   };
 
@@ -317,27 +326,53 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   if (reservation.error) return jsonError(req, "usage quota unavailable", 503);
   if (reservation.data !== true) return jsonError(req, "usage limit reached — try again later", 429);
 
+  const upstreamHeaders = {
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    "anthropic-version": ANTHROPIC_VERSION,
+  };
+
+  // Search step: one provider search, then keep only results from the trusted
+  // list. Any failure here simply means the answer is written without them.
+  let trustedResultsBlock = "";
+  const question = boundedMessages.messages[boundedMessages.messages.length - 1]?.content.trim() ?? "";
+  if (webSearchRequested && question.length >= SEARCH_MIN_QUESTION_CHARS) {
+    try {
+      const searchResponse = await fetch(MINIMAX_UPSTREAM, {
+        method: "POST",
+        headers: upstreamHeaders,
+        body: JSON.stringify({
+          model: MINIMAX_MODEL,
+          max_tokens: SEARCH_MAX_TOKENS,
+          stream: false,
+          system: SEARCH_STEP_SYSTEM,
+          messages: [{ role: "user", content: question.slice(0, SEARCH_MAX_QUESTION_CHARS) }],
+          tools: [{ type: "web_search_20250305", name: WEB_SEARCH_TOOL_NAME }],
+          ...reasoningSettings("low"),
+        }),
+        signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
+      });
+      if (searchResponse.ok) {
+        const searchResult = await searchResponse.json() as { content?: unknown };
+        const trusted = selectTrustedResults(searchResult.content);
+        if (trusted.length > 0) trustedResultsBlock = buildTrustedResultsBlock(trusted);
+      } else {
+        await searchResponse.body?.cancel().catch(() => undefined);
+      }
+    } catch {
+      trustedResultsBlock = "";
+    }
+  }
+
   const upstreamSignal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
-  const callUpstream = (withWebSearch: boolean): Promise<Response> =>
-    fetch(MINIMAX_UPSTREAM, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": ANTHROPIC_VERSION,
-      },
-      body: JSON.stringify(buildUpstreamBody(withWebSearch)),
-      signal: upstreamSignal,
-    });
   let upstream: Response;
   try {
-    upstream = await callUpstream(webSearchRequested);
-    // If the provider rejects the restricted search configuration, answer
-    // from the app's own library rather than search without the restriction.
-    if (webSearchRequested && upstream.status === 400) {
-      await upstream.body?.cancel().catch(() => undefined);
-      upstream = await callUpstream(false);
-    }
+    upstream = await fetch(MINIMAX_UPSTREAM, {
+      method: "POST",
+      headers: upstreamHeaders,
+      body: JSON.stringify(buildUpstreamBody(trustedResultsBlock)),
+      signal: upstreamSignal,
+    });
   } catch {
     return jsonError(req, upstreamSignal.aborted ? "model request timed out" : "model service unavailable", upstreamSignal.aborted ? 504 : 502);
   }

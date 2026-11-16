@@ -1099,8 +1099,12 @@ export async function streamCompanionReply(
     if (abortSignal && !abortSignal.aborted) abortSignal.addEventListener("abort", onAbort, { once: true });
 
     let finalMsg: Awaited<ReturnType<typeof run>>;
+    // Search the trusted sources only when the app's own library has little
+    // to offer for this question, or the user asks for a source outright.
+    const wantsWebSearch = retrieval.passages.length < 2
+      || /مصدر|مصادر|دليل|تحق[َّ]?ق|ابحث|فتوى/.test(lastUser?.content ?? "");
     try {
-      finalMsg = await run(true);
+      finalMsg = await run(wantsWebSearch);
     } catch (err) {
       // A server that predates web search rejects the tool before producing
       // any output; ask again without it rather than fail the question.
