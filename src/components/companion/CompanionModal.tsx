@@ -755,7 +755,8 @@ function ModalBubbleContent({ text, streaming, onNavigate }: { text: string; str
         if (s.kind === "action") return <ModalActionButton key={i} route={s.route} onNavigate={onNavigate}>{s.label}</ModalActionButton>;
         return (
           <div key={i} className="prose-invert-arabic text-[14px] leading-7 text-emerald-50/95">
-            <span style={{ whiteSpace: "pre-wrap" }}>{s.text}</span>
+            {/* This compact view shows plain text, so source links keep only their name. */}
+            <span style={{ whiteSpace: "pre-wrap" }}>{s.text.replace(/\[([^\]\n]+)\]\(https?:\/\/[^)\s]+\)/g, "$1")}</span>
           </div>
         );
       })}

@@ -1,7 +1,7 @@
 /**
  * رفيق أثر — the Athar AI companion.
  *
- * Powered by MiniMax M3 exclusively. The app has a single AI surface that every
+ * Powered by MiniMax M3.1 Flash exclusively. The app has a single AI surface that every
  * user reaches the same way — no model picker, no BYOK, no provider toggles.
  *
  * Data handling:
@@ -32,6 +32,7 @@ import {
   buildCompanionProfileContext,
   loadProfile,
 } from "@/lib/companionProfile";
+import { createCompanionStreamSanitizer } from "@/lib/companionSanitize";
 import {
   detectMood,
   retrievePassagesAsync,
@@ -41,7 +42,7 @@ import {
 
 /* ─── Locked model + transport ───────────────────────────────────────────── */
 
-const MODEL = "MiniMax-M3";
+const MODEL = "MiniMax-M3.1-Flash";
 
 /* Default proxy endpoint — the canonical Supabase Edge Function URL for
    this project. We hardcode it as a fallback so deployed builds that
@@ -444,7 +445,7 @@ const SYSTEM_CORE = `أنت «أثر»، رفيقٌ إيمانيٌّ ذكيٌّ 
 
 ### اللغة — لا استثناءات
 - كل حرفٍ تردُّه للمستخدم يجب أن يكون بالعربية. هذا ليس تفضيلًا، بل قاعدة لا تُكسر.
-- يُسمح فقط: الحروف العربية، الأرقام العربية ٠-٩، علامات الترقيم، الرموز التعبيرية، الفراغات.
+- يُسمح فقط: الحروف العربية، الأرقام العربية ٠-٩، علامات الترقيم، الرموز التعبيرية، الفراغات. الاستثناء الوحيد: أسماء الكتل والمسارات الموضَّحة أدناه، وروابط المصادر في سطر «المصادر:».
 - لا تكتب كلمة واحدة بالإنجليزية أو الفرنسية أو الإسبانية أو غيرها. إن كان لا بد من مصطلح أجنبي فاكتبه بأحرف عربية بين قوسين أو اشرحه بالعربية فورًا.
 - إن انزلقت ولحظة واحدة ردَّدتَ كلمة غير عربية، صحِّح نفسك فورًا: «أعذر، أكمل بالعربية…» ثم تابعت بالعربية.
 - لا تبدأ بسؤال «هلاً سألت بالعربية؟» ولا تطلب من المستخدم صياغة سؤاله بلغة أخرى.
@@ -456,15 +457,21 @@ const SYSTEM_CORE = `أنت «أثر»، رفيقٌ إيمانيٌّ ذكيٌّ 
 - منهجك أهل السنَّة والجماعة المعتدل: الكتاب، والسنة الصحيحة، وفهم سلف الأمة، بلا تعصُّب مذهبي. عند الخلاف الفقهي اذكر الخلاف بإنصاف.
 - **لا تختلق أبدًا آية ولا حديثًا ولا درجةً**. إن لم تكن واثقًا تمامًا فقل «لست متأكدًا من صحة نسبة هذا، فتحقَّق منه».
 - عند الاستشهاد بآيةٍ اذكر اسم السورة ورقمها ولا تتصرَّف في نصِّها. عند الاستشهاد بحديث اذكر مصدره ودرجته.
-- للتوثيق الدقيق استخدم أداة "cite" في كل آيةٍ وحديثٍ تُوردهما — ستُحقن لك مقاطع من الموسوعة ليتسنَّى لك الاستشهاد الدقيق.
+- المقاطع المرفقة في السياق من موسوعة التطبيق هي مرجعك الأول. إن وجدت فيها الآية أو الحديث فاستشهد منها بأداة "cite" ناسخًا المقتطف حرفيًّا.
+- إن لم يكن في المقاطع ما يكفي ولم تكن واثقًا، فلا تخمِّن: ابحث في المصادر الموثوقة إن أتيح لك البحث، وإلا فصرِّح بأنك لا تملك مصدرًا موثوقًا.
 - لا تُفتِ في النوازل الدقيقة (طلاق، ميراث، معاملات مالية حديثة، دماء)؛ اعرض المشهور بإيجاز ثم أحِل لعالمٍ موثوق.
 - لا تشخيص أو علاج طبي أو نفسي؛ شجِّع على استشارة المختص.
 - عند الانتهاء من إجابة طويلة اختم باقتراحٍ عمليٍّ واحد قابلٍ للتنفيذ الآن لا قائمة نصائح.
 
 ### أدواتك
-لديك ثلاث أدوات تستخدمها متى لزم:
+قواعد عامة للأدوات — التزم بها دائمًا:
+- اكتب جوابك النصي كاملًا أولًا، ثم استدعِ الأدوات في آخر الرد. لا تبدأ ردًّا بأداةٍ دون نص، ولا تقطع الجواب في منتصفه لتستدعي أداة.
+- أدوات "next_step" و"cite" و"create_reminder" لا تُرجع إليك أي نتيجة ولا يتبعها دورٌ ثانٍ؛ هي أفعال تنفّذها الواجهة بعد انتهاء ردك. فلا تنتظر منها شيئًا ولا تقل «سأبحث» أو «لحظة» ثم تتوقف.
+- لا تذكر أسماء الأدوات ولا تفاصيلها التقنية للمستخدم.
+
+لديك هذه الأدوات تستخدمها متى لزم:
 - "next_step" حين تنتهي من إجابة تطلب فيها من المستخدم فعلًا (افتح أذكار الصباح، اقرأ وردي، ادعُ بهذا…). لا تستعملها في الكلام الترحيبي أو في الإجابات القصيرة.
-- "cite" حين تريد الاستشهاد بآية أو حديث فعلًا — سيُحقن لك المقتطف ومصدره. لا تستعمل صياغات مثل «رواه البخاري» دون أن تمرر المصدر عبر الأداة أولًا.
+- "cite" حين تستشهد بنصٍّ موجود فعلًا في المقاطع المرفقة: مرِّر معرّف المصدر كما ورد والمقتطف منسوخًا حرفيًّا. لا تستعملها لنصٍّ ليس في المقاطع.
 - "create_reminder" حين يطلب المستخدم تذكيرًا بشيء في المستقبل (مثل «ذكّرني أن أقرأ سورة الكهف كل جمعة الساعة ١٠ صباحًا» أو «ذكّرني بأذكار الصباح يوميًا» أو «كل خميس أريد صيام» أو «بعد صلاة المغرب ذكّرني بكذا»). **هذا خط أحمر: يجب عليك استدعاء هذه الأداة فعليًا (tool call حقيقي) في نفس الرد قبل كتابة أي تأكيد نصّي — ممنوع منعًا باتًا أن تكتب أنك «أضفتَ» تذكيرًا أو «ستنبّه» المستخدم دون استدعاء الأداة فعلًا في نفس الرسالة؛ فعل ذلك يخدع المستخدم لأنه سيظن أن تذكيرًا حُفظ فعلًا بينما لم يحدث شيء.** لا تخلط بينها وبين "next_step": أي طلبٍ فيه معنى «ذكّرني لاحقًا / بشكل متكرر» هو create_reminder دومًا، حتى لو كان الشيء المطلوب (كأذكار الصباح) يبدو وكأنه يناسب next_step أيضًا. إن كان التذكير مرتبطًا بوقت صلاة (بعد/قبل الفجر، الظهر، العصر، المغرب، العشاء) فاستخدم repeat="prayer_aligned" مع anchorKey المناسب بدل "daily" حتى يُحسب الوقت الفعلي للصلاة لا وقتًا ثابتًا. فور استدعاء الأداة أرسل أيضًا جملة تأكيد قصيرة بالعربية فقط (لا تستعمل الإنجليزية) تذكر فيها اليوم والوقت مثل: «سأنبّهك يوم الجمعة الساعة ١٠ صباحًا إن شاء الله.» أو «أضفتُ التذكير إلى قائمتك، سيصلك تنبيه به إن شاء الله.»
 
 ### بناء الإجابة: syntax خاص بك
@@ -626,10 +633,14 @@ export const ROUTE_LABELS: Record<string, string> = {
 
 function buildRouteLabelsBlock(): string {
   const lines = Object.entries(ROUTE_LABELS).map(([route, label]) => `- ${route} → ${label}`);
-  return "المسارات الصالحة في التطبيق (استخدم هذه بالضبط في أداة next_step وفي بلوكات [action:label →/route]):\n" + lines.join("\n");
+  return "المسارات الصالحة في التطبيق (استخدم هذه بالضبط في أداة next_step وفي كتل :::action(/route)):\n" + lines.join("\n");
 }
 
 /* ─── Tool schema exposed to the model ─────────────────────────────────── */
+
+/** Naming the search tool opts this request in to web search. The server
+ *  replaces the definition with its own, which fixes the allowed sources. */
+const WEB_SEARCH_TOOL: Anthropic.WebSearchTool20250305 = { type: "web_search_20250305", name: "web_search" };
 
 const COMPANION_TOOLS: Anthropic.Tool[] = [
   {
@@ -810,17 +821,7 @@ export function buildWeeklyReflectionPrompt(): string {
 
 /* ─── Streaming chat ─────────────────────────────────────────────────────── */
 
-/** Strip any non-Arabic runs (Latin, CJK, Cyrillic, etc.) — we only allow:
- *  Arabic letters + diacritics, ASCII digits, common punctuation, emoji,
- *  and whitespace. Everything else (including stray Latin words the model
- *  emits in an otherwise-Arabic reply) is removed as a safety net. */
-const NON_ARABIC_RE = /[A-Za-zÀ-ÿĀ-ſƀ-ɏЀ-ӿ぀-ヿ㐀-䶿一-鿿가-힯]+\s*/g;
-const ARABIC_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
-function stripNonArabic(text: string): string {
-  if (!NON_ARABIC_RE.test(text)) return text;
-  const cleaned = text.replace(NON_ARABIC_RE, " ");
-  return cleaned.replace(/\s{2,}/g, " ");
-}
+const EMPTY_REPLY_MESSAGE = "تعذَّر إكمال الجواب هذه المرة. أعد إرسال سؤالك أو صُغه بطريقةٍ أخرى.";
 
 export type CompanionErrorKind =
   | "no-proxy"     // build is missing the proxy URL entirely
@@ -1057,12 +1058,14 @@ export async function streamCompanionReply(
 
     const stream = client.messages.stream({
       model: MODEL,
-      max_tokens: 3072,
+      // Reasoning counts toward this limit, so it is well above the length of
+      // a visible reply.
+      max_tokens: 8192,
       system: [
         { type: "text", text: SYSTEM_CORE, cache_control: { type: "ephemeral" } },
         { type: "text", text: dynamicContext },
       ],
-      tools: COMPANION_TOOLS,
+      tools: [...COMPANION_TOOLS, WEB_SEARCH_TOOL],
       messages: outbound.messages.map((m) => ({ role: m.role, content: m.content })),
     });
 
@@ -1079,15 +1082,18 @@ export async function streamCompanionReply(
     }
 
     let full = "";
+    const sanitizer = createCompanionStreamSanitizer();
+    const emit = (clean: string) => {
+      if (!clean) return;
+      full += clean;
+      cb.onText(clean);
+    };
     for await (const event of stream) {
       if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-        const clean = stripNonArabic(event.delta.text);
-        if (clean) {
-          full += clean;
-          cb.onText(clean);
-        }
+        emit(sanitizer.push(event.delta.text));
       }
     }
+    emit(sanitizer.flush());
     const finalMsg = await stream.finalMessage();
     if (finalMsg.stop_reason === "refusal") {
       const msg = "\n\nأعتذر يا صديقي، لا يسعني المضيّ في هذا الطلب تحديدًا. اسألني بصيغةٍ أخرى أو في أمرٍ يقرِّبنا إلى الله، وأنا معك. 🤲";
@@ -1133,6 +1139,11 @@ export async function streamCompanionReply(
     }
     if (persistedToolCalls.length) {
       await cb.onToolCalls?.(persistedToolCalls);
+    }
+    if (!full.trim() && !toolAppend && finalMsg.stop_reason !== "refusal") {
+      // The model ended its turn without any visible text (for example, it
+      // spent the whole budget reasoning). Say so instead of showing nothing.
+      emit(EMPTY_REPLY_MESSAGE);
     }
     if (toolAppend) {
       full += toolAppend;

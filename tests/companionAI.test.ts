@@ -51,8 +51,8 @@ describe("Companion AI — readiness", () => {
     expect(r.reason).toBeUndefined();
   });
 
-  it("exposes the locked MiniMax-M3 model name", () => {
-    expect(COMPANION_MODEL).toBe("MiniMax-M3");
+  it("exposes the locked model name", () => {
+    expect(COMPANION_MODEL).toBe("MiniMax-M3.1-Flash");
   });
 });
 

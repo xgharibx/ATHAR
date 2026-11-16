@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
+import { isTrustedSourceUrl } from "@/lib/companionSources";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import Fuse from "fuse.js";
@@ -1696,7 +1697,9 @@ const markdownComponents: Components = {
         </Link>
       );
     }
-    if (!/^https?:\/\//i.test(to) && !/^mailto:/i.test(to)) return <span>{children}</span>;
+    // Only links to the trusted source list are clickable; anything else the
+    // model writes is shown as plain text.
+    if (!isTrustedSourceUrl(to)) return <span>{children}</span>;
     return (
       <a href={to} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">
         {children}

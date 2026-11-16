@@ -1,14 +1,18 @@
 /**
- * companion — Anthropic-Messages-API proxy for رفيق أثر.
+ * companion — Messages-API proxy for رفيق أثر.
  *
- * Routes requests to MiniMax only. The app has a single AI surface for users;
- * provider/model selection is not exposed client-side and is not honored here
- * if attempted. The Anthropic SDK points baseURL at this function; we inject
- * the upstream key server-side, solve browser CORS for the upstream (which
- * sends none), and stream SSE straight through.
+ * Routes requests to MiniMax only. The app has a single assistant surface;
+ * provider and model selection are not exposed to clients and are not honoured
+ * here if attempted. The client SDK points its base URL at this function; the
+ * function injects the upstream key, applies CORS, and streams SSE through.
+ *
+ * Only an explicit set of request fields is forwarded. Generation settings and
+ * the web-search configuration are owned by the server, so a direct caller
+ * cannot widen them.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { companionCorsHeaders } from "./cors.ts";
+import { TRUSTED_SOURCE_DOMAINS, WEB_SEARCH_SYSTEM_RULES } from "./sources.ts";
 
 const COMPANION_TOOL_NAMES = new Set(["next_step", "cite", "search_library", "create_reminder"]);
 const MAX_SYSTEM_CHARS = 20_000;
@@ -16,10 +20,20 @@ const MAX_MESSAGES = 16;
 const MAX_HISTORY_CHARS = 48_000;
 const MAX_LATEST_USER_MESSAGE_CHARS = 8_000;
 
-const MINIMAX_MODEL = "MiniMax-M3";
+const MINIMAX_MODEL = "MiniMax-M3.1-Flash";
 const MINIMAX_UPSTREAM = "https://api.minimax.io/anthropic/v1/messages";
+const ANTHROPIC_VERSION = "2023-06-01";
 
-const MAX_TOKENS_CAP = 4096;
+// This model always reasons before answering, and reasoning tokens count
+// toward max_tokens. The floor keeps a small client value from ending a reply
+// before any visible text; the effort level keeps reasoning proportionate.
+const MAX_TOKENS_CAP = 8192;
+const MIN_MAX_TOKENS = 4096;
+const REASONING_EFFORT = "medium";
+// The quota functions accept at most this many output tokens per reservation.
+const MAX_RESERVED_OUTPUT_TOKENS = 4096;
+const WEB_SEARCH_TOOL_NAME = "web_search";
+const WEB_SEARCH_MAX_USES = 2;
 const MAX_BODY_BYTES = 256 * 1024;
 const UPSTREAM_TIMEOUT_MS = 60_000;
 const WINDOW_MS = 60_000;
@@ -204,32 +218,63 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
       ? jsonError(req, "latest message too large", 413)
       : jsonError(req, "invalid messages", 400);
   }
-  body = { ...body, messages: boundedMessages.messages };
 
   // Only the tool names Athar itself defines are allowed through — blocks
-  // arbitrary tool-schema injection from a direct caller.
+  // arbitrary tool-schema injection from a direct caller. A client opts in to
+  // web search by naming the tool; its definition is always replaced with the
+  // server's own, so the allowed sources cannot be changed by a caller.
+  const clientTools: unknown[] = [];
+  let webSearchRequested = false;
   if (body.tools !== undefined) {
-    if (!Array.isArray(body.tools) || body.tools.some((t) => {
-      const name = t && typeof t === "object" ? (t as { name?: unknown }).name : undefined;
-      return typeof name !== "string" || !COMPANION_TOOL_NAMES.has(name);
-    })) {
-      return jsonError(req, "unrecognized tool definition", 400);
+    if (!Array.isArray(body.tools)) return jsonError(req, "unrecognized tool definition", 400);
+    for (const tool of body.tools) {
+      const name = tool && typeof tool === "object" ? (tool as { name?: unknown }).name : undefined;
+      if (name === WEB_SEARCH_TOOL_NAME) {
+        webSearchRequested = true;
+        continue;
+      }
+      if (typeof name !== "string" || !COMPANION_TOOL_NAMES.has(name)) {
+        return jsonError(req, "unrecognized tool definition", 400);
+      }
+      clientTools.push(tool);
     }
   }
 
-  // The app ships only one model. Anything else is treated as the locked model
-  // — there's no UI to pick anything else, and no reason to honor it if hit.
-  const requested = String(body.model ?? "");
-  if (requested && requested !== MINIMAX_MODEL) {
-    body = { ...body, model: MINIMAX_MODEL };
-  }
   if (body.max_tokens !== undefined && (
     typeof body.max_tokens !== "number" || !Number.isSafeInteger(body.max_tokens) || body.max_tokens < 1
   )) return jsonError(req, "invalid max_tokens", 400);
   const maxOutputTokens = typeof body.max_tokens === "number"
-    ? Math.min(body.max_tokens, MAX_TOKENS_CAP)
+    ? Math.max(MIN_MAX_TOKENS, Math.min(body.max_tokens, MAX_TOKENS_CAP))
     : MAX_TOKENS_CAP;
-  body = { ...body, max_tokens: maxOutputTokens };
+  const reservedOutputTokens = Math.min(maxOutputTokens, MAX_RESERVED_OUTPUT_TOKENS);
+
+  // Rebuild the upstream request from known fields only. The app ships one
+  // model; whatever a caller names is replaced with it.
+  const buildUpstreamBody = (withWebSearch: boolean): Record<string, unknown> => {
+    const tools = withWebSearch
+      ? [...clientTools, {
+        type: "web_search_20250305",
+        name: WEB_SEARCH_TOOL_NAME,
+        max_uses: WEB_SEARCH_MAX_USES,
+        allowed_domains: TRUSTED_SOURCE_DOMAINS,
+      }]
+      : clientTools;
+    const system = withWebSearch
+      ? [
+        ...(Array.isArray(body.system) ? body.system : [{ type: "text", text: systemText }]),
+        { type: "text", text: WEB_SEARCH_SYSTEM_RULES },
+      ]
+      : body.system;
+    return {
+      model: MINIMAX_MODEL,
+      max_tokens: maxOutputTokens,
+      stream: body.stream === true,
+      system,
+      messages: boundedMessages.messages,
+      ...(tools.length > 0 ? { tools } : {}),
+      output_config: { effort: REASONING_EFFORT },
+    };
+  };
 
   const apiKey = denoRuntime.env.get("MINIMAX_API_KEY");
   if (!apiKey) return jsonError(req, "no server key configured", 503);
@@ -259,12 +304,12 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     reservation = guestRequest
       ? await supabase.rpc("reserve_companion_anonymous_request", {
         p_request_bytes: boundedBody.byteLength,
-        p_max_output_tokens: maxOutputTokens,
+        p_max_output_tokens: reservedOutputTokens,
       })
       : await supabase.rpc("reserve_companion_request", {
         p_user_id: userId,
         p_request_bytes: boundedBody.byteLength,
-        p_max_output_tokens: maxOutputTokens,
+        p_max_output_tokens: reservedOutputTokens,
       });
   } catch {
     return jsonError(req, "usage quota unavailable", 503);
@@ -273,18 +318,26 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   if (reservation.data !== true) return jsonError(req, "usage limit reached — try again later", 429);
 
   const upstreamSignal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
-  let upstream: Response;
-  try {
-    upstream = await fetch(MINIMAX_UPSTREAM, {
+  const callUpstream = (withWebSearch: boolean): Promise<Response> =>
+    fetch(MINIMAX_UPSTREAM, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
-        "anthropic-version": req.headers.get("anthropic-version") ?? "2023-06-01",
+        "anthropic-version": ANTHROPIC_VERSION,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(buildUpstreamBody(withWebSearch)),
       signal: upstreamSignal,
     });
+  let upstream: Response;
+  try {
+    upstream = await callUpstream(webSearchRequested);
+    // If the provider rejects the restricted search configuration, answer
+    // from the app's own library rather than search without the restriction.
+    if (webSearchRequested && upstream.status === 400) {
+      await upstream.body?.cancel().catch(() => undefined);
+      upstream = await callUpstream(false);
+    }
   } catch {
     return jsonError(req, upstreamSignal.aborted ? "model request timed out" : "model service unavailable", upstreamSignal.aborted ? 504 : 502);
   }
