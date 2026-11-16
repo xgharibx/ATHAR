@@ -2,9 +2,11 @@
 
 This policy explains how the Athar name and logo may and may not be used. It applies to everyone, including people who can read this repository.
 
+The Athar marks are owned by Amr Abdel-Aziz Gharib ("Athar"), the owner and publisher of the Athar application.
+
 ## The Athar marks
 
-The following are trademarks of Athar, in every script, spelling and stylisation:
+The following are trademarks of Amr Abdel-Aziz Gharib, in every script, spelling and stylisation:
 
 | Mark | Kind |
 |---|---|

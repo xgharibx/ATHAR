@@ -92,8 +92,8 @@ Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.m
 
 ## Licence and trademarks
 
-Copyright © 2026 Athar. All rights reserved.
+Copyright © 2026 Amr Abdel-Aziz Gharib. All rights reserved.
 
 - **Code and design:** proprietary; see [LICENSE](LICENSE).
-- **Name and logo:** "Athar", "ATHAR", "أثر" and the Athar logo are trademarks of Athar; see [TRADEMARKS.md](TRADEMARKS.md).
+- **Name and logo:** "Athar", "ATHAR", "أثر" and the Athar logo are trademarks of Amr Abdel-Aziz Gharib; see [TRADEMARKS.md](TRADEMARKS.md).
 - **Religious texts and third-party components:** belong to their owners; see [NOTICE.md](NOTICE.md).

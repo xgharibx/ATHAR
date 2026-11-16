@@ -1,12 +1,14 @@
 ATHAR PROPRIETARY SOFTWARE LICENSE
 
-Copyright (c) 2026 Athar (https://www.athark.org). All rights reserved.
+Copyright (c) 2026 Amr Abdel-Aziz Gharib. All rights reserved.
+Athar: https://www.athark.org
 
-"Athar", "ATHAR" and "أثر" are trademarks of Athar. See TRADEMARKS.md.
+"Athar", "ATHAR" and "أثر" are trademarks of Amr Abdel-Aziz Gharib. See TRADEMARKS.md.
 
 1. DEFINITIONS
 
-   "Athar" means the owner of the Athar application and of this repository.
+   "Athar" means Amr Abdel-Aziz Gharib, the owner and publisher of the Athar
+   application and of this repository, and his successors and assigns.
    "Software" means everything in this repository and in the published Athar
    applications that is owned by Athar: source and object code, user interface
    and visual design, text written for the application, graphics, icons,
@@ -99,7 +101,15 @@ Copyright (c) 2026 Athar (https://www.athark.org). All rights reserved.
    law, including injunctive relief and damages. Sections 2, 5, 6, 9 and 10
    survive termination.
 
-12. GENERAL
+12. GOVERNING LAW
+
+   This licence is governed by the laws of the Arab Republic of Egypt. The
+   competent courts of the Arab Republic of Egypt have jurisdiction over any
+   dispute arising from it. This does not limit Athar's right to seek urgent
+   relief against infringement before the courts of any country where the
+   infringement occurs.
+
+13. GENERAL
 
    If any provision of this licence is held unenforceable, the remaining
    provisions stay in effect. A failure by Athar to enforce a provision is not
