@@ -11,6 +11,7 @@ Security fixes are applied to the latest released version of the web app and of 
 Please report suspected vulnerabilities privately. Do not open a public issue, pull request or discussion.
 
 - Email: <amr@gharib.dev> with the subject `ATHAR security report`
+- Machine-readable contact details: <https://www.athark.org/.well-known/security.txt>
 
 Include, where possible:
 

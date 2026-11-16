@@ -11,6 +11,7 @@
     "vite.config.ts",
     "capacitor.config.ts",
     "tools/build/vendorChunks.ts",
-    "tools/build/hardenHtml.ts"
+    "tools/build/hardenHtml.ts",
+    "tools/build/thirdPartyNotices.ts"
   ]
 }
