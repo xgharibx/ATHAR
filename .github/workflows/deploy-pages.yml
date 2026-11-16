@@ -46,14 +46,12 @@ jobs:
           VITE_LEADERBOARD_ENDPOINT: ${{ secrets.VITE_LEADERBOARD_ENDPOINT }}
           VITE_LEADERBOARD_ANON_KEY: ${{ secrets.VITE_LEADERBOARD_ANON_KEY }}
           VITE_COMPANION_PROXY_URL: ${{ secrets.VITE_COMPANION_PROXY_URL }}
-          # The project URL is not sensitive and is already public in
-          # docs/ACCOUNTS_SETUP.md, so it defaults here and only the key needs
-          # to be configured. Set the secret to point a fork at another project.
+          # The project URL is not sensitive (it ships in every client build),
+          # so it defaults here and only the key needs to be configured.
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://ojstudhmcypoqfnwugbf.supabase.co' }}
           # Publishable/anon key. Safe in a client bundle by design — row-level
           # security, not key secrecy, is what protects user data. It lives in a
-          # secret anyway because this repo is public and committing it should
-          # be a deliberate choice, not a side effect of a workflow edit.
+          # secret so that rotating it does not require a code change.
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_ICON_REV: ${{ github.sha }}
           VITE_RUNTIME_VERSION: ${{ github.sha }}
