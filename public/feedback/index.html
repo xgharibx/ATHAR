@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#153d2d"/>
+<meta name="description" content="شاركنا رأيك في أثر بسرية، دون الحاجة إلى كتابة اسمك"/>
+<title>صوتك يترك أثرًا | أثر</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color-scheme:light;background:#f7f8f3;color:#183729}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at top,#e7efe4 0%,#f7f8f3 55%);padding:35px 16px 65px}
+main{max-width:650px;margin:auto}header{text-align:center;margin-bottom:29px}header img{width:80px;height:80px;object-fit:contain}h1{font-size:clamp(28px,5vw,38px);margin:10px 0 7px;color:#1c4632}header p{color:#536c5e;font-size:15px;line-height:1.9;margin:0 auto;max-width:500px}
+.panel{background:#fff;border:1px solid #dbe6da;box-shadow:0 16px 56px #12492b12;border-radius:25px;padding:clamp(19px,5vw,35px)}
+fieldset{border:0;margin:0;padding:0}legend,.field-label{font-weight:750;display:block;font-size:15px;margin-bottom:11px}
+.options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:25px}
+.choice{position:relative;cursor:pointer}.choice input{position:absolute;opacity:0;width:1px;height:1px}
+.choice span{display:flex;min-height:58px;align-items:center;justify-content:center;gap:8px;background:#f8faf7;border:1px solid #dbe6da;border-radius:13px;text-align:center;padding:9px;font-size:14px}
+.choice input:checked+span{background:#e6f1e9;border-color:#276d46;color:#164c32;font-weight:700}
+.choice input:focus-visible+span{outline:3px solid #7eb997;outline-offset:2px}
+.field{margin-bottom:22px}input:not([type=radio]),textarea{width:100%;font:inherit;border:1px solid #d5dfd7;background:#fafcf9;border-radius:13px;padding:13px 15px;color:#183729;outline:none}
+input:focus,textarea:focus{border-color:#39865a;box-shadow:0 0 0 3px #39865a22}textarea{min-height:156px;resize:vertical;line-height:1.8}
+.hint{color:#6b796f;font-size:12px;margin:7px 0 0;line-height:1.8}
+.note{background:#f1f5ef;border-radius:13px;padding:12px 15px;font-size:13px;line-height:1.9;color:#4b6754;margin-bottom:23px}
+button{width:100%;background:#20583b;border:0;color:white;border-radius:14px;padding:16px;font:inherit;font-size:16px;font-weight:800;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}button:not(:disabled):hover{background:#16452f}
+#status{min-height:25px;font-size:14px;margin:14px 0 0;text-align:center;color:#a23b31}
+#status.success{color:#1d6d40}
+footer{text-align:center;margin-top:24px;color:#768578;font-size:13px}
+footer a{color:#246747;text-decoration:none}.trap{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+@media(max-width:430px){.options{grid-template-columns:1fr 1fr}.choice span{min-height:65px;font-size:13px}}
+@media(prefers-reduced-motion:no-preference){button,.choice span{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<a href="/" aria-label="العودة إلى تطبيق أثر"><img src="/logo.svg" alt="أثر"/></a>
+<h1>صوتك يترك أثرًا</h1>
+<p>هذه مساحتك لتخبرنا بما واجهته، وما تتمنى أن نجعله أفضل. نقرأ رسالتك باهتمام، وذكر اسمك اختياري تمامًا.</p>
+</header>
+<section class="panel" aria-label="إرسال رسالة إلى أثر">
+<form id="form">
+<fieldset><legend>تحب تقول لنا إيه؟</legend>
+<div class="options">
+<label class="choice"><input type="radio" name="category" value="problem" required/><span>🛠️ مشكلة واجهتني</span></label>
+<label class="choice"><input type="radio" name="category" value="feature"/><span>✨ ميزة أتمناها</span></label>
+<label class="choice"><input type="radio" name="category" value="suggestion" checked/><span>🌿 اقتراح لتطوير أثر</span></label>
+<label class="choice"><input type="radio" name="category" value="content"/><span>📖 ملاحظة على المحتوى</span></label>
+<label class="choice"><input type="radio" name="category" value="other"/><span>💌 رسالة أخرى</span></label>
+</div></fieldset>
+<div class="field"><label class="field-label" for="message">رسالتك <span aria-hidden="true">*</span></label>
+<textarea id="message" name="message" required minlength="10" maxlength="3000" placeholder="اكتب اللي في بالك بكل راحة ووضوح…"></textarea>
+<p class="hint">على الأقل 10 أحرف، وبحد أقصى 3000 حرف.</p></div>
+<div class="field"><label class="field-label" for="sender_name">اسمك (اختياري)</label>
+<input id="sender_name" name="sender_name" maxlength="80" autocomplete="off" placeholder="اتركه فارغًا لو تحب تفضل مجهولًا"/></div>
+<div class="field"><label class="field-label" for="contact">وسيلة للرد عليك (اختياري)</label>
+<input id="contact" name="contact" maxlength="160" autocomplete="off" placeholder="بريد إلكتروني أو أي وسيلة مناسبة"/>
+<p class="hint">لو محتاج رد، اكتب وسيلة تواصل. مش مطلوب رقمك أو تسجيل دخول.</p></div>
+<div class="trap" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"/></div>
+<div class="note">🔒 رسالتك خاصة ولن تُنشر للآخرين. تُحفظ لدى خدمة الاستضافة لأغراض المراجعة، ولا يلزمك تقديم بيانات شخصية. تجنّب إرسال كلمات المرور أو أي معلومات شديدة الحساسية.</div>
+<button type="submit" id="send">إرسال الرسالة</button>
+<p id="status" role="status" aria-live="polite"></p>
+</form></section>
+<footer>أثر — همسة تطمئن قلبك وتترك أثرًا<br/><a href="/">العودة إلى أثر</a></footer>
+</main>
+<script>
+(function(){
+const form=document.getElementById("form"),button=document.getElementById("send"),status=document.getElementById("status");
+form.addEventListener("submit",async function(e){
+e.preventDefault();if(!form.reportValidity())return;
+button.disabled=true;button.textContent="جارٍ إرسال الرسالة…";status.textContent="";status.className="";
+const data=new FormData(form);
+try{
+const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+let response;
+try{response=await fetch("https://ojstudhmcypoqfnwugbf.supabase.co/functions/v1/athar-feedback",{
+method:"POST",headers:{"Content-Type":"application/json"},signal:controller.signal,
+body:JSON.stringify({category:data.get("category"),message:data.get("message"),sender_name:data.get("sender_name"),contact:data.get("contact"),website:data.get("website")})
+});}finally{clearTimeout(timer)}
+const result=await response.json().catch(()=>({}));
+if(!response.ok){
+if(response.status===429)throw Error("وصلت للحد اليومي من الرسائل. جرّب بكرة إن شاء الله.");
+throw Error("تعذّر إرسال الرسالة الآن. يُرجى المحاولة لاحقًا.");
+}
+status.className="success";status.textContent="وصلتنا رسالتك بنجاح 🌿 جزاك الله خيرًا على اهتمامك بأثر.";
+form.reset();
+}catch(error){status.textContent=error instanceof Error?error.message:"تعذّر الإرسال."}
+finally{button.disabled=false;button.textContent="إرسال الرسالة"}
+});
+})();
+</script>
+</body></html>
