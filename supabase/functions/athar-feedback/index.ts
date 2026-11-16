@@ -8,9 +8,14 @@ const cors = {
 };
 const encoder = new TextEncoder();
 
-function reply(status: number, body: Record<string, unknown>) {
+function corsFor(request: Request) {
+  const origin = request.headers.get("origin");
+  return { ...cors, "Access-Control-Allow-Origin": origin === "https://athark.org" ? origin : "https://www.athark.org" };
+}
+
+function reply(status: number, body: Record<string, unknown>, request: Request) {
   return new Response(JSON.stringify(body), {
-    status, headers: { ...cors, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+    status, headers: { ...corsFor(request), "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
 }
 
@@ -29,25 +34,25 @@ async function fingerprint(request: Request, secret: string) {
 }
 
 Deno.serve(async (request) => {
-  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-  if (request.method !== "POST") return reply(405, { error: "METHOD_NOT_ALLOWED" });
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsFor(request) });
+  if (request.method !== "POST") return reply(405, { error: "METHOD_NOT_ALLOWED" }, request);
   const origin = request.headers.get("origin");
   if (origin && origin !== "https://www.athark.org" && origin !== "https://athark.org") {
-    return reply(403, { error: "ORIGIN_NOT_ALLOWED" });
+    return reply(403, { error: "ORIGIN_NOT_ALLOWED" }, request);
   }
   const length = Number(request.headers.get("content-length") || "0");
-  if (length > 16000) return reply(413, { error: "TOO_LARGE" });
+  if (length > 16000) return reply(413, { error: "TOO_LARGE" }, request);
   let payload: Record<string, unknown>;
   try {
     const raw = await request.text();
-    if (raw.length > 12000) return reply(413, { error: "TOO_LARGE" });
+    if (raw.length > 12000) return reply(413, { error: "TOO_LARGE" }, request);
     payload = JSON.parse(raw);
     if (!payload || Array.isArray(payload) || typeof payload !== "object") throw Error("bad payload");
   } catch {
-    return reply(400, { error: "INVALID_REQUEST" });
+    return reply(400, { error: "INVALID_REQUEST" }, request);
   }
   // Honeypot silently accepts bots without writing messages.
-  if (typeof payload.website === "string" && payload.website.length > 0) return reply(200, { ok: true });
+  if (typeof payload.website === "string" && payload.website.length > 0) return reply(200, { ok: true }, request);
   const category = payload.category;
   const message = payload.message;
   const senderName = payload.sender_name;
@@ -56,11 +61,11 @@ Deno.serve(async (request) => {
       typeof message !== "string" || message.trim().length < 10 || message.trim().length > 3000 ||
       (senderName != null && (typeof senderName !== "string" || senderName.length > 80)) ||
       (contact != null && (typeof contact !== "string" || contact.length > 160))) {
-    return reply(400, { error: "INVALID_FIELDS" });
+    return reply(400, { error: "INVALID_FIELDS" }, request);
   }
   const url = Deno.env.get("SUPABASE_URL");
   const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !secret) return reply(503, { error: "NOT_CONFIGURED" });
+  if (!url || !secret) return reply(503, { error: "NOT_CONFIGURED" }, request);
   try {
     const db = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     const { error } = await db.rpc("athar_submit_feedback", {
@@ -71,12 +76,12 @@ Deno.serve(async (request) => {
       p_fingerprint: await fingerprint(request, secret),
     });
     if (error) {
-      if (error.message?.includes("FEEDBACK_RATE_LIMIT")) return reply(429, { error: "RATE_LIMIT" });
+      if (error.message?.includes("FEEDBACK_RATE_LIMIT")) return reply(429, { error: "RATE_LIMIT" }, request);
       console.error("feedback storage failed", error.code);
-      return reply(503, { error: "STORAGE_UNAVAILABLE" });
+      return reply(503, { error: "STORAGE_UNAVAILABLE" }, request);
     }
-    return reply(201, { ok: true });
+    return reply(201, { ok: true }, request);
   } catch {
-    return reply(503, { error: "STORAGE_UNAVAILABLE" });
+    return reply(503, { error: "STORAGE_UNAVAILABLE" }, request);
   }
 });
