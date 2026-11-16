@@ -87,7 +87,8 @@ const navigationHandler = new NetworkFirst({
   ],
 });
 const navigationRoute = new NavigationRoute(navigationHandler, {
-  denylist: [/^\/api\//, /^\/__/],
+  // Let GitHub Pages serve the independent feedback HTML instead of the cached SPA shell.
+  denylist: [/^\/api\//, /^\/__/, /^\/feedback(?:\/|$)/],
 });
 registerRoute(navigationRoute);
 setCatchHandler(async ({ request }) => {

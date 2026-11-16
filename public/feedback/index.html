@@ -30,6 +30,7 @@ footer{text-align:center;margin-top:24px;color:#768578;font-size:13px}
 footer a{color:#246747;text-decoration:none}.trap{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
 @media(max-width:430px){.options{grid-template-columns:1fr 1fr}.choice span{min-height:65px;font-size:13px}}
 @media(prefers-reduced-motion:no-preference){button,.choice span{transition:background .15s,border-color .15s}}
+.share-consent{border:1px solid #d9e4d9;border-radius:16px;padding:13px 15px;margin:0 0 22px}.share-consent legend{font-size:14px;font-weight:700;padding:0 6px}.share-option{display:flex;gap:10px;align-items:start;font-size:13px;margin:13px 0;line-height:1.8;cursor:pointer}.share-option input{margin-top:6px;accent-color:#246340}.share-consent .hint{margin:3px 0 10px}
 </style>
 </head>
 <body>
@@ -57,6 +58,11 @@ footer a{color:#246747;text-decoration:none}.trap{position:absolute;left:-9999px
 <div class="field"><label class="field-label" for="contact">وسيلة للرد عليك (اختياري)</label>
 <input id="contact" name="contact" maxlength="160" autocomplete="off" placeholder="بريد إلكتروني أو أي وسيلة مناسبة"/>
 <p class="hint">لو محتاج رد، اكتب وسيلة تواصل. مش مطلوب رقمك أو تسجيل دخول.</p></div>
+<fieldset class="share-consent"><legend>هل تسمح لنا بمشاركة رسالتك في جروب واتساب الخاص بأثر؟</legend>
+<p class="hint">موافقتك اختيارية، والمشاركة ليست تلقائية. نراجع الرسالة ونخفي الأسماء ووسائل التواصل قبل أي مشاركة.</p>
+<label class="share-option"><input type="radio" name="share_consent" value="no" checked/> لا، أفضل أن تظل رسالتي خاصة.</label>
+<label class="share-option"><input type="radio" name="share_consent" value="yes"/> نعم، أوافق على مشاركة نص الرسالة بعد مراجعته وإخفاء هويتي.</label>
+</fieldset>
 <div class="trap" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"/></div>
 <div class="note">🔒 رسالتك خاصة ولن تُنشر للآخرين. تُحفظ لدى خدمة الاستضافة لأغراض المراجعة، ولا يلزمك تقديم بيانات شخصية. تجنّب إرسال كلمات المرور أو أي معلومات شديدة الحساسية.</div>
 <button type="submit" id="send">إرسال الرسالة</button>
@@ -76,7 +82,7 @@ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),1
 let response;
 try{response=await fetch("https://ojstudhmcypoqfnwugbf.supabase.co/functions/v1/athar-feedback",{
 method:"POST",headers:{"Content-Type":"application/json"},signal:controller.signal,
-body:JSON.stringify({category:data.get("category"),message:data.get("message"),sender_name:data.get("sender_name"),contact:data.get("contact"),website:data.get("website")})
+body:JSON.stringify({category:data.get("category"),message:data.get("message"),sender_name:data.get("sender_name"),contact:data.get("contact"),share_consent:data.get("share_consent")==="yes",website:data.get("website")})
 });}finally{clearTimeout(timer)}
 const result=await response.json().catch(()=>({}));
 if(!response.ok){
