@@ -78,6 +78,7 @@
     "dexie": "^4.4.2",
     "framer-motion": "^14.14.0",
     "fuse.js": "^7.0.0",
+    "geomagnetism": "0.2.0",
     "gsap": "^3.12.5",
     "howler": "^2.2.4",
     "html-to-image": "^1.11.11",

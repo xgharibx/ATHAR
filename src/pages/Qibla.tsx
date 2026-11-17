@@ -5,12 +5,15 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { nextAlignment, useCompassHeading } from "@/hooks/useCompassHeading";
+import { readCachedPrayerCoordinates } from "@/lib/prayerLocation";
+import { vibrate } from "@/lib/haptics";
+import { useNoorStore } from "@/store/noorStore";
 
 // Kaaba coordinates (Adhan.js authoritative values)
 const MECCA_LAT = 21.4225241;
 const MECCA_LNG = 39.8261818;
 const COMPASS_ACCURACY_WARN_AT = 15;
-const HEADING_SMOOTHING = 0.28;
 
 function toRad(deg: number) {
   return (deg * Math.PI) / 180;
@@ -28,17 +31,6 @@ function calcQiblaBearing(userLat: number, userLng: number): number {
   return ((bearing % 360) + 360) % 360;
 }
 
-function normalizeDegrees(deg: number): number {
-  return ((deg % 360) + 360) % 360;
-}
-
-function smoothHeading(prev: number | null, next: number): number {
-  if (prev == null) return normalizeDegrees(next);
-  const delta = ((next - prev + 540) % 360) - 180;
-  return normalizeDegrees(prev + delta * HEADING_SMOOTHING);
-}
-
-
 function formatBearing(deg: number) {
   const dirs = ["شمال", "شمال شرق", "شرق", "جنوب شرق", "جنوب", "جنوب غرب", "غرب", "شمال غرب"];
   const idx = Math.round(deg / 45) % 8;
@@ -48,29 +40,22 @@ function formatBearing(deg: number) {
 type GeoState =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "ok"; lat: number; lng: number; accuracy: number }
+  /** `accuracy` is in metres for a fresh GPS fix, null for the location saved for prayer times. */
+  | { status: "ok"; lat: number; lng: number; accuracy: number | null }
   | { status: "error"; code: number; msg: string }
   | { status: "unsupported" };
 
-type OrientationState = {
-  heading: number | null; // degrees TRUE north (both sources already give true north)
-  accuracy: number | null;
-  supported: boolean;
-  permissionGranted: boolean;
-  tiltWarning: boolean; // phone held too upright for reliable flat compass reading
-};
+/** Start from the location already saved for prayer times, so the needle points at once. */
+function initialGeo(): GeoState {
+  const saved = readCachedPrayerCoordinates();
+  return saved ? { status: "ok", lat: saved.lat, lng: saved.lng, accuracy: null } : { status: "idle" };
+}
 
 export function QiblaPage() {
   const navigate = useNavigate();
-  const [geo, setGeo] = React.useState<GeoState>({ status: "idle" });
-  const [orient, setOrient] = React.useState<OrientationState>({
-    heading: null,
-    accuracy: null,
-    supported: false,
-    permissionGranted: false,
-    tiltWarning: false,
-  });
-  const compassHeadingRef = React.useRef<number | null>(null);
+  const [geo, setGeo] = React.useState<GeoState>(initialGeo);
+  const enableHaptics = useNoorStore((s) => s.prefs.enableHaptics);
+  const hapticStrength = useNoorStore((s) => s.prefs.hapticStrength);
 
   // Request geolocation
   const requestGeo = React.useCallback(() => {
@@ -95,104 +80,36 @@ export function QiblaPage() {
     );
   }, []);
 
-  // On Android / non-iOS, deviceorientation fires without any permission prompt.
-  // Pre-grant permissionGranted so the button never shows and the listener works immediately.
+  const location = React.useMemo(
+    () => (geo.status === "ok" ? { lat: geo.lat, lng: geo.lng } : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [geo.status === "ok" ? geo.lat : null, geo.status === "ok" ? geo.lng : null],
+  );
+  const compass = useCompassHeading(location);
+
+  const qiblaBearing = location ? calcQiblaBearing(location.lat, location.lng) : null;
+
+  // The needle turns by the continuous heading, so crossing north never
+  // makes it spin the long way round.
+  const needleRotation = qiblaBearing == null
+    ? 0
+    : compass.continuousHeading == null
+      ? qiblaBearing // No compass: the needle shows the bearing from north.
+      : qiblaBearing - compass.continuousHeading;
+
+  const hasOrientation = compass.heading != null;
+  const compassAccuracy = compass.accuracy;
+  const hasPoorCompassAccuracy = compass.calibrationNeeded || (compassAccuracy != null && compassAccuracy > COMPASS_ACCURACY_WARN_AT);
+  const hasTiltWarning = compass.tiltWarning;
+
+  // Facing the Qibla: highlight it and give one gentle tap on arrival.
+  const [aligned, setAligned] = React.useState(false);
+  const nextAligned = nextAlignment(aligned, compass.heading, qiblaBearing);
+  if (nextAligned !== aligned) setAligned(nextAligned);
   React.useEffect(() => {
-    const w = globalThis as typeof globalThis & {
-      DeviceOrientationEvent?: { requestPermission?: () => Promise<string> };
-    };
-    if (typeof w.DeviceOrientationEvent?.requestPermission !== "function") {
-      setOrient((o) => ({ ...o, permissionGranted: true }));
-    }
-  }, []);
-
-  // Request device orientation
-  const requestOrientation = React.useCallback(async () => {
-    const w = globalThis as typeof globalThis & {
-      DeviceOrientationEvent?: {
-        requestPermission?: () => Promise<string>;
-      };
-    };
-    // iOS 13+ requires permission
-    if (typeof w.DeviceOrientationEvent?.requestPermission === "function") {
-      try {
-        const perm = await w.DeviceOrientationEvent.requestPermission();
-        if (perm !== "granted") {
-          setOrient((o) => ({ ...o, permissionGranted: false }));
-          return;
-        }
-        setOrient((o) => ({ ...o, permissionGranted: true }));
-      } catch {
-        setOrient((o) => ({ ...o, permissionGranted: false }));
-        return;
-      }
-    } else {
-      setOrient((o) => ({ ...o, permissionGranted: true }));
-    }
-  }, []);
-
-  // Listen to device orientation — cross-platform compass strategy:
-  //   • deviceorientationabsolute (Chrome/Android): alpha is CCW from True North (W3C spec, Chrome 50+)
-  //     → CW bearing = (360 - alpha). Both sources output True North — no declination correction needed.
-  //   • deviceorientation + webkitCompassHeading (iOS): CW from True North (already corrected)
-  //   • Non-absolute alpha without webkitCompassHeading: IGNORED (relative to initial, not useful)
-  React.useEffect(() => {
-    const gotAbsolute = { current: false };
-
-    const handleAbsolute = (e: DeviceOrientationEvent) => {
-      if (e.alpha == null) return;
-      gotAbsolute.current = true;
-      // W3C spec / Chrome 50+: alpha is COUNTER-clockwise from True North → convert to CW bearing
-      const heading = ((360 - e.alpha) % 360 + 360) % 360;
-      const smoothed = smoothHeading(compassHeadingRef.current, heading);
-      compassHeadingRef.current = smoothed;
-      // Warn if phone is too upright (|beta| > 65°) — gimbal lock degrades accuracy
-      const tiltWarning = Math.abs(e.beta ?? 0) > 65;
-      setOrient((o) => ({ ...o, heading: smoothed, accuracy: null, supported: true, tiltWarning }));
-    };
-
-    const handleOrientation = (e: DeviceOrientationEvent) => {
-      if (gotAbsolute.current) return; // absolute events take priority
-      const w = e as DeviceOrientationEvent & { webkitCompassHeading?: number; webkitCompassAccuracy?: number };
-      let heading: number | null = null;
-      let accuracy: number | null = null;
-      if (w.webkitCompassHeading != null) {
-        // iOS: webkitCompassHeading is CW degrees from True North
-        heading = w.webkitCompassHeading;
-        accuracy = typeof w.webkitCompassAccuracy === "number" ? Math.abs(w.webkitCompassAccuracy) : null;
-      }
-      // Non-absolute alpha without webkitCompassHeading is relative — skip it
-      if (heading == null) return;
-      const smoothed = smoothHeading(compassHeadingRef.current, heading);
-      compassHeadingRef.current = smoothed;
-      setOrient((o) => ({ ...o, heading: smoothed, accuracy, supported: true }));
-    };
-
-    globalThis.addEventListener("deviceorientationabsolute", handleAbsolute, true);
-    globalThis.addEventListener("deviceorientation", handleOrientation, true);
-    return () => {
-      globalThis.removeEventListener("deviceorientationabsolute", handleAbsolute, true);
-      globalThis.removeEventListener("deviceorientation", handleOrientation, true);
-    };
-  }, []);
-
-  const qiblaBearing =
-    geo.status === "ok" ? calcQiblaBearing(geo.lat, geo.lng) : null;
-
-  // Compass needle rotation: needle points to qibla direction
-  // Both heading sources (deviceorientationabsolute + webkitCompassHeading) are already True North.
-  // No declination correction needed — just: needle = (qiblaBearing - trueHeading + 360) % 360
-  const needleRotation = React.useMemo(() => {
-    if (qiblaBearing == null) return 0;
-    const heading = orient.heading;
-    if (heading == null) return qiblaBearing; // Static: assume phone pointing North
-    return ((qiblaBearing - heading) % 360 + 360) % 360;
-  }, [qiblaBearing, orient.heading]);
-
-  const hasOrientation = orient.supported && orient.heading != null;
-  const compassAccuracy = orient.accuracy;
-  const hasPoorCompassAccuracy = compassAccuracy != null && compassAccuracy > COMPASS_ACCURACY_WARN_AT;
-  const hasTiltWarning = orient.tiltWarning;
+    if (!aligned || !enableHaptics || hapticStrength === "off") return;
+    vibrate(hapticStrength === "light" ? 10 : hapticStrength === "strong" ? 40 : 22);
+  }, [aligned, enableHaptics, hapticStrength]);
 
   return (
     <div className="p-4 md:p-5 stack-y-4 max-w-lg mx-auto" dir="rtl">
@@ -216,7 +133,15 @@ export function QiblaPage() {
             {/* Animated CSS for spinning outer ring */}
             <style>{`@keyframes compassRingSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
             {/* Background circle */}
-            <circle cx="120" cy="120" r="118" fill="none" stroke="var(--stroke)" strokeWidth="2" />
+            <circle
+              cx="120"
+              cy="120"
+              r="118"
+              fill="none"
+              stroke={aligned ? "var(--accent)" : "var(--stroke)"}
+              strokeWidth={aligned ? 4 : 2}
+              style={{ transition: "stroke 0.2s ease, stroke-width 0.2s ease" }}
+            />
             {/* Slowly spinning outer decorative ring */}
             <g style={{ transformOrigin: "120px 120px", animation: "compassRingSpin 25s linear infinite" }}>
               <circle cx="120" cy="120" r="115" fill="none" stroke="var(--stroke)" strokeWidth="1.5" strokeDasharray="4 8" />
@@ -250,8 +175,11 @@ export function QiblaPage() {
 
             {/* Qibla needle — animated */}
             <g
-              transform={`rotate(${needleRotation}, 120, 120)`}
-              style={{ transition: hasOrientation ? "transform 0.3s ease-out" : "none" }}
+              style={{
+                transform: `rotate(${needleRotation}deg)`,
+                transformOrigin: "120px 120px",
+                transition: hasOrientation ? "transform 0.12s linear" : "none",
+              }}
             >
               {/* Kaaba icon at tip */}
               <polygon
@@ -289,6 +217,11 @@ export function QiblaPage() {
                 {" "}{(geo as { status: "ok"; lat: number; lng: number }).lng >= 0 ? (geo as { status: "ok"; lat: number; lng: number }).lng.toFixed(4) + "°E" : Math.abs((geo as { status: "ok"; lat: number; lng: number }).lng).toFixed(4) + "°W"}
               </div>
             )}
+            {aligned && (
+              <div role="status" className="text-sm font-semibold text-(--accent) mt-1">
+                أنت تواجه القبلة الآن
+              </div>
+            )}
             {hasTiltWarning && hasOrientation && (
               <div className="text-[11px] text-(--danger) opacity-80 mt-1">امسك الجهاز أفقياً للحصول على دقة أعلى</div>
             )}
@@ -301,12 +234,16 @@ export function QiblaPage() {
               <div className="flex flex-col items-center gap-1 text-xs text-(--accent) opacity-80 mt-1">
                 <div className="flex items-center justify-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-(--accent) animate-pulse" aria-hidden="true" />
-                  بوصلة نشطة
+                  بوصلة نشطة{compass.trueNorth ? " · مصحّحة للشمال الحقيقي" : ""}
                 </div>
                 {compassAccuracy != null && (
                   <div className={cn("text-[11px]", hasPoorCompassAccuracy ? "text-(--danger) opacity-90" : "opacity-65")}>
                     دقة البوصلة ±{Math.round(compassAccuracy)}°
-                    {hasPoorCompassAccuracy ? " · حرّك الجهاز بعيداً عن المعادن" : ""}
+                  </div>
+                )}
+                {hasPoorCompassAccuracy && (
+                  <div className="text-[11px] text-(--danger) opacity-90">
+                    حرّك الجهاز على شكل رقم ٨ وابتعد عن المعادن والأجهزة لمعايرة البوصلة
                   </div>
                 )}
               </div>
@@ -330,8 +267,8 @@ export function QiblaPage() {
         ) : null}
 
         {/* Orientation permission */}
-        {!orient.permissionGranted && !orient.supported && (
-          <Button variant="secondary" size="sm" onClick={() => void requestOrientation()}>
+        {compass.webPermissionNeeded && (
+          <Button variant="secondary" size="sm" onClick={() => void compass.requestWebPermission()}>
             <Compass size={15} aria-hidden="true" />
             تفعيل البوصلة
           </Button>
@@ -390,7 +327,9 @@ export function QiblaPage() {
             </div>
             <div className="flex gap-4">
               <div className="opacity-60">الدقة</div>
-              <div dir="ltr" className="font-mono font-medium">±{Math.round(geo.accuracy)}م</div>
+              <div dir="ltr" className="font-mono font-medium">
+                {geo.accuracy == null ? <span dir="rtl" className="font-sans">موقع مواقيت الصلاة</span> : `±${Math.round(geo.accuracy)}م`}
+              </div>
             </div>
             <Button variant="secondary" size="sm" className="mt-2" onClick={requestGeo}>
               <RefreshCw size={13} aria-hidden="true" />
@@ -404,9 +343,9 @@ export function QiblaPage() {
       <Card className="p-4 pr-24 md:pr-4 text-sm opacity-70 stack-y-1">
         <div className="font-semibold opacity-100 mb-2">كيفية الاستخدام</div>
         <p>١. امسك الجهاز أفقياً (موازياً للأرض) للحصول على أدق النتائج</p>
-        <p>٢. اضغط "تفعيل البوصلة" إن ظهر الزر (iOS يحتاج إذن صريح)</p>
+        <p>٢. اضغط "تفعيل البوصلة" إن ظهر الزر (المتصفح على iOS يحتاج إذنًا صريحًا)</p>
         <p>٣. رأس السهم يشير نحو الكعبة المشرفة</p>
-        <p>٤. دوِّر الجهاز حتى يصبح السهم مستقيماً للأعلى — فأنت تواجه القبلة</p>
+        <p>٤. دوِّر الجهاز حتى يصبح السهم مستقيماً للأعلى — يهتز الجهاز وتتلوّن الدائرة حين تواجه القبلة</p>
         <p>٥. إن كانت الدقة ضعيفة، حرّك الجهاز على شكل رقم ٨ لمعايرة البوصلة</p>
       </Card>
     </div>
