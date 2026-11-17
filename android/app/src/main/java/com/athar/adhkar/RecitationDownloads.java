@@ -1,0 +1,162 @@
+package com.athar.adhkar;
+
+import android.content.Context;
+import androidx.annotation.Nullable;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Recitation files saved for listening offline, as ordinary files in the
+ * app's private storage. (The web view's cache is cleared every time the app
+ * opens, so downloads saved there never survived.)
+ *
+ * A verse is stored under its URL path, e.g. Alafasy_128kbps/001001.mp3, and
+ * the oldest files are removed first when the total passes the budget.
+ */
+final class RecitationDownloads {
+
+    /** Largest single verse accepted; the longest verses are well under this. */
+    static final long MAX_FILE_BYTES = 8L * 1024 * 1024;
+
+    private RecitationDownloads() {}
+
+    static File root(Context context) {
+        return new File(context.getFilesDir(), "quran-audio");
+    }
+
+    /** Where a recitation URL is (or would be) saved; null for anything but a plain https file URL. */
+    @Nullable
+    static File fileFor(Context context, String url) {
+        try {
+            URL parsed = new URL(url);
+            if (!"https".equalsIgnoreCase(parsed.getProtocol())) return null;
+            String path = parsed.getPath();
+            if (path == null || path.isEmpty()) return null;
+            String[] segments = path.split("/");
+            // Keep the last two segments (reciter folder and file) under the host.
+            List<String> kept = new ArrayList<>();
+            for (int i = Math.max(0, segments.length - 2); i < segments.length; i++) {
+                String segment = segments[i];
+                if (segment.isEmpty()) continue;
+                if (!segment.matches("[A-Za-z0-9._-]+") || segment.equals(".") || segment.equals("..")) return null;
+                kept.add(segment);
+            }
+            if (kept.isEmpty()) return null;
+            File file = new File(root(context), parsed.getHost().toLowerCase());
+            for (String segment : kept) file = new File(file, segment);
+            return file;
+        } catch (IOException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    /** The saved copy of a verse, if there is a complete one. */
+    @Nullable
+    static File existing(Context context, String url) {
+        File file = fileFor(context, url);
+        return file != null && file.isFile() && file.length() > 0 ? file : null;
+    }
+
+    /** Save one verse. Returns true when it is on disk (already or now). */
+    static boolean save(Context context, String url) {
+        File target = fileFor(context, url);
+        if (target == null) return false;
+        if (target.isFile() && target.length() > 0) {
+            // Count it as recently wanted, so the budget keeps it.
+            target.setLastModified(System.currentTimeMillis());
+            return true;
+        }
+        File parent = target.getParentFile();
+        if (parent == null || (!parent.isDirectory() && !parent.mkdirs())) return false;
+        File partial = new File(parent, target.getName() + ".part");
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setConnectTimeout(15000);
+            connection.setReadTimeout(30000);
+            connection.setInstanceFollowRedirects(true);
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) return false;
+            long declared = connection.getContentLengthLong();
+            if (declared > MAX_FILE_BYTES) return false;
+            long written = 0;
+            try (InputStream in = connection.getInputStream(); OutputStream out = new FileOutputStream(partial)) {
+                byte[] buffer = new byte[64 * 1024];
+                int read;
+                while ((read = in.read(buffer)) != -1) {
+                    written += read;
+                    if (written > MAX_FILE_BYTES) throw new IOException("file too large");
+                    out.write(buffer, 0, read);
+                }
+            }
+            if (written == 0 || !partial.renameTo(target)) {
+                partial.delete();
+                return false;
+            }
+            return true;
+        } catch (IOException | RuntimeException e) {
+            partial.delete();
+            return false;
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+    }
+
+    /** Remove the oldest saved verses (except `keep`) until the total fits `maxBytes`. Returns how many were removed. */
+    static int enforceBudget(Context context, long maxBytes, Set<String> keep) {
+        List<File> files = new ArrayList<>();
+        collect(root(context), files);
+        long total = 0;
+        for (File file : files) total += file.length();
+        if (total <= maxBytes) return 0;
+        files.sort(Comparator.comparingLong(File::lastModified));
+        int removed = 0;
+        for (File file : files) {
+            if (total <= maxBytes) break;
+            if (keep.contains(file.getAbsolutePath())) continue;
+            long size = file.length();
+            if (file.delete()) {
+                total -= size;
+                removed++;
+            }
+        }
+        return removed;
+    }
+
+    private static void collect(File dir, List<File> out) {
+        File[] children = dir.listFiles();
+        if (children == null) return;
+        for (File child : children) {
+            if (child.isDirectory()) collect(child, out);
+            else if (child.getName().endsWith(".part")) child.delete();
+            else out.add(child);
+        }
+    }
+
+    static long totalBytes(Context context) {
+        List<File> files = new ArrayList<>();
+        collect(root(context), files);
+        long total = 0;
+        for (File file : files) total += file.length();
+        return total;
+    }
+
+    static boolean clear(Context context) {
+        return deleteTree(root(context));
+    }
+
+    private static boolean deleteTree(File file) {
+        File[] children = file.listFiles();
+        if (children != null) for (File child : Arrays.asList(children)) deleteTree(child);
+        return !file.exists() || file.delete();
+    }
+}
