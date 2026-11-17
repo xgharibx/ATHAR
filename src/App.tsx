@@ -7,8 +7,9 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncBridge";
 import { useNoorStore } from "@/store/noorStore";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
-import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
+import { getLocalDateKey, getNextIbadahBoundary, getNextLocalMidnight, shiftDateKey } from "@/lib/dayBoundaries";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { usePrayerLiveActivity } from "@/hooks/usePrayerLiveActivity";
 import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels, type PrayerNotificationDay } from "@/lib/reminders";
 import { syncCustomReminders } from "@/lib/reminderSync";
 import { CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT } from "@/lib/customReminderNotifications";
@@ -268,6 +269,15 @@ function AppContent() {
     prayerTimes.tomorrow?.data?.timings?.Maghrib,
     prayerTimes.tomorrow?.data?.timings?.Sunrise,
   ]);
+
+  // iOS: the next prayer as a Lock Screen and Dynamic Island countdown.
+  const liveActivityTodayKey = getLocalDateKey();
+  const liveActivityDays = React.useMemo(() => [
+    { dateISO: liveActivityTodayKey, timings: notificationPrayerTimings },
+    { dateISO: shiftDateKey(liveActivityTodayKey, 1), timings: tomorrowNotificationPrayerTimings },
+    ...(upcomingNotificationPrayerDays ?? []),
+  ], [liveActivityTodayKey, notificationPrayerTimings, tomorrowNotificationPrayerTimings, upcomingNotificationPrayerDays]);
+  usePrayerLiveActivity(reminders.prayerLiveActivity ?? false, liveActivityDays);
 
   // N6: Smart-reminder completion snapshot — lets reminders skip already-done azkar
   // and switch to a "finish what you started" nudge when partially complete.

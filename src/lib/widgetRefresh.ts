@@ -5,8 +5,9 @@
  * minimum). This bridges to the native WidgetRefreshPlugin so widgets update
  * the moment the app writes fresh data via @capacitor/preferences.
  *
- * Safe everywhere: no-ops on web and iOS (iOS widgets refresh via WidgetKit
- * timelines once the WidgetKit extension ships).
+ * On iOS the same call copies the data into the App Group the WidgetKit
+ * extension reads and reloads its timelines (WidgetRefreshPlugin.swift).
+ * No-op on the web.
  */
 import { Capacitor, registerPlugin } from "@capacitor/core";
 
@@ -17,7 +18,7 @@ type WidgetRefreshPlugin = {
 const WidgetRefresh = registerPlugin<WidgetRefreshPlugin>("WidgetRefresh");
 
 export async function refreshHomeWidgets(): Promise<void> {
-  if (Capacitor.getPlatform() !== "android") return;
+  if (!Capacitor.isNativePlatform()) return;
   try {
     await WidgetRefresh.refresh();
   } catch {

@@ -7,8 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C45654F4D15DBB810F0EDC1 /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */; };
 		185FCCCF943857665BB09FDD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 35281742DA46EB40310EDCB8 /* Foundation.framework */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
+		44295D741B785CFED93713C0 /* PrayerActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 275FA8C0A3494BAD1F058741 /* PrayerActivityPlugin.swift */; };
 		44594294AA8E7BE6C19E6A8A /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 9349BF7F4A89B845F3880B82 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -18,11 +20,13 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		50D0FF26EC625D95099D470B /* AtharWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 381C3C0056E75304760BD959 /* AtharWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6EFED682B60C1D97E4CD99D8 /* AtharWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B340E0473BDAA3AF7C2A77 /* AtharWidgets.swift */; };
+		A62F5D8330BB8E6F49B43C6A /* WidgetRefreshPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */; };
 		A7D84291C0A24D96A7A11001 /* AuthBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */; };
 		A7D84291C0A24D96A7A11002 /* ShareBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */; };
 		A7D84291C0A24D96A7A11003 /* AtharBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12003 /* AtharBridgeViewController.swift */; };
 		A7D84291C0A24D96A7A11004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12004 /* PrivacyInfo.xcprivacy */; };
 		A7D84291C0A24D96A7A11005 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12006 /* InfoPlist.strings */; };
+		C3A8C972A619C4FD7C74D5F7 /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */; };
 		F4A7B13E0D804E928F0C1001 /* adhan_ahmad_al_nafees.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2001 /* adhan_ahmad_al_nafees.caf */; };
 		F4A7B13E0D804E928F0C1002 /* birds.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2002 /* birds.caf */; };
 /* End PBXBuildFile section */
@@ -54,7 +58,9 @@
 /* Begin PBXFileReference section */
 		17B10A020A6515A15E2717EF /* debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		1C9D82B08E87261CC48FC478 /* App.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
+		275FA8C0A3494BAD1F058741 /* PrayerActivityPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerActivityPlugin.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
+		30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerActivityAttributes.swift; sourceTree = "<group>"; };
 		35281742DA46EB40310EDCB8 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		381C3C0056E75304760BD959 /* AtharWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AtharWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		46B340E0473BDAA3AF7C2A77 /* AtharWidgets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharWidgets.swift; sourceTree = "<group>"; };
@@ -71,6 +77,7 @@
 		A7D84291C0A24D96A7A12003 /* AtharBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtharBridgeViewController.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12004 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12005 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetRefreshPlugin.swift; sourceTree = "<group>"; };
 		DC241998B23C88977A89039F /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F4A7B13E0D804E928F0C2001 /* adhan_ahmad_al_nafees.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = adhan_ahmad_al_nafees.caf; sourceTree = "<group>"; };
 		F4A7B13E0D804E928F0C2002 /* birds.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = birds.caf; sourceTree = "<group>"; };
@@ -97,6 +104,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0C30020F28769FC5FE977C74 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */,
+			);
+			name = Shared;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		2D3950C38D16CB8BFB51AA1E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -113,6 +129,7 @@
 				17B10A020A6515A15E2717EF /* debug.xcconfig */,
 				2D3950C38D16CB8BFB51AA1E /* Frameworks */,
 				9B80049D9D5A8E0D01DB3E35 /* AtharWidgets */,
+				0C30020F28769FC5FE977C74 /* Shared */,
 			);
 			sourceTree = "<group>";
 		};
@@ -143,6 +160,8 @@
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
 				1C9D82B08E87261CC48FC478 /* App.entitlements */,
+				275FA8C0A3494BAD1F058741 /* PrayerActivityPlugin.swift */,
+				C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -292,6 +311,9 @@
 				A7D84291C0A24D96A7A11001 /* AuthBridgePlugin.swift in Sources */,
 				A7D84291C0A24D96A7A11002 /* ShareBridgePlugin.swift in Sources */,
 				A7D84291C0A24D96A7A11003 /* AtharBridgeViewController.swift in Sources */,
+				C3A8C972A619C4FD7C74D5F7 /* PrayerActivityAttributes.swift in Sources */,
+				44295D741B785CFED93713C0 /* PrayerActivityPlugin.swift in Sources */,
+				A62F5D8330BB8E6F49B43C6A /* WidgetRefreshPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,6 +322,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6EFED682B60C1D97E4CD99D8 /* AtharWidgets.swift in Sources */,
+				0C45654F4D15DBB810F0EDC1 /* PrayerActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -458,9 +481,12 @@
 				CURRENT_PROJECT_VERSION = 104;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 1.2.91;
-				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
+				OTHER_SWIFT_FLAGS = "$(inherited) -DDEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.athar.adhkar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -478,7 +504,10 @@
 				CURRENT_PROJECT_VERSION = 104;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 1.2.91;
 				PRODUCT_BUNDLE_IDENTIFIER = com.athar.adhkar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -498,7 +527,11 @@
 				CURRENT_PROJECT_VERSION = 104;
 				INFOPLIST_FILE = AtharWidgets/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
 				MARKETING_VERSION = 1.2.91;
 				PRODUCT_BUNDLE_IDENTIFIER = com.athar.adhkar.AtharWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -519,7 +552,11 @@
 				CURRENT_PROJECT_VERSION = 104;
 				INFOPLIST_FILE = AtharWidgets/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
 				MARKETING_VERSION = 1.2.91;
 				PRODUCT_BUNDLE_IDENTIFIER = com.athar.adhkar.AtharWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";

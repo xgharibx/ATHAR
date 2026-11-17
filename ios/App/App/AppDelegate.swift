@@ -35,16 +35,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillResignActive(_ application: UIApplication) {
         // The user may be heading to the home screen — hand the widgets fresh data.
-        mirrorWidgetDataToAppGroup()
+        Self.mirrorWidgetDataToAppGroup()
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
-        mirrorWidgetDataToAppGroup()
+        Self.mirrorWidgetDataToAppGroup()
     }
 
     /// Copies the web app's widget payloads into the shared App Group and asks
-    /// WidgetKit to re-render the AtharWidgets extension.
-    private func mirrorWidgetDataToAppGroup() {
+    /// WidgetKit to re-render the AtharWidgets extension. Also called by
+    /// WidgetRefreshPlugin whenever the web app writes new widget data.
+    static func mirrorWidgetDataToAppGroup() {
         guard let shared = UserDefaults(suiteName: AppDelegate.widgetAppGroup) else { return }
         let standard = UserDefaults.standard
         for key in AppDelegate.widgetKeys {

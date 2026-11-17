@@ -99,7 +99,6 @@ public class ShareBridgePlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject("invalid filename")
             return
         }
-        let title = call.getString("title") ?? "أثر"
 
         do {
             let directory = FileManager.default.temporaryDirectory
