@@ -126,7 +126,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 return
             }
             let script = "(function(){var r=document.querySelector('#root');if(!r||!r.firstChild)return 'wait';var p=\(json);if(location.pathname!==p){history.pushState({},'',p);window.dispatchEvent(new PopStateEvent('popstate'));}return 'ok';})()"
-            webView.evaluateJavascript(script) { result, _ in
+            webView.evaluateJavaScript(script) { result, _ in
                 if result as? String != "ok", attempt < 25 {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { deliverRoute(route, attempt: attempt + 1) }
                 }
