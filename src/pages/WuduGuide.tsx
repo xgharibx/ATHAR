@@ -40,7 +40,7 @@ export function WuduGuidePage() {
         <Card className="p-5 overflow-hidden relative">
           <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
           <div
-            className="absolute inset-0 bg-gradient-to-bl from-cyan-500/15 to-sky-400/10 pointer-events-none opacity-55"
+            className="absolute inset-0 bg-linear-to-bl from-cyan-500/15 to-sky-400/10 pointer-events-none opacity-55"
             style={{ borderRadius: "inherit" }}
           />
           <div className="relative">
@@ -49,7 +49,7 @@ export function WuduGuidePage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl flex-shrink-0"
+                className="mt-1 p-2 rounded-xl shrink-0"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -121,7 +121,7 @@ export function WuduGuidePage() {
       )}
 
       {/* Steps */}
-      <div className="px-4 mt-4 space-y-3" role="list" aria-label="خطوات الوضوء">
+      <div className="px-4 mt-4 stack-y-3" role="list" aria-label="خطوات الوضوء">
         {WUDU_STEPS.map((step) => {
           const isDone = done.has(step.id);
           return (
@@ -142,7 +142,7 @@ export function WuduGuidePage() {
               }}
             >
               {/* Check icon */}
-              <div className="mt-0.5 flex-shrink-0">
+              <div className="mt-0.5 shrink-0">
                 {isDone ? (
                   <CheckCircle2 size={22} style={{ color: "var(--ok, #3ddc97)" }} />
                 ) : (
@@ -157,7 +157,7 @@ export function WuduGuidePage() {
                     {step.title}
                   </span>
                   <span
-                    className="text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold flex-shrink-0"
+                    className="text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold shrink-0"
                     style={{ background: "var(--accent)", color: "var(--on-accent)" }}
                   >
                     {step.id}

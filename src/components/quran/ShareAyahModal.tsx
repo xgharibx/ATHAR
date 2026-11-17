@@ -63,8 +63,8 @@ function ChipButton<T extends string>({
       className={cn(
         "flex flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2 transition",
         active
-          ? "border-[var(--accent)]/70 bg-[var(--accent)]/12 text-[var(--accent)] shadow-[0_0_18px_-4px_var(--accent)]"
-          : "border-[var(--stroke)] bg-[var(--card)]/55 hover:bg-[var(--card-2)] text-[var(--muted)]",
+          ? "border-(--accent)/70 bg-(--accent)/12 text-(--accent) shadow-[0_0_18px_-4px_var(--accent)]"
+          : "border-(--stroke) bg-(--card)/55 hover:bg-(--card-2) text-(--muted)",
       )}
     >
       <span className="text-[12.5px] font-bold leading-tight">{label}</span>
@@ -90,12 +90,12 @@ function ColorSwatch({
       title={ar}
       className={cn(
         "relative h-12 rounded-xl transition overflow-hidden",
-        active ? "ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--bg)]" : "ring-1 ring-[var(--stroke)] hover:ring-[var(--accent)]/60",
+        active ? "ring-2 ring-(--accent) ring-offset-2 ring-offset-(--bg)" : "ring-1 ring-(--stroke) hover:ring-(--accent)/60",
       )}
       style={{ backgroundImage: swatches[id] }}
     >
       {active && (
-        <span className="absolute inset-0 grid place-items-center text-white text-lg font-black drop-shadow">✓</span>
+        <span className="absolute inset-0 grid place-items-center text-white text-lg font-black drop-shadow-sm">✓</span>
       )}
     </button>
   );
@@ -122,7 +122,7 @@ function BgThumb({ id, active, onClick, label }: {
       aria-pressed={active}
       className={cn(
         "relative h-20 rounded-2xl overflow-hidden transition",
-        active ? "ring-2 ring-[var(--accent)] shadow-[0_0_24px_-4px_var(--accent)]" : "ring-1 ring-[var(--stroke)] hover:ring-[var(--accent)]/55",
+        active ? "ring-2 ring-(--accent) shadow-[0_0_24px_-4px_var(--accent)]" : "ring-1 ring-(--stroke) hover:ring-(--accent)/55",
       )}
       style={{ backgroundImage: grad[id] }}
     >
@@ -296,19 +296,19 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
       role="dialog"
       aria-modal="true"
       aria-label="مشاركة الآية"
-      className="fixed inset-0 z-[9999] grid place-items-end sm:place-items-center p-2 sm:p-6 bg-black/78 backdrop-blur-md"
+      className="fixed inset-0 z-9999 grid place-items-end sm:place-items-center p-2 sm:p-6 bg-black/78 backdrop-blur-md"
       onClick={onBackdrop}
     >
-      <div className="relative w-full max-w-5xl bg-[var(--card-2)] border border-[var(--stroke)] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-5xl bg-(--card-2) border border-(--stroke) rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* decorative top accent */}
-        <div aria-hidden="true" className="relative h-1.5 bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-90" />
+        <div aria-hidden="true" className="relative h-1.5 bg-linear-to-r from-transparent via-(--accent) to-transparent opacity-90" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 dhikr-card-stars opacity-40" />
 
         {/* header */}
         <div className="relative flex items-center justify-between gap-3 px-5 pt-5 pb-3">
           <div className="flex items-center gap-2 min-w-0">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent-15 border border-accent-35 shrink-0">
-              <Wand2 size={16} className="text-[var(--accent)]" aria-hidden="true" />
+              <Wand2 size={16} className="text-(--accent)" aria-hidden="true" />
             </span>
             <div className="text-right min-w-0">
               <div className="text-sm font-bold leading-tight truncate">
@@ -321,7 +321,7 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
             type="button"
             aria-label="إغلاق"
             onClick={props.onClose}
-            className="w-9 h-9 rounded-xl grid place-items-center bg-[var(--card)] border border-[var(--stroke)] hover:bg-[var(--card-2)] transition shrink-0"
+            className="w-9 h-9 rounded-xl grid place-items-center bg-(--card) border border-(--stroke) hover:bg-(--card-2) transition shrink-0"
           >
             <X size={16} />
           </button>
@@ -330,11 +330,11 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
         {/* main content: 2-column composer */}
         <div className="relative flex flex-1 min-h-0 overflow-hidden">
           {/* LEFT — Live preview */}
-          <div className="relative flex flex-col items-center justify-center gap-2 bg-black/40 border-l border-[var(--stroke)] p-4 overflow-hidden shrink-0 basis-[42%]">
+          <div className="relative flex flex-col items-center justify-center gap-2 bg-black/40 border-l border-(--stroke) p-4 overflow-hidden shrink-0 basis-[42%]">
             <div
               className={cn(
-                "relative overflow-hidden rounded-2xl border border-[var(--stroke)] shadow-[0_8px_36px_-12px_rgba(0,0,0,0.65)]",
-                "w-full max-w-[320px] aspect-[4/5]",
+                "relative overflow-hidden rounded-2xl border border-(--stroke) shadow-[0_8px_36px_-12px_rgba(0,0,0,0.65)]",
+                "w-full max-w-[320px] aspect-4/5",
               )}
             >
               <canvas
@@ -348,15 +348,15 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
                 <div className="absolute inset-0 grid place-items-center bg-black/35">
                   <div className="flex flex-col items-center gap-2">
                     <div className="relative">
-                      <div className="w-9 h-9 rounded-full border-2 border-[var(--accent)]/20 border-t-[var(--accent)] animate-spin" />
-                      <Sparkles size={14} className="absolute inset-0 m-auto text-[var(--accent)] opacity-70" />
+                      <div className="w-9 h-9 rounded-full border-2 border-(--accent)/20 border-t-(--accent) animate-spin" />
+                      <Sparkles size={14} className="absolute inset-0 m-auto text-(--accent) opacity-70" />
                     </div>
                     <span className="text-[10.5px] opacity-70">جارٍ التحديث…</span>
                   </div>
                 </div>
               )}
               {status === "error" && (
-                <div className="absolute inset-0 grid place-items-center text-[var(--danger)] text-sm">
+                <div className="absolute inset-0 grid place-items-center text-(--danger) text-sm">
                   تعذّر التوليد
                 </div>
               )}
@@ -367,7 +367,7 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
           {/* RIGHT — Tabs + controls */}
           <div className="flex flex-col flex-1 min-w-0 min-h-0">
             {/* Tabs */}
-            <div className="flex items-center gap-1 border-b border-[var(--stroke)] p-3">
+            <div className="flex items-center gap-1 border-b border-(--stroke) p-3">
               {([
                 { id: "bg",   label: "الخلفية", icon: ImageDown },
                 { id: "style", label: "الخط واللون", icon: Sparkles },
@@ -380,8 +380,8 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
                   className={cn(
                     "flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[12px] font-semibold transition border",
                     tab === t.id
-                      ? "bg-[var(--accent)]/12 border-[var(--accent)]/60 text-[var(--accent)]"
-                      : "bg-[var(--card)]/60 border-[var(--stroke)] text-[var(--muted)] hover:bg-[var(--card-2)]",
+                      ? "bg-(--accent)/12 border-(--accent)/60 text-(--accent)"
+                      : "bg-(--card)/60 border-(--stroke) text-(--muted) hover:bg-(--card-2)",
                   )}
                 >
                   <t.icon size={12} />
@@ -391,7 +391,7 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
             </div>
 
             {/* Tab content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-5">
+            <div className="flex-1 overflow-y-auto p-4 stack-y-5">
               {tab === "bg" && (
                 <div>
                   <Label>اختر الخلفية</Label>
@@ -450,19 +450,19 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
                       step={0.05}
                       value={textScale}
                       onChange={(e) => setTextScale(Number(e.target.value))}
-                      className="w-full accent-[var(--accent)]"
+                      className="w-full accent-(--accent)"
                       aria-label="حجم الخط"
                     />
                   </div>
 
-                  <div className="mt-5 space-y-2">
+                  <div className="mt-5 stack-y-2">
                     {props.translation && (
                       <label className="flex items-center gap-2 text-[12px] cursor-pointer">
                         <input
                           type="checkbox"
                           checked={showTranslation}
                           onChange={(e) => setShowTranslation(e.target.checked)}
-                          className="accent-[var(--accent)]"
+                          className="accent-(--accent)"
                         />
                         إظهار الترجمة
                       </label>
@@ -473,7 +473,7 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
                           type="checkbox"
                           checked={showTransliteration}
                           onChange={(e) => setShowTransliteration(e.target.checked)}
-                          className="accent-[var(--accent)]"
+                          className="accent-(--accent)"
                         />
                         إظهار النطق بالحروف اللاتينية
                       </label>
@@ -495,8 +495,8 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
                         className={cn(
                           "flex items-center justify-between rounded-xl border px-3 py-2.5 transition text-right",
                           referenceStyle === opt.id
-                            ? "bg-[var(--accent)]/10 border-[var(--accent)]/65 text-[var(--accent)]"
-                            : "bg-[var(--card)]/60 border-[var(--stroke)] text-[var(--muted)] hover:bg-[var(--card-2)]",
+                            ? "bg-(--accent)/10 border-(--accent)/65 text-(--accent)"
+                            : "bg-(--card)/60 border-(--stroke) text-(--muted) hover:bg-(--card-2)",
                         )}
                       >
                         <span className="text-[12.5px] font-semibold">{opt.label}</span>
@@ -512,7 +512,7 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
             </div>
 
             {/* footer actions */}
-            <div className="border-t border-[var(--stroke)] p-3 grid grid-cols-[1fr_auto] gap-2">
+            <div className="border-t border-(--stroke) p-3 grid grid-cols-[1fr_auto] gap-2">
               <Button onClick={handleShare} variant="primary" className="gap-2 w-full">
                 <Share2 size={16} />
                 مشاركة الآن
@@ -526,7 +526,7 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
                     "px-3 h-10 rounded-xl border text-[12px] font-semibold transition shrink-0",
                     copied
                       ? "border-emerald-400/40 bg-emerald-400/12 text-emerald-300"
-                      : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-2)]",
+                      : "border-(--stroke) bg-(--card) text-(--muted) hover:bg-(--card-2)",
                   )}
                 >
                   {copied ? "✓ تم" : <><Copy size={13} className="inline me-1" />نسخ</>}
@@ -535,7 +535,7 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
                   type="button"
                   onClick={handleDownload}
                   disabled={!blobUrl}
-                  className="px-3 h-10 rounded-xl border border-[var(--stroke)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-2)] text-[12px] font-semibold transition shrink-0"
+                  className="px-3 h-10 rounded-xl border border-(--stroke) bg-(--card) text-(--muted) hover:bg-(--card-2) text-[12px] font-semibold transition shrink-0"
                   aria-label="تنزيل"
                 >
                   <Download size={14} />

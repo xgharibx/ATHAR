@@ -45,12 +45,12 @@ function ItemRow({
         value={count}
         onChange={(e) => onCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
         inputMode="numeric"
-        className="w-16 px-2 py-2 rounded-xl bg-[var(--card)] border border-[var(--stroke)] text-center text-sm outline-none focus:border-[var(--accent)]"
+        className="w-16 px-2 py-2 rounded-xl bg-(--card) border border-(--stroke) text-center text-sm outline-hidden focus:border-(--accent)"
         aria-label={`عدد الذكر ${index + 1}`}
       />
       <button type="button"
         onClick={onRemove}
-        className="p-2 rounded-xl hover:bg-danger-10 text-danger-60 hover:text-[var(--danger)] transition-colors"
+        className="p-2 rounded-xl hover:bg-danger-10 text-danger-60 hover:text-(--danger) transition-colors"
         aria-label="حذف السطر"
       >
         <Trash2 size={15} />
@@ -104,15 +104,15 @@ function PackForm({
             <div className="text-[11px] opacity-50">أضف أذكارك الخاصة واحفظها</div>
           </div>
         </div>
-        <button type="button" onClick={onCancel} className="h-8 w-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center opacity-60 hover:opacity-100 transition" aria-label="إلغاء">
+        <button type="button" onClick={onCancel} className="h-8 w-8 rounded-xl bg-(--card) border border-(--stroke) grid place-items-center opacity-60 hover:opacity-100 transition" aria-label="إلغاء">
           <X size={14} aria-hidden="true" />
         </button>
       </div>
 
-      <div className="p-5 space-y-4">
+      <div className="p-5 stack-y-4">
         {/* Pack title */}
         <div>
-          <label htmlFor="pack-title" className="text-xs font-medium opacity-60 block mb-1.5">اسم الحزمة <span className="text-[var(--danger)]">*</span></label>
+          <label htmlFor="pack-title" className="text-xs font-medium opacity-60 block mb-1.5">اسم الحزمة <span className="text-(--danger)">*</span></label>
           <Input
             id="pack-title"
             placeholder="مثال: أذكاري الخاصة"
@@ -127,7 +127,7 @@ function PackForm({
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs font-medium opacity-60">الأذكار</div>
             {validCount > 0 && (
-              <div className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--card)] border border-[var(--stroke)] opacity-60">{validCount} ذكر</div>
+              <div className="text-[10px] px-2 py-0.5 rounded-full bg-(--card) border border-(--stroke) opacity-60">{validCount} ذكر</div>
             )}
           </div>
           {items.map((it, i) => (
@@ -143,7 +143,7 @@ function PackForm({
           ))}
           <button type="button"
             onClick={addRow}
-            className="mt-3 flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border border-dashed border-[var(--stroke)] hover:border-[var(--accent)] hover:bg-[var(--card)] opacity-60 hover:opacity-100 transition-all w-full justify-center"
+            className="mt-3 flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border border-dashed border-(--stroke) hover:border-(--accent) hover:bg-(--card) opacity-60 hover:opacity-100 transition-all w-full justify-center"
           >
             <Plus size={14} aria-hidden="true" /> إضافة ذكر
           </button>
@@ -198,7 +198,7 @@ function PackCard({
   }
 
   return (
-    <Card className="p-4 space-y-3" dir="rtl">
+    <Card className="p-4 stack-y-3" dir="rtl">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-2xl" aria-hidden="true">📝</span>
@@ -210,7 +210,7 @@ function PackCard({
         <div className="flex items-center gap-1 shrink-0">
           <button type="button"
             onClick={() => setExpanded((e) => !e)}
-            className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-50 hover:opacity-100"
+            className="p-2 rounded-xl hover:bg-(--card) transition-colors opacity-50 hover:opacity-100"
             aria-label="عرض الأذكار"
             aria-expanded={expanded}
             aria-controls={`pack-items-${pack.id}`}
@@ -224,14 +224,14 @@ function PackCard({
               if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
               else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
             }}
-            className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-50 hover:opacity-100"
+            className="p-2 rounded-xl hover:bg-(--card) transition-colors opacity-50 hover:opacity-100"
             aria-label="مشاركة الحزمة"
           >
             <Share2 size={15} />
           </button>
           <button type="button"
             onClick={onEdit}
-            className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-50 hover:opacity-100 text-xs"
+            className="p-2 rounded-xl hover:bg-(--card) transition-colors opacity-50 hover:opacity-100 text-xs"
             aria-label="تعديل"
           >
             ✏️
@@ -240,13 +240,13 @@ function PackCard({
             <>
               <button type="button"
                 onClick={onDelete}
-                className="px-2 py-1 text-xs rounded-xl bg-danger-20 text-[var(--danger)] hover:bg-danger-30 transition-colors"
+                className="px-2 py-1 text-xs rounded-xl bg-danger-20 text-(--danger) hover:bg-danger-30 transition-colors"
               >
                 تأكيد الحذف
               </button>
               <button type="button"
                 onClick={() => setConfirmDelete(false)}
-                className="px-2 py-1 text-xs rounded-xl hover:bg-[var(--card)] transition-colors opacity-60"
+                className="px-2 py-1 text-xs rounded-xl hover:bg-(--card) transition-colors opacity-60"
               >
                 إلغاء
               </button>
@@ -254,7 +254,7 @@ function PackCard({
           ) : (
             <button type="button"
               onClick={() => setConfirmDelete(true)}
-              className="p-2 rounded-xl hover:bg-danger-10 text-danger-50 hover:text-[var(--danger)] transition-colors"
+              className="p-2 rounded-xl hover:bg-danger-10 text-danger-50 hover:text-(--danger) transition-colors"
               aria-label="حذف"
             >
               <Trash2 size={15} />
@@ -269,13 +269,13 @@ function PackCard({
 
       {/* Expanded items list with per-item edit/delete */}
       {expanded && pack.items.length > 0 && (
-        <div id={`pack-items-${pack.id}`} className="space-y-1.5 border-t border-[var(--stroke)] pt-3">
+        <div id={`pack-items-${pack.id}`} className="stack-y-1.5 border-t border-(--stroke) pt-3">
           {pack.items.map((it, i) => (
             <div key={i}>
               {editingItemIdx === i ? (
                 // Inline edit form
-                <div className="rounded-2xl border border-[var(--accent)]/40 bg-[var(--card)] overflow-hidden" dir="rtl">
-                  <div className="px-3 pt-3 pb-2 border-b border-[var(--stroke)]">
+                <div className="rounded-2xl border border-(--accent)/40 bg-(--card) overflow-hidden" dir="rtl">
+                  <div className="px-3 pt-3 pb-2 border-b border-(--stroke)">
                     <div className="text-[10px] font-semibold opacity-40 mb-1.5">نص الذكر</div>
                     <input
                       type="text"
@@ -283,7 +283,7 @@ function PackCard({
                       onChange={(e) => setEditText(e.target.value)}
                       autoFocus
                       dir="rtl"
-                      className="w-full bg-transparent text-sm outline-none placeholder:opacity-30"
+                      className="w-full bg-transparent text-sm outline-hidden placeholder:opacity-30"
                       placeholder="اكتب الذكر…"
                       aria-label="تعديل نص الذكر"
                     />
@@ -294,24 +294,24 @@ function PackCard({
                       <div className="flex items-center gap-1">
                         <button type="button"
                           onClick={() => setEditCount((c) => Math.max(1, c - 1))}
-                          className="h-7 w-7 rounded-lg bg-[var(--card-2)] border border-[var(--stroke)] text-sm grid place-items-center opacity-70 hover:opacity-100 active:opacity-100 transition"
+                          className="h-7 w-7 rounded-lg bg-(--card-2) border border-(--stroke) text-sm grid place-items-center opacity-70 hover:opacity-100 active:opacity-100 transition"
                           aria-label="تقليل"
                         >−</button>
                         <span className="w-9 text-center text-sm font-semibold tabular-nums">{editCount}</span>
                         <button type="button"
                           onClick={() => setEditCount((c) => Math.min(9999, c + 1))}
-                          className="h-7 w-7 rounded-lg bg-[var(--card-2)] border border-[var(--stroke)] text-sm grid place-items-center opacity-70 hover:opacity-100 active:opacity-100 transition"
+                          className="h-7 w-7 rounded-lg bg-(--card-2) border border-(--stroke) text-sm grid place-items-center opacity-70 hover:opacity-100 active:opacity-100 transition"
                           aria-label="زيادة"
                         >+</button>
                       </div>
                     </div>
                     <div className="flex gap-1.5">
                       <button type="button" onClick={() => setEditingItemIdx(null)}
-                        className="h-8 px-3 rounded-xl text-xs bg-[var(--card-2)] border border-[var(--stroke)] opacity-60 hover:opacity-100 active:opacity-100 transition"
+                        className="h-8 px-3 rounded-xl text-xs bg-(--card-2) border border-(--stroke) opacity-60 hover:opacity-100 active:opacity-100 transition"
                         aria-label="إلغاء"
                       >إلغاء</button>
                       <button type="button" onClick={saveEditItem}
-                        className="h-8 px-3 rounded-xl text-xs bg-[var(--accent)] text-[var(--on-accent)] disabled:opacity-40 transition flex items-center gap-1"
+                        className="h-8 px-3 rounded-xl text-xs bg-(--accent) text-(--on-accent) disabled:opacity-40 transition flex items-center gap-1"
                         disabled={!editText.trim()}
                         aria-label="حفظ"
                       ><Check size={12} />حفظ</button>
@@ -325,28 +325,28 @@ function PackCard({
                   <div className="flex gap-1 shrink-0">
                     <button type="button"
                       onClick={() => { removeCustomPackItem(pack.id, i); setConfirmItemDeleteIdx(null); }}
-                      className="text-[10px] px-2 py-1 rounded-lg bg-danger-20 text-[var(--danger)]"
+                      className="text-[10px] px-2 py-1 rounded-lg bg-danger-20 text-(--danger)"
                     >تأكيد</button>
                     <button type="button"
                       onClick={() => setConfirmItemDeleteIdx(null)}
-                      className="text-[10px] px-2 py-1 rounded-lg bg-[var(--card)] border border-[var(--stroke)] opacity-60"
+                      className="text-[10px] px-2 py-1 rounded-lg bg-(--card) border border-(--stroke) opacity-60"
                     >إلغاء</button>
                   </div>
                 </div>
               ) : (
                 // Normal item row
-                <div className="flex items-center justify-between gap-2 text-xs rounded-xl px-2 py-1.5 active:bg-[var(--card)] hover:bg-[var(--card)] transition min-h-[44px]">
+                <div className="flex items-center justify-between gap-2 text-xs rounded-xl px-2 py-1.5 active:bg-(--card) hover:bg-(--card) transition min-h-[44px]">
                   <span className="line-clamp-2 leading-snug flex-1 opacity-80">{it.text}</span>
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded-full bg-[var(--card)] border border-[var(--stroke)] opacity-60">× {it.count}</span>
+                    <span className="text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded-full bg-(--card) border border-(--stroke) opacity-60">× {it.count}</span>
                     <button type="button" onClick={() => startEditItem(i)}
-                      className="h-8 w-8 rounded-xl grid place-items-center opacity-50 hover:opacity-100 active:opacity-100 hover:bg-accent-10 active:bg-accent-10 transition text-[var(--accent)]"
+                      className="h-8 w-8 rounded-xl grid place-items-center opacity-50 hover:opacity-100 active:opacity-100 hover:bg-accent-10 active:bg-accent-10 transition text-(--accent)"
                       aria-label="تعديل"
                     >
                       <Pencil size={13} />
                     </button>
                     <button type="button" onClick={() => setConfirmItemDeleteIdx(i)}
-                      className="h-8 w-8 rounded-xl grid place-items-center opacity-50 hover:opacity-100 active:opacity-100 hover:bg-danger-10 active:bg-danger-10 transition text-[var(--danger)]"
+                      className="h-8 w-8 rounded-xl grid place-items-center opacity-50 hover:opacity-100 active:opacity-100 hover:bg-danger-10 active:bg-danger-10 transition text-(--danger)"
                       aria-label="حذف"
                     >
                       <Trash2 size={13} />
@@ -396,12 +396,12 @@ export function CustomAdhkarPage() {
   }
 
   return (
-    <div className="space-y-4 page-enter" dir="rtl">
+    <div className="stack-y-4 page-enter" dir="rtl">
       {/* Header */}
       <div className="flex items-center gap-3 px-1">
         <button type="button"
           onClick={() => navigate(-1)}
-          className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-60 hover:opacity-100"
+          className="p-2 rounded-xl hover:bg-(--card) transition-colors opacity-60 hover:opacity-100"
           aria-label="رجوع"
         >
           <ArrowRight size={18} aria-hidden="true" />
@@ -422,7 +422,7 @@ export function CustomAdhkarPage() {
       ) : (
         <button type="button"
           onClick={() => { setEditingPack(null); setShowForm(true); }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl glass border border-dashed border-[var(--stroke)] hover:border-accent-50 hover:bg-[var(--card)] transition-all text-sm opacity-70 hover:opacity-100"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl glass border border-dashed border-(--stroke) hover:border-accent-50 hover:bg-(--card) transition-all text-sm opacity-70 hover:opacity-100"
         >
           <Plus size={16} aria-hidden="true" />
           إنشاء حزمة جديدة
@@ -437,7 +437,7 @@ export function CustomAdhkarPage() {
         </Card>
       )}
 
-      <div role="list" aria-label="الحزمات المخصصة" className="space-y-3">
+      <div role="list" aria-label="الحزمات المخصصة" className="stack-y-3">
         {customPacks.map((pack) =>
           editingPack?.id === pack.id && showForm ? null : (
             <div key={pack.id} role="listitem">

@@ -60,7 +60,7 @@ export default function FineTuningVisual({ className }: MiracleVisualProps) {
       </motion.div>
 
       {/* Constants display */}
-      <div className="relative z-10 w-full max-w-lg space-y-3">
+      <div className="relative z-10 w-full max-w-lg stack-y-3">
         {constants.map((c, i) => (
           <AnimatePresence key={c.nameEn}>
             {i < visibleCount && (

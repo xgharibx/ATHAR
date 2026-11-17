@@ -36,31 +36,31 @@ export function ReciterPicker(props: {
 
   return (
     <Modal open={props.open} onClose={props.onClose} ariaLabel="اختر القارئ">
-      <div className="flex items-center justify-between gap-3 border-b border-[var(--stroke)] p-4">
+      <div className="flex items-center justify-between gap-3 border-b border-(--stroke) p-4">
         <div className="flex items-center gap-2">
-          <Volume2 className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
+          <Volume2 className="h-4 w-4 text-(--accent)" aria-hidden="true" />
           <h2 className="text-sm font-bold">اختر القارئ</h2>
         </div>
         <button type="button" onClick={props.onClose} aria-label="إغلاق"
-          className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--stroke)] bg-[var(--card)] transition hover:bg-[var(--card-2)]">
+          className="grid h-9 w-9 place-items-center rounded-xl border border-(--stroke) bg-(--card) transition hover:bg-(--card-2)">
           <XIcon className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
 
-      <div className="sticky top-0 z-[1] border-b border-[var(--stroke)] bg-[var(--bg)]/95 p-3 backdrop-blur-md">
+      <div className="sticky top-0 z-1 border-b border-(--stroke) bg-(--bg)/95 p-3 backdrop-blur-md">
         <div className="relative">
-          <Search size={16} aria-hidden="true" className="absolute end-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+          <Search size={16} aria-hidden="true" className="absolute inset-e-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
           <input
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="ابحث عن قارئ… (مثال: العفاسي، الشاطري)"
-            className="form-field-readable w-full rounded-xl border border-[var(--stroke)] bg-[var(--card)] ps-9 pe-9 py-2.5 text-sm focus:outline-none focus:border-accent-35"
+            className="form-field-readable w-full rounded-xl border border-(--stroke) bg-(--card) ps-9 pe-9 py-2.5 text-sm focus:outline-hidden focus:border-accent-35"
             aria-label="بحث في القراء"
           />
           {q ? (
             <button type="button" onClick={() => setQ("")} aria-label="مسح"
-              className="absolute end-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-90">
+              className="absolute inset-e-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-90">
               <XIcon size={14} aria-hidden="true" />
             </button>
           ) : null}
@@ -69,7 +69,7 @@ export function ReciterPicker(props: {
 
       <div className="max-h-[60vh] overflow-y-auto">
         {groups.length === 0 ? (
-          <p className="p-6 text-center text-sm text-[var(--muted-2)]">لا توجد نتائج لـ «{q}»</p>
+          <p className="p-6 text-center text-sm text-(--muted-2)">لا توجد نتائج لـ «{q}»</p>
         ) : (
           groups.map((g) => (
             <ReciterGroup key={g.category} category={g.category} items={g.items} current={current} onPick={(id) => { props.onChange(id); props.onClose(); }} />
@@ -88,8 +88,8 @@ function ReciterGroup(props: {
 }) {
   return (
     <section>
-      <header className="sticky top-[68px] z-[1] -mx-0 bg-[var(--bg)]/90 px-4 py-1.5 backdrop-blur-md border-b border-[var(--stroke)]/40">
-        <div className="flex items-center justify-between text-[10.5px] font-bold uppercase tracking-wider text-[var(--accent)]">
+      <header className="sticky top-[68px] z-1 mx-0 bg-(--bg)/90 px-4 py-1.5 backdrop-blur-md border-b border-(--stroke)/40">
+        <div className="flex items-center justify-between text-[10.5px] font-bold uppercase tracking-wider text-(--accent)">
           <span>{RECITER_CATEGORY_LABELS[props.category]}</span>
           <span className="opacity-50">{arNum(props.items.length)}</span>
         </div>
@@ -100,19 +100,19 @@ function ReciterGroup(props: {
             <button type="button"
               onClick={() => props.onPick(r.id)}
               className={[
-                "w-full flex items-center gap-3 px-4 py-2.5 text-right transition border-b border-[var(--stroke)]/30",
+                "w-full flex items-center gap-3 px-4 py-2.5 text-right transition border-b border-(--stroke)/30",
                 props.current === r.id
                   ? "bg-accent-15 ring-1 ring-accent-35"
-                  : "hover:bg-[var(--card)]",
+                  : "hover:bg-(--card)",
               ].join(" ")}
               aria-pressed={props.current === r.id}
             >
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-[var(--fg)]">{r.label}</div>
-                {r.sub ? <div className="text-[10.5px] text-[var(--muted-2)] truncate">{r.sub}</div> : null}
+                <div className="text-sm font-semibold text-(--fg)">{r.label}</div>
+                {r.sub ? <div className="text-[10.5px] text-(--muted-2) truncate">{r.sub}</div> : null}
               </div>
               {props.current === r.id ? (
-                <Check className="h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+                <Check className="h-4 w-4 shrink-0 text-(--accent)" aria-hidden="true" />
               ) : null}
             </button>
           </li>

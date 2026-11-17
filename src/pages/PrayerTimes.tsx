@@ -202,12 +202,12 @@ function rowIcon(row: PrayerDetailRow) {
 
 function rowStyles(row: PrayerDetailRow, active: boolean, next: boolean) {
   if (active)                   return "bg-accent-12 border-accent-30";
-  if (next && row.type === "prayer") return "bg-[var(--card)] border-[var(--stroke)]";
+  if (next && row.type === "prayer") return "bg-(--card) border-(--stroke)";
   switch (row.type) {
     case "forbidden": return "bg-[#ff9b9b]/12 border-[#ffb1b1]/25";
     case "marker":    return "bg-accent-12 border-accent-25";
     case "moment":    return "bg-[#90d8ff]/10 border-[#90d8ff]/22";
-    default:          return "bg-[var(--card)] border-[var(--stroke)]";
+    default:          return "bg-(--card) border-(--stroke)";
   }
 }
 
@@ -276,7 +276,7 @@ function CityRow({ city, country, label, dayKey, onRemove }: {
 }) {
   const { data, isLoading, error, refetch } = useCityTimes(city, country, dayKey);
   return (
-    <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3">
+    <div className="rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3">
       <div className="flex items-center justify-between mb-2">
         <div className="font-semibold text-sm">{label}</div>
         <button type="button" onClick={onRemove} className="opacity-40 hover:opacity-70 transition-opacity p-1" aria-label="حذف المدينة">
@@ -288,7 +288,7 @@ function CityRow({ city, country, label, dayKey, onRemove }: {
       ) : (error || !data) ? (
         <div className="flex items-center justify-between gap-2 text-xs opacity-60">
           <span>تعذر التحميل</span>
-          <button type="button" className="text-[var(--accent)] underline" onClick={() => void refetch()}>إعادة المحاولة</button>
+          <button type="button" className="text-(--accent) underline" onClick={() => void refetch()}>إعادة المحاولة</button>
         </div>
       ) : (
         <div className="overflow-x-auto -mx-1 px-1">
@@ -339,8 +339,8 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
   React.useEffect(() => { return () => { audioRef.current?.pause(); }; }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--card)]0 backdrop-blur-sm p-4">
-      <Card className="w-full max-w-md max-h-[78dvh] overflow-y-auto p-5 space-y-5" role="dialog" aria-modal="true" aria-label="إعدادات مواقيت الصلاة">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--card)]0 backdrop-blur-xs p-4">
+      <Card className="w-full max-w-md max-h-[78dvh] overflow-y-auto p-5 stack-y-5" role="dialog" aria-modal="true" aria-label="إعدادات مواقيت الصلاة">
         <div className="flex items-center justify-between">
           <div className="font-semibold">إعدادات مواقيت الصلاة</div>
           <button type="button" aria-label="إغلاق" onClick={onClose} autoFocus className="opacity-50 hover:opacity-80 transition-opacity p-1"><X size={18} aria-hidden="true" /></button>
@@ -353,7 +353,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
             value={prefs.prayerCalcMethod ?? 5}
             onChange={(e) => setPrefs({ prayerCalcMethod: Number(e.target.value) })}
             aria-label="طريقة الحساب"
-            className="w-full rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-sm outline-none focus:border-accent-50"
+            className="w-full rounded-xl border border-(--stroke) bg-(--card) px-3 py-2 text-sm outline-hidden focus:border-accent-50"
           >
             {PRAYER_CALC_METHODS.map((m) => (
               <option key={m.value} value={m.value} className="bg-gray-900 text-white">{m.label}</option>
@@ -371,8 +371,8 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
                 className={cn(
                   "flex-1 rounded-xl border px-3 py-2 text-sm transition",
                   (prefs.asrMadhab ?? 0) === v
-                    ? "bg-accent-15 border-accent-40 text-[var(--fg)]"
-                    : "border-[var(--stroke)] bg-[var(--card)] opacity-60 hover:opacity-80"
+                    ? "bg-accent-15 border-accent-40 text-(--fg)"
+                    : "border-(--stroke) bg-(--card) opacity-60 hover:opacity-80"
                 )}>
                 {v === 0 ? "شافعي / مالكي / حنبلي" : "حنفي"}
               </button>
@@ -383,7 +383,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
         {/* P7 */}
         <div>
           <div className="text-xs font-semibold opacity-60 mb-2 uppercase tracking-wide">دقائق الإقامة بعد الأذان</div>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {PRIMARY_PRAYERS.map((p) => (
               <div key={p} className="flex items-center justify-between gap-3">
                 <span className="text-sm w-16">{PRAYER_LABELS[p]}</span>
@@ -391,12 +391,12 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
                   <button type="button"
                     onClick={() => setReminders({ iqamaOffsets: { ...iqamaOffsets, [p]: Math.max(0, (iqamaOffsets[p] ?? 15) - 5) } })}
                     aria-label={`تقليل وقت إقامة ${PRAYER_LABELS[p]}`}
-                    className="w-8 h-8 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] transition-colors grid place-items-center text-sm">−</button>
+                    className="w-8 h-8 rounded-full bg-(--card) hover:bg-(--card-2) transition-colors grid place-items-center text-sm">−</button>
                   <span className="w-12 text-center text-sm font-medium tabular-nums">{toArabicIndic(String(iqamaOffsets[p] ?? 15))}</span>
                   <button type="button"
                     onClick={() => setReminders({ iqamaOffsets: { ...iqamaOffsets, [p]: Math.min(60, (iqamaOffsets[p] ?? 15) + 5) } })}
                     aria-label={`زيادة وقت إقامة ${PRAYER_LABELS[p]}`}
-                    className="w-8 h-8 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] transition-colors grid place-items-center text-sm">+</button>
+                    className="w-8 h-8 rounded-full bg-(--card) hover:bg-(--card-2) transition-colors grid place-items-center text-sm">+</button>
                 </div>
               </div>
             ))}
@@ -448,7 +448,7 @@ function WeeklyTab() {
   if (error || !data) return (
     <div role="alert" className="flex items-center justify-between gap-3 p-2 text-sm opacity-70">
       <span>تعذر تحميل الجدول الأسبوعي</span>
-      <button type="button" className="text-[var(--accent)] underline" onClick={() => {
+      <button type="button" className="text-(--accent) underline" onClick={() => {
         void currentMonth.refetch();
         if (needsNextMonth) void nextMonth.refetch();
       }}>إعادة المحاولة</button>
@@ -477,10 +477,10 @@ function WeeklyTab() {
           {week.map((day) => {
             const isToday = Number(day.date.gregorian.day) === todayDay;
             return (
-              <tr key={day.date.gregorian.date} className={cn("border-t border-[var(--stroke)]", isToday && "bg-accent-8 rounded-xl")}>
+              <tr key={day.date.gregorian.date} className={cn("border-t border-(--stroke)", isToday && "bg-accent-8 rounded-xl")}>
                 <td className="py-2 pr-1">
                   <div className="flex flex-col">
-                    <span className={cn("font-medium", isToday && "text-[var(--accent)]")}>
+                    <span className={cn("font-medium", isToday && "text-(--accent)")}>
                       {DAY_NAMES[day.date.gregorian.weekday.en] ?? day.date.gregorian.weekday.en}
                     </span>
                     <span className="opacity-40 text-[10px]">{day.date.gregorian.day}/{day.date.gregorian.month.number}</span>
@@ -488,7 +488,7 @@ function WeeklyTab() {
                 </td>
                 {PRIMARY_PRAYERS.map((p) => (
                   <td key={p} className="py-2 px-1 text-center">
-                    <span dir="ltr" className={cn("tabular-nums", isToday && "text-[var(--accent)] font-semibold")}>
+                    <span dir="ltr" className={cn("tabular-nums", isToday && "text-(--accent) font-semibold")}>
                       {format12h(cleanTime(day.timings[p] ?? ""))}
                     </span>
                   </td>
@@ -518,17 +518,17 @@ function MonthlyTab() {
   const next = () => { if (viewMonth === 12) { setViewMonth(1);  setViewYear((y) => y + 1); } else setViewMonth((m) => m + 1); };
 
   return (
-    <div className="space-y-3">
+    <div className="stack-y-3">
       <div className="flex items-center justify-between gap-2">
-        <button type="button" aria-label="الشهر السابق" onClick={prev} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronRight size={16} aria-hidden="true" /></button>
+        <button type="button" aria-label="الشهر السابق" onClick={prev} className="p-2 rounded-full bg-(--card) hover:bg-(--card-2)"><ChevronRight size={16} aria-hidden="true" /></button>
         <div className="font-semibold text-sm">{MONTH_NAMES[viewMonth - 1]} {viewYear}</div>
-        <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronLeft size={16} aria-hidden="true" /></button>
+        <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-(--card) hover:bg-(--card-2)"><ChevronLeft size={16} aria-hidden="true" /></button>
       </div>
       {isLoading && <div className="text-sm opacity-50" role="status" aria-live="polite" aria-atomic="true">جارٍ التحميل...</div>}
       {(error || (!isLoading && !data)) && (
         <div role="alert" className="flex items-center justify-between gap-3 text-sm opacity-70">
           <span>تعذر تحميل التقويم الشهري</span>
-          <button type="button" className="text-[var(--accent)] underline" onClick={() => void refetch()}>إعادة المحاولة</button>
+          <button type="button" className="text-(--accent) underline" onClick={() => void refetch()}>إعادة المحاولة</button>
         </div>
       )}
       {data && (
@@ -545,14 +545,14 @@ function MonthlyTab() {
                 const dayNum  = Number(day.date.gregorian.day);
                 const isToday = isCurrentMonth && dayNum === todayDay;
                 return (
-                  <tr key={day.date.gregorian.date} className={cn("border-t border-[var(--stroke)]", isToday && "bg-accent-8")}>
+                  <tr key={day.date.gregorian.date} className={cn("border-t border-(--stroke)", isToday && "bg-accent-8")}>
                     <td className="py-1.5 pr-1">
-                      <div className={cn("font-medium", isToday && "text-[var(--accent)]")}>{day.date.gregorian.day}</div>
+                      <div className={cn("font-medium", isToday && "text-(--accent)")}>{day.date.gregorian.day}</div>
                       <div className="opacity-40 text-[9px]">{day.date.hijri.day} {day.date.hijri.month.ar}</div>
                     </td>
                     {PRIMARY_PRAYERS.map((p) => (
                       <td key={p} className="py-1.5 px-0.5 text-center">
-                        <span dir="ltr" className={cn("tabular-nums", isToday && "text-[var(--accent)] font-semibold")}>
+                        <span dir="ltr" className={cn("tabular-nums", isToday && "text-(--accent) font-semibold")}>
                           {format12h(cleanTime(day.timings[p] ?? ""))}
                         </span>
                       </td>
@@ -587,19 +587,19 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
   const totalThisWeek = weekDays.reduce((acc, d) => acc + d.done, 0);
 
   return (
-    <div className="space-y-4">
+    <div className="stack-y-4">
       <div>
         <div className="text-xs font-semibold opacity-60 mb-3 uppercase tracking-wide">صلوات اليوم</div>
         {!PRIMARY_PRAYERS.every((p) => !!todayLog[p]) && (
           <button
             type="button"
             onClick={() => { PRIMARY_PRAYERS.forEach((p) => setPrayerLogged(today, p, true)); }}
-            className="w-full mb-3 py-2 px-4 rounded-2xl bg-accent-10 border border-accent-25 text-sm text-[var(--fg)] hover:bg-accent-18 transition"
+            className="w-full mb-3 py-2 px-4 rounded-2xl bg-accent-10 border border-accent-25 text-sm text-(--fg) hover:bg-accent-18 transition"
           >
             صلّيت جميع الصلوات اليوم ✓
           </button>
         )}
-        <div className="space-y-2">
+        <div className="stack-y-2">
           {PRIMARY_PRAYERS.map((p) => {
             const prayed  = !!todayLog[p];
             const timeRaw = timings?.[p];
@@ -607,7 +607,7 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
               <div key={p}
                 className={cn(
                   "flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition cursor-pointer select-none",
-                  prayed ? "bg-accent-12 border-accent-30" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                  prayed ? "bg-accent-12 border-accent-30" : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
                 )}
                 onClick={() => setPrayerLogged(today, p, !prayed)}
                 role="button" tabIndex={0}
@@ -616,7 +616,7 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
               >
                 <div className="flex items-center gap-3">
                   <div className={cn("w-9 h-9 rounded-xl border-2 grid place-items-center transition",
-                    prayed ? "bg-[var(--accent)] border-[var(--accent)]" : "border-[var(--stroke)] bg-[var(--card)]")}>
+                    prayed ? "bg-(--accent) border-(--accent)" : "border-(--stroke) bg-(--card)")}>
                     {prayed && <Check size={16} aria-hidden="true" strokeWidth={3} />}
                   </div>
                   <div>
@@ -641,11 +641,11 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
             const isToday = d.key === today;
             return (
               <div key={d.key} className="flex-1 flex flex-col items-center gap-1">
-                <div className="w-full rounded-full bg-[var(--card)] overflow-hidden" style={{ height: 60 }}>
-                  <div className={cn("w-full rounded-full transition-all duration-500", isToday ? "bg-[var(--accent)]" : "bg-[var(--card)]0")}
+                <div className="w-full rounded-full bg-(--card) overflow-hidden" style={{ height: 60 }}>
+                  <div className={cn("w-full rounded-full transition-all duration-500", isToday ? "bg-(--accent)" : "bg-[var(--card)]0")}
                     style={{ height: `${Math.round(pct * 100)}%`, marginTop: `${100 - Math.round(pct * 100)}%` }} />
                 </div>
-                <div className={cn("text-[10px] tabular-nums", isToday ? "text-[var(--accent)] font-bold" : "opacity-40")}>{d.day}</div>
+                <div className={cn("text-[10px] tabular-nums", isToday ? "text-(--accent) font-bold" : "opacity-40")}>{d.day}</div>
               </div>
             );
           })}
@@ -680,7 +680,7 @@ function HijriCalendarTab() {
   const hijriHeader = data?.[todayDay - 1]?.date?.hijri;
 
   return (
-    <div className="space-y-3">
+    <div className="stack-y-3">
       {hijriHeader && isCurrentMonth && (
         <div className="text-center py-2 rounded-2xl bg-accent-8 border border-accent-15 text-sm">
           اليوم: {hijriHeader.day} {HIJRI_MONTH_NAMES[(hijriHeader.month.number ?? 1) - 1] ?? hijriHeader.month.ar} {hijriHeader.year} هـ
@@ -688,16 +688,16 @@ function HijriCalendarTab() {
       )}
 
       <div className="flex items-center justify-between gap-2">
-        <button type="button" aria-label="الشهر السابق" onClick={prev} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronRight size={16} aria-hidden="true" /></button>
+        <button type="button" aria-label="الشهر السابق" onClick={prev} className="p-2 rounded-full bg-(--card) hover:bg-(--card-2)"><ChevronRight size={16} aria-hidden="true" /></button>
         <div className="font-semibold text-sm text-center">{MONTH_NAMES[viewMonth - 1]} {viewYear}</div>
-        <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronLeft size={16} aria-hidden="true" /></button>
+        <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-(--card) hover:bg-(--card-2)"><ChevronLeft size={16} aria-hidden="true" /></button>
       </div>
 
       {isLoading && <div className="text-sm opacity-50" role="status" aria-live="polite" aria-atomic="true">جارٍ التحميل...</div>}
       {(error || (!isLoading && !data)) && (
         <div role="alert" className="flex items-center justify-between gap-3 text-sm opacity-70">
           <span>تعذر تحميل التقويم الهجري</span>
-          <button type="button" className="text-[var(--accent)] underline" onClick={() => void refetch()}>إعادة المحاولة</button>
+          <button type="button" className="text-(--accent) underline" onClick={() => void refetch()}>إعادة المحاولة</button>
         </div>
       )}
 
@@ -726,14 +726,14 @@ function HijriCalendarTab() {
                     "rounded-xl p-1 min-h-[52px] flex flex-col items-center gap-0.5 text-center relative",
                     isToday    && "bg-accent-20 ring-1 ring-accent-40",
                     hasEvent   && !isToday && "bg-accent-8 ring-1 ring-accent-25",
-                    isFriday   && !isToday && !hasEvent && "bg-[var(--card)]"
+                    isFriday   && !isToday && !hasEvent && "bg-(--card)"
                   )}>
                   <div className={cn("text-sm font-bold leading-tight",
-                    isToday && "text-[var(--accent)]", isFriday && !isToday && "text-[var(--accent-2)]")}>
+                    isToday && "text-(--accent)", isFriday && !isToday && "text-(--accent-2)")}>
                     {day.date.gregorian.day}
                   </div>
                   <div className="text-[9px] opacity-40 leading-tight">{day.date.hijri.day}</div>
-                  {hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] mt-0.5" />}
+                  {hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-(--accent) mt-0.5" />}
                 </div>
               );
             })}
@@ -757,12 +757,12 @@ function HijriCalendarTab() {
             }
             if (upcoming.length === 0) return null;
             return (
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 stack-y-2">
                 <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">المناسبات القادمة</div>
                 {upcoming.map((ev) => (
                   <div key={ev.date} className="rounded-xl bg-accent-8 border border-accent-20 px-3 py-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className="text-[10px] bg-accent-15 border-accent-25 text-[var(--accent)]">{ev.hijriLabel}</Badge>
+                      <Badge className="text-[10px] bg-accent-15 border-accent-25 text-(--accent)">{ev.hijriLabel}</Badge>
                       <span className="text-[10px] opacity-50">{ev.date}</span>
                     </div>
                     {ev.events.map((e, j) => <div key={j} className="text-sm mt-1">{e}</div>)}
@@ -800,7 +800,7 @@ function CitiesTab() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="stack-y-3">
       <div className="flex items-center justify-between">
         <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">{favoriteCities.length} مدن محفوظة</div>
         <Button variant="secondary" size="sm" onClick={() => setShowAdd((v) => !v)} aria-expanded={showAdd} aria-controls="pt-add-city-panel">
@@ -809,27 +809,27 @@ function CitiesTab() {
       </div>
 
       {showAdd && (
-        <div id="pt-add-city-panel" className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
+        <div id="pt-add-city-panel" className="rounded-2xl border border-(--stroke) bg-(--card) p-4 stack-y-3">
           <div className="text-sm font-semibold">إضافة مدينة جديدة</div>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <div className="text-xs opacity-50 mb-1">اسم المدينة</div>
               <input value={cityInput} onChange={(e) => setCityInput(e.target.value)} placeholder="Cairo"
                 aria-label="اسم المدينة"
-                className="w-full rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-sm outline-none focus:border-accent-50" />
+                className="w-full rounded-xl border border-(--stroke) bg-(--card) px-3 py-2 text-sm outline-hidden focus:border-accent-50" />
             </div>
             <div>
               <div className="text-xs opacity-50 mb-1">الدولة</div>
               <input value={countryInput} onChange={(e) => setCountryInput(e.target.value)} placeholder="Egypt"
                 aria-label="الدولة"
-                className="w-full rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-sm outline-none focus:border-accent-50" />
+                className="w-full rounded-xl border border-(--stroke) bg-(--card) px-3 py-2 text-sm outline-hidden focus:border-accent-50" />
             </div>
           </div>
           <div>
             <div className="text-xs opacity-50 mb-1">الاسم المعروض (اختياري)</div>
             <input value={labelInput} onChange={(e) => setLabelInput(e.target.value)} placeholder="القاهرة"
               aria-label="الاسم المعروض"
-              className="w-full rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-sm outline-none focus:border-accent-50" />
+              className="w-full rounded-xl border border-(--stroke) bg-(--card) px-3 py-2 text-sm outline-hidden focus:border-accent-50" />
           </div>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={handleAdd}>حفظ</Button>
@@ -842,7 +842,7 @@ function CitiesTab() {
                 <button type="button" key={c.city}
                   onClick={() => { addFavoriteCity({ id: `${c.city}:${c.country}`, city: c.city, country: c.country, label: c.label }); toast.success(`تمت إضافة ${c.label}`); }}
                   disabled={favoriteCities.some((f) => f.city === c.city && f.country === c.country)}
-                  className="text-xs rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-1 hover:bg-[var(--card-2)] disabled:opacity-30 disabled:cursor-not-allowed">
+                  className="text-xs rounded-full border border-(--stroke) bg-(--card) px-2.5 py-1 hover:bg-(--card-2) disabled:opacity-30 disabled:cursor-not-allowed">
                   {c.label}
                 </button>
               ))}
@@ -855,7 +855,7 @@ function CitiesTab() {
         <div className="text-sm opacity-50 text-center py-8">أضف مدناً لمقارنة مواقيت الصلاة</div>
       )}
 
-      <div className="space-y-3">
+      <div className="stack-y-3">
         {favoriteCities.map((c) => (
           <CityRow key={c.id} city={c.city} country={c.country} label={c.label} dayKey={dayKey} onRemove={() => removeFavoriteCity(c.id)} />
         ))}
@@ -906,7 +906,7 @@ function StatsTab() {
   }), [prayerLog]);
 
   return (
-    <div className="space-y-5">
+    <div className="stack-y-5">
       {/* Calendar heatmap */}
       <div>
         <div className="text-xs font-semibold opacity-60 mb-3 uppercase tracking-wide">آخر ٣٥ يوم</div>
@@ -921,22 +921,22 @@ function StatsTab() {
           ))}
         </div>
         <div className="flex items-center justify-end gap-2 mt-2 text-[9px] opacity-40">
-          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: "var(--accent)", opacity: 0.1 }} /> <span>٠</span>
-          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: "var(--accent)", opacity: 0.45 }} /> <span>٢</span>
-          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: "var(--accent)", opacity: 0.79 }} /> <span>٤</span>
-          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: "var(--accent)", opacity: 1 }} /> <span>٥</span>
+          <div className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: "var(--accent)", opacity: 0.1 }} /> <span>٠</span>
+          <div className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: "var(--accent)", opacity: 0.45 }} /> <span>٢</span>
+          <div className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: "var(--accent)", opacity: 0.79 }} /> <span>٤</span>
+          <div className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: "var(--accent)", opacity: 1 }} /> <span>٥</span>
         </div>
       </div>
 
       {/* Per-prayer % */}
       <div>
         <div className="text-xs font-semibold opacity-60 mb-3 uppercase tracking-wide">نسبة الأداء (٣٠ يوم)</div>
-        <div className="space-y-2.5">
+        <div className="stack-y-2.5">
           {prayerStats.map(({ prayer, done, pct }) => (
             <div key={prayer} className="flex items-center gap-3">
               <div className="w-14 text-sm shrink-0">{PRAYER_LABELS[prayer]}</div>
               <div
-                className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden"
+                className="flex-1 h-2 rounded-full bg-(--card) overflow-hidden"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={100}
@@ -958,7 +958,7 @@ function StatsTab() {
         <div className="overflow-x-auto -mx-1 px-1">
           <div className="grid grid-cols-5 gap-2" style={{ minWidth: "13.75rem" }}>
             {streaks.map(({ prayer, maxStreak }) => (
-              <div key={prayer} className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3 text-center">
+              <div key={prayer} className="rounded-2xl border border-(--stroke) bg-(--card) p-3 text-center">
                 <div className="text-[11px] opacity-60 mb-1">{PRAYER_LABELS[prayer]}</div>
                 <div className="text-2xl font-bold" style={{ color: "var(--accent)" }}>{toArabicIndic(maxStreak)}</div>
                 <div className="text-[9px] opacity-40 mt-0.5">يوم</div>
@@ -1027,9 +1027,9 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
   const showCursor = nowMins >= rangeStart && nowMins <= rangeEnd;
 
   return (
-    <div className="space-y-4">
+    <div className="stack-y-4">
       <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">قوس اليوم الشمسي</div>
-      <div className="rounded-2xl overflow-hidden border border-[var(--stroke)]" style={{ background: "linear-gradient(160deg, #0d1a2e, #1a0a2e)" }}>
+      <div className="rounded-2xl overflow-hidden border border-(--stroke)" style={{ background: "linear-gradient(160deg, #0d1a2e, #1a0a2e)" }}>
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 180 }} aria-hidden="true">
           <defs>
             <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
@@ -1227,7 +1227,7 @@ export function PrayerTimesPage() {
   const iqamaOffsets = reminders.iqamaOffsets ?? { Fajr: 20, Dhuhr: 15, Asr: 15, Maghrib: 10, Isha: 15 };
 
   if (prayerTimes.isLoading) return (
-    <div className="p-4 md:p-5 space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
+    <div className="p-4 md:p-5 stack-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
       <span className="sr-only">جارٍ التحميل…</span>
       <PrayerTimesPageSkeleton />
     </div>
@@ -1259,7 +1259,7 @@ export function PrayerTimesPage() {
   ];
 
   return (
-    <div className="p-4 md:p-5 space-y-4 page-enter">
+    <div className="p-4 md:p-5 stack-y-4 page-enter">
       <PTRIndicator isPulling={isPulling} isRefreshing={isRefreshing} />
       {(isRefreshing || manualRefreshing) && (
         <div className="animate-pulse" role="status" aria-label="جارٍ التحميل…" aria-busy="true">
@@ -1301,11 +1301,11 @@ export function PrayerTimesPage() {
         <button
           type="button"
           onClick={() => navigate("/qibla")}
-          className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition glass press-effect text-right w-full"
+          className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-(--stroke) bg-(--card) hover:bg-(--card-2) transition glass press-effect text-right w-full"
           aria-label="فتح بوصلة القبلة"
         >
           <div className="w-10 h-10 rounded-xl bg-accent-10 border border-accent-20 flex items-center justify-center shrink-0">
-            <Compass size={20} className="text-[var(--accent)]" aria-hidden="true" />
+            <Compass size={20} className="text-(--accent)" aria-hidden="true" />
           </div>
           <div className="min-w-0">
             <div className="text-sm font-semibold">القبلة</div>
@@ -1315,11 +1315,11 @@ export function PrayerTimesPage() {
         <button
           type="button"
           onClick={() => navigate("/mosques")}
-          className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition glass press-effect text-right w-full"
+          className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-(--stroke) bg-(--card) hover:bg-(--card-2) transition glass press-effect text-right w-full"
           aria-label="البحث عن مساجد قريبة"
         >
           <div className="w-10 h-10 rounded-xl bg-accent-10 border border-accent-20 flex items-center justify-center shrink-0">
-            <MapPin size={20} className="text-[var(--accent)]" aria-hidden="true" />
+            <MapPin size={20} className="text-(--accent)" aria-hidden="true" />
           </div>
           <div className="min-w-0">
             <div className="text-sm font-semibold">المساجد القريبة</div>
@@ -1358,11 +1358,11 @@ export function PrayerTimesPage() {
               </Button>
             )}
           </div>
-          <div className="rounded-[28px] border border-[var(--stroke)] bg-[var(--card)] p-4 md:p-5">
+          <div className="rounded-[28px] border border-(--stroke) bg-(--card) p-4 md:p-5">
             <PrayerCountdown timings={timings} />
           </div>
           {data.__fromCache && !isOnline && (
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-3 py-1.5 text-[11px] opacity-60">
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-(--stroke) bg-(--card) px-3 py-1.5 text-[11px] opacity-60">
               <TimerReset size={12} aria-hidden="true" /> يتم عرض آخر نسخة محفوظة بدون اتصال.
             </div>
           )}
@@ -1385,8 +1385,8 @@ export function PrayerTimesPage() {
             className={cn(
               "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition",
               activeTab === tab.key
-                ? "bg-accent-15 border border-accent-35 text-[var(--fg)] font-medium"
-                : "bg-[var(--card)] border border-[var(--stroke)] opacity-60 hover:opacity-80"
+                ? "bg-accent-15 border border-accent-35 text-(--fg) font-medium"
+                : "bg-(--card) border border-(--stroke) opacity-60 hover:opacity-80"
             )}>
             <tab.icon size={13} />
             {tab.label}
@@ -1398,7 +1398,7 @@ export function PrayerTimesPage() {
       <Card className="p-5">
         {/* TODAY */}
         {activeTab === "today" && (
-          <div className="space-y-2.5" role="tabpanel" id="pt-panel-today" aria-labelledby="pt-tab-today" tabIndex={0}>
+          <div className="stack-y-2.5" role="tabpanel" id="pt-panel-today" aria-labelledby="pt-tab-today" tabIndex={0}>
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm font-semibold">تفاصيل اليوم</div>
               <div className="text-[10px] opacity-40">الإقامة بعد الأذان بالدقائق المحددة</div>
@@ -1415,13 +1415,13 @@ export function PrayerTimesPage() {
                 <div key={row.id}
                   className={cn("rounded-2xl border px-4 py-3 flex items-start justify-start gap-x-3 gap-y-1.5 flex-wrap transition", rowStyles(row, isActive, isNext))}>
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-[var(--card-2)] grid place-items-center shrink-0">
+                    <div className="w-10 h-10 rounded-2xl bg-(--card-2) grid place-items-center shrink-0">
                       <Icon size={18} aria-hidden="true" className="opacity-80" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <div className="text-sm font-semibold">{row.label}</div>
-                        {isActive && <Badge className="text-[10px] bg-accent-16 border-accent-20 text-[var(--accent)]">الآن</Badge>}
+                        {isActive && <Badge className="text-[10px] bg-accent-16 border-accent-20 text-(--accent)">الآن</Badge>}
                         {!isActive && isNext && <Badge className="text-[10px]">التالي</Badge>}
                       </div>
                     </div>
@@ -1434,7 +1434,7 @@ export function PrayerTimesPage() {
                       </div>
                       {showIqama && row.prayerName && (
                         <>
-                          <div className="w-px self-stretch bg-[var(--card-2)]" />
+                          <div className="w-px self-stretch bg-(--card-2)" />
                           <div className="text-right">
                             <div className="text-[10px] opacity-40 mb-0.5">إقامة</div>
                             <IqamaTimeInline prayerTime={timings[row.prayerName] ?? ""} offset={iqamaOffsets[row.prayerName] ?? 15} />
@@ -1449,13 +1449,13 @@ export function PrayerTimesPage() {
 
             {/* Night Sixths (Layl) section */}
             {schedule.nightSixths.length > 0 && (
-              <div className="mt-6 pt-5 border-t border-[var(--stroke)]">
+              <div className="mt-6 pt-5 border-t border-(--stroke)">
                 <div className="flex items-center gap-2 mb-3">
                   <Moon size={14} className="text-[#93c5fd]" aria-hidden="true" />
                   <span className="text-sm font-semibold">أسداس الليل</span>
                   <span className="text-[10px] opacity-40 ms-auto">من المغرب إلى الفجر</span>
                 </div>
-                <div className="space-y-1">
+                <div className="stack-y-1">
                   {schedule.nightSixths.map((sixth, idx) => {
                     const isActive = schedule.currentSixthIndex === idx && idx < 6;
                     return (

@@ -358,8 +358,8 @@ export function DhikrCard(props: {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.18 }}
       className={cn(
-        "glass-strong rounded-3xl border border-[var(--stroke)] overflow-hidden cv-auto glass-hover",
-        done && "border-[color-mix(in_srgb,var(--ok)_25%,transparent)]"
+        "glass-strong rounded-3xl border border-(--stroke) overflow-hidden cv-auto glass-hover",
+        done && "border-ok-25"
       )}
     >
       <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
@@ -433,7 +433,7 @@ export function DhikrCard(props: {
                   onClick={() => toggleFavorite(sectionId, index, itemId)}
                   className={cn(fav && "bg-accent-14 border-accent-24")}
                 >
-                  <Heart size={16} aria-hidden="true" className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
+                  <Heart size={16} aria-hidden="true" className={cn(fav ? "text-(--accent)" : "opacity-80")} />
                 </IconButton>
                 {sourceUrl ? (
                   <IconButton aria-label="فتح المصدر" tabIndex={actionsOpen ? 0 : -1} onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}>
@@ -446,7 +446,7 @@ export function DhikrCard(props: {
           )}
           <div className="flex flex-col items-end gap-1.5 self-center shrink-0">
             {item.minimal ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-ok-25 bg-ok-10 px-2 py-1 text-[10px] font-semibold text-[var(--ok)]">
+              <span className="inline-flex items-center gap-1 rounded-full border border-ok-25 bg-ok-10 px-2 py-1 text-[10px] font-semibold text-(--ok)">
                 <BookOpen size={11} aria-hidden="true" />
                 أقل القليل
               </span>
@@ -460,7 +460,7 @@ export function DhikrCard(props: {
         </div>
 
         {sourceLabel && !sourceUrl ? (
-          <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-3 py-1.5 text-[11px] opacity-65">
+          <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-(--stroke) bg-(--card) px-3 py-1.5 text-[11px] opacity-65">
             <BookOpen size={12} aria-hidden="true" />
             <span>{sourceLabel}</span>
           </div>
@@ -468,7 +468,7 @@ export function DhikrCard(props: {
         {sourceLabel && sourceUrl ? (
           <button type="button"
             onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-accent-20 bg-accent-10 px-3 py-1.5 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-accent-14"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-accent-20 bg-accent-10 px-3 py-1.5 text-[11px] font-semibold text-(--accent) transition hover:bg-accent-14"
           >
             <ExternalLink size={12} aria-hidden="true" />
             <span>{sourceLabel}</span>
@@ -485,7 +485,7 @@ export function DhikrCard(props: {
           {displayText}
           {swipeHint && !done && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-[var(--card-2)] backdrop-blur-sm rounded-2xl px-4 py-2 text-sm text-[var(--fg)] flex items-center gap-2 swipe-hint-anim">
+              <div className="bg-(--card-2) backdrop-blur-xs rounded-2xl px-4 py-2 text-sm text-(--fg) flex items-center gap-2 swipe-hint-anim">
                 <span className="text-lg">←</span>
                 <span>اسحب للعدّ</span>
                 <span className="text-lg">→</span>
@@ -495,7 +495,7 @@ export function DhikrCard(props: {
         </div>
 
         {/* Counter (under text) */}
-        <div className={cn("mt-4 glass rounded-2xl p-3 border border-[var(--stroke)] relative overflow-hidden", done && "done-shimmer")}>
+        <div className={cn("mt-4 glass rounded-2xl p-3 border border-(--stroke) relative overflow-hidden", done && "done-shimmer")}>
           <div className="flex flex-wrap items-center justify-between gap-3 relative">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-12 h-12 relative grid place-items-center shrink-0">
@@ -527,7 +527,7 @@ export function DhikrCard(props: {
                 </svg>
                 <div className="absolute inset-0 grid place-items-center" aria-live="polite" aria-atomic="true">
                   {done ? (
-                    <CheckCircle2 size={18} className="text-[var(--ok)]" />
+                    <CheckCircle2 size={18} className="text-(--ok)" />
                   ) : (
                     <span className="text-sm font-semibold tabular-nums">{remaining}</span>
                   )}
@@ -559,13 +559,13 @@ export function DhikrCard(props: {
               {confirmItemReset ? (
                 <>
                   <button type="button"
-                    className="shrink-0 whitespace-nowrap text-[11px] px-2.5 rounded-xl bg-danger-15 border border-danger-30 text-[var(--danger)] min-h-[44px] transition active:scale-[.97]"
+                    className="shrink-0 whitespace-nowrap text-[11px] px-2.5 rounded-xl bg-danger-15 border border-danger-30 text-(--danger) min-h-[44px] transition active:scale-[.97]"
                     onClick={() => { resetItem(sectionId, index, target, itemId); setConfirmItemReset(false); }}
                   >
                     تأكيد
                   </button>
                   <button type="button"
-                    className="shrink-0 whitespace-nowrap text-[11px] px-2.5 rounded-xl bg-[var(--card)] border border-[var(--stroke)] min-h-[44px] transition active:scale-[.97]"
+                    className="shrink-0 whitespace-nowrap text-[11px] px-2.5 rounded-xl bg-(--card) border border-(--stroke) min-h-[44px] transition active:scale-[.97]"
                     onClick={() => setConfirmItemReset(false)}
                   >
                     إلغاء
@@ -585,7 +585,7 @@ export function DhikrCard(props: {
           </div>
 
           <div
-            className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]"
+            className="mt-3 h-2 rounded-full bg-(--card) overflow-hidden border border-(--stroke)"
             role="progressbar"
             aria-valuenow={current}
             aria-valuemin={0}
@@ -604,10 +604,10 @@ export function DhikrCard(props: {
           <button type="button"
             ref={countBtnRef}
             className={cn(
-              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border select-none text-[var(--on-accent)]",
+              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border select-none text-(--on-accent)",
               done
-                ? "bg-[var(--ok)] border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
-                : "bg-[var(--accent)] border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",
+                ? "bg-(--ok) border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
+                : "bg-(--accent) border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",
               isDailyLockedItem && "opacity-60 pointer-events-none"
             )}
             style={{ color: "var(--on-accent, #000000)" }}
@@ -631,7 +631,7 @@ export function DhikrCard(props: {
         {!focusMode && prefs.showBenefits && item.benefit && item.benefit.trim().length > 0 ? (
           <div className="mt-4 rounded-2xl bg-accent-8 border border-accent-15 p-3 text-sm leading-7">
             <div className="text-xs font-semibold opacity-55 mb-1.5 flex items-center gap-1.5 flex-wrap">
-              <span className="text-[var(--accent)] opacity-80">✦</span>
+              <span className="text-(--accent) opacity-80">✦</span>
               <span>الفضل / المصدر</span>
               {(() => { const g = parseHadithGrade(item.benefit ?? ''); return g ? (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border" style={{ color: g.color, borderColor: `${g.color}44`, background: `${g.color}18` }}>{g.grade}</span>

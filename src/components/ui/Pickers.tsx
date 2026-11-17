@@ -101,7 +101,7 @@ export function Select({ value, onChange, children, className, id, disabled, tit
                 }}
                 className={cn(
                   "w-full flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-start text-sm",
-                  selected ? "bg-[var(--card-2)] text-[var(--accent)] font-semibold" : "hover:bg-[var(--card)]",
+                  selected ? "bg-(--card-2) text-(--accent) font-semibold" : "hover:bg-(--card)",
                 )}
               >
                 <span>{o.label}</span>
@@ -204,17 +204,17 @@ export function DateField({ value, onChange, min, max, className, disabled, plac
       <Modal open={open} onClose={() => setOpen(false)} ariaLabel={rest["aria-label"] ?? "اختيار التاريخ"}>
         <div className="px-4 pt-2 pb-4" data-testid="date-sheet">
           <div className="flex items-center justify-between mb-3">
-            <button type="button" aria-label="الشهر التالي" onClick={() => step(1)} className="w-10 h-10 rounded-2xl bg-[var(--card)] flex items-center justify-center">
+            <button type="button" aria-label="الشهر التالي" onClick={() => step(1)} className="w-10 h-10 rounded-2xl bg-(--card) flex items-center justify-center">
               <ChevronRight size={18} aria-hidden="true" />
             </button>
             <button
               type="button"
               onClick={() => setMode(mode === "days" ? "years" : "days")}
-              className="px-4 py-2 rounded-2xl text-base font-semibold hover:bg-[var(--card)]"
+              className="px-4 py-2 rounded-2xl text-base font-semibold hover:bg-(--card)"
             >
               {MONTHS[view.m]} {year4(view.y)}
             </button>
-            <button type="button" aria-label="الشهر السابق" onClick={() => step(-1)} className="w-10 h-10 rounded-2xl bg-[var(--card)] flex items-center justify-center">
+            <button type="button" aria-label="الشهر السابق" onClick={() => step(-1)} className="w-10 h-10 rounded-2xl bg-(--card) flex items-center justify-center">
               <ChevronLeft size={18} aria-hidden="true" />
             </button>
           </div>
@@ -232,7 +232,7 @@ export function DateField({ value, onChange, min, max, className, disabled, plac
                   }}
                   className={cn(
                     "py-2.5 rounded-2xl text-sm",
-                    y === view.y ? "bg-[var(--accent)] text-[var(--on-accent)] font-semibold" : "bg-[var(--card)]",
+                    y === view.y ? "bg-(--accent) text-(--on-accent) font-semibold" : "bg-(--card)",
                   )}
                 >
                   {year4(y)}
@@ -241,7 +241,7 @@ export function DateField({ value, onChange, min, max, className, disabled, plac
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-7 text-center text-[11px] text-[var(--muted)] mb-1">
+              <div className="grid grid-cols-7 text-center text-[11px] text-(--muted) mb-1">
                 {WEEKDAYS.map((w) => (
                   <div key={w} className="py-1">{w}</div>
                 ))}
@@ -263,10 +263,10 @@ export function DateField({ value, onChange, min, max, className, disabled, plac
                       className={cn(
                         "mx-auto w-10 h-10 rounded-full text-sm flex items-center justify-center disabled:opacity-25",
                         value === iso(view.y, view.m, d)
-                          ? "bg-[var(--accent)] text-[var(--on-accent)] font-semibold"
+                          ? "bg-(--accent) text-(--on-accent) font-semibold"
                           : iso(view.y, view.m, d) === today
-                            ? "border border-[var(--accent)]"
-                            : "hover:bg-[var(--card)]",
+                            ? "border border-(--accent)"
+                            : "hover:bg-(--card)",
                       )}
                     >
                       {arNum(d)}
@@ -285,12 +285,12 @@ export function DateField({ value, onChange, min, max, className, disabled, plac
                   onChange?.({ target: { value: "" } });
                   setOpen(false);
                 }}
-                className="flex-1 rounded-2xl border border-[var(--stroke)] py-2.5 text-sm"
+                className="flex-1 rounded-2xl border border-(--stroke) py-2.5 text-sm"
               >
                 مسح
               </button>
             ) : null}
-            <button type="button" onClick={() => setOpen(false)} className="flex-1 rounded-2xl bg-[var(--card)] py-2.5 text-sm">
+            <button type="button" onClick={() => setOpen(false)} className="flex-1 rounded-2xl bg-(--card) py-2.5 text-sm">
               إغلاق
             </button>
           </div>
@@ -350,9 +350,9 @@ export function TimeField({ value, onChange, className, disabled, ...rest }: Tim
   const setHour12 = (h: number) => setDraft((d) => ({ ...d, h: (h % 12) + (d.h >= 12 ? 12 : 0) }));
   const setPm = (p: boolean) => setDraft((d) => ({ ...d, h: (d.h % 12) + (p ? 12 : 0) }));
 
-  const col = "flex-1 max-h-[34vh] overflow-y-auto rounded-2xl bg-[var(--card)] py-1";
+  const col = "flex-1 max-h-[34vh] overflow-y-auto rounded-2xl bg-(--card) py-1";
   const cell = (on: boolean) =>
-    cn("w-full py-2.5 text-center text-base", on ? "bg-[var(--accent)] text-[var(--on-accent)] font-semibold rounded-xl" : "");
+    cn("w-full py-2.5 text-center text-base", on ? "bg-(--accent) text-(--on-accent) font-semibold rounded-xl" : "");
 
   return (
     <>
@@ -389,16 +389,16 @@ export function TimeField({ value, onChange, className, disabled, ...rest }: Tim
               ))}
             </div>
             <div className="w-20 flex flex-col gap-2">
-              <button type="button" aria-pressed={!pm} onClick={() => setPm(false)} className={cn("flex-1 rounded-2xl text-sm", !pm ? "bg-[var(--accent)] text-[var(--on-accent)] font-semibold" : "bg-[var(--card)]")}>
+              <button type="button" aria-pressed={!pm} onClick={() => setPm(false)} className={cn("flex-1 rounded-2xl text-sm", !pm ? "bg-(--accent) text-(--on-accent) font-semibold" : "bg-(--card)")}>
                 ص
               </button>
-              <button type="button" aria-pressed={pm} onClick={() => setPm(true)} className={cn("flex-1 rounded-2xl text-sm", pm ? "bg-[var(--accent)] text-[var(--on-accent)] font-semibold" : "bg-[var(--card)]")}>
+              <button type="button" aria-pressed={pm} onClick={() => setPm(true)} className={cn("flex-1 rounded-2xl text-sm", pm ? "bg-(--accent) text-(--on-accent) font-semibold" : "bg-(--card)")}>
                 م
               </button>
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <button type="button" onClick={() => setOpen(false)} className="flex-1 rounded-2xl border border-[var(--stroke)] py-2.5 text-sm">
+            <button type="button" onClick={() => setOpen(false)} className="flex-1 rounded-2xl border border-(--stroke) py-2.5 text-sm">
               إلغاء
             </button>
             <button
@@ -407,7 +407,7 @@ export function TimeField({ value, onChange, className, disabled, ...rest }: Tim
                 onChange?.({ target: { value: `${pad(draft.h)}:${pad(draft.m)}` } });
                 setOpen(false);
               }}
-              className="flex-1 rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] py-2.5 text-sm font-semibold"
+              className="flex-1 rounded-2xl bg-(--accent) text-(--on-accent) py-2.5 text-sm font-semibold"
             >
               تم
             </button>

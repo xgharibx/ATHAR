@@ -85,7 +85,7 @@ function StoryCard({
           )}
         </div>
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
+          className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold shrink-0"
           style={{ background: "var(--accent)", color: "var(--on-accent)" }}
         >
           {story.nameAr.charAt(0)}
@@ -95,11 +95,11 @@ function StoryCard({
       <div
         id={`story-panel-${story.id}`}
         aria-hidden={!open}
-        className={open ? "px-4 pb-4 space-y-4" : "hidden"}
+        className={open ? "px-4 pb-4 stack-y-4" : "hidden"}
       >
           <div className="h-px" style={{ background: "var(--stroke)" }} />
           {story.chapters && story.chapters.length > 0 ? (
-            <div className="space-y-2">
+            <div className="stack-y-2">
               {story.chapters.map((chapter, idx) => {
                 const chOpen = openChapter === idx;
                 return (
@@ -130,7 +130,7 @@ function StoryCard({
                       className={chOpen ? "block" : "hidden"}
                       aria-hidden={!chOpen}
                     >
-                      <div className="px-3 pb-3 space-y-3">
+                      <div className="px-3 pb-3 stack-y-3">
                         <div className="h-px" style={{ background: "var(--stroke)" }} />
                         {chapter.content.split('\n\n').map((para, i) => (
                           <p key={i} className="text-sm leading-loose text-right" style={{ color: "var(--fg)", opacity: 0.85 }}>
@@ -144,7 +144,7 @@ function StoryCard({
               })}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="stack-y-3">
               {(story.fullStory ?? story.summary).split('\n\n').map((para, i) => (
                 <p key={i} className="text-sm leading-loose text-right" style={{ color: "var(--fg)", opacity: 0.85 }}>
                   {para}
@@ -189,10 +189,10 @@ function StoryCard({
               <p className="text-xs font-bold mb-2" style={{ color: "var(--accent)" }}>
                 الدروس المستفادة:
               </p>
-              <ul role="list" className="space-y-1.5">
+              <ul role="list" className="stack-y-1.5">
                 {story.lessons.map((lesson) => (
                   <li key={lesson} className="flex items-start gap-2 text-sm text-right" style={{ color: "var(--fg)" }}>
-                    <span style={{ color: "var(--accent)" }} className="mt-0.5 flex-shrink-0">•</span>
+                    <span style={{ color: "var(--accent)" }} className="mt-0.5 shrink-0">•</span>
                     <span className="opacity-80">{lesson}</span>
                   </li>
                 ))}
@@ -285,7 +285,7 @@ export function ProphetStoriesPage() {
         <Card className="p-5 overflow-hidden relative">
           <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
           <div
-            className="absolute inset-0 bg-gradient-to-bl from-amber-500/15 to-orange-400/10 pointer-events-none opacity-55"
+            className="absolute inset-0 bg-linear-to-bl from-amber-500/15 to-orange-400/10 pointer-events-none opacity-55"
             style={{ borderRadius: "inherit" }}
           />
           <div className="relative">
@@ -294,7 +294,7 @@ export function ProphetStoriesPage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="mt-1 p-2 rounded-xl shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -333,7 +333,7 @@ export function ProphetStoriesPage() {
                 spellCheck={false}
                 autoComplete="off"
                 autoCapitalize="none"
-                className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none"
+                className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-hidden"
                 style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
               />
               {query && (
@@ -351,7 +351,7 @@ export function ProphetStoriesPage() {
         {query ? `نتائج البحث: ${filtered.length} قصة` : null}
       </div>
       {/* Stories */}
-      <div className="px-4 pt-4 space-y-3" role="list" aria-label="قائمة قصص الأنبياء">
+      <div className="px-4 pt-4 stack-y-3" role="list" aria-label="قائمة قصص الأنبياء">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-1 py-10 opacity-50 text-sm" style={{ color: "var(--fg)" }}>
             {showBookmarksOnly ? (

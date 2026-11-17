@@ -177,7 +177,7 @@ export function NearbyMosquesPage() {
   }, [fetchMosques]);
 
   return (
-    <div className="p-4 md:p-5 space-y-4 max-w-2xl mx-auto" dir="rtl">
+    <div className="p-4 md:p-5 stack-y-4 max-w-2xl mx-auto" dir="rtl">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -192,7 +192,7 @@ export function NearbyMosquesPage() {
 
       {/* Geo loading */}
       {geo.status === "idle" && (
-        <Card className="p-5 space-y-3">
+        <Card className="p-5 stack-y-3">
           <div className="text-sm opacity-70 leading-relaxed">
             استخدم موقعك للبحث عن المساجد القريبة.
           </div>
@@ -211,7 +211,7 @@ export function NearbyMosquesPage() {
 
       {/* Geo error */}
       {geo.status === "error" && (
-        <Card className="p-4 space-y-3">
+        <Card className="p-4 stack-y-3">
           <div className="text-sm opacity-70">
             {geo.code === 1
               ? "رفضت الإذن بالوصول للموقع. يرجى السماح للتطبيق بتحديد موقعك من الإعدادات."
@@ -243,7 +243,7 @@ export function NearbyMosquesPage() {
 
       {/* Fetch error */}
       {fetchError && (
-        <Card className="p-4 space-y-3">
+        <Card className="p-4 stack-y-3">
           <div className="text-sm opacity-70">{fetchError}</div>
           {geo.status === "ok" && (
             <Button variant="secondary" size="sm" onClick={() => void fetchMosques(geo.lat, geo.lng)}>
@@ -255,7 +255,7 @@ export function NearbyMosquesPage() {
 
       {/* Empty state */}
       {!loading && !fetchError && geo.status === "ok" && mosques.length === 0 && (
-        <Card className="p-6 text-sm text-center space-y-2">
+        <Card className="p-6 text-sm text-center stack-y-2">
           <div className="text-4xl mb-2" aria-hidden="true">🕌</div>
           <div className="opacity-60">لم يُعثر على مساجد مسجّلة في نطاق {NEARBY_RADIUS_KM} كم من موقعك</div>
           <Button variant="secondary" size="sm" className="mt-2" onClick={() => void fetchMosques((geo as {status:"ok";lat:number;lng:number}).lat, (geo as {status:"ok";lat:number;lng:number}).lng)}>
@@ -266,7 +266,7 @@ export function NearbyMosquesPage() {
 
       {/* Mosque list */}
       {mosques.length > 0 && (
-        <div className="space-y-2" role="list" aria-label="المساجد القريبة">
+        <div className="stack-y-2" role="list" aria-label="المساجد القريبة">
           <div className="text-xs font-semibold opacity-60 uppercase tracking-wide mb-3" aria-live="polite" aria-atomic="true">
             {mosques.length} مسجد في نطاق {NEARBY_RADIUS_KM} كم
           </div>
@@ -320,7 +320,7 @@ export function NearbyMosquesPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`فتح ${mosque.name} في خرائط جوجل (تبويب جديد)`}
-                      className="shrink-0 text-[11px] px-3 py-1.5 rounded-full border border-[var(--stroke)] hover:bg-[var(--card-2)] transition whitespace-nowrap"
+                      className="shrink-0 text-[11px] px-3 py-1.5 rounded-full border border-(--stroke) hover:bg-(--card-2) transition whitespace-nowrap"
                       style={{ color: "var(--accent)" }}
                     >
                       خرائط ↗

@@ -63,16 +63,16 @@ export function PrayerWidget() {
     <Card className="p-4 mb-6 relative overflow-hidden">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-center gap-2">
-          <Clock size={16} aria-hidden="true" className="text-[var(--accent)]" />
+          <Clock size={16} aria-hidden="true" className="text-(--accent)" />
           <span className="font-semibold text-sm">مواقيت الصلاة</span>
         </div>
         <div className="flex w-full items-center gap-2 flex-wrap justify-start sm:w-auto sm:justify-end">
           {sourceLabel ? (
-            <span className="text-[10px] opacity-55 bg-[var(--card)] px-2 py-1 rounded-full border border-[var(--stroke)] whitespace-nowrap max-w-full">
+            <span className="text-[10px] opacity-55 bg-(--card) px-2 py-1 rounded-full border border-(--stroke) whitespace-nowrap max-w-full">
               {isCached ? `آخر نسخة: ${sourceLabel}` : sourceLabel}
             </span>
           ) : null}
-          <span className="text-[11px] opacity-60 bg-[var(--card)] px-2 py-1 rounded-full border border-[var(--stroke)] whitespace-nowrap">
+          <span className="text-[11px] opacity-60 bg-(--card) px-2 py-1 rounded-full border border-(--stroke) whitespace-nowrap">
             {date.hijri.weekday.ar} • {hijriLabel || date.hijri.date}
           </span>
           <button
@@ -81,12 +81,12 @@ export function PrayerWidget() {
             disabled={isFetching}
             aria-label="تحديث مواقيت الصلاة"
             title="تحديث مواقيت الصلاة"
-            className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-(--stroke) bg-(--card) hover:bg-(--card-2) transition disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
           >
             <RotateCw size={14} aria-hidden="true" className={cn(isFetching && "animate-spin")} />
           </button>
           {isFetching && (
-            <span aria-hidden="true" className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" title="يتم التحديث..." />
+            <span aria-hidden="true" className="w-2 h-2 rounded-full bg-(--accent) animate-pulse" title="يتم التحديث..." />
           )}
         </div>
       </div>
@@ -101,7 +101,7 @@ export function PrayerWidget() {
       ) : null}
 
       {/* Live countdown to next prayer */}
-      <div className="mb-4 rounded-[28px] border border-[var(--stroke)] bg-[var(--card)] p-4">
+      <div className="mb-4 rounded-[28px] border border-(--stroke) bg-(--card) p-4">
         <PrayerCountdown timings={timings} compact />
       </div>
 
@@ -119,13 +119,13 @@ export function PrayerWidget() {
               className={cn(
                 "flex flex-col gap-1 rounded-2xl py-1.5",
                 isCurrent && "bg-accent-12 border border-accent-25",
-                !isCurrent && isNext && "bg-[var(--card-2)] border border-[var(--stroke)]"
+                !isCurrent && isNext && "bg-(--card-2) border border-(--stroke)"
               )}
             >
               <span className={cn("text-[11px]", isCurrent ? "opacity-95 font-semibold" : isNext ? "opacity-85" : "opacity-55")}>
                 {prayer.label}
               </span>
-              <span dir="ltr" className={cn("text-xs font-medium tabular-nums", isCurrent && "text-[var(--accent)]")}>
+              <span dir="ltr" className={cn("text-xs font-medium tabular-nums", isCurrent && "text-(--accent)")}>
                 {prayer.timeLabel}
               </span>
             </div>
@@ -141,7 +141,7 @@ export function PrayerWidget() {
         const midnightMoment = schedule.extraMoments.find((m) => m.id === "midnight");
         if (!sunriseMoment && !duhaMoment && !midnightMoment) return null;
         return (
-          <div className="mt-3 border-t border-[var(--stroke)] pt-3 text-[11px] opacity-65 space-y-1.5">
+          <div className="mt-3 border-t border-(--stroke) pt-3 text-[11px] opacity-65 stack-y-1.5">
             {/* Day row */}
             {(sunriseMoment || duhaMoment) && (
               <div className="flex items-center gap-2 flex-wrap">

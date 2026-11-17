@@ -185,7 +185,7 @@ function HistoryChart({ log }: { log: Record<string, Record<string, number>> }) 
   return (
     <Card className="p-4">
       <div className="flex items-center gap-2 mb-3">
-        <ActivityIcon size={14} className="text-[var(--accent)]" />
+        <ActivityIcon size={14} className="text-(--accent)" />
         <span className="text-sm font-semibold">آخر ٣٠ يوماً</span>
         <span className="text-[11px] opacity-50 mr-auto tabular-nums">المجموع: {arNum(total)}</span>
       </div>
@@ -197,7 +197,7 @@ function HistoryChart({ log }: { log: Record<string, Record<string, number>> }) 
             <div
               key={c.key}
               title={`${c.key}: ${c.total}`}
-              className="flex-1 rounded-sm transition-all"
+              className="flex-1 rounded-xs transition-all"
               style={{
                 height: `${Math.max(4, heightPct)}%`,
                 background: isToday ? "var(--accent)" : c.total > 0 ? "var(--card-2)" : "transparent",
@@ -229,7 +229,7 @@ function StreakCard({ streak, best, lastActive }: { streak: number; best: number
   return (
     <Card className="p-4">
       <div className="flex items-center gap-2 mb-2">
-        <Flame size={14} className={streak > 0 ? "text-orange-400" : "text-[var(--accent)]"} />
+        <Flame size={14} className={streak > 0 ? "text-orange-400" : "text-(--accent)"} />
         <span className="text-sm font-semibold">سلسلة التسبيح</span>
         <span className="text-[10px] opacity-50 mr-auto">
           {best > 0 ? `أفضل: ${best} يوم` : "ابدأ سلسلتك اليوم"}
@@ -280,13 +280,13 @@ function DailyGoalCard({
   return (
     <Card className="p-4">
       <div className="flex items-center gap-2 mb-2">
-        <Target size={14} className="text-[var(--accent)]" />
+        <Target size={14} className="text-(--accent)" />
         <span className="text-sm font-semibold">هدف اليوم</span>
         <span className="text-[10px] opacity-50 mr-auto">{arNum(today)} / {goal > 0 ? arNum(goal) : "—"}</span>
       </div>
       {goal > 0 ? (
         <>
-          <div className="h-2 rounded-full bg-[var(--card)] border border-[var(--stroke)] overflow-hidden">
+          <div className="h-2 rounded-full bg-(--card) border border-(--stroke) overflow-hidden">
             <div
               className="h-full rounded-full transition-[width] duration-500"
               style={{ width: `${pctDone}%`, background: completed ? "var(--ok)" : "var(--accent)" }}
@@ -324,7 +324,7 @@ function DailyGoalCard({
                 max={10000}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                className="flex-1 rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-1 text-xs outline-none"
+                className="flex-1 rounded-xl bg-(--card) border border-(--stroke) px-2 py-1 text-xs outline-hidden"
                 inputMode="numeric"
               />
               <Button size="sm" onClick={() => { onChangeGoal(Math.max(0, Number(draft) || 0)); setEditing(false); }}>حفظ</Button>
@@ -354,7 +354,7 @@ function DailyGoalCard({
             max={10000}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            className="flex-1 rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-1 text-xs outline-none"
+            className="flex-1 rounded-xl bg-(--card) border border-(--stroke) px-2 py-1 text-xs outline-hidden"
             inputMode="numeric"
             placeholder="100"
           />
@@ -639,11 +639,11 @@ function TasbeehStatsCard({
   return (
     <Card className="p-4">
       <div className="flex items-center gap-2 mb-4">
-        <BarChart2 size={14} className="text-[var(--accent)]" />
+        <BarChart2 size={14} className="text-(--accent)" />
         <span className="text-sm font-semibold">إحصائيات التسبيح</span>
         <span className="text-[11px] opacity-50 mr-auto">هذا الأسبوع مقابل الماضي</span>
       </div>
-      <div className="space-y-3">
+      <div className="stack-y-3">
         {stats.allItems.map((item) => {
           const tw = stats.thisWeek[item.key] ?? 0;
           const lw = stats.lastWeek[item.key] ?? 0;
@@ -659,7 +659,7 @@ function TasbeehStatsCard({
               {/* This week bar */}
               <div className="flex items-center gap-2 mb-0.5">
                 <span className="text-[9px] opacity-40 w-14 shrink-0">هذا: {tw.toLocaleString()}</span>
-                <div className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden">
+                <div className="flex-1 h-2 rounded-full bg-(--card) overflow-hidden">
                   <div
                     className="h-full rounded-full transition-[width] duration-500"
                     style={{ width: `${twPct}%`, background: 'var(--accent)' }}
@@ -669,7 +669,7 @@ function TasbeehStatsCard({
               {/* Last week bar */}
               <div className="flex items-center gap-2">
                 <span className="text-[9px] opacity-40 w-14 shrink-0">سبق: {lw.toLocaleString()}</span>
-                <div className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden">
+                <div className="flex-1 h-2 rounded-full bg-(--card) overflow-hidden">
                   <div
                     className="h-full rounded-full transition-[width] duration-500"
                     style={{ width: `${lwPct}%`, background: 'var(--card-2)' }}
@@ -687,7 +687,7 @@ function TasbeehStatsCard({
           <span className="text-[10px] opacity-50">هذا الأسبوع</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-1.5 rounded-full bg-[var(--card-2)]" />
+          <div className="w-3 h-1.5 rounded-full bg-(--card-2)" />
           <span className="text-[10px] opacity-50">الأسبوع الماضي</span>
         </div>
       </div>
@@ -1022,7 +1022,7 @@ export function SebhaPage() {
   }
 
   return (
-    <div className="space-y-3 page-enter">
+    <div className="stack-y-3 page-enter">
       {focusMode && (
         <div
           className="sebha-focus"
@@ -1061,7 +1061,7 @@ export function SebhaPage() {
         </div>
       )}
       {/* Tabs — kept simple: only "ذكر" and "أسماء" per user request. */}
-      <div className="flex items-center gap-1 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1" role="tablist" aria-label="أقسام السبحة">
+      <div className="flex items-center gap-1 rounded-2xl border border-(--stroke) bg-(--card) p-1" role="tablist" aria-label="أقسام السبحة">
         {[
           { id: "dhikr", label: "ذكر", icon: Sparkles },
           { id: "asma", label: "أسماء", icon: ActivityIcon },
@@ -1070,7 +1070,7 @@ export function SebhaPage() {
             onClick={() => setActiveTab(t.id as typeof activeTab)}
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition",
-              activeTab === t.id ? "bg-[var(--accent)] text-[var(--on-accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"
+              activeTab === t.id ? "bg-(--accent) text-(--on-accent)" : "text-(--muted) hover:bg-(--card-2)"
             )}>
             <t.icon size={13} />
             {t.label}
@@ -1087,7 +1087,7 @@ export function SebhaPage() {
             </IconButton>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <Sparkles size={15} aria-hidden="true" className="text-[var(--accent)]" />
+                <Sparkles size={15} aria-hidden="true" className="text-(--accent)" />
                 <span className="text-xs font-semibold opacity-60">سبحة ذكية</span>
                 {<Badge>{totalDone}/{totalTarget}</Badge>}
               </div>
@@ -1097,9 +1097,9 @@ export function SebhaPage() {
               </div>
               {/* Leaderboard daily challenge */}
               <div className="mt-2 flex items-center gap-1.5 text-[11px] opacity-60">
-                <Target size={11} aria-hidden="true" className="text-[var(--accent)] shrink-0" />
+                <Target size={11} aria-hidden="true" className="text-(--accent) shrink-0" />
                 <span>تحدي اليوم في الترتيب:</span>
-                <span className="font-semibold text-[var(--accent)]">{dailyChallenge.label} × {dailyChallenge.target}</span>
+                <span className="font-semibold text-(--accent)">{dailyChallenge.label} × {dailyChallenge.target}</span>
               </div>
             </div>
           </div>
@@ -1112,8 +1112,8 @@ export function SebhaPage() {
               className={cn(
                 "flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10.5px] font-bold transition",
                 tallyMode
-                  ? "bg-accent-20 border-accent-50 text-[var(--accent)] shadow-[0_0_18px_-2px_rgba(125,211,252,0.45)]"
-                  : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-2)]"
+                  ? "bg-accent-20 border-accent-50 text-(--accent) shadow-[0_0_18px_-2px_rgba(125,211,252,0.45)]"
+                  : "border-(--stroke) bg-(--card) text-(--muted) hover:bg-(--card-2)"
               )}>
               <Timer size={11} aria-hidden="true" />
               {tallyMode ? "وضع حر مُفعّل" : "وضع حر"}
@@ -1125,7 +1125,7 @@ export function SebhaPage() {
               aria-expanded={showHistory}
               aria-controls="sebha-history-panel"
               onClick={() => setShowHistory((v) => !v)}
-              className={cn(showHistory && "text-[var(--accent)]")}
+              className={cn(showHistory && "text-(--accent)")}
             >
               <History size={17} aria-hidden="true" />
             </IconButton>
@@ -1147,7 +1147,7 @@ export function SebhaPage() {
           </div>
         </div>
         <div
-          className="mt-4 h-2 rounded-full bg-[var(--card)] border border-[var(--stroke)] overflow-hidden"
+          className="mt-4 h-2 rounded-full bg-(--card) border border-(--stroke) overflow-hidden"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}
@@ -1163,7 +1163,7 @@ export function SebhaPage() {
         <Card id="sebha-history-panel" className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <History size={15} aria-hidden="true" className="text-[var(--accent)]" />
+              <History size={15} aria-hidden="true" className="text-(--accent)" />
               <span className="text-sm font-semibold">سجل الجلسات</span>
               {sebhaSessions.length > 0 && <Badge>{sebhaSessions.length}</Badge>}
             </div>
@@ -1199,13 +1199,13 @@ export function SebhaPage() {
           {sebhaSessions.length === 0 ? (
             <div className="text-xs opacity-40 text-center py-4">لا توجد جلسات مسجلة بعد</div>
           ) : (
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+            <div className="stack-y-2 max-h-60 overflow-y-auto">
               {sebhaSessions.map((s, i) => (
-                <div key={`${s.timestamp}-${s.dhikrKey}-${i}`} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--card)] px-3 py-2 text-xs">
+                <div key={`${s.timestamp}-${s.dhikrKey}-${i}`} className="flex items-center justify-between gap-3 rounded-xl bg-(--card) px-3 py-2 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
                     {s.target === null
-                      ? <ActivityIcon size={12} aria-hidden="true" className="text-[var(--accent)] shrink-0" />
-                      : <CheckCircle2 size={12} className="text-[var(--ok)] shrink-0" />}
+                      ? <ActivityIcon size={12} aria-hidden="true" className="text-(--accent) shrink-0" />
+                      : <CheckCircle2 size={12} className="text-(--ok) shrink-0" />}
                     <span className="truncate opacity-85">{s.dhikrLabel}</span>
                     <Badge>{s.count}{s.target ? `/${s.target}` : ""}</Badge>
                   </div>
@@ -1230,7 +1230,7 @@ export function SebhaPage() {
           <div
             role="radiogroup"
             aria-label="وضع العدّ"
-            className="flex items-center gap-1 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1"
+            className="flex items-center gap-1 rounded-2xl border border-(--stroke) bg-(--card) p-1"
           >
             {TARGETS.map((value) => (
               <button
@@ -1245,8 +1245,8 @@ export function SebhaPage() {
                 className={cn(
                   "min-w-12 rounded-xl px-3 py-2 text-xs font-bold transition",
                   !tallyMode && target === value
-                    ? "bg-[var(--accent)] text-[var(--on-accent)] shadow-[0_0_18px_-4px_var(--accent)]"
-                    : "text-[var(--muted)] hover:bg-[var(--card-2)]"
+                    ? "bg-(--accent) text-(--on-accent) shadow-[0_0_18px_-4px_var(--accent)]"
+                    : "text-(--muted) hover:bg-(--card-2)"
                 )}
               >
                 {toArabicNumeral(value)}
@@ -1267,8 +1267,8 @@ export function SebhaPage() {
               className={cn(
                 "min-w-12 rounded-xl px-3 py-2 text-xs font-bold transition flex items-center justify-center gap-1.5",
                 tallyMode
-                  ? "bg-accent-15 border border-accent-50 text-[var(--accent)] shadow-[0_0_18px_-4px_var(--accent)]"
-                  : "text-[var(--muted)] hover:bg-[var(--card-2)] border border-transparent",
+                  ? "bg-accent-15 border border-accent-50 text-(--accent) shadow-[0_0_18px_-4px_var(--accent)]"
+                  : "text-(--muted) hover:bg-(--card-2) border border-transparent",
               )}
               title="بدون هدف — عدّ حر"
             >
@@ -1278,7 +1278,7 @@ export function SebhaPage() {
             <button
               type="button"
               onClick={() => setFocusMode(true)}
-              className="min-w-12 rounded-xl px-3 py-2 text-xs font-bold transition flex items-center justify-center gap-1.5 text-[var(--muted)] hover:bg-[var(--card-2)] border border-transparent"
+              className="min-w-12 rounded-xl px-3 py-2 text-xs font-bold transition flex items-center justify-center gap-1.5 text-(--muted) hover:bg-(--card-2) border border-transparent"
               title="عدّ بالضغط في أي مكان"
             >
               <Focus size={11} aria-hidden="true" />
@@ -1316,11 +1316,11 @@ export function SebhaPage() {
         {/* Status line */}
         <div className="mt-4 flex items-center justify-center gap-2 text-sm opacity-75">
           {tallyMode ? (
-            <><Timer size={17} aria-hidden="true" className="text-[var(--accent)]" />عدّ حر — بدون هدف</>
+            <><Timer size={17} aria-hidden="true" className="text-(--accent)" />عدّ حر — بدون هدف</>
           ) : completed ? (
-            <><CheckCircle2 size={17} aria-hidden="true" className="text-[var(--ok)]" />تم الهدف</>
+            <><CheckCircle2 size={17} aria-hidden="true" className="text-(--ok)" />تم الهدف</>
           ) : (
-            <><Target size={17} aria-hidden="true" className="text-[var(--accent)]" />{remaining} متبقي</>
+            <><Target size={17} aria-hidden="true" className="text-(--accent)" />{remaining} متبقي</>
           )}
         </div>
 
@@ -1335,7 +1335,7 @@ export function SebhaPage() {
                 else { await navigator.clipboard.writeText(text); toast.success("تم نسخ الذكر"); }
               } catch { /* ignore */ }
             }}
-            className="mt-3 mx-auto flex items-center gap-1.5 rounded-2xl border border-accent-35 bg-accent-15 px-3 py-1.5 text-xs font-semibold text-[var(--accent)] transition active:scale-95"
+            className="mt-3 mx-auto flex items-center gap-1.5 rounded-2xl border border-accent-35 bg-accent-15 px-3 py-1.5 text-xs font-semibold text-(--accent) transition active:scale-95"
             aria-label="مشاركة اكتمال الذكر"
           >
             <Share2 size={13} aria-hidden="true" />
@@ -1363,10 +1363,10 @@ export function SebhaPage() {
                   toast.success("تم اختيار الذكر");
                 }}
                 className={cn(
-                  "flex-shrink-0 px-3 py-2 rounded-2xl text-xs font-medium transition-all active:scale-95 arabic-text whitespace-nowrap border",
+                  "shrink-0 px-3 py-2 rounded-2xl text-xs font-medium transition-all active:scale-95 arabic-text whitespace-nowrap border",
                   isActiveQP
-                    ? "bg-accent-15 border-accent-40 text-[var(--accent)]"
-                    : "border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)]"
+                    ? "bg-accent-15 border-accent-40 text-(--accent)"
+                    : "border-(--stroke) bg-(--card) hover:bg-(--card-2)"
                 )}
               >
                 {qp.phrase}
@@ -1391,7 +1391,7 @@ export function SebhaPage() {
                 "glass rounded-3xl p-4 text-right border transition active:scale-[.98]",
                 active ? "border-accent-35 bg-accent-8"
                 : itemDone ? "border-ok-35 bg-ok-6 hover:bg-ok-8"
-                : "border-[var(--stroke)] hover:bg-[var(--card)]"
+                : "border-(--stroke) hover:bg-(--card)"
               )}
             >
               <div className="flex items-start justify-between gap-3">
@@ -1402,7 +1402,7 @@ export function SebhaPage() {
                 <Badge>{Math.min(itemCount, target)}/{target}</Badge>
               </div>
               <div
-                className="mt-3 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+                className="mt-3 h-1.5 rounded-full bg-(--card) overflow-hidden"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={100}
@@ -1425,7 +1425,7 @@ export function SebhaPage() {
               "relative glass rounded-3xl p-4 text-right border transition",
               selected === "custom"
                 ? "border-accent-35 bg-accent-8"
-                : "border-[var(--stroke)] hover:bg-[var(--card)]"
+                : "border-(--stroke) hover:bg-(--card)"
             )}
           >
             <button
@@ -1433,7 +1433,7 @@ export function SebhaPage() {
               onClick={() => setSelected("custom")}
               aria-pressed={selected === "custom"}
               aria-label={`اختيار الذكر المخصص: ${sebhaCustom.phrase}`}
-              className="block w-full border-0 bg-transparent p-0 text-right text-inherit cursor-pointer active:scale-[.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-50"
+              className="block w-full border-0 bg-transparent p-0 text-right text-inherit cursor-pointer active:scale-[.98] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent-50"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -1446,7 +1446,7 @@ export function SebhaPage() {
                 </div>
               </div>
               <div
-                className="mt-3 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+                className="mt-3 h-1.5 rounded-full bg-(--card) overflow-hidden"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={100}
@@ -1468,7 +1468,7 @@ export function SebhaPage() {
             <button
               type="button"
               onClick={openNewCustom}
-              className="absolute end-4 top-4 grid h-[21px] w-[21px] place-items-center rounded-md border-0 bg-transparent p-1 opacity-40 transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-50"
+              className="absolute inset-e-4 top-4 grid h-[21px] w-[21px] place-items-center rounded-md border-0 bg-transparent p-1 opacity-40 transition hover:opacity-80 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent-50"
               aria-label="تعديل الذكر المخصص"
             >
               <Pencil size={13} aria-hidden="true" />
@@ -1477,7 +1477,7 @@ export function SebhaPage() {
         ) : (
           <button type="button"
             onClick={openNewCustom}
-            className="glass rounded-3xl p-4 text-center border border-dashed border-[var(--stroke)] hover:bg-[var(--card)] transition active:scale-[.98] flex flex-col items-center justify-center gap-2 min-h-[100px]"
+            className="glass rounded-3xl p-4 text-center border border-dashed border-(--stroke) hover:bg-(--card) transition active:scale-[.98] flex flex-col items-center justify-center gap-2 min-h-[100px]"
           >
             <Plus size={20} aria-hidden="true" className="opacity-40" />
             <span className="text-xs opacity-50">إضافة ذكر مخصص</span>
@@ -1489,13 +1489,13 @@ export function SebhaPage() {
       {sebhaCustomList.length > 0 && (
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-3">
-            <BookHeart size={14} className="text-[var(--accent)]" />
+            <BookHeart size={14} className="text-(--accent)" />
             <span className="text-sm font-semibold">أذكاري المخصصة</span>
             <Badge>{sebhaCustomList.length}</Badge>
           </div>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {sebhaCustomList.map((item, idx) => (
-              <div key={item.id} className="flex items-center gap-2 rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2">
+              <div key={item.id} className="flex items-center gap-2 rounded-xl bg-(--card) border border-(--stroke) px-3 py-2">
                 <div className="w-2 h-8 rounded-full shrink-0" style={{ background: item.color }} aria-hidden="true" />
                 <button type="button" onClick={() => pickCustomItem(item)} className="flex-1 text-right min-w-0">
                   <div className="arabic-text text-sm font-semibold truncate">{item.phrase}</div>
@@ -1521,7 +1521,7 @@ export function SebhaPage() {
             ))}
           </div>
           <button type="button" onClick={openNewCustom}
-            className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-[var(--stroke)] px-3 py-2 text-[11px] opacity-60 hover:opacity-90 transition">
+            className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-(--stroke) px-3 py-2 text-[11px] opacity-60 hover:opacity-90 transition">
             <Plus size={11} /> إضافة ذكر جديد
           </button>
         </Card>
@@ -1531,10 +1531,10 @@ export function SebhaPage() {
       {showCustomForm && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Pencil size={15} aria-hidden="true" className="text-[var(--accent)]" />
+            <Pencil size={15} aria-hidden="true" className="text-(--accent)" />
             <span className="text-sm font-semibold">{editingCustomId ? "تعديل ذكر" : "ذكر مخصص جديد"}</span>
           </div>
-          <div className="space-y-3">
+          <div className="stack-y-3">
             <div>
               <label htmlFor="custom-phrase" className="text-xs opacity-60 mb-1 block">نص الذكر</label>
               <input
@@ -1550,7 +1550,7 @@ export function SebhaPage() {
                 placeholder="مثال: صلِّ على النبي"
                 spellCheck={false}
                 autoComplete="off"
-                className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
+                className="w-full rounded-xl bg-(--card) border border-(--stroke) px-3 py-2 text-sm outline-hidden focus:border-accent-50 transition"
               />
             </div>
             <div>
@@ -1563,7 +1563,7 @@ export function SebhaPage() {
                 placeholder="mثال: Subhan Allah"
                 spellCheck={false}
                 autoComplete="off"
-                className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
+                className="w-full rounded-xl bg-(--card) border border-(--stroke) px-3 py-2 text-sm outline-hidden focus:border-accent-50 transition"
               />
             </div>
             <div>
@@ -1576,7 +1576,7 @@ export function SebhaPage() {
                 value={customTargetInput}
                 onChange={(e) => setCustomTargetInput(e.target.value)}
                 inputMode="numeric"
-                className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
+                className="w-full rounded-xl bg-(--card) border border-(--stroke) px-3 py-2 text-sm outline-hidden focus:border-accent-50 transition"
               />
             </div>
             <div>
@@ -1636,7 +1636,7 @@ export function SebhaPage() {
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm font-semibold">مشاركة إحصائياتك</span>
             <button type="button" onClick={shareStats}
-              className="flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-[11px] font-semibold hover:bg-[var(--card-2)] transition">
+              className="flex items-center gap-1.5 rounded-xl border border-(--stroke) bg-(--card) px-3 py-2 text-[11px] font-semibold hover:bg-(--card-2) transition">
               <Share2 size={12} /> مشاركة الآن
             </button>
           </div>
@@ -1703,16 +1703,16 @@ function AsmaHusnaCounter({
   return (
     <Card className="p-4">
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <ActivityIcon size={14} className="text-[var(--accent)]" />
+        <ActivityIcon size={14} className="text-(--accent)" />
         <span className="text-sm font-semibold">أسماء الله الحسنى</span>
         <span className="text-[10px] opacity-50">انقر للعدّ على كل اسم</span>
-        <div className="ms-auto flex items-center gap-1 rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-0.5">
+        <div className="ms-auto flex items-center gap-1 rounded-xl border border-(--stroke) bg-(--card) p-0.5">
           {[33, 100, 1000].map((t) => (
             <button key={t} type="button"
               onClick={() => setTarget(t)}
               className={cn(
                 "rounded-lg px-2 py-1 text-[10px] font-semibold transition",
-                target === t ? "bg-[var(--accent)] text-[var(--on-accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"
+                target === t ? "bg-(--accent) text-(--on-accent)" : "text-(--muted) hover:bg-(--card-2)"
               )}>
               {t}
             </button>
@@ -1724,7 +1724,7 @@ function AsmaHusnaCounter({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="ابحث باسم أو معنى…"
-        className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-xs outline-none mb-3"
+        className="w-full rounded-xl bg-(--card) border border-(--stroke) px-3 py-2 text-xs outline-hidden mb-3"
       />
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[60vh] overflow-y-auto" role="list">
         {filtered.map((n) => {
@@ -1736,7 +1736,7 @@ function AsmaHusnaCounter({
               onClick={() => onCount(n.id, target)}
               className={cn(
                 "glass rounded-2xl p-3 text-right border transition active:scale-[.98]",
-                done ? "border-[var(--ok)]" : "border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                done ? "border-(--ok)" : "border-(--stroke) hover:bg-(--card-2)"
               )}
               aria-label={`${n.arabic} — ${n.meaning ?? ""} (${count} من ${target})`}>
               <div className="flex items-center justify-between gap-2">
@@ -1745,7 +1745,7 @@ function AsmaHusnaCounter({
               </div>
               <div className="arabic-text text-base font-bold leading-7 mt-1 truncate" title={n.meaning}>{n.arabic}</div>
               <div className="text-[10px] opacity-55 truncate" title={n.meaning}>{n.meaning}</div>
-              <div className="mt-2 h-1 rounded-full bg-[var(--card-2)] overflow-hidden">
+              <div className="mt-2 h-1 rounded-full bg-(--card-2) overflow-hidden">
                 <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${pctDone}%`, background: pctDone >= 100 ? "var(--ok)" : "var(--accent)" }} />
               </div>
             </button>

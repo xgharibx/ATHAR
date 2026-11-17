@@ -65,18 +65,18 @@ export default function MiracleDetailPage() {
 
         {/* Particle overlay on top of the visual — disabled on mobile for performance */}
         {!isMobile && (
-          <div className="absolute inset-0 z-[1] pointer-events-none">
+          <div className="absolute inset-0 z-1 pointer-events-none">
             <ParticleField variant={particleVariant} density={0.8} speed={0.4} />
           </div>
         )}
 
         {/* Lightweight CSS starfield — works on mobile too (no WebGL) */}
-        <div aria-hidden className="ijaz-stars absolute inset-0 z-[1] pointer-events-none" />
+        <div aria-hidden className="ijaz-stars absolute inset-0 z-1 pointer-events-none" />
 
         {/* Multi-layer gradient overlays for depth — kept subtle so visual can breathe */}
-        <div className="absolute inset-0 z-[2] bg-gradient-to-t from-vanta via-vanta/10 to-transparent" />
-        <div className="absolute inset-0 z-[2] bg-gradient-to-r from-vanta/20 via-transparent to-vanta/20" />
-        <div className="absolute bottom-0 left-0 right-0 z-[2] h-40 bg-gradient-to-t from-vanta via-vanta/80 to-transparent" />
+        <div className="absolute inset-0 z-2 bg-linear-to-t from-vanta via-vanta/10 to-transparent" />
+        <div className="absolute inset-0 z-2 bg-linear-to-r from-vanta/20 via-transparent to-vanta/20" />
+        <div className="absolute bottom-0 left-0 right-0 z-2 h-40 bg-linear-to-t from-vanta via-vanta/80 to-transparent" />
 
         {/* Hero Content */}
         <div className="relative z-10 container mx-auto px-6 pb-8 sm:pb-10 lg:pb-12">
@@ -91,7 +91,7 @@ export default function MiracleDetailPage() {
         </div>
 
         {/* Decorative bottom edge */}
-        <div className="absolute bottom-0 left-0 right-0 z-[3] h-px bg-gradient-to-r from-transparent via-gold-primary/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 z-3 h-px bg-linear-to-r from-transparent via-gold-primary/20 to-transparent" />
       </section>
 
       {/* ========= CONTENT ========= */}
@@ -106,7 +106,7 @@ export default function MiracleDetailPage() {
         <div className="relative z-10 container mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Main Content (2 cols) */}
-            <div className="lg:col-span-2 space-y-14">
+            <div className="lg:col-span-2 stack-y-14">
               {/* Description */}
               <ScrollReveal variant="fade-up">
                 <div>
@@ -147,10 +147,10 @@ export default function MiracleDetailPage() {
               <ScrollReveal variant="fade-up">
                 <div>
                   <h2 className="text-verse-green font-amiri text-2xl font-bold mb-6 flex items-center gap-3">
-                    <span className="w-1 h-10 bg-gradient-to-b from-verse-green to-transparent rounded-full" />
+                    <span className="w-1 h-10 bg-linear-to-b from-verse-green to-transparent rounded-full" />
                     {'\u0627\u0644\u0622\u064A\u0627\u062A \u0627\u0644\u0642\u0631\u0622\u0646\u064A\u0629'}
                   </h2>
-                  <div className="space-y-6">
+                  <div className="stack-y-6">
                     {miracle.verses.map((verse) => (
                       <div key={verse.id} className="cosmic-border rounded-2xl">
                         <VerseDisplay verse={verse} size="md" />
@@ -167,7 +167,7 @@ export default function MiracleDetailPage() {
                     <span className="w-1 h-10 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, transparent)` }} />
                     {'\u0627\u0644\u0623\u062F\u0644\u0629 \u0627\u0644\u0639\u0644\u0645\u064A\u0629'}
                   </h2>
-                  <div className="space-y-4">
+                  <div className="stack-y-4">
                     {miracle.scientificEvidence.map((evidence, i) => (
                       <motion.div
                         key={evidence.id || `evidence-${i}`}
@@ -179,7 +179,7 @@ export default function MiracleDetailPage() {
                       >
                         <div className="flex items-start gap-4">
                           <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm"
+                            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm"
                             style={{ background: `${accentColor}15`, color: accentColor, boxShadow: `0 0 20px ${accentColor}10` }}
                           >
                             {i + 1}
@@ -218,7 +218,7 @@ export default function MiracleDetailPage() {
                 <ScrollReveal variant="fade-up">
                   <div>
                     <h2 className="text-gold-primary font-amiri text-2xl font-bold mb-6 flex items-center gap-3">
-                      <span className="w-1 h-10 bg-gradient-to-b from-gold-primary to-transparent rounded-full" />
+                      <span className="w-1 h-10 bg-linear-to-b from-gold-primary to-transparent rounded-full" />
                       {'\u0645\u0642\u0627\u0637\u0639 \u0645\u0631\u0626\u064A\u0629'}
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -240,7 +240,7 @@ export default function MiracleDetailPage() {
             </div>
 
             {/* Sidebar (1 col) */}
-            <div className="space-y-6">
+            <div className="stack-y-6">
               <ScrollReveal variant="fade-up">
                 <div className="glass-premium rounded-2xl p-6 sticky top-28">
                   {/* Book Source */}
@@ -250,14 +250,14 @@ export default function MiracleDetailPage() {
                     </svg>
                     {'\u0627\u0644\u0645\u0635\u062F\u0631'}
                   </h3>
-                  <div className="space-y-3 mb-6">
+                  <div className="stack-y-3 mb-6">
                     <div>
                       <p className="text-text-primary font-amiri text-base font-bold">
                         {miracle.bookSource.bookTitleAr}
                       </p>
                       <p className="text-text-muted text-xs font-tajawal">{miracle.bookSource.bookTitle}</p>
                     </div>
-                    <div className="text-sm font-tajawal text-text-secondary space-y-1">
+                    <div className="text-sm font-tajawal text-text-secondary stack-y-1">
                       <p>{'\u0627\u0644\u0645\u0624\u0644\u0641'}: {miracle.bookSource.authorAr || miracle.bookSource.author}</p>
                       {miracle.bookSource.chapter && <p>{'\u0627\u0644\u0641\u0635\u0644'}: {miracle.bookSource.chapter}</p>}
                       {miracle.bookSource.pageRange && <p>{'\u0627\u0644\u0635\u0641\u062D\u0627\u062A'}: {miracle.bookSource.pageRange}</p>}
@@ -281,7 +281,7 @@ export default function MiracleDetailPage() {
                   </div>
 
                   {/* Quick Nav */}
-                  <div className="mt-6 pt-4 border-t border-white/5 space-y-2">
+                  <div className="mt-6 pt-4 border-t border-white/5 stack-y-2">
                     <Link
                       to={`/ijaz/categories/${miracle.category}`}
                       className="flex items-center gap-2 text-sm font-tajawal text-text-secondary hover:text-gold-primary transition-colors group"

@@ -129,7 +129,7 @@ export default function UnletteredProphetVisual({ className }: MiracleVisualProp
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.6, duration: 0.6 }}
-        className="absolute top-[14%] left-1/2 -translate-x-1/2 z-10 pointer-events-none flex items-center gap-2 rounded-full bg-black/30 border border-red-400/25 px-3 py-1 backdrop-blur-sm"
+        className="absolute top-[14%] left-1/2 -translate-x-1/2 z-10 pointer-events-none flex items-center gap-2 rounded-full bg-black/30 border border-red-400/25 px-3 py-1 backdrop-blur-xs"
       >
         <svg viewBox="0 0 24 24" className="w-4 h-4">
           <path d="M3 16 L13 6 L17 10 L7 20 Z" fill="none" stroke="#b08050" strokeWidth="1.4" />

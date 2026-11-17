@@ -22,7 +22,7 @@ export default function VideoOverlay({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        className="fixed inset-0 z-100 flex items-center justify-center p-4"
         onClick={onClose}
       >
         {/* Backdrop */}
@@ -103,7 +103,7 @@ interface VideoThumbnailProps {
 export function VideoThumbnail({ youtubeId, title, titleAr, duration, onClick }: VideoThumbnailProps) {
   return (
     <button type="button" aria-label={`تشغيل ${titleAr}`} onClick={onClick} className="group block w-full text-right">
-      <div className="relative rounded-xl overflow-hidden aspect-video border border-border-subtle group-hover:border-border-gold transition-all shadow-sm group-hover:shadow-gold-sm">
+      <div className="relative rounded-xl overflow-hidden aspect-video border border-border-subtle group-hover:border-border-gold transition-all shadow-xs group-hover:shadow-gold-sm">
         <img
           src={`https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`}
           alt={title}
@@ -120,7 +120,7 @@ export function VideoThumbnail({ youtubeId, title, titleAr, duration, onClick }:
         </div>
         {/* Duration */}
         {duration && (
-          <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-vanta/80 text-text-primary text-xs font-tajawal">
+          <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-sm bg-vanta/80 text-text-primary text-xs font-tajawal">
             {duration}
           </span>
         )}

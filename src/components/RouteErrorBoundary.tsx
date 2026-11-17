@@ -47,7 +47,7 @@ export class RouteErrorBoundary extends React.Component<RouteErrorBoundaryProps,
         <div className="text-base font-semibold opacity-90">حدث خطأ في هذه الصفحة</div>
         <button
           type="button"
-          className="px-4 py-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-sm"
+          className="px-4 py-2 rounded-2xl bg-(--card) border border-(--stroke) text-sm"
           onClick={this.handleRetry}
           aria-label={this.state.requiresReload ? "إعادة تحميل الصفحة" : "إعادة المحاولة لتحميل الصفحة"}
         >

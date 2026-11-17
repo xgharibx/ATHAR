@@ -13,7 +13,7 @@ export function Switch(props: Readonly<SwitchPrimitive.SwitchProps>) {
     >
       <SwitchPrimitive.Thumb
         className={cn(
-          "block w-5 h-5 rounded-full bg-[var(--danger)] absolute top-0.5 right-0.5 shadow-sm transition-transform data-[state=checked]:-translate-x-5 data-[state=checked]:bg-[var(--ok)]"
+          "block w-5 h-5 rounded-full bg-(--danger) absolute top-0.5 right-0.5 shadow-xs transition-transform data-[state=checked]:-translate-x-5 data-[state=checked]:bg-(--ok)"
         )}
       />
     </SwitchPrimitive.Root>

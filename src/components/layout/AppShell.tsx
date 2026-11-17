@@ -85,14 +85,14 @@ const BottomSheetContent = React.forwardRef<HTMLDivElement, {
   return (
     <Dialog.Content
       ref={forwardedRef}
-      className="fixed z-50 inset-x-0 bottom-0 outline-none drawer-content-enter"
+      className="fixed z-50 inset-x-0 bottom-0 outline-hidden drawer-content-enter"
       style={{ maxHeight: "92dvh", paddingBottom: "var(--sab)" }}
     >
       <Dialog.Title className="sr-only">القائمة الرئيسية</Dialog.Title>
       <Dialog.Description className="sr-only">روابط سريعة وأقسام الأذكار في تطبيق أثر</Dialog.Description>
       <div
         ref={sheetRef}
-        className="glass-strong rounded-t-[28px] h-full overflow-auto overscroll-contain border-t border-[var(--stroke)] shadow-2xl"
+        className="glass-strong rounded-t-[28px] h-full overflow-auto overscroll-contain border-t border-(--stroke) shadow-2xl"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -253,7 +253,7 @@ function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onN
         "group flex items-center gap-3 w-full rounded-2xl px-3.5 py-3 transition-all active:scale-[.97]",
         isActive
           ? "bg-accent-10 border border-accent-25"
-          : "hover:bg-[var(--card)] border border-transparent"
+          : "hover:bg-(--card) border border-transparent"
       )}
     >
       {/* Icon badge */}
@@ -269,7 +269,7 @@ function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onN
       <div className="flex-1 min-w-0">
         <div className="text-[13px] font-medium truncate">{s.title}</div>
         <div className="mt-1 flex items-center gap-2">
-          <div aria-hidden="true" className="flex-1 h-1 rounded-full bg-[var(--card-2)] overflow-hidden">
+          <div aria-hidden="true" className="flex-1 h-1 rounded-full bg-(--card-2) overflow-hidden">
             <div
               className="h-full rounded-full transition-[width] duration-300"
               style={{ width: `${percent}%`, background: identity.accent }}
@@ -323,13 +323,13 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
     <div className="h-full flex flex-col" dir="rtl">
       {/* Pill handle */}
       <div className={`flex justify-center pt-3 pb-1 ${props.mobile ? "" : "xl:hidden"}`}>
-        <div className="w-10 h-1 rounded-full bg-[var(--stroke)]" />
+        <div className="w-10 h-1 rounded-full bg-(--stroke)" />
       </div>
 
       {/* Profile-like header */}
       <div className="px-5 pt-3 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl overflow-hidden border border-[var(--stroke)] shadow-lg">
+          <div className="w-12 h-12 rounded-2xl overflow-hidden border border-(--stroke) shadow-lg">
             <LogoMark className="w-full h-full" title="Athar" />
           </div>
           <div className="flex-1 min-w-0">
@@ -338,7 +338,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
           </div>
           <button type="button"
             onClick={cycleTheme}
-            className="w-11 h-11 rounded-xl bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] active:scale-90"
+            className="w-11 h-11 rounded-xl bg-(--card) grid place-items-center transition hover:bg-(--card-2) active:scale-90"
             aria-label={`تبديل المظهر (الحالي: ${themeLabel(prefs.theme)})`}
           >
             {prefs.theme === 'light' ? <Moon size={16} aria-hidden="true" className="opacity-60" /> : <Sun size={16} aria-hidden="true" className="opacity-60" />}
@@ -346,7 +346,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
           {props.onNavigate && (
             <button type="button"
               onClick={props.onNavigate}
-              className={`w-11 h-11 rounded-xl bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] active:scale-90 ${props.mobile ? "" : "xl:hidden"}`}
+              className={`w-11 h-11 rounded-xl bg-(--card) grid place-items-center transition hover:bg-(--card-2) active:scale-90 ${props.mobile ? "" : "xl:hidden"}`}
               aria-label="إغلاق"
             >
               <X size={16} aria-hidden="true" className="opacity-60" />
@@ -356,24 +356,24 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
 
         {/* Today's stats strip */}
         <div className="mt-3 flex items-center gap-2">
-          <div className="flex-1 rounded-xl bg-[var(--card)] px-3 py-2 border border-[var(--stroke)]">
+          <div className="flex-1 rounded-xl bg-(--card) px-3 py-2 border border-(--stroke)">
             <div className="text-[11px] opacity-55 uppercase tracking-wider">نشاط اليوم</div>
             <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: "var(--accent)" }}>
               {activityToday}
               <span className="text-[10px] font-normal opacity-60 mr-1">ذكر</span>
             </div>
           </div>
-          <div className="flex-1 rounded-xl bg-[var(--card)] px-3 py-2 border border-[var(--stroke)]">
+          <div className="flex-1 rounded-xl bg-(--card) px-3 py-2 border border-(--stroke)">
             <div className="text-[11px] opacity-55 uppercase tracking-wider">الإنجاز</div>
             <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: smartSummary.percent >= 100 ? "var(--ok)" : "var(--accent)" }}>{smartSummary.percent}%</div>
           </div>
         </div>
-        <div className="mt-2 h-1 rounded-full bg-[var(--card-2)] overflow-hidden">
+        <div className="mt-2 h-1 rounded-full bg-(--card-2) overflow-hidden">
           <div className="h-full progress-accent" style={{ width: `${smartSummary.percent}%` }} />
         </div>
       </div>
 
-      <div className="h-px mx-5 bg-[var(--stroke)]" />
+      <div className="h-px mx-5 bg-(--stroke)" />
 
       {/* Main navigation links */}
       <nav aria-label="القائمة الرئيسية">
@@ -390,7 +390,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
                 "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-1 border transition active:scale-[.94]",
                 isActive
                   ? "bg-accent-12 border-accent-30"
-                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                  : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
               )}
             >
               {({ isActive }) => (
@@ -408,7 +408,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
       </div>
       </nav>
 
-      <div className="h-px mx-5 bg-[var(--stroke)]" />
+      <div className="h-px mx-5 bg-(--stroke)" />
 
       {/* Sections list */}
       <nav aria-label="أقسام الأذكار">
@@ -416,7 +416,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
         <div className="px-2 mb-2 text-[11px] font-semibold opacity-45 uppercase tracking-wider">الأقسام</div>
       </div>
       <div
-        className="flex-1 overflow-auto overscroll-contain px-3 pb-6 space-y-1 drawer-stagger"
+        className="flex-1 overflow-auto overscroll-contain px-3 pb-6 stack-y-1 drawer-stagger"
         style={props.mobile ? undefined : { maxHeight: "calc(100dvh - 400px)" }}
       >
         {db.sections.map((s) => (
@@ -547,7 +547,7 @@ export function AppShell() {
       {/* Skip to main content — keyboard/screen reader a11y */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-xl focus:glass-strong focus:border focus:border-[var(--stroke)] focus:text-sm focus:font-semibold"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-100 focus:px-4 focus:py-2 focus:rounded-xl focus:glass-strong focus:border focus:border-(--stroke) focus:text-sm focus:font-semibold"
         tabIndex={0}
       >
         انتقل إلى المحتوى الرئيسي
@@ -606,7 +606,7 @@ export function AppShell() {
 
               <NavLink to="/" className="flex items-center gap-2 min-w-0">
                 <LogoMark
-                  className="w-11 h-11 rounded-2xl border border-[var(--stroke)] overflow-hidden shrink-0"
+                  className="w-11 h-11 rounded-2xl border border-(--stroke) overflow-hidden shrink-0"
                   title="Athar"
                 />
                 {/* Hide text at narrow viewport (high zoom / large OS font) */}
@@ -628,7 +628,7 @@ export function AppShell() {
                 to="/settings"
                 aria-label="الإعدادات"
 
-                className="max-[340px]:hidden inline-flex items-center justify-center rounded-2xl p-2.5 bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] transition active:scale-[.99] min-h-[44px] min-w-[44px]"
+                className="max-[340px]:hidden inline-flex items-center justify-center rounded-2xl p-2.5 bg-(--card) hover:bg-(--card-2) border border-(--stroke) transition active:scale-[.99] min-h-[44px] min-w-[44px]"
               >
                 <Settings2 size={18} />
               </NavLink>
@@ -648,7 +648,7 @@ export function AppShell() {
               </IconButton>
 
               <div className="hidden md:flex items-center gap-2 text-xs opacity-70">
-                <span className="px-3 py-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)]">
+                <span className="px-3 py-2 rounded-2xl bg-(--card) border border-(--stroke)">
                   {`المظهر: ${themeLabel(prefs.theme)}`}
                 </span>
               </div>
@@ -668,7 +668,7 @@ export function AppShell() {
           </aside>
 
           {/* Main */}
-          <main id="main-content" tabIndex={-1} aria-label="المحتوى الرئيسي" className="col-span-12 xl:col-span-9 2xl:col-span-10 focus:outline-none">
+          <main id="main-content" tabIndex={-1} aria-label="المحتوى الرئيسي" className="col-span-12 xl:col-span-9 2xl:col-span-10 focus:outline-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -685,14 +685,14 @@ export function AppShell() {
         </div>
 
         <footer className="mt-6 app-footer" dir="rtl">
-          <div className="glass rounded-3xl border border-[var(--stroke)]">
+          <div className="glass rounded-3xl border border-(--stroke)">
             <button type="button"
               onClick={() => setFooterExpanded((v) => !v)}
               aria-expanded={footerExpanded}
               aria-controls="footer-content"
               className="w-full flex items-center justify-between gap-3 px-5 pt-5 pb-4"
             >
-              <div className="arabic-text text-[15px] md:text-base font-semibold text-[var(--accent)]">
+              <div className="arabic-text text-[15px] md:text-base font-semibold text-(--accent)">
                 صدقة جارية
               </div>
               <ChevronLeft
@@ -703,7 +703,7 @@ export function AppShell() {
             </button>
             {footerExpanded && (
               <div id="footer-content">
-                <div className="mx-5 h-px bg-[var(--card)]" />
+                <div className="mx-5 h-px bg-(--card)" />
                 <div className="px-5 pb-5 pt-3 arabic-text text-center text-[13px] md:text-sm leading-7 md:leading-8 tracking-tight opacity-85 whitespace-pre-line">
                   {APP_FOOTER_TEXT}
                 </div>

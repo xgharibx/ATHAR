@@ -48,7 +48,7 @@ export function GrowthTree() {
   const bloom = days >= 7;
 
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3">
+    <div className="flex items-center gap-4 rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3">
       <svg width="72" height="88" viewBox="0 0 72 88" aria-hidden="true" className="shrink-0">
         {/* soil mound */}
         <ellipse cx="36" cy="80" rx="24" ry="6" fill="var(--accent-2)" opacity="0.25" />
@@ -98,8 +98,8 @@ export function GrowthTree() {
       </svg>
       <div className="min-w-0">
         <div className="text-sm font-semibold">شجرة أثرك</div>
-        <div className="mt-0.5 text-xs text-[var(--muted)]">{STAGE_LABELS[days] ?? STAGE_LABELS[0]}</div>
-        <div className="mt-1 text-[11px] text-[var(--muted-2)]">
+        <div className="mt-0.5 text-xs text-(--muted)">{STAGE_LABELS[days] ?? STAGE_LABELS[0]}</div>
+        <div className="mt-1 text-[11px] text-(--muted-2)">
           {arNum(days)} من ٧ أيام نشطة هذا الأسبوع — كل ذكرٍ يسقيها 🌱
         </div>
       </div>

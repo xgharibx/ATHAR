@@ -80,7 +80,7 @@ export default function Companions() {
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <Users size={19} aria-hidden="true" className="text-[var(--accent)]" />
+                <Users size={19} aria-hidden="true" className="text-(--accent)" />
                 <h1 className="text-lg font-bold">الصحابة الكرام</h1>
               </div>
               <div className="text-xs opacity-55 mt-1" aria-live="polite" aria-atomic="true">{filtered.length} من {COMPANIONS.length} صحابي</div>
@@ -88,7 +88,7 @@ export default function Companions() {
             <button
               type="button"
               onClick={() => setShowBookmarksOnly((v) => !v)}
-              className="rounded-2xl border border-[var(--stroke)] p-2 transition glass-hover press-effect"
+              className="rounded-2xl border border-(--stroke) p-2 transition glass-hover press-effect"
               style={showBookmarksOnly
                 ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)" }
                 : { background: "var(--card)", color: "var(--fg)" }}
@@ -156,7 +156,7 @@ export default function Companions() {
               spellCheck={false}
               autoComplete="off"
               autoCapitalize="none"
-              className="h-9 w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] pr-8 pl-8 text-sm outline-none focus:border-accent-45"
+              className="h-9 w-full rounded-2xl border border-(--stroke) bg-(--card) pr-8 pl-8 text-sm outline-hidden focus:border-accent-45"
               style={{ color: "var(--fg)" }}
             />
             {query && (
@@ -246,7 +246,7 @@ export default function Companions() {
                 }}
               >
                 {companion.chapters && companion.chapters.length > 0 ? (
-                  <div className="mt-3 space-y-5">
+                  <div className="mt-3 stack-y-5">
                     {companion.chapters.map((ch: CompanionChapter, i: number) => (
                       <div key={i}>
                         <h3
@@ -281,7 +281,7 @@ export default function Companions() {
                           }
                         }
                       }}
-                      className="flex items-center gap-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-3 py-1.5 text-xs transition-all glass-hover press-effect"
+                      className="flex items-center gap-1.5 rounded-full border border-(--stroke) bg-(--card) px-3 py-1.5 text-xs transition-all glass-hover press-effect"
                       style={{ color: "var(--fg)" }}
                     >
                       <Share2 size={13} aria-hidden="true" />

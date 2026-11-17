@@ -913,9 +913,9 @@ export function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
+      <div className="stack-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
         <span className="sr-only">جارٍ التحميل…</span>
-        <div className="glass-strong rounded-3xl p-5 space-y-4">
+        <div className="glass-strong rounded-3xl p-5 stack-y-4">
           <div className="skeleton h-8 w-3/4 rounded-xl" />
           <div className="skeleton h-4 w-1/2 rounded-lg" />
           <div className="flex gap-2">
@@ -924,9 +924,9 @@ export function HomePage() {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]"><div className="skeleton h-3 w-12 rounded-lg" /><div className="skeleton h-6 w-8 rounded-xl mt-2" /></div>
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]"><div className="skeleton h-3 w-12 rounded-lg" /><div className="skeleton h-6 w-8 rounded-xl mt-2" /></div>
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]"><div className="skeleton h-3 w-12 rounded-lg" /><div className="skeleton h-6 w-8 rounded-xl mt-2" /></div>
+          <div className="glass rounded-3xl p-4 border border-(--stroke)"><div className="skeleton h-3 w-12 rounded-lg" /><div className="skeleton h-6 w-8 rounded-xl mt-2" /></div>
+          <div className="glass rounded-3xl p-4 border border-(--stroke)"><div className="skeleton h-3 w-12 rounded-lg" /><div className="skeleton h-6 w-8 rounded-xl mt-2" /></div>
+          <div className="glass rounded-3xl p-4 border border-(--stroke)"><div className="skeleton h-3 w-12 rounded-lg" /><div className="skeleton h-6 w-8 rounded-xl mt-2" /></div>
         </div>
       </div>
     );
@@ -938,7 +938,7 @@ export function HomePage() {
   }
 
   return (
-    <div className={initialLaunch ? "space-y-3" : "space-y-3 page-enter"}>
+    <div className={initialLaunch ? "stack-y-3" : "stack-y-3 page-enter"}>
       <AdhkarLoadStatus hasData error={error} isFetching={isFetching} onRetry={() => { void refetch(); }} />
       <Card className="p-5 overflow-hidden relative">
         {/* Two quiet doors to the tables, in the corner the decoration used to fill. */}
@@ -947,7 +947,7 @@ export function HomePage() {
             type="button"
             onClick={() => { markNewSeen("wird"); navigate("/wird"); }}
             aria-label="جدول الورد"
-            className={`relative w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)] ${newWird ? "new-glow" : ""}`}
+            className={`relative w-10 h-10 rounded-full glass border border-(--stroke) flex items-center justify-center active:scale-95 transition-transform text-(--accent) ${newWird ? "new-glow" : ""}`}
           >
             <CalendarCheck size={18} aria-hidden="true" />{newWird && <NewMark />}
           </button>
@@ -955,7 +955,7 @@ export function HomePage() {
             type="button"
             onClick={() => { markNewSeen("muhasaba"); navigate("/muhasaba"); }}
             aria-label="جدول المحاسبة"
-            className={`relative w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)] ${newMuhasaba ? "new-glow" : ""}`}
+            className={`relative w-10 h-10 rounded-full glass border border-(--stroke) flex items-center justify-center active:scale-95 transition-transform text-(--accent) ${newMuhasaba ? "new-glow" : ""}`}
           >
             <Scale size={18} aria-hidden="true" />{newMuhasaba && <NewMark />}
           </button>
@@ -963,7 +963,7 @@ export function HomePage() {
             type="button"
             onClick={() => { markNewSeen("qadaa"); navigate("/qadaa"); }}
             aria-label="قضاء الفوائت"
-            className={`relative w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)] ${newQadaa ? "new-glow" : ""}`}
+            className={`relative w-10 h-10 rounded-full glass border border-(--stroke) flex items-center justify-center active:scale-95 transition-transform text-(--accent) ${newQadaa ? "new-glow" : ""}`}
           >
             <TimerReset size={18} aria-hidden="true" />{newQadaa && <NewMark />}
           </button>
@@ -980,13 +980,13 @@ export function HomePage() {
           <div>
             <div>
               <div className="mb-2 flex items-center gap-2 flex-wrap" style={{ paddingInlineEnd: 96 }}>
-                <Sparkles size={14} className="text-[var(--accent)]" aria-hidden="true" />
+                <Sparkles size={14} className="text-(--accent)" aria-hidden="true" />
                 <span className="text-xs font-medium opacity-65">{timeGreeting(new Date().getHours())}</span>
-                {(() => { const h = getHijriDate(prayerTimes.data?.data?.date?.hijri); return h ? <span className="text-xs opacity-50 border border-[var(--stroke)] rounded-full px-2 py-0.5">{h}</span> : null; })()}
+                {(() => { const h = getHijriDate(prayerTimes.data?.data?.date?.hijri); return h ? <span className="text-xs opacity-50 border border-(--stroke) rounded-full px-2 py-0.5">{h}</span> : null; })()}
                 {streak > 0 && (
                   <button
                     type="button"
-                    className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full glass border border-[var(--stroke)] streak-fire cursor-pointer active:scale-95 transition-transform ${streak >= 30 ? "text-orange-400" : streak >= 7 ? "text-yellow-400" : "text-[var(--accent)]"}`}
+                    className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full glass border border-(--stroke) streak-fire cursor-pointer active:scale-95 transition-transform ${streak >= 30 ? "text-orange-400" : streak >= 7 ? "text-yellow-400" : "text-(--accent)"}`}
                     onClick={async () => {
                       const emoji = streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨";
                       const text = `${emoji} سلسلة ${streak} يوم متواصل في تطبيق أثر!\n\nالاستمرار في الذكر والعبادة — اترك أثراً طيباً.`;
@@ -999,7 +999,7 @@ export function HomePage() {
                 )}
               </div>
               <h1 className="text-xl md:text-2xl font-semibold leading-tight">
-                أثر — اترك <span className="text-[var(--accent)]">أثراً</span> طيباً
+                أثر — اترك <span className="text-(--accent)">أثراً</span> طيباً
               </h1>
               <div className="mt-2 text-sm opacity-70 leading-6 max-w-2xl">
                 {"﴿وَقُلْ رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا﴾"}
@@ -1024,7 +1024,7 @@ export function HomePage() {
                 <button type="button"
                   onClick={onRandom}
                   aria-label="ذكر عشوائي"
-                  className="press-effect inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] hover:bg-[var(--card-2)] active:scale-[.97] transition shrink-0"
+                  className="press-effect inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-(--card) border border-(--stroke) hover:bg-(--card-2) active:scale-[.97] transition shrink-0"
                 >
                   <Shuffle size={16} aria-hidden="true" />
                 </button>
@@ -1038,7 +1038,7 @@ export function HomePage() {
                   aria-label={`القرآن: ${quranReadingPct}% مقروء`}
                 >
                   <span className="text-xs opacity-60" aria-hidden="true">📖</span>
-                  <div className="w-28 h-1.5 rounded-full bg-[var(--card)] overflow-hidden shrink-0" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={quranReadingPct} aria-label={`${quranReadingPct}% مقروء`}>
+                  <div className="w-28 h-1.5 rounded-full bg-(--card) overflow-hidden shrink-0" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={quranReadingPct} aria-label={`${quranReadingPct}% مقروء`}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{ width: `${quranReadingPct}%`, background: "var(--accent)" }}
@@ -1053,7 +1053,7 @@ export function HomePage() {
                     </span>
                   )}
                   {quranResumeMeta?.surahName && (
-                    <span className="text-[11px] opacity-45 arabic-text leading-snug max-w-full sm:max-w-[14rem]">{quranResumeMeta.surahName} · صفحة {toArabicNumeral(quranResumeMeta.page)}</span>
+                    <span className="text-[11px] opacity-45 arabic-text leading-snug max-w-full sm:max-w-56">{quranResumeMeta.surahName} · صفحة {toArabicNumeral(quranResumeMeta.page)}</span>
                   )}
                 </button>
               )}
@@ -1090,7 +1090,7 @@ export function HomePage() {
             >
               <span className="text-[22px] leading-none">＋</span>
               <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5">أذكاري</span>
-              <div className="w-full h-[3px] rounded-full bg-[var(--card)] overflow-hidden mt-1" />
+              <div className="w-full h-[3px] rounded-full bg-(--card) overflow-hidden mt-1" />
             </button>
             {/* ── Draggable items (custom packs + sections) ── */}
             {(() => {
@@ -1130,7 +1130,7 @@ export function HomePage() {
                     >
                       <span className="text-[22px] leading-none" aria-hidden="true">📝</span>
                       <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 max-w-[76px] text-center whitespace-normal">{pack.title}</span>
-                      <div className="w-full h-[3px] rounded-full bg-[var(--card)] overflow-hidden mt-1">
+                      <div className="w-full h-[3px] rounded-full bg-(--card) overflow-hidden mt-1">
                         <div className="h-full rounded-full transition-all duration-300"
                           style={{ width: `${pctDone}%`, background: isComplete ? "var(--ok)" : "var(--accent)" }} />
                       </div>
@@ -1172,7 +1172,7 @@ export function HomePage() {
                     >
                       <span className="text-[22px] leading-none">{identity.icon}</span>
                       <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 w-full text-center whitespace-normal">{identity.badge}</span>
-                      <div className="w-full h-[3px] rounded-full bg-[var(--card)] overflow-hidden mt-1">
+                      <div className="w-full h-[3px] rounded-full bg-(--card) overflow-hidden mt-1">
                         <div className="h-full rounded-full transition-all duration-300"
                           style={{ width: `${pctDone}%`, background: isComplete ? "var(--ok)" : identity.accent }} />
                       </div>
@@ -1217,7 +1217,7 @@ export function HomePage() {
                 <Dropdown.Root modal={false}>
                   <Dropdown.Trigger asChild>
                     <button type="button"
-                      className="shrink-0 w-11 h-11 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center transition active:scale-90 mt-0.5"
+                      className="shrink-0 w-11 h-11 rounded-xl bg-(--card) border border-(--stroke) grid place-items-center transition active:scale-90 mt-0.5"
                       aria-label="خيارات إضافية"
                     >
                       <MoreVertical size={16} aria-hidden="true" />
@@ -1228,14 +1228,14 @@ export function HomePage() {
                       align="start"
                       sideOffset={8}
                       style={{ zIndex: 100000 }}
-                      className="glass-strong rounded-3xl min-w-[240px] border border-[var(--stroke)] p-2 shadow-2xl"
+                      className="glass-strong rounded-3xl min-w-[240px] border border-(--stroke) p-2 shadow-2xl"
                     >
                       <Dropdown.Label className="px-3 pt-2 text-[11px] font-semibold opacity-45">ملخص سريع</Dropdown.Label>
                       <div className="px-3 pb-2 pt-1 text-[11px] opacity-60 leading-5">
                         أنجزت {DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length} من {DAILY_CHECKLIST_ITEMS.length} اليوم
                         {smartNow.missedYesterday > 0 ? ` • فاتك ${smartNow.missedYesterday} أمس` : ""}
                       </div>
-                      <Dropdown.Separator className="my-1 h-px bg-[var(--card)]" />
+                      <Dropdown.Separator className="my-1 h-px bg-(--card)" />
                       {adaptiveMission.recoveryItem ? (
                         <HomeQuickMenuAction
                           label="استدرك المهمة الأقرب"
@@ -1292,7 +1292,7 @@ export function HomePage() {
                   <Badge>{`${DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}/${DAILY_CHECKLIST_ITEMS.length}`}</Badge>
                   <button type="button"
                     onClick={() => setChecklistExpanded((v) => !v)}
-                    className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center transition active:scale-90"
+                    className="w-8 h-8 rounded-xl bg-(--card) border border-(--stroke) grid place-items-center transition active:scale-90"
                     aria-label="توسيع القائمة اليومية"
                     aria-expanded={showItems}
                     aria-controls="home-checklist-items"
@@ -1304,7 +1304,7 @@ export function HomePage() {
               {/* XP progress bar + quest chips — hidden when quests widget is off */}
               {(homeWidgets.quests ?? true) && (
               <>
-              <div className="mt-2.5 h-1 rounded-full bg-[var(--card)] overflow-hidden">
+              <div className="mt-2.5 h-1 rounded-full bg-(--card) overflow-hidden">
                 <div
                   className="h-full rounded-full transition-[width] duration-700"
                   style={{ width: `${xpPct}%`, backgroundColor: xpLevel.color }}
@@ -1335,7 +1335,7 @@ export function HomePage() {
               )}
               {/* Checklist items progress bar */}
               {DAILY_CHECKLIST_ITEMS.length > 0 && (
-                <div className="mt-2.5 h-1 rounded-full bg-[var(--card)] overflow-hidden">
+                <div className="mt-2.5 h-1 rounded-full bg-(--card) overflow-hidden">
                   <div
                     className="h-full rounded-full transition-[width] duration-500"
                     style={{
@@ -1351,7 +1351,7 @@ export function HomePage() {
                 </div>
               )}
               {showItems && (
-                <div id="home-checklist-items" className="mt-3 space-y-2" role="list" aria-label="قائمة العبادات اليومية">
+                <div id="home-checklist-items" className="mt-3 stack-y-2" role="list" aria-label="قائمة العبادات اليومية">
                   {DAILY_CHECKLIST_ITEMS.slice(0, checklistShowAll ? DAILY_CHECKLIST_ITEMS.length : CHECKLIST_INITIAL_LIMIT).map((item) => {
                     const isDone = !!dailyChecklistToday[item.id];
                     return (
@@ -1363,17 +1363,17 @@ export function HomePage() {
                         className={cn(
                           "w-full flex items-center gap-3 rounded-2xl px-3.5 py-3.5 min-h-[48px] border transition-all active:scale-[.97]",
                           isDone
-                            ? "bg-[var(--card)] border-[var(--stroke)] opacity-70"
-                            : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card)]"
+                            ? "bg-(--card) border-(--stroke) opacity-70"
+                            : "bg-(--card) border-(--stroke) hover:bg-(--card)"
                         )}
                       >
                         <div className={cn(
                           "w-7 h-7 rounded-full border-2 grid place-items-center transition-all shrink-0 text-[13px]",
                           isDone
-                            ? "border-[var(--ok)] bg-ok-20"
-                            : "border-[var(--stroke)]"
+                            ? "border-(--ok) bg-ok-20"
+                            : "border-(--stroke)"
                         )}>
-                          {isDone ? <CheckCircle2 size={15} className="text-[var(--ok)]" aria-hidden="true" /> : CHECKLIST_CATEGORY_ICON[item.category]}
+                          {isDone ? <CheckCircle2 size={15} className="text-(--ok)" aria-hidden="true" /> : CHECKLIST_CATEGORY_ICON[item.category]}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className={cn("text-sm", isDone && "line-through opacity-60")}>{item.title}</div>
@@ -1473,11 +1473,11 @@ export function HomePage() {
                       incQuickTasbeeh(QUICK_TASBEEH[0]!.key, tasbeehTarget);
                     }}
                     aria-label="تسبيحة سريعة +1"
-                    className="press-effect inline-flex items-center justify-center h-11 min-w-[64px] rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] font-bold text-sm shadow-md active:scale-95 transition shrink-0"
+                    className="press-effect inline-flex items-center justify-center h-11 min-w-[64px] rounded-2xl bg-(--accent) text-(--on-accent) font-bold text-sm shadow-md active:scale-95 transition shrink-0"
                   >
                     +1
                   </button>
-                  <div className="flex rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1">
+                  <div className="flex rounded-2xl border border-(--stroke) bg-(--card) p-1">
                     {[33, 100].map((target) => (
                       <button type="button"
                         key={target}
@@ -1485,8 +1485,8 @@ export function HomePage() {
                         className={cn(
                           "min-w-10 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition",
                           tasbeehTarget === target
-                            ? "bg-[var(--accent)] text-[var(--on-accent)]"
-                            : "text-[var(--muted)] hover:bg-[var(--card-2)]"
+                            ? "bg-(--accent) text-(--on-accent)"
+                            : "text-(--muted) hover:bg-(--card-2)"
                         )}
                       >
                         {target}
@@ -1510,7 +1510,7 @@ export function HomePage() {
                 </div>
               </div>
               <div
-                className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]"
+                className="mt-3 h-2 rounded-full bg-(--card) overflow-hidden border border-(--stroke)"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={100}
@@ -1549,19 +1549,19 @@ export function HomePage() {
                         "glass rounded-3xl p-3 text-right transition border select-none press-effect glass-hover min-h-[120px]",
                         activePhraseKey === it.key
                           ? "border-accent-60 ring-2 ring-accent-30 bg-accent-10"
-                          : "border-[var(--stroke)]"
+                          : "border-(--stroke)"
                       )}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <div
-                            className="text-sm font-semibold arabic-text whitespace-normal break-words"
+                            className="text-sm font-semibold arabic-text whitespace-normal wrap-break-word"
                             style={{ lineHeight: "1.65" }}
                           >{it.label}</div>
                           <div className="mt-1 text-xs opacity-65 tabular-nums">{v}/{target}</div>
                         </div>
                         <div className="shrink-0">
-                          <div className="w-11 h-11 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center">
+                          <div className="w-11 h-11 rounded-full bg-(--card) border border-(--stroke) flex items-center justify-center">
                             <svg width="40" height="40" viewBox="0 0 60 60" aria-hidden="true">
                               <circle cx="30" cy="30" r={r} fill="transparent" stroke="var(--stroke)" strokeWidth="6" />
                               <circle
@@ -1594,7 +1594,7 @@ export function HomePage() {
           return (
             <Card key="dailyWird" className={`p-5 transition-colors ${isDailyWirdDone ? "border border-ok-25" : ""}`}>
               <div className="flex items-start gap-2 flex-wrap mb-0">
-                <div className="flex-1 min-w-[7rem]">
+                <div className="flex-1 min-w-28">
                   <div className="flex items-center gap-2">
                     <div className="text-sm font-semibold">ورد اليوم</div>
                     {wirdStreak > 1 && (
@@ -1610,7 +1610,7 @@ export function HomePage() {
                 <div className="ms-auto flex items-center gap-2 flex-wrap justify-end shrink-0">
                   <button type="button"
                     onClick={() => setDailyWirdExpanded((v) => !v)}
-                    className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center transition active:scale-90"
+                    className="w-8 h-8 rounded-xl bg-(--card) border border-(--stroke) grid place-items-center transition active:scale-90"
                     aria-label="توسيع ورد اليوم"
                     aria-expanded={dailyWirdExpanded}
                     aria-controls="home-daily-wird-content"
@@ -1653,7 +1653,7 @@ export function HomePage() {
                   {dailyWird.items.map((p) => (
                     <button type="button"
                       key={`${p.surahId}:${p.ayahIndex}`}
-                      className="glass rounded-3xl p-4 text-right transition border border-[var(--stroke)] press-effect glass-hover"
+                      className="glass rounded-3xl p-4 text-right transition border border-(--stroke) press-effect glass-hover"
                       onClick={() => navigate(`/mushaf?surah=${p.surahId}&ayah=${p.ayahIndex}`)}
                     >
                       <div className="text-xs opacity-65 mb-2">
@@ -1666,7 +1666,7 @@ export function HomePage() {
                   ))}
                 </div>
               ) : (
-                <div className="mt-4 rounded-3xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm opacity-75 leading-7">
+                <div className="mt-4 rounded-3xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm opacity-75 leading-7">
                   تم طي ورد اليوم. افتحه وقت القراءة أو المراجعة.
                 </div>
               )}
@@ -1804,7 +1804,7 @@ function HomeQuickMenuAction(props: { label: string; hint?: string; onSelect: ()
   return (
     <Dropdown.Item
       onSelect={() => props.onSelect()}
-      className="rounded-2xl px-3 py-2.5 outline-none transition cursor-pointer data-[highlighted]:bg-[var(--card)]"
+      className="rounded-2xl px-3 py-2.5 outline-hidden transition cursor-pointer data-highlighted:bg-(--card)"
     >
       <div className="text-sm font-medium">{props.label}</div>
       {props.hint ? <div className="mt-0.5 text-[11px] opacity-55 leading-5">{props.hint}</div> : null}

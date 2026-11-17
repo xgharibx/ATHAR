@@ -148,19 +148,19 @@ export function HadithSharhPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <button type="button" onClick={back} aria-label="رجوع"
-          className="rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-2.5 hover:bg-[var(--card-2)] transition">
+          className="rounded-xl border border-(--stroke) bg-(--card) p-2.5 hover:bg-(--card-2) transition">
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </button>
         <div className="min-w-0">
           <h1 className="text-lg font-bold">الموسوعة الحديثية الميسرة</h1>
-          <p className="truncate text-xs text-[var(--muted-2)]">
+          <p className="truncate text-xs text-(--muted-2)">
             شرح علمي مُراجع لكل حديث — المصدر: hadeethenc.com
           </p>
         </div>
       </div>
 
       {offline ? (
-        <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4 text-sm text-[var(--muted)]">
+        <div className="mt-5 flex items-center gap-3 rounded-2xl border border-(--stroke) bg-(--card) p-4 text-sm text-(--muted)">
           <WifiOff className="h-4 w-4 shrink-0" aria-hidden="true" />
           تعذّر الاتصال بالموسوعة — ما فتحته سابقًا متاح دون اتصال، وأعد المحاولة لاحقًا.
         </div>
@@ -179,10 +179,10 @@ export function HadithSharhPage() {
                 setChildren([]);
                 setView({ kind: "category", root: c });
               }}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3.5 text-start transition hover:bg-[var(--card-2)]">
+              className="flex items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3.5 text-start transition hover:bg-(--card-2)">
               <div>
                 <div className="text-sm font-semibold">{c.title}</div>
-                <div className="mt-0.5 text-[11px] text-[var(--muted-2)]">
+                <div className="mt-0.5 text-[11px] text-(--muted-2)">
                   {arNum(Number(c.hadeeths_count))} حديث مشروح
                 </div>
               </div>
@@ -195,7 +195,7 @@ export function HadithSharhPage() {
       {/* Category children */}
       {view.kind === "category" ? (
         <div className="mt-5 grid gap-2">
-          <div className="text-sm font-bold text-[var(--accent)]">{view.root.title}</div>
+          <div className="text-sm font-bold text-(--accent)">{view.root.title}</div>
           <button type="button"
             onClick={() => setView({ kind: "list", category: view.root })}
             className="rounded-2xl border border-accent-35 bg-accent-15 px-4 py-3 text-start text-sm font-semibold transition hover:opacity-90">
@@ -204,10 +204,10 @@ export function HadithSharhPage() {
           {children.map((c) => (
             <button type="button" key={c.id}
               onClick={() => setView({ kind: "list", category: c })}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-start transition hover:bg-[var(--card-2)]">
+              className="flex items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-start transition hover:bg-(--card-2)">
               <div>
                 <div className="text-sm">{c.title}</div>
-                <div className="mt-0.5 text-[11px] text-[var(--muted-2)]">
+                <div className="mt-0.5 text-[11px] text-(--muted-2)">
                   {arNum(Number(c.hadeeths_count))} حديث
                 </div>
               </div>
@@ -220,18 +220,18 @@ export function HadithSharhPage() {
       {/* Hadith list */}
       {view.kind === "list" ? (
         <div className="mt-5 grid gap-2">
-          <div className="text-sm font-bold text-[var(--accent)]">{view.category.title}</div>
+          <div className="text-sm font-bold text-(--accent)">{view.category.title}</div>
           {items.map((h) => (
             <button type="button" key={h.id}
               onClick={() => setView({ kind: "hadith", id: h.id, backTo: view.category })}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-start transition hover:bg-[var(--card-2)]">
+              className="flex items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-start transition hover:bg-(--card-2)">
               <div className="text-sm leading-7">{h.title}</div>
               <BookOpenText className="h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
             </button>
           ))}
           {hasMore ? (
             <button type="button" onClick={loadMore} disabled={loading}
-              className="mt-1 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm font-semibold transition hover:bg-[var(--card-2)] disabled:opacity-50">
+              className="mt-1 rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm font-semibold transition hover:bg-(--card-2) disabled:opacity-50">
               {loading ? "جارٍ التحميل…" : "المزيد من الأحاديث"}
             </button>
           ) : null}
@@ -240,11 +240,11 @@ export function HadithSharhPage() {
 
       {/* Hadith detail */}
       {view.kind === "hadith" && hadith ? (
-        <article className="mt-5 space-y-4">
-          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-5">
+        <article className="mt-5 stack-y-4">
+          <div className="rounded-2xl border border-(--stroke) bg-(--card) p-5">
             <p className="arabic-text text-base font-medium leading-9">{hadith.hadeeth}</p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-accent-15 px-2.5 py-0.5 text-xs font-bold text-[var(--accent)]">
+              <span className="rounded-full bg-accent-15 px-2.5 py-0.5 text-xs font-bold text-(--accent)">
                 {hadith.attribution}
               </span>
               {hadith.grade ? (
@@ -262,7 +262,7 @@ export function HadithSharhPage() {
                   onClick={() => navigate(`/companion?ask=${encodeURIComponent(
                     `قرأت هذا الحديث وشرحه في الموسوعة، ساعدني أن أعيشه عمليًا هذا الأسبوع بخطوات محددة تناسب حالي:\n«${hadith.hadeeth.slice(0, 500)}» — ${hadith.attribution}`
                   )}`)}
-                  className="rounded-lg p-1.5 text-[var(--accent)] opacity-80 transition hover:opacity-100">
+                  className="rounded-lg p-1.5 text-(--accent) opacity-80 transition hover:opacity-100">
                   <Sparkles className="h-4 w-4" aria-hidden="true" />
                 </button>
               </span>
@@ -270,28 +270,28 @@ export function HadithSharhPage() {
           </div>
 
           {hadith.words_meanings && hadith.words_meanings.length > 0 ? (
-            <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-5">
-              <h2 className="mb-2 text-sm font-bold text-[var(--accent)]">غريب الألفاظ</h2>
-              <dl className="space-y-1.5 text-sm leading-7">
+            <div className="rounded-2xl border border-(--stroke) bg-(--card) p-5">
+              <h2 className="mb-2 text-sm font-bold text-(--accent)">غريب الألفاظ</h2>
+              <dl className="stack-y-1.5 text-sm leading-7">
                 {hadith.words_meanings.map((w, i) => (
                   <div key={i} className="flex gap-2">
                     <dt className="shrink-0 font-bold">{w.word}:</dt>
-                    <dd className="m-0 text-[var(--muted)]">{w.meaning}</dd>
+                    <dd className="m-0 text-(--muted)">{w.meaning}</dd>
                   </div>
                 ))}
               </dl>
             </div>
           ) : null}
 
-          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-5">
-            <h2 className="mb-2 text-sm font-bold text-[var(--accent)]">الشرح</h2>
+          <div className="rounded-2xl border border-(--stroke) bg-(--card) p-5">
+            <h2 className="mb-2 text-sm font-bold text-(--accent)">الشرح</h2>
             <p className="whitespace-pre-wrap text-sm leading-8">{hadith.explanation}</p>
           </div>
 
           {hadith.hints && hadith.hints.length > 0 ? (
-            <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-5">
-              <h2 className="mb-2 text-sm font-bold text-[var(--accent)]">من فوائد الحديث</h2>
-              <ul className="list-inside list-disc space-y-1.5 text-sm leading-8">
+            <div className="rounded-2xl border border-(--stroke) bg-(--card) p-5">
+              <h2 className="mb-2 text-sm font-bold text-(--accent)">من فوائد الحديث</h2>
+              <ul className="list-inside list-disc stack-y-1.5 text-sm leading-8">
                 {hadith.hints.map((h, i) => (
                   <li key={i}>{h}</li>
                 ))}
@@ -300,13 +300,13 @@ export function HadithSharhPage() {
           ) : null}
 
           {hadith.reference ? (
-            <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4">
-              <h2 className="mb-1 text-xs font-bold text-[var(--muted)]">المراجع</h2>
-              <p className="whitespace-pre-wrap text-xs leading-6 text-[var(--muted-2)]">{hadith.reference}</p>
+            <div className="rounded-2xl border border-(--stroke) bg-(--card) p-4">
+              <h2 className="mb-1 text-xs font-bold text-(--muted)">المراجع</h2>
+              <p className="whitespace-pre-wrap text-xs leading-6 text-(--muted-2)">{hadith.reference}</p>
             </div>
           ) : null}
 
-          <p className="text-center text-[10px] text-[var(--muted-2)]">
+          <p className="text-center text-[10px] text-(--muted-2)">
             المحتوى من الموسوعة الحديثية المترجمة (hadeethenc.com) — بإشراف علمي مُراجع
           </p>
         </article>

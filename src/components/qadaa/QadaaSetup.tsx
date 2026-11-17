@@ -35,8 +35,8 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       className={
         "px-3 py-2 rounded-2xl text-sm border transition min-h-[40px] " +
         (active
-          ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent"
-          : "bg-[var(--card)] border-[var(--stroke)]")
+          ? "bg-(--accent) text-(--on-accent) border-transparent"
+          : "bg-(--card) border-(--stroke)")
       }
     >
       {children}
@@ -46,15 +46,15 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block space-y-1.5">
-      <span className="text-xs text-[var(--muted)]">{label}</span>
+    <label className="block stack-y-1.5">
+      <span className="text-xs text-(--muted)">{label}</span>
       {children}
     </label>
   );
 }
 
 const inputCls =
-  "w-full rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-4 py-2.5 text-sm min-h-[44px] outline-none focus:border-[var(--accent)]";
+  "w-full rounded-2xl bg-(--card) border border-(--stroke) px-4 py-2.5 text-sm min-h-[44px] outline-hidden focus:border-(--accent)";
 
 /**
  * Two ways in: tell Athar the numbers you already know, or have it work them out
@@ -160,10 +160,10 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
   };
 
   return (
-    <Card className="p-5 space-y-4">
+    <Card className="p-5 stack-y-4">
       <div>
         <h2 className="text-base font-semibold">ابدأ قضاءك</h2>
-        <p className="text-xs text-[var(--muted)] mt-1 leading-6">
+        <p className="text-xs text-(--muted) mt-1 leading-6">
           تُحفظ الأرقام في جهازك وتتزامن مع حسابك، ويمكنك تعديلها متى شئت.
         </p>
       </div>
@@ -191,7 +191,7 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
       </Field>
 
       {mode === "calc" ? (
-        <div className="space-y-4">
+        <div className="stack-y-4">
           <Field label="أنا">
             <div className="flex gap-2">
               <Chip active={gender === "male"} onClick={() => setGender("male")}>رجل</Chip>
@@ -241,8 +241,8 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
           )}
 
           {prayerEst && (
-            <div className="rounded-2xl bg-[var(--card)] p-4 space-y-3" data-testid="qadaa-estimate">
-              <div className="text-xs text-[var(--muted)]">اختر العدد الذي تريد أن تبدأ به</div>
+            <div className="rounded-2xl bg-(--card) p-4 stack-y-3" data-testid="qadaa-estimate">
+              <div className="text-xs text-(--muted)">اختر العدد الذي تريد أن تبدأ به</div>
               <div className="grid grid-cols-3 gap-2">
                 {(Object.keys(SCENARIO_LABELS) as Scenario[]).map((s) => (
                   <button
@@ -252,16 +252,16 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
                     onClick={() => setScenario(s)}
                     className={
                       "rounded-2xl py-3 border text-center " +
-                      (scenario === s ? "border-[var(--accent)] bg-[var(--card-2)]" : "border-[var(--stroke)]")
+                      (scenario === s ? "border-(--accent) bg-(--card-2)" : "border-(--stroke)")
                     }
                   >
-                    <div className="text-[11px] text-[var(--muted)]">{SCENARIO_LABELS[s]}</div>
+                    <div className="text-[11px] text-(--muted)">{SCENARIO_LABELS[s]}</div>
                     <div className="text-base font-semibold">{arNum(prayerEst.total[s])}</div>
-                    <div className="text-[10px] text-[var(--muted)]">صلاة</div>
+                    <div className="text-[10px] text-(--muted)">صلاة</div>
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-[var(--muted)] leading-6">
+              <p className="text-xs text-(--muted) leading-6">
                 المدة من البلوغ إلى بدء المحافظة نحو {arNum(prayerEst.periodDays[scenario])} يومًا
                 {gender === "female" ? `، بعد خصم ${arNum(prayerEst.exemptDays[scenario])} يومًا للحيض والنفاس` : ""}.
                 والأحوط أن تبدأ بالعدد الأكبر لتطمئن.
@@ -272,14 +272,14 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
                 </p>
               )}
               {prayerEst.warnings.map((w) => (
-                <p key={w} className="text-xs text-[var(--danger)]">{w}</p>
+                <p key={w} className="text-xs text-(--danger)">{w}</p>
               ))}
               <Button className="w-full" onClick={applyCalc}>ابدأ بهذا العدد</Button>
             </div>
           )}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="stack-y-3">
           <div className="grid grid-cols-2 gap-3">
             {[...FARD_KEYS, ...(includeWitr ? (["witr"] as const) : [])].map((k) => (
               <Field key={k} label={PRAYER_LABELS[k]}>

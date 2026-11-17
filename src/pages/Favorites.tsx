@@ -238,11 +238,11 @@ export function FavoritesPage() {
   };
 
   return (
-    <div className="space-y-4 page-enter">
+    <div className="stack-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Heart size={18} aria-hidden="true" className="text-[var(--accent)]" />
+            <Heart size={18} aria-hidden="true" className="text-(--accent)" />
             <div className="font-semibold"><h1 className="inline text-base leading-none">المفضلة</h1></div>
           </div>
           <div className="flex items-center gap-2">
@@ -288,7 +288,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "adhkar"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
+                : "bg-(--card) border-(--stroke) opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <Heart size={14} aria-hidden="true" />
@@ -304,7 +304,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "quran"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
+                : "bg-(--card) border-(--stroke) opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <BookOpen size={14} aria-hidden="true" />
@@ -320,7 +320,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "hadith"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
+                : "bg-(--card) border-(--stroke) opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <ScrollText size={14} aria-hidden="true" />
@@ -336,7 +336,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "duas"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
+                : "bg-(--card) border-(--stroke) opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <Bookmark size={14} aria-hidden="true" />
@@ -352,7 +352,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "stories"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
+                : "bg-(--card) border-(--stroke) opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <Star size={14} aria-hidden="true" />
@@ -368,7 +368,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "companions"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
+                : "bg-(--card) border-(--stroke) opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <Users size={14} aria-hidden="true" />
@@ -395,7 +395,7 @@ export function FavoritesPage() {
           </div>
         )}
         {adhkarFavoritesNeedCatalog && data && !adhkarQuery.error && !adhkarQuery.isLoading && !adhkarQuery.isFetching && (
-          <div role="status" aria-live="polite" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm">
+          <div role="status" aria-live="polite" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm">
             <p className="m-0 opacity-80">تعذّر العثور على بعض الأذكار المحفوظة ضمن البيانات المتاحة.</p>
             <Button variant="outline" size="sm" aria-label="إعادة تحميل الأذكار" onClick={() => { void adhkarQuery.refetch(); }}>
               إعادة تحميل الأذكار
@@ -414,7 +414,7 @@ export function FavoritesPage() {
             }
           />
         ) : (
-          <div className="space-y-5" role="list" aria-label="الأذكار المفضلة">
+          <div className="stack-y-5" role="list" aria-label="الأذكار المفضلة">
             {grouped.map((group) => {
               const identity = getSectionIdentity(group.sectionId);
               return (
@@ -425,12 +425,12 @@ export function FavoritesPage() {
                     <span className="text-xs font-semibold opacity-65" style={{ color: identity.accent }}>{group.sectionTitle}</span>
                     <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
                   </div>
-                  <div className="space-y-2" role="list">
+                  <div className="stack-y-2" role="list">
                     {group.items.map((r: FlatDhikr) => (
                       <div
                         key={r.key}
                         role="listitem"
-                        className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-start justify-between gap-3 press-effect glass-hover cv-auto"
+                        className="glass rounded-3xl p-4 border border-(--stroke) flex items-start justify-between gap-3 press-effect glass-hover cv-auto"
                       >
                         <button type="button" className="text-right flex-1" onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}>
                           <div className="flex items-start justify-between gap-3">
@@ -441,7 +441,7 @@ export function FavoritesPage() {
                             {r.text.length > 200 ? "…" : ""}
                           </div>
                           {r.benefit && (
-                            <div className="mt-2 text-[11px] opacity-50 leading-5 border-t border-[var(--stroke)] pt-2">
+                            <div className="mt-2 text-[11px] opacity-50 leading-5 border-t border-(--stroke) pt-2">
                               الفضل: {r.benefit.slice(0, 100)}{r.benefit.length > 100 ? "…" : ""}
                             </div>
                           )}
@@ -492,26 +492,26 @@ export function FavoritesPage() {
               action={
                 <button type="button"
                   onClick={() => navigate("/quran")}
-                  className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
+                  className="text-sm text-(--accent) opacity-80 hover:opacity-100 transition underline underline-offset-2"
                 >
                   الذهاب للقرآن ◄
                 </button>
               }
             />
           ) : (
-            <div className="space-y-5" role="list" aria-label="آيات القرآن المحفوظة">
+            <div className="stack-y-5" role="list" aria-label="آيات القرآن المحفوظة">
               {quranBmBySurah.map((group) => (
                 <div key={group.surahId}>
                   <div className="flex items-center gap-2 mb-2 px-1">
-                    <BookOpen size={13} aria-hidden="true" className="text-[var(--accent)] shrink-0" />
+                    <BookOpen size={13} aria-hidden="true" className="text-(--accent) shrink-0" />
                     <span className="text-xs font-semibold opacity-65 arabic-text">{group.surahName}</span>
                     <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
                   </div>
-                  <div className="divide-y divide-white/6 rounded-2xl border border-[var(--stroke)] overflow-hidden" role="list">
+                  <div className="divide-y divide-white/6 rounded-2xl border border-(--stroke) overflow-hidden" role="list">
                     {group.items.map((bm) => (
-                      <div key={`${bm.surahId}:${bm.ayahIndex}`} role="listitem" className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--card)] transition">
+                      <div key={`${bm.surahId}:${bm.ayahIndex}`} role="listitem" className="flex items-center gap-3 px-4 py-3 hover:bg-(--card) transition">
                         {bm.highlight && HL_SWATCHES[bm.highlight] && (
-                          <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-[var(--stroke)]" style={{ background: HL_SWATCHES[bm.highlight] }} />
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-(--stroke)" style={{ background: HL_SWATCHES[bm.highlight] }} />
                         )}
                         <button type="button"
                           className="flex-1 text-right min-w-0"
@@ -553,7 +553,7 @@ export function FavoritesPage() {
               action={
                 <button type="button"
                   onClick={() => navigate("/hadith")}
-                  className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
+                  className="text-sm text-(--accent) opacity-80 hover:opacity-100 transition underline underline-offset-2"
                 >
                   استعرض الأحاديث ◄
                 </button>
@@ -576,7 +576,7 @@ export function FavoritesPage() {
                           "shrink-0 text-xs px-3 py-1.5 rounded-full border transition font-arabic whitespace-nowrap min-h-[32px]",
                           selectedBmBookKey === bk
                             ? "border-transparent"
-                            : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                            : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
                         ].join(" ")}
                         style={selectedBmBookKey === bk ? { background: book?.color ?? "var(--accent)", color: contrastText(book?.color ?? "#ffd780") } : {}}
                       >
@@ -586,7 +586,7 @@ export function FavoritesPage() {
                   })}
                 </div>
               )}
-              <div className="space-y-2" role="list" aria-label="الأحاديث المحفوظة">
+              <div className="stack-y-2" role="list" aria-label="الأحاديث المحفوظة">
                 {hadithBmList
                   .filter((h) => h.bookKey === selectedBmBookKey)
                   .map((h) => {
@@ -596,7 +596,7 @@ export function FavoritesPage() {
                       <div
                         key={`${h.bookKey}:${h.n}`}
                         role="listitem"
-                        className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-start gap-3"
+                        className="glass rounded-3xl p-4 border border-(--stroke) flex items-start gap-3"
                       >
                         <button type="button"
                           className="flex-1 text-right min-w-0"
@@ -643,19 +643,19 @@ export function FavoritesPage() {
               action={
                 <button type="button"
                   onClick={() => navigate("/duas")}
-                  className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
+                  className="text-sm text-(--accent) opacity-80 hover:opacity-100 transition underline underline-offset-2"
                 >
                   استعرض الأدعية ◄
                 </button>
               }
             />
           ) : (
-            <div className="space-y-3" role="list" aria-label="الأدعية المفضلة">
+            <div className="stack-y-3" role="list" aria-label="الأدعية المفضلة">
               {duaFavItems.map((dua) => (
                 <div
                   key={dua.id}
                   role="listitem"
-                  className="glass rounded-2xl p-4 border border-[var(--stroke)] flex items-start gap-3 cv-auto"
+                  className="glass rounded-2xl p-4 border border-(--stroke) flex items-start gap-3 cv-auto"
                 >
                   <div className="flex-1 min-w-0 text-right" dir="rtl">
                     <div className="text-[10px] opacity-50 mb-1">{dua.categoryIcon} {dua.categoryLabel}</div>
@@ -696,19 +696,19 @@ export function FavoritesPage() {
               action={
                 <button type="button"
                   onClick={() => navigate("/stories")}
-                  className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
+                  className="text-sm text-(--accent) opacity-80 hover:opacity-100 transition underline underline-offset-2"
                 >
                   استعرض القصص ◄
                 </button>
               }
             />
           ) : (
-            <div className="space-y-3" dir="rtl" role="list" aria-label="القصص المحفوظة">
+            <div className="stack-y-3" dir="rtl" role="list" aria-label="القصص المحفوظة">
               {storyFavItems.map((story) => (
                 <div
                   key={story.id}
                   role="listitem"
-                  className="glass rounded-2xl p-4 border border-[var(--stroke)] cv-auto"
+                  className="glass rounded-2xl p-4 border border-(--stroke) cv-auto"
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div
@@ -748,19 +748,19 @@ export function FavoritesPage() {
               action={
                 <button type="button"
                   onClick={() => navigate("/companions")}
-                  className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
+                  className="text-sm text-(--accent) opacity-80 hover:opacity-100 transition underline underline-offset-2"
                 >
                   استعرض الصحابة ◄
                 </button>
               }
             />
           ) : (
-            <div className="space-y-3" dir="rtl" role="list" aria-label="الصحابة المحفوظون">
+            <div className="stack-y-3" dir="rtl" role="list" aria-label="الصحابة المحفوظون">
               {companionFavItems.map((companion) => (
                 <div
                   key={companion.id}
                   role="listitem"
-                  className="glass rounded-2xl p-4 border border-[var(--stroke)] flex items-start gap-3 cv-auto"
+                  className="glass rounded-2xl p-4 border border-(--stroke) flex items-start gap-3 cv-auto"
                 >
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"

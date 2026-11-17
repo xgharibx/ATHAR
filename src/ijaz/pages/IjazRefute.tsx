@@ -29,7 +29,7 @@ export default function RefutePage() {
         >
           <div className="glass-card p-8">
             <div className="flex items-start gap-4 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-gold-primary/15 flex items-center justify-center text-2xl flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-gold-primary/15 flex items-center justify-center text-2xl shrink-0">
                 📖
               </div>
               <div>
@@ -124,7 +124,7 @@ export default function RefutePage() {
                 <div className="glass-card p-6 hover:scale-[1.02] transition-all h-full">
                   <div className="flex items-start gap-4">
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
                       style={{ background: `${arg.color}15` }}
                     >
                       {arg.icon}

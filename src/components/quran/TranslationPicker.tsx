@@ -74,7 +74,7 @@ export function TranslationPicker(props: {
 
   return (
     <section
-      className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-[var(--card)] to-[var(--card)] p-3.5 space-y-3"
+      className="rounded-2xl border border-emerald-500/30 bg-linear-to-br from-emerald-500/10 via-(--card) to-(--card) p-3.5 stack-y-3"
       aria-labelledby="tr-picker-heading"
     >
       <div className="flex items-center gap-2">
@@ -91,7 +91,7 @@ export function TranslationPicker(props: {
       <div
         role="radiogroup"
         aria-label="مصدر الترجمة"
-        className="grid grid-cols-3 gap-1 rounded-2xl border border-[var(--stroke)] bg-[var(--bg)] p-1"
+        className="grid grid-cols-3 gap-1 rounded-2xl border border-(--stroke) bg-(--bg) p-1"
       >
         {TRANSLATION_SOURCES.map((src) => {
           const active = value === src.id;
@@ -107,8 +107,8 @@ export function TranslationPicker(props: {
               className={[
                 "group relative flex flex-col items-stretch gap-0.5 rounded-xl px-2 py-2 text-[11.5px] font-semibold transition",
                 active
-                  ? "bg-gradient-to-br from-emerald-400 to-teal-500 text-emerald-950 shadow-[0_4px_16px_-4px_rgba(16,185,129,0.55)]"
-                  : "text-[var(--muted)] hover:bg-[var(--card-2)]",
+                  ? "bg-linear-to-br from-emerald-400 to-teal-500 text-emerald-950 shadow-[0_4px_16px_-4px_rgba(16,185,129,0.55)]"
+                  : "text-(--muted) hover:bg-(--card-2)",
               ].join(" ")}
             >
               <span className="flex items-center justify-between gap-1">

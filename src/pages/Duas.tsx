@@ -72,7 +72,7 @@ export function DuasPage() {
         <Card className="p-5 overflow-hidden relative">
           <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
           <div
-            className="absolute inset-0 bg-gradient-to-bl from-emerald-500/15 to-green-400/10 pointer-events-none opacity-55"
+            className="absolute inset-0 bg-linear-to-bl from-emerald-500/15 to-green-400/10 pointer-events-none opacity-55"
             style={{ borderRadius: "inherit" }}
           />
           <div className="relative">
@@ -81,7 +81,7 @@ export function DuasPage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl flex-shrink-0"
+                className="mt-1 p-2 rounded-xl shrink-0"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -112,7 +112,7 @@ export function DuasPage() {
                 autoComplete="off"
                 autoCapitalize="none"
                 spellCheck={false}
-                className="flex-1 bg-transparent text-sm outline-none"
+                className="flex-1 bg-transparent text-sm outline-hidden"
                 style={{ color: "var(--fg)" }}
               />
               {query && (
@@ -137,7 +137,7 @@ export function DuasPage() {
                   aria-controls="duas-list-panel"
                   aria-selected={activeTab === cat.id}
                   onClick={(e) => selectTab(cat.id, e.currentTarget)}
-                  className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
+                  className="shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
                   style={{
                     background: activeTab === cat.id ? "#059669" : "var(--card)",
                     color: activeTab === cat.id ? "#fff" : "var(--fg)",
@@ -153,7 +153,7 @@ export function DuasPage() {
                 aria-controls="duas-list-panel"
                 aria-selected={activeTab === "__favorites__"}
                 onClick={(e) => selectTab("__favorites__", e.currentTarget)}
-                className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
+                className="shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
                 style={{
                   background: activeTab === "__favorites__" ? "#ef4444" : "var(--card)",
                   color: activeTab === "__favorites__" ? "#fff" : "var(--fg)",
@@ -172,7 +172,7 @@ export function DuasPage() {
         {query ? `نتائج البحث: ${displayedDuas.length} دعاء` : null}
       </div>
       {/* Duas list */}
-      <div id="duas-list-panel" className="px-4 pt-4 space-y-4" role="list" aria-label="قائمة الأدعية">
+      <div id="duas-list-panel" className="px-4 pt-4 stack-y-4" role="list" aria-label="قائمة الأدعية">
         {/* Category stats row */}
         {!showFavorites && !query && (
           <div className="flex items-center justify-between pb-1">

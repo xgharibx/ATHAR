@@ -79,7 +79,7 @@ export default function VerseExplorerPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="ابحث في الآيات..."
-                  className="flex-1 bg-transparent border-none outline-none text-text-primary placeholder:text-text-muted font-tajawal text-sm"
+                  className="flex-1 bg-transparent border-none outline-hidden text-text-primary placeholder:text-text-muted font-tajawal text-sm"
                   dir="rtl"
                 />
               </div>
@@ -106,7 +106,7 @@ export default function VerseExplorerPage() {
             <p className="text-text-muted text-sm font-tajawal mb-4">{filteredVerses.length} آية</p>
 
             {/* Verses Grid */}
-            <div className="space-y-4">
+            <div className="stack-y-4">
               {filteredVerses.map((verse, i) => (
                 <motion.button
                   key={verse.id}
@@ -156,7 +156,7 @@ export default function VerseExplorerPage() {
                     {relatedMiracles.length > 0 && (
                       <div className="mt-6">
                         <h3 className="text-gold-primary font-amiri text-lg font-bold mb-3">المعجزات المرتبطة</h3>
-                        <div className="space-y-2">
+                        <div className="stack-y-2">
                           {relatedMiracles.map((m) => (
                             <Link
                               key={m.id}

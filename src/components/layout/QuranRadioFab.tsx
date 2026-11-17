@@ -85,7 +85,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
 
   return (
     <div
-      className="fixed z-[9990] xl:hidden"
+      className="fixed z-9990 xl:hidden"
       style={{
         bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--sab))",
         left: "16px",
@@ -95,13 +95,13 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
       {/* Backdrop */}
       <div
         aria-hidden="true"
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]"
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[-1]"
         onClick={() => setOpen(false)}
       />
 
       {/* Panel */}
       <div
-        className="w-[280px] glass-strong rounded-3xl p-4 border border-[var(--stroke)] page-enter"
+        className="w-[280px] glass-strong rounded-3xl p-4 border border-(--stroke) page-enter"
         style={{ boxShadow: "0 12px 48px rgba(0,0,0,0.5)" }}
         ref={panelRef}
         onKeyDown={trapFocus}
@@ -116,7 +116,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
             <div className="text-sm font-semibold">راديو القرآن</div>
             {radio.playing && (
               <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: "var(--ok)20", color: "var(--ok)" }}>
-                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-[var(--ok)] animate-pulse inline-block" />
+                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-(--ok) animate-pulse inline-block" />
                 بث مباشر
               </span>
             )}
@@ -124,7 +124,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
           <button type="button"
             autoFocus
             onClick={() => setOpen(false)}
-            className="w-9 h-9 rounded-full bg-[var(--card)] border border-[var(--stroke)] grid place-items-center text-xs"
+            className="w-9 h-9 rounded-full bg-(--card) border border-(--stroke) grid place-items-center text-xs"
             aria-label="إغلاق"
           >
             <X size={14} aria-hidden="true" />
@@ -132,7 +132,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
         </div>
 
         {/* Stations */}
-        <div className="space-y-1.5 mb-3" role="group" aria-label="محطات الراديو">
+        <div className="stack-y-1.5 mb-3" role="group" aria-label="محطات الراديو">
           {QURAN_RADIO_STATIONS.map((station, i) => (
             <button type="button"
               key={i}
@@ -142,8 +142,8 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
               className={cn(
                 "w-full text-right rounded-2xl px-3 py-2.5 text-sm border transition press-effect",
                 radio.playing && radio.stationIdx === i
-                  ? "bg-accent-15 border-accent-50 text-[var(--fg)] font-semibold"
-                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                  ? "bg-accent-15 border-accent-50 text-(--fg) font-semibold"
+                  : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
               )}
             >
               <div className="flex items-center justify-between gap-2">
@@ -180,8 +180,8 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
           className={cn(
             "w-full rounded-2xl py-3 text-sm font-semibold transition press-effect",
             radio.playing
-              ? "bg-danger-20 text-[var(--danger)] border border-danger-30 hover:bg-danger-30"
-              : "bg-[var(--accent)] text-[var(--on-accent)] hover:opacity-90"
+              ? "bg-danger-20 text-(--danger) border border-danger-30 hover:bg-danger-30"
+              : "bg-(--accent) text-(--on-accent) hover:opacity-90"
           )}
         >
           {radio.playing ? "إيقاف البث" : "تشغيل"}

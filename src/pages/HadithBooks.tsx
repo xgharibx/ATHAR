@@ -59,19 +59,19 @@ function ArbainiCard({ book }: { book: HadithBookMeta }) {
           <GradeChip grade="sahih" />
         </div>
         {/* Title */}
-        <p className="text-sm font-bold font-arabic text-[var(--fg)] leading-tight mb-1">
+        <p className="text-sm font-bold font-arabic text-(--fg) leading-tight mb-1">
           {book.title}
         </p>
-        <p className="text-[10px] text-[var(--muted)] mb-3" lang="en">{book.titleEn}</p>
+        <p className="text-[10px] text-(--muted) mb-3" lang="en">{book.titleEn}</p>
         {/* Count + progress */}
         <div className="flex items-center justify-between">
           <span className="text-xs font-arabic" style={{ color: book.color }}>
             {book.count} حديث
           </span>
           {lastN ? (
-            <span className="text-[9px] text-[var(--muted)]">ح{lastN}</span>
+            <span className="text-[9px] text-(--muted)">ح{lastN}</span>
           ) : (
-            <span className="text-[9px] text-[var(--muted)] opacity-60">لم يُقرأ</span>
+            <span className="text-[9px] text-(--muted) opacity-60">لم يُقرأ</span>
           )}
         </div>
       </div>
@@ -112,22 +112,22 @@ function BookCard({ book }: { book: HadithBookMeta }) {
           {/* Text block */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <p className="text-sm font-bold font-arabic text-[var(--fg)] leading-tight line-clamp-2">
+              <p className="text-sm font-bold font-arabic text-(--fg) leading-tight line-clamp-2">
                 {book.title}
               </p>
               <GradeChip grade={book.grade === "mixed" ? "hasan" : book.grade} />
             </div>
-            <p className="text-[10px] text-[var(--muted)] mb-2" lang="en">{book.titleEn}</p>
-            <p className="text-[11px] text-[var(--fg)] opacity-70 leading-snug line-clamp-2 font-arabic">
+            <p className="text-[10px] text-(--muted) mb-2" lang="en">{book.titleEn}</p>
+            <p className="text-[11px] text-(--fg) opacity-70 leading-snug line-clamp-2 font-arabic">
               {book.description}
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-2.5 flex items-center justify-between border-t border-[var(--stroke)] pt-2.5">
+        <div className="mt-2.5 flex items-center justify-between border-t border-(--stroke) pt-2.5">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-[10px] text-[var(--muted)]">
+            <span className="flex items-center gap-1 text-[10px] text-(--muted)">
               <BookOpen size={10} aria-hidden="true" />
               {arNum(book.count)}
             </span>
@@ -140,9 +140,9 @@ function BookCard({ book }: { book: HadithBookMeta }) {
           </div>
           <div className="flex items-center gap-2">
             {lastN ? (
-              <span className="text-[9px] text-[var(--muted)]">آخر: ح{lastN}</span>
+              <span className="text-[9px] text-(--muted)">آخر: ح{lastN}</span>
             ) : null}
-            <ArrowRight size={12} aria-hidden="true" className="text-[var(--muted)] rotate-180" />
+            <ArrowRight size={12} aria-hidden="true" className="text-(--muted) rotate-180" />
           </div>
         </div>
       </div>
@@ -225,7 +225,7 @@ function CuratedEntryCard({ entry }: { entry: FlatLibraryEntry }) {
         <ArrowUpRight size={17} className="opacity-45 shrink-0 mt-1" aria-hidden="true" />
       </div>
 
-      <div className="mt-3 border-t border-[var(--stroke)] pt-3 space-y-2">
+      <div className="mt-3 border-t border-(--stroke) pt-3 stack-y-2">
         <div className="flex items-center justify-between gap-3 text-xs opacity-65">
           <span>{entry.narrator || "فائدة محررة"}</span>
           <span className="font-semibold">{entry.source.title}</span>
@@ -255,7 +255,7 @@ function CuratedCollectionCard({ collection, active, onClick }: { collection: Li
       aria-pressed={active}
       className={cn(
         "min-w-[220px] text-right rounded-3xl border p-4 transition press-effect",
-        active ? "bg-[var(--card)] border-[var(--stroke)]" : "glass border-[var(--stroke)] hover:bg-[var(--card-2)]"
+        active ? "bg-(--card) border-(--stroke)" : "glass border-(--stroke) hover:bg-(--card-2)"
       )}
       style={active ? { borderColor: collection.accent } : undefined}
     >
@@ -319,20 +319,20 @@ function CuratedTab() {
   const navigate = useNavigate();
 
   if (isLoading) {
-    return <div className="px-4 pt-4 space-y-3" role="status" aria-label="جارٍ التحميل…"><span className="sr-only">جارٍ التحميل…</span><div className="skeleton h-8 w-44 rounded-xl" /><div className="skeleton h-20 w-full rounded-2xl mt-4" /></div>;
+    return <div className="px-4 pt-4 stack-y-3" role="status" aria-label="جارٍ التحميل…"><span className="sr-only">جارٍ التحميل…</span><div className="skeleton h-8 w-44 rounded-xl" /><div className="skeleton h-20 w-full rounded-2xl mt-4" /></div>;
   }
   if (error || !data) {
     return <div className="px-4 pt-4"><Card className="p-5"><div className="font-semibold">تعذر تحميل المختارات</div><div className="text-sm opacity-60 mt-2">أعد فتح الصفحة بعد قليل.</div></Card></div>;
   }
 
   return (
-    <div dir="rtl" className="px-4 pt-2 space-y-4">
+    <div dir="rtl" className="px-4 pt-2 stack-y-4">
       {featured && (
         <button type="button"
           onClick={() => navigate(`/library/${featured.collectionId}/${featured.id}`)}
-          className="w-full text-right rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 hover:bg-[var(--card-2)] transition"
+          className="w-full text-right rounded-3xl border border-(--stroke) bg-(--card) p-4 hover:bg-(--card-2) transition"
         >
-          <div className="flex items-center gap-2 mb-2"><Sparkles size={15} className="text-[var(--accent)]" aria-hidden="true" /><span className="text-xs font-semibold opacity-60">بداية مقترحة</span></div>
+          <div className="flex items-center gap-2 mb-2"><Sparkles size={15} className="text-(--accent)" aria-hidden="true" /><span className="text-xs font-semibold opacity-60">بداية مقترحة</span></div>
           {featured.title && <div className="text-xs font-semibold mb-1 font-arabic" style={{ color: featured.collectionAccent }}>{featured.collectionTitle} · {featured.title}</div>}
           <div className="arabic-text leading-8 text-sm md:text-base line-clamp-3">{featured.arabic}</div>
           <div className="text-xs opacity-50 mt-2">{featured.source.title}</div>
@@ -340,7 +340,7 @@ function CuratedTab() {
       )}
 
       <div className="relative" role="search" aria-label="بحث في المختارات">
-        <Search size={16} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] pointer-events-none" />
+        <Search size={16} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-(--muted) pointer-events-none" />
         <Input value={q} onChange={(event) => setQ(event.target.value)} type="search" placeholder="ابحث في المختارات، الراوي، أو الموضوع…" aria-label="بحث في المختارات" spellCheck={false} autoComplete="off" autoCapitalize="none" className="pr-9" />
       </div>
 
@@ -361,7 +361,7 @@ function CuratedTab() {
         <button type="button"
           onClick={() => setTagFilter(null)}
           aria-pressed={!tagFilter}
-          className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", !tagFilter ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+          className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", !tagFilter ? "bg-(--accent) text-(--on-accent) border-transparent" : "bg-(--card) border-(--stroke)")}
         >
           كل الموضوعات
         </button>
@@ -370,7 +370,7 @@ function CuratedTab() {
             key={tag}
             aria-pressed={tagFilter === tag}
             onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
-            className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+            className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-(--accent) text-(--on-accent) border-transparent" : "bg-(--card) border-(--stroke)")}
           >
             {tag} <span className="opacity-60 tabular-nums">{arNum(count)}</span>
           </button>
@@ -382,16 +382,16 @@ function CuratedTab() {
         <div className="text-xs opacity-50 tabular-nums" aria-live="polite" aria-atomic="true">{arNum(entries.length)}</div>
       </div>
 
-      <div className="space-y-3 pb-4" role="list" aria-label="المواد المختارة">
+      <div className="stack-y-3 pb-4" role="list" aria-label="المواد المختارة">
         {entries.map((entry) => <div key={entry.key} role="listitem"><CuratedEntryCard entry={entry} /></div>)}
         {entries.length === 0 && (
           <div dir="rtl" className="flex flex-col items-center py-12 gap-4">
-            <Search size={40} aria-hidden="true" className="text-[var(--muted)] opacity-20" />
-            <p className="text-sm text-[var(--muted)] font-arabic text-center">لا توجد نتائج للفلاتر الحالية</p>
+            <Search size={40} aria-hidden="true" className="text-(--muted) opacity-20" />
+            <p className="text-sm text-(--muted) font-arabic text-center">لا توجد نتائج للفلاتر الحالية</p>
             <button
               type="button"
               onClick={() => { setTagFilter(null); setCollectionFilter("all"); setQ(""); }}
-              className="text-xs px-4 py-2 rounded-full border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition font-arabic"
+              className="text-xs px-4 py-2 rounded-full border border-(--stroke) bg-(--card) hover:bg-(--card-2) transition font-arabic"
             >
               إعادة ضبط الفلاتر
             </button>
@@ -459,7 +459,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
     <div dir="rtl" className="px-4 pt-4">
       {/* Search input */}
       <div className="relative mb-5" role="search" aria-label="بحث في الأحاديث">
-        <Search size={16} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] pointer-events-none" />
+        <Search size={16} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-(--muted) pointer-events-none" />
         <input
           type="search"
           value={query}
@@ -470,36 +470,36 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
           spellCheck={false}
           autoComplete="off"
           autoCapitalize="none"
-          className="w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] py-3 pr-9 pl-4 text-sm font-arabic text-[var(--fg)] outline-none focus:border-accent-45"
+          className="w-full rounded-2xl border border-(--stroke) bg-(--card) py-3 pr-9 pl-4 text-sm font-arabic text-(--fg) outline-hidden focus:border-accent-45"
         />
       </div>
 
       {/* States */}
       {loading && (
-        <div className="flex flex-col items-center py-12 gap-3 text-[var(--muted)]" role="status">
-          <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+        <div className="flex flex-col items-center py-12 gap-3 text-(--muted)" role="status">
+          <div className="w-6 h-6 border-2 border-(--accent) border-t-transparent rounded-full animate-spin" aria-hidden="true" />
           <p className="text-sm font-arabic">جارٍ البحث…</p>
         </div>
       )}
 
       {!loading && searched && results.length === 0 && (
         <div className="flex flex-col items-center py-12 gap-3">
-          <Search size={36} aria-hidden="true" className="text-[var(--muted)] opacity-30" />
-          <p className="text-sm text-[var(--muted)] font-arabic">لا توجد نتائج</p>
+          <Search size={36} aria-hidden="true" className="text-(--muted) opacity-30" />
+          <p className="text-sm text-(--muted) font-arabic">لا توجد نتائج</p>
         </div>
       )}
 
       {!loading && !searched && (
         <div className="flex flex-col items-center py-12 gap-3">
-          <Search size={36} aria-hidden="true" className="text-[var(--muted)] opacity-20" />
-          <p className="text-sm text-[var(--muted)] font-arabic">ابحث في جميع الكتب التسعة</p>
+          <Search size={36} aria-hidden="true" className="text-(--muted) opacity-20" />
+          <p className="text-sm text-(--muted) font-arabic">ابحث في جميع الكتب التسعة</p>
         </div>
       )}
 
       {/* Results */}
       {!loading && results.length > 0 && (
-        <div className="space-y-3 pb-6">
-          <p className="text-xs text-[var(--muted)] font-arabic" aria-live="polite" aria-atomic="true">
+        <div className="stack-y-3 pb-6">
+          <p className="text-xs text-(--muted) font-arabic" aria-live="polite" aria-atomic="true">
             {results.length >= 50 ? "أكثر من 50" : results.length} نتيجة
           </p>
           {results.map((r) => {
@@ -522,7 +522,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
                       style={{ background: (meta?.color ?? "#888") + "22", color: meta?.color ?? "#888" }}>
                       {meta?.title ?? r.bookKey}
                     </span>
-                    <span className="text-[10px] text-[var(--muted)]">ح{r.n}</span>
+                    <span className="text-[10px] text-(--muted)">ح{r.n}</span>
                     {r.grade && <GradeChip grade={r.grade} size="sm" />}
                     <button type="button"
                       onClick={async (e) => {
@@ -537,7 +537,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
                     </button>
                   </div>
                   {/* Preview */}
-                  <p className="text-[12px] font-arabic text-[var(--fg)] leading-relaxed line-clamp-3">
+                  <p className="text-[12px] font-arabic text-(--fg) leading-relaxed line-clamp-3">
                     {previewText(r.snippet)}
                   </p>
                 </div>
@@ -581,7 +581,7 @@ export function HadithBooksPage() {
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <Library size={19} aria-hidden="true" className="text-[var(--accent)]" />
+                <Library size={19} aria-hidden="true" className="text-(--accent)" />
                 <h1 className="text-lg font-bold">الأحاديث</h1>
               </div>
               <div className="text-xs opacity-55 mt-1">الكتب التسعة، مختارات نبوية، وبحث شامل — في مكان واحد</div>
@@ -596,15 +596,15 @@ export function HadithBooksPage() {
       {/* Stats banner */}
       <div className="relative z-10 mx-4 mt-4 mb-4 flex items-center gap-4 overflow-hidden rounded-3xl px-5 py-3.5 glass-strong">
         <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-        <div className="relative flex-1 border-l border-[var(--stroke)] text-center">
-          <p className="text-xl font-bold text-[var(--fg)] font-arabic">{sorted.length}</p>
-          <p className="text-[10px] text-[var(--muted)]">كتاب</p>
+        <div className="relative flex-1 border-l border-(--stroke) text-center">
+          <p className="text-xl font-bold text-(--fg) font-arabic">{sorted.length}</p>
+          <p className="text-[10px] text-(--muted)">كتاب</p>
         </div>
         <div className="relative flex-1 text-center">
-          <p className="text-xl font-bold text-[var(--fg)] font-arabic">
+          <p className="text-xl font-bold text-(--fg) font-arabic">
             {totalHadiths >= 1000 ? `${Math.round(totalHadiths / 1000)}k` : arNum(totalHadiths)}
           </p>
-          <p className="text-[10px] text-[var(--muted)]">حديث نبوي</p>
+          <p className="text-[10px] text-(--muted)">حديث نبوي</p>
         </div>
       </div>
 
@@ -651,9 +651,9 @@ export function HadithBooksPage() {
                 <div className="relative">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg" aria-hidden="true">✨</span>
-                    <p className="text-base font-bold font-arabic text-[var(--fg)]">الأربعينيات المباركة</p>
+                    <p className="text-base font-bold font-arabic text-(--fg)">الأربعينيات المباركة</p>
                   </div>
-                  <p className="text-xs text-[var(--muted)] font-arabic leading-relaxed">
+                  <p className="text-xs text-(--muted) font-arabic leading-relaxed">
                     الأحاديث المختارة التي يحفظها كل مسلم
                   </p>
                 </div>
@@ -668,8 +668,8 @@ export function HadithBooksPage() {
           )}
 
           {/* Main books */}
-          <div className="px-4 space-y-3 mb-4">
-            <p className="text-xs text-[var(--muted)] font-arabic px-1">الكتب الكبرى</p>
+          <div className="px-4 stack-y-3 mb-4">
+            <p className="text-xs text-(--muted) font-arabic px-1">الكتب الكبرى</p>
             <div role="list" aria-label="الكتب الكبرى">
               {mainBooks.map((book) => (
                 <div key={book.key} role="listitem">
@@ -680,7 +680,7 @@ export function HadithBooksPage() {
           </div>
 
           {/* Attribution */}
-          <p className="text-center text-[10px] text-[var(--muted)] mt-2 px-4 pb-4 leading-relaxed font-arabic">
+          <p className="text-center text-[10px] text-(--muted) mt-2 px-4 pb-4 leading-relaxed font-arabic">
             المصدر: مشروع hadith-api (Unlicense) • fawazahmed0/hadith-api
           </p>
         </div>

@@ -331,17 +331,17 @@ export function LeaderboardPage() {
   }, [endpoint, lastSubmitAt, myStats.scores, myStats.metrics, persistLastSubmitAt, pullBoard, todayKey]);
 
   return (
-    <div className="space-y-4 page-enter">
+    <div className="stack-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-sm font-semibold leading-none">لوحة المتصدرين</h1>
             <div className="text-xs opacity-65 mt-1 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[var(--accent)] inline-block opacity-80" />
+              <span className="w-2 h-2 rounded-full bg-(--accent) inline-block opacity-80" />
               {identity.alias}
             </div>
           </div>
-          <Trophy size={18} aria-hidden="true" className="text-[var(--accent)]" />
+          <Trophy size={18} aria-hidden="true" className="text-(--accent)" />
         </div>
 
         <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -351,13 +351,13 @@ export function LeaderboardPage() {
           <Stat title="المهام اليومية" value={myStats.prayers} />
         </div>
 
-        <div className="mt-4 rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
+        <div className="mt-4 rounded-3xl border border-(--stroke) bg-(--card) p-4">
           <div className="text-sm font-semibold">اسم الظهور</div>
           <div className="mt-1 text-[11px] opacity-60">
             يُنشأ تلقائيًا لكل حساب باسم عشوائي موحّد، ولا يمكن تغييره يدويًا.
           </div>
-          <div className="mt-3 inline-flex items-center gap-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2">
-            <ShieldCheck size={14} aria-hidden="true" className="text-[var(--accent)]" />
+          <div className="mt-3 inline-flex items-center gap-2 rounded-2xl border border-(--stroke) bg-(--card-2) px-3 py-2">
+            <ShieldCheck size={14} aria-hidden="true" className="text-(--accent)" />
             <span className="text-sm font-semibold">{identity.alias}</span>
           </div>
         </div>
@@ -443,14 +443,14 @@ export function LeaderboardPage() {
           <span aria-live="polite" aria-atomic="true" className={cn(
             "inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border",
             syncState === "ok"
-              ? "border-ok-30 bg-ok-10 text-[var(--ok)]"
+              ? "border-ok-30 bg-ok-10 text-(--ok)"
               : syncState === "error"
-                ? "border-danger-30 bg-danger-10 text-[var(--danger)]"
+                ? "border-danger-30 bg-danger-10 text-(--danger)"
                 : syncState === "cooldown"
                   ? "border-yellow-400/30 bg-yellow-400/10 text-yellow-400"
                   : syncState === "syncing"
-                    ? "border-accent-30 bg-accent-10 text-[var(--accent)]"
-                    : "border-[var(--stroke)] bg-[var(--card)] opacity-70"
+                    ? "border-accent-30 bg-accent-10 text-(--accent)"
+                    : "border-(--stroke) bg-(--card) opacity-70"
           )}>
             {syncState === "syncing" && <Loader2 size={10} aria-hidden="true" className="animate-spin" />}
             {syncState === "ok" && <CheckCircle2 size={10} aria-hidden="true" />}
@@ -473,7 +473,7 @@ export function LeaderboardPage() {
         </div>
 
         {endpoint && boardLoadState === "error" && (
-          <div role="alert" className="mt-3 rounded-2xl border border-danger-25 bg-danger-10 px-4 py-3 text-xs leading-6 text-[var(--danger)]">
+          <div role="alert" className="mt-3 rounded-2xl border border-danger-25 bg-danger-10 px-4 py-3 text-xs leading-6 text-(--danger)">
             تعذر تحديث ترتيب اللوحة من الخادم حاليًا. ما يظهر الآن هو آخر بيانات محلية متاحة فقط.
           </div>
         )}
@@ -499,9 +499,9 @@ export function LeaderboardPage() {
                     ? "تحدي تسبيح اليوم"
                     : "أفضل نتائج القسم"}
         </div>
-        <div className="space-y-2" role="list" aria-label="ترتيب المتسابقين">
+        <div className="stack-y-2" role="list" aria-label="ترتيب المتسابقين">
           {mergedRows.length === 0 ? (
-            <div className="glass rounded-3xl border border-[var(--stroke)] px-4 py-5 text-sm opacity-70 leading-7 text-center">
+            <div className="glass rounded-3xl border border-(--stroke) px-4 py-5 text-sm opacity-70 leading-7 text-center">
               لا توجد نتائج منشورة لهذا التصنيف بعد. ابدأ بالمزامنة لرفع أول نتيجة.
             </div>
           ) : (
@@ -511,10 +511,10 @@ export function LeaderboardPage() {
               return (
                 <div key={r.id} role="listitem" className={cn(
                   "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
-                  r.id === myEntry.id ? "border-accent-35 bg-accent-8" : "border-[var(--stroke)]"
+                  r.id === myEntry.id ? "border-accent-35 bg-accent-8" : "border-(--stroke)"
                 )}>
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center text-xs tabular-nums">
+                    <div className="w-8 h-8 rounded-full bg-(--card) border border-(--stroke) flex items-center justify-center text-xs tabular-nums">
                       {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : arNum((idx + 1))}
                     </div>
                     <div className="min-w-0">
@@ -559,7 +559,7 @@ export function LeaderboardPage() {
 
 function Stat(props: { title: string; value: number }) {
   return (
-    <div className="glass rounded-2xl p-3 border border-[var(--stroke)]">
+    <div className="glass rounded-2xl p-3 border border-(--stroke)">
       <div className="text-[11px] opacity-60">{props.title}</div>
       <div className="mt-1 text-lg font-semibold tabular-nums" style={{ color: "var(--accent)" }}>{arNum(props.value)}</div>
     </div>
@@ -853,7 +853,7 @@ function LeaderboardAdminCard(props: {
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <ShieldCheck size={16} aria-hidden="true" className="text-[var(--accent)]" />
+            <ShieldCheck size={16} aria-hidden="true" className="text-(--accent)" />
             <div className="text-sm font-semibold">إدارة المتصدرين</div>
           </div>
           <div className="mt-1 text-[11px] opacity-60">
@@ -866,14 +866,14 @@ function LeaderboardAdminCard(props: {
       </div>
 
       {expanded && (
-        <div id="lb-admin-panel" className="mt-4 space-y-4">
+        <div id="lb-admin-panel" className="mt-4 stack-y-4">
           {!hasEndpoint ? (
             <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-xs text-yellow-200 leading-6">
               لا يمكن استخدام لوحة الإدارة قبل ضبط VITE_LEADERBOARD_ENDPOINT وربطها بدالة Supabase المنشورة.
             </div>
           ) : null}
 
-          <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
+          <div className="rounded-3xl border border-(--stroke) bg-(--card) p-4 stack-y-3">
             <div className="text-sm font-semibold">رمز الإدارة</div>
             <div className="flex flex-col md:flex-row gap-2">
               <Input
@@ -897,7 +897,7 @@ function LeaderboardAdminCard(props: {
             <div
               className={cn(
                 "text-[11px] leading-5",
-                adminTone === "error" ? "text-[var(--danger)]" : adminTone === "ok" ? "text-[var(--ok)]" : "opacity-60"
+                adminTone === "error" ? "text-(--danger)" : adminTone === "ok" ? "text-(--ok)" : "opacity-60"
               )}
             >
               {adminHint}
@@ -906,8 +906,8 @@ function LeaderboardAdminCard(props: {
 
           {hasAdminToken && hasEndpoint && (
             <>
-              <div className="rounded-3xl border border-danger-20 bg-danger-8 p-4 space-y-3">
-                <div className="text-sm font-semibold text-[var(--danger)]">إعادة تشغيل اللوحة</div>
+              <div className="rounded-3xl border border-danger-20 bg-danger-8 p-4 stack-y-3">
+                <div className="text-sm font-semibold text-(--danger)">إعادة تشغيل اللوحة</div>
                 <div className="text-[11px] leading-6 opacity-75">
                   هذا الإجراء يمسح جميع النقاط المنشورة وسجل النتائج من الخادم، لكنه يُبقي تواريخ الانضمام وقواعد الحظر ومراجعات الأسماء كما هي.
                 </div>
@@ -930,7 +930,7 @@ function LeaderboardAdminCard(props: {
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
+                <div className="rounded-3xl border border-(--stroke) bg-(--card) p-4 stack-y-3">
                   <div className="text-sm font-semibold">حظر أسماء أو كلمات</div>
                   <div role="tablist" aria-orientation="horizontal" aria-label="نمط التطابق" className="flex gap-2 flex-wrap"
           onKeyDown={(e) => {
@@ -951,14 +951,14 @@ function LeaderboardAdminCard(props: {
                     إضافة قاعدة
                   </Button>
 
-                  <div className="space-y-2 max-h-64 overflow-auto">
+                  <div className="stack-y-2 max-h-64 overflow-auto">
                     {snapshot.blocklist.length === 0 ? (
                       <div className="text-xs opacity-50">لا توجد قواعد حظر بعد.</div>
                     ) : (
                       snapshot.blocklist.map((rule) => (
-                        <div key={rule.id} className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3 flex items-start justify-between gap-3">
+                        <div key={rule.id} className="rounded-2xl border border-(--stroke) bg-(--card) px-3 py-3 flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="text-sm font-medium break-words">{rule.term}</div>
+                            <div className="text-sm font-medium wrap-break-word">{rule.term}</div>
                             <div className="mt-1 text-[11px] opacity-55">
                               {rule.matchMode === "exact" ? "مطابقة تامة" : "احتواء"}
                               {rule.note ? ` • ${rule.note}` : ""}
@@ -973,7 +973,7 @@ function LeaderboardAdminCard(props: {
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
+                <div className="rounded-3xl border border-(--stroke) bg-(--card) p-4 stack-y-3">
                   <div className="text-sm font-semibold">إدارة مستخدم</div>
                   <Input
                     value={selectedUserId}
@@ -1006,7 +1006,7 @@ function LeaderboardAdminCard(props: {
                     <div className="text-[11px] opacity-55">المستخدم المحدد: {selectedUserLabel}</div>
                   ) : null}
 
-                  <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3 flex items-center justify-between gap-3">
+                  <div className="rounded-2xl border border-(--stroke) bg-(--card) px-3 py-3 flex items-center justify-between gap-3">
                     <div>
                       <div className="text-sm font-medium">إخفاء من اللوحة</div>
                       <div className="text-[11px] opacity-50">لن يظهر في القراءة العامة حتى تلغي الإخفاء.</div>
@@ -1022,7 +1022,7 @@ function LeaderboardAdminCard(props: {
                     aria-describedby="forced-alias-error"
                   />
                   {forcedAliasValidation && !forcedAliasValidation.ok ? (
-                    <div id="forced-alias-error" role="alert" className="text-[11px] text-[var(--danger)]">{forcedAliasValidation.message}</div>
+                    <div id="forced-alias-error" role="alert" className="text-[11px] text-(--danger)">{forcedAliasValidation.message}</div>
                   ) : null}
 
                   <textarea
@@ -1030,14 +1030,14 @@ function LeaderboardAdminCard(props: {
                     onChange={(e) => setModerationReason(e.target.value)}
                     placeholder="سبب داخلي للمراجعة"
                     aria-label="سبب المراجعة"
-                    className="w-full min-h-[90px] rounded-3xl bg-[var(--card)] border border-[var(--stroke)] p-4 text-sm leading-7 outline-none focus:border-[var(--stroke)]"
+                    className="w-full min-h-[90px] rounded-3xl bg-(--card) border border-(--stroke) p-4 text-sm leading-7 outline-hidden focus:border-(--stroke)"
                   />
 
                   {userModeration?.updatedAt ? (
                     <div className="text-[11px] opacity-50">آخر تحديث: {arFullDate(new Date(userModeration.updatedAt))}</div>
                   ) : null}
 
-                  <div className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3">
+                  <div className="flex items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card) px-3 py-3">
                     <div className="text-[11px] opacity-60">حرر الاسم المحجوز عند إزالة الإدارة</div>
                     <Switch aria-label="حرر الاسم المحجوز عند إزالة الإدارة" checked={releaseAliasClaim} onCheckedChange={(v) => setReleaseAliasClaim(!!v)} />
                   </div>
@@ -1053,17 +1053,17 @@ function LeaderboardAdminCard(props: {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
+              <div className="rounded-3xl border border-(--stroke) bg-(--card) p-4">
                 <div className="text-sm font-semibold mb-3">آخر مراجعات الأسماء</div>
-                <div className="space-y-2 max-h-72 overflow-auto">
+                <div className="stack-y-2 max-h-72 overflow-auto">
                   {snapshot.audits.length === 0 ? (
                     <div className="text-xs opacity-50">لا توجد سجلات مراجعة بعد.</div>
                   ) : (
                     snapshot.audits.map((audit) => (
-                      <div key={audit.id} className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3 flex items-start justify-between gap-3">
+                      <div key={audit.id} className="rounded-2xl border border-(--stroke) bg-(--card) px-3 py-3 flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="text-sm font-medium break-words">{audit.resolvedAlias}</div>
-                          <div className="mt-1 text-[11px] opacity-55 break-words">
+                          <div className="text-sm font-medium wrap-break-word">{audit.resolvedAlias}</div>
+                          <div className="mt-1 text-[11px] opacity-55 wrap-break-word">
                             المطلوب: {audit.requestedAlias || "—"} • الحالة: {audit.status}
                             {audit.reason ? ` • ${audit.reason}` : ""}
                           </div>
@@ -1155,7 +1155,7 @@ function LocalFriendsCard(props: {
     <Card className="p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Users size={16} aria-hidden="true" className="text-[var(--accent)]" />
+          <Users size={16} aria-hidden="true" className="text-(--accent)" />
           <div className="text-sm font-semibold">لوحة الأصدقاء</div>
           {localFriends.length > 0 && (
             <span className="text-[10px] opacity-50 tabular-nums">{arNum(localFriends.length)} صديق</span>
@@ -1167,7 +1167,7 @@ function LocalFriendsCard(props: {
       </div>
 
       {/* Friend list */}
-      <div className="mt-3 space-y-2" role="list" aria-label="قائمة الأصدقاء">
+      <div className="mt-3 stack-y-2" role="list" aria-label="قائمة الأصدقاء">
         {allRows.length === 0 ? (
           <div className="text-xs opacity-50 text-center py-3">أضف أصدقاء لمقارنة تقدمكم المشترك.</div>
         ) : (
@@ -1177,11 +1177,11 @@ function LocalFriendsCard(props: {
               role="listitem"
               className={cn(
                 "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
-                f.id === props.myStats.id ? "border-accent-35 bg-accent-8" : "border-[var(--stroke)]"
+                f.id === props.myStats.id ? "border-accent-35 bg-accent-8" : "border-(--stroke)"
               )}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center text-xs">
+                <div className="w-7 h-7 rounded-full bg-(--card) border border-(--stroke) flex items-center justify-center text-xs">
                   {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : arNum((idx + 1))}
                 </div>
                 <div className="min-w-0">
@@ -1194,7 +1194,7 @@ function LocalFriendsCard(props: {
                 {f.id !== props.myStats.id && (
                   <button type="button"
                     onClick={() => removeLocalFriend(f.id)}
-                    className="text-[var(--danger)] opacity-50 hover:opacity-100 transition"
+                    className="text-(--danger) opacity-50 hover:opacity-100 transition"
                     aria-label="حذف الصديق"
                   >
                     <Trash2 size={13} />
@@ -1208,11 +1208,11 @@ function LocalFriendsCard(props: {
 
       {/* Import / export area */}
       {expanded && (
-        <div id="lb-friends-import" className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
+        <div id="lb-friends-import" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
           <div>
             <div className="text-xs font-semibold mb-2">كود مشاركتي</div>
             <div className="flex gap-2">
-              <code className="flex-1 text-[10px] break-all bg-[var(--card)] border border-[var(--stroke)] rounded-2xl px-3 py-2 leading-5 opacity-70 select-all">
+              <code className="flex-1 text-[10px] break-all bg-(--card) border border-(--stroke) rounded-2xl px-3 py-2 leading-5 opacity-70 select-all">
                 {myExportCode}
               </code>
               <Button variant="secondary" onClick={() => void copyMyCode()} aria-label="نسخ الكود">
@@ -1236,7 +1236,7 @@ function LocalFriendsCard(props: {
                 إضافة
               </Button>
             </div>
-            <div id="lb-friend-import-error" role="alert" className="mt-1 text-xs text-[var(--danger)]">{importError}</div>
+            <div id="lb-friend-import-error" role="alert" className="mt-1 text-xs text-(--danger)">{importError}</div>
           </div>
         </div>
       )}
@@ -1328,7 +1328,7 @@ function GroupKhatmaCard() {
     <Card className="p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <BookMarked size={16} aria-hidden="true" className="text-[var(--accent)]" />
+          <BookMarked size={16} aria-hidden="true" className="text-(--accent)" />
           <div className="text-sm font-semibold">ختمة جماعية</div>
           {groupKhatma && (
             <span className="text-[10px] opacity-50">{groupKhatma.groupName}</span>
@@ -1347,7 +1347,7 @@ function GroupKhatmaCard() {
             </Button>
             <button type="button"
               onClick={() => setGroupKhatma(null)}
-              className="text-[var(--danger)] opacity-50 hover:opacity-100 transition"
+              className="text-(--danger) opacity-50 hover:opacity-100 transition"
               aria-label="حذف الختمة"
             >
               <Trash2 size={15} />
@@ -1358,7 +1358,7 @@ function GroupKhatmaCard() {
 
       {/* Create form */}
       {mode === "create" && !groupKhatma && (
-        <div id="lb-friends-import" className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
+        <div id="lb-friends-import" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
           <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="اسم الختمة (مثال: ختمة رمضان)" aria-label="اسم الختمة" />
           <textarea
             value={membersRaw}
@@ -1367,7 +1367,7 @@ function GroupKhatmaCard() {
             aria-label="أسماء أعضاء الختمة"
             dir="rtl"
             spellCheck={false}
-            className="w-full min-h-[90px] rounded-3xl bg-[var(--card)] border border-[var(--stroke)] p-4 text-sm leading-7 outline-none focus:border-[var(--stroke)]"
+            className="w-full min-h-[90px] rounded-3xl bg-(--card) border border-(--stroke) p-4 text-sm leading-7 outline-hidden focus:border-(--stroke)"
           />
           <div className="text-[11px] opacity-45">سيتم توزيع الأجزاء الثلاثين تلقائيًا على الأعضاء.</div>
           <Button onClick={createGroup} disabled={!groupName.trim() || membersRaw.trim().split(/\n|،|,/).filter(Boolean).length < 2}>
@@ -1378,9 +1378,9 @@ function GroupKhatmaCard() {
 
       {/* Import form */}
       {mode === "import" && !groupKhatma && (
-        <div id="lb-friends-import" className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
+        <div id="lb-friends-import" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
           <Input value={importCode} onChange={(e) => { setImportCode(e.target.value); setImportError(""); }} placeholder="الصق كود الختمة هنا" aria-label="كود الختمة" aria-describedby="lb-khatma-import-error" />
-          <div id="lb-khatma-import-error" role="alert" className="text-xs text-[var(--danger)]">{importError}</div>
+          <div id="lb-khatma-import-error" role="alert" className="text-xs text-(--danger)">{importError}</div>
           <Button onClick={handleImport} disabled={!importCode.trim()}>استيراد الختمة</Button>
         </div>
       )}
@@ -1391,7 +1391,7 @@ function GroupKhatmaCard() {
           {/* Progress bar */}
           <div className="flex items-center gap-2 mb-3">
             <div
-              className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden"
+              className="flex-1 h-2 rounded-full bg-(--card) overflow-hidden"
               role="progressbar"
               aria-valuenow={totalJuz}
               aria-valuemin={0}
@@ -1514,16 +1514,16 @@ function WeeklyChallengeCard() {
   return (
     <Card className="p-5">
       <div className="flex items-center gap-2 mb-3">
-        <Calendar size={15} aria-hidden="true" className="text-[var(--accent)]" />
+        <Calendar size={15} aria-hidden="true" className="text-(--accent)" />
         <div className="text-sm font-semibold">تحدي الأسبوع</div>
         {isCompleted && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-ok-15 border border-ok-30 text-[var(--ok)] mr-auto">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-ok-15 border border-ok-30 text-(--ok) mr-auto">
             ✓ مكتمل
           </span>
         )}
       </div>
 
-      <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4">
+      <div className="rounded-2xl border border-(--stroke) bg-(--card) p-4">
         <div className="flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border"
@@ -1545,7 +1545,7 @@ function WeeklyChallengeCard() {
       {/* Progress bar */}
       <div className="mt-3 flex items-center gap-2">
         <div
-          className="flex-1 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+          className="flex-1 h-1.5 rounded-full bg-(--card) overflow-hidden"
           role="progressbar"
           aria-valuenow={daysChecked}
           aria-valuemin={0}

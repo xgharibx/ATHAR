@@ -40,7 +40,7 @@ describe("Ask Athar AI sharing consent dialog", () => {
     expect(descriptionIds.every((id) => document.getElementById(id) !== null)).toBe(true);
     expect(descriptionIds.map((id) => document.getElementById(id)?.textContent ?? "").join(" ")).toContain("حتى تسحب الإذن من الإعدادات");
     expect(dialog?.querySelector('a[href="https://www.athark.org/privacy.html"]')).not.toBeNull();
-    expect(Array.from(document.body.querySelectorAll("div")).some((element) => element.className.includes("z-[10001]"))).toBe(true);
+    expect(Array.from(document.body.querySelectorAll("div")).some((element) => element.className.includes("z-10001"))).toBe(true);
 
     const approve = Array.from(dialog?.querySelectorAll("button") ?? []).find((button) => button.textContent?.includes("موافقة وإرسال"));
     expect(approve).toBeDefined();

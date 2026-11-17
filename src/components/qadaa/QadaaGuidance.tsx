@@ -47,14 +47,14 @@ export function QadaaGuidance() {
   return (
     <Card className="p-5">
       <h2 className="text-base font-semibold mb-1">أحكام وإرشادات</h2>
-      <p className="text-xs text-[var(--muted)] mb-3 leading-6">
+      <p className="text-xs text-(--muted) mb-3 leading-6">
         ملخص لما اعتمدنا عليه. إن كانت حالتك خاصة فاسأل أهل العلم أو دار الإفتاء.
       </p>
-      <div className="space-y-2">
+      <div className="stack-y-2">
         {ITEMS.map((it, i) => {
           const isOpen = open === i;
           return (
-            <div key={it.q} className="rounded-2xl bg-[var(--card)]">
+            <div key={it.q} className="rounded-2xl bg-(--card)">
               <button
                 type="button"
                 aria-expanded={isOpen}
@@ -64,7 +64,7 @@ export function QadaaGuidance() {
                 <span>{it.q}</span>
                 <ChevronDown size={16} className={isOpen ? "rotate-180 transition" : "transition"} />
               </button>
-              {isOpen && <p className="px-4 pb-4 text-sm leading-7 text-[var(--muted)]">{it.a}</p>}
+              {isOpen && <p className="px-4 pb-4 text-sm leading-7 text-(--muted)">{it.a}</p>}
             </div>
           );
         })}

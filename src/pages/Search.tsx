@@ -234,7 +234,7 @@ export function SearchPage() {
   React.useEffect(() => { setLibraryFilter(null); }, [q]);
 
   return (
-    <div className="space-y-4 page-enter">
+    <div className="stack-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center gap-2">
           <Search size={18} aria-hidden="true" className="opacity-70" />
@@ -273,8 +273,8 @@ export function SearchPage() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "adhkar"
-                ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                ? "bg-accent-15 border-accent-35 text-(--accent)"
+                : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
             )}
           >
             🤲 الأذكار
@@ -288,8 +288,8 @@ export function SearchPage() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "quran"
-                ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                ? "bg-accent-15 border-accent-35 text-(--accent)"
+                : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
             )}
           >
             <BookOpen size={13} aria-hidden="true" /> القرآن
@@ -303,8 +303,8 @@ export function SearchPage() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "library"
-                ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                ? "bg-accent-15 border-accent-35 text-(--accent)"
+                : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
             )}
           >
             <LibraryBig size={13} aria-hidden="true" /> المكتبة
@@ -318,8 +318,8 @@ export function SearchPage() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "hadith"
-                ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                ? "bg-accent-15 border-accent-35 text-(--accent)"
+                : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
             )}
           >
             <ScrollText size={13} aria-hidden="true" /> الأحاديث
@@ -343,7 +343,7 @@ export function SearchPage() {
                 <button type="button"
                   key={s}
                   onClick={() => setQ(s)}
-                  className="px-3 py-1.5 rounded-full glass border border-[var(--stroke)] text-xs hover:bg-[var(--card-2)] transition arabic-text min-h-[36px]"
+                  className="px-3 py-1.5 rounded-full glass border border-(--stroke) text-xs hover:bg-(--card-2) transition arabic-text min-h-[36px]"
                 >
                   {s}
                 </button>
@@ -370,8 +370,8 @@ export function SearchPage() {
             className={cn(
               "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
               sectionFilter === null
-                ? "bg-[var(--accent)] border-transparent text-[var(--on-accent)]"
-                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                ? "bg-(--accent) border-transparent text-(--on-accent)"
+                : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
             )}
           >
             الكل ({sectionChips.reduce((a, c) => a + c.count, 0)})
@@ -387,7 +387,7 @@ export function SearchPage() {
                   "shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
                   isActive
                     ? "border-transparent"
-                    : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                    : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
                 )}
                 style={isActive ? { background: identity.accent, color: contrastText(identity.accent) } : {}}
               >
@@ -408,8 +408,8 @@ export function SearchPage() {
             className={cn(
               "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
               libraryFilter === null
-                ? "bg-[var(--accent)] border-transparent text-[var(--on-accent)]"
-                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                ? "bg-(--accent) border-transparent text-(--on-accent)"
+                : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
             )}
           >
             الكل ({libraryChips.reduce((a, c) => a + c.count, 0)})
@@ -424,7 +424,7 @@ export function SearchPage() {
                   "shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
                   isActive
                     ? "border-transparent"
-                    : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                    : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
                 )}
                 style={isActive ? { background: chip.accent, color: contrastText(chip.accent) } : {}}
               >
@@ -454,7 +454,7 @@ export function SearchPage() {
             <div className="text-sm opacity-55">اكتب للبحث في الأذكار</div>
           </div>
         ) : results.length === 0 && adhkarCatalogUnavailable && adhkarQuery.isLoading ? (
-          <div role="status" className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-5 text-center text-sm opacity-75">
+          <div role="status" className="rounded-2xl border border-(--stroke) bg-(--card) px-4 py-5 text-center text-sm opacity-75">
             جارٍ تحميل الأذكار، وستظهر النتائج عند اكتمال التحميل.
           </div>
         ) : results.length === 0 && adhkarCatalogUnavailable ? null
@@ -465,17 +465,17 @@ export function SearchPage() {
             description="جرّب كلمات مختلفة أو أقصر"
           />
         ) : (
-          <div className="space-y-2" role="list" aria-label="نتائج الأذكار">
+          <div className="stack-y-2" role="list" aria-label="نتائج الأذكار">
             {results.map((r) => {
               const identity = getSectionIdentity(r.sectionId);
               const sectionHref = `/c/${r.sectionId}?focus=${r.index}`;
               return (
                 <div key={r.searchKey} role="listitem">
-                  <div className="group glass rounded-3xl border border-[var(--stroke)] p-4 transition hover:bg-[var(--card-2)] glass-hover">
+                  <div className="group glass rounded-3xl border border-(--stroke) p-4 transition hover:bg-(--card-2) glass-hover">
                     <div className="flex items-start justify-between gap-3">
                       <Link
                         to={sectionHref}
-                        className="flex min-w-0 items-center gap-1.5 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+                        className="flex min-w-0 items-center gap-1.5 rounded-lg focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-(--accent)"
                       >
                         <span className="text-base shrink-0">{identity.icon}</span>
                         <span className="text-sm font-semibold truncate" style={{ color: identity.accent }}>
@@ -498,7 +498,7 @@ export function SearchPage() {
                         <Link
                           to={sectionHref}
                           aria-label={`فتح ذكر من ${r.sectionTitle}`}
-                          className="rounded-lg p-1.5 opacity-60 transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+                          className="rounded-lg p-1.5 opacity-60 transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-(--accent)"
                         >
                           <ArrowUpRight size={18} aria-hidden="true" />
                         </Link>
@@ -506,7 +506,7 @@ export function SearchPage() {
                     </div>
                     <Link
                       to={sectionHref}
-                      className="mt-3 block rounded-lg text-right focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+                      className="mt-3 block rounded-lg text-right focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-(--accent)"
                     >
                       <div className="arabic-text text-sm opacity-80 leading-7">
                         {r.text.slice(0, 220)}
@@ -514,7 +514,7 @@ export function SearchPage() {
                       </div>
                     </Link>
                     {r.benefit && (
-                      <div className="mt-2 border-t border-[var(--stroke)] pt-2 text-[11px] opacity-55 leading-5">
+                      <div className="mt-2 border-t border-(--stroke) pt-2 text-[11px] opacity-55 leading-5">
                         الفضل: {r.benefit.slice(0, 120)}{r.benefit.length > 120 ? "…" : ""}
                       </div>
                     )}
@@ -551,7 +551,7 @@ export function SearchPage() {
             description="جرّب اسم سورة أو كلمة قرآنية"
           />
         ) : (
-          <div className="space-y-2" role="list" aria-label="نتائج القرآن">
+          <div className="stack-y-2" role="list" aria-label="نتائج القرآن">
             {quranResults.map((r) => {
               const qKey = r.type === "surah" ? `s-${r.surah.id}` : `a-${r.surah.id}-${r.ayahIndex}`;
               return (
@@ -559,11 +559,11 @@ export function SearchPage() {
               {r.type === "surah" ? (
                 <button type="button"
                   onClick={() => navigate(`/mushaf?surah=${r.surah.id}`)}
-                  className="w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
+                  className="w-full text-right glass rounded-3xl p-4 hover:bg-(--card-2) transition border border-(--stroke) press-effect glass-hover"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <BookOpen size={16} aria-hidden="true" className="text-[var(--accent)] shrink-0 opacity-70" />
+                      <BookOpen size={16} aria-hidden="true" className="text-(--accent) shrink-0 opacity-70" />
                       <span className="text-sm font-semibold arabic-text">{r.surah.name}</span>
                       <span className="text-xs opacity-45 tabular-nums">{r.surah.ayahs.length} آية</span>
                     </div>
@@ -573,7 +573,7 @@ export function SearchPage() {
               ) : (
                 <button type="button"
                   onClick={() => navigate(`/mushaf?surah=${r.surah.id}&ayah=${r.ayahIndex}`)}
-                  className="group w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
+                  className="group w-full text-right glass rounded-3xl p-4 hover:bg-(--card-2) transition border border-(--stroke) press-effect glass-hover"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 min-w-0">
@@ -588,7 +588,7 @@ export function SearchPage() {
                           try { await navigator.clipboard.writeText(r.text); toast.success("تم النسخ"); }
                           catch { toast.error("تعذر النسخ"); }
                         }}
-                        className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
+                        className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 hover:opacity-100! transition-opacity"
                         style={{ background: "var(--card)", color: "var(--fg)" }}
                         aria-label="نسخ الآية"
                       >
@@ -627,7 +627,7 @@ export function SearchPage() {
             <div className="text-sm opacity-55">ابحث في الحديث، الراوي، المصدر، أو الفوائد</div>
             <button type="button"
               onClick={() => navigate("/library")}
-              className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-4 py-2 text-xs hover:bg-[var(--card-2)] transition"
+              className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-(--card) border border-(--stroke) px-4 py-2 text-xs hover:bg-(--card-2) transition"
             >
               فتح المكتبة
               <ArrowUpRight size={14} aria-hidden="true" />
@@ -640,12 +640,12 @@ export function SearchPage() {
             description="جرّب كلمة من الحديث أو اسم راوٍ أو موضوعاً مثل النية أو الصبر"
           />
         ) : (
-          <div className="space-y-2" role="list" aria-label="نتائج المكتبة">
+          <div className="stack-y-2" role="list" aria-label="نتائج المكتبة">
             {libraryResults.map((entry) => (
               <div key={entry.key} role="listitem">
               <button type="button"
                 onClick={() => navigate(`/library/${entry.collectionId}/${entry.id}`)}
-                className="w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
+                className="w-full text-right glass rounded-3xl p-4 hover:bg-(--card-2) transition border border-(--stroke) press-effect glass-hover"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -664,7 +664,7 @@ export function SearchPage() {
                   {entry.arabic.slice(0, 220)}{entry.arabic.length > 220 ? "…" : ""}
                 </div>
                 {entry.benefits[0] && (
-                  <div className="mt-2 text-[11px] opacity-55 leading-5 border-t border-[var(--stroke)] pt-2">
+                  <div className="mt-2 text-[11px] opacity-55 leading-5 border-t border-(--stroke) pt-2">
                     فائدة: {entry.benefits[0].slice(0, 120)}{entry.benefits[0].length > 120 ? "…" : ""}
                   </div>
                 )}
@@ -696,7 +696,7 @@ export function SearchPage() {
                 "shrink-0 text-xs px-3 py-1.5 rounded-full border transition font-arabic whitespace-nowrap min-h-[32px]",
                 hadithBookKey === book.key
                   ? "border-transparent"
-                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                  : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
               )}
               style={hadithBookKey === book.key ? { background: book.color, color: contrastText(book.color) } : {}}
             >
@@ -711,7 +711,7 @@ export function SearchPage() {
             <div className="text-sm opacity-55 font-arabic">اكتب كلمة للبحث في الكتاب المختار</div>
           </div>
         ) : hadithLoading ? (
-          <div role="status" aria-live="polite" aria-atomic="true" className="flex items-center justify-center gap-2 py-8 text-[var(--muted)]">
+          <div role="status" aria-live="polite" aria-atomic="true" className="flex items-center justify-center gap-2 py-8 text-(--muted)">
             <Loader2 size={18} aria-hidden="true" className="animate-spin" />
             <span className="text-sm font-arabic">جاري تحميل الكتاب…</span>
           </div>
@@ -722,7 +722,7 @@ export function SearchPage() {
             description="جرّب كلمة مختلفة أو اختر كتاباً آخر"
           />
         ) : (
-          <div className="space-y-2" role="list" aria-label="نتائج الحديث">
+          <div className="stack-y-2" role="list" aria-label="نتائج الحديث">
             {hadithResults.map((h) => {
               const book = HADITH_BOOKS_STATIC.find((b) => b.key === hadithBookKey);
               const gradeColor: Record<string, string> = { sahih: "#10b981", hasan: "#3b82f6", daif: "#ef4444", maudu: "#6b7280" };
@@ -733,7 +733,7 @@ export function SearchPage() {
                 <button type="button"
                   dir="rtl"
                   onClick={() => navigate(`/hadith/${hadithBookKey}/${h.n}`)}
-                  className="w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
+                  className="w-full text-right glass rounded-3xl p-4 hover:bg-(--card-2) transition border border-(--stroke) press-effect glass-hover"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">

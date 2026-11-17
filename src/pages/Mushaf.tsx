@@ -1577,7 +1577,7 @@ export function MushafPage() {
     return (
       <div className="mushaf-reader" dir="rtl">
         <div className="flex-1 flex items-center justify-center p-5">
-          <div className="max-w-sm text-center rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-5">
+          <div className="max-w-sm text-center rounded-3xl border border-(--stroke) bg-(--card) p-5">
             <div className="text-3xl mb-3" aria-hidden="true">📖</div>
             <div className="font-semibold mb-2">تعذر فتح المصحف</div>
             <p className="text-sm opacity-70 leading-7">
@@ -1585,7 +1585,7 @@ export function MushafPage() {
             </p>
             <button
               type="button"
-              className="mt-4 w-full rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-[var(--on-accent)]"
+              className="mt-4 w-full rounded-2xl bg-(--accent) px-4 py-3 text-sm font-semibold text-(--on-accent)"
               onClick={() => { void refetchQuranDB(); void refetchPageMap(); }}
             >
               إعادة المحاولة
@@ -1703,7 +1703,7 @@ export function MushafPage() {
             onChange={(e) => setInPageSearch(e.target.value)}
             placeholder="بحث في الصفحة…"
             aria-label="البحث في الصفحة الحالية"
-            className="flex-1 bg-transparent outline-none text-sm"
+            className="flex-1 bg-transparent outline-hidden text-sm"
             autoFocus
             dir="rtl"
           />
@@ -1961,7 +1961,7 @@ export function MushafPage() {
                           >
                             {inlineTafseerLoading && !tafseerText ? (
                               <span className="flex items-center gap-2 justify-center py-1 opacity-40 text-xs">
-                                <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" aria-hidden="true" />
+                                <span className="w-3 h-3 border border-(--stroke) border-t-(--accent) rounded-full animate-spin inline-block" aria-hidden="true" />
                                 جارٍ تحميل التفسير…
                               </span>
                             ) : tafseerText ? (
@@ -2211,8 +2211,8 @@ export function MushafPage() {
                           : dlState === "partial"
                             ? "bg-amber-500/15 border-amber-500/30 text-amber-300"
                           : typeof dlState === "object"
-                            ? "bg-accent-10 border-accent-20 text-[var(--accent)] cursor-wait"
-                            : "bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-90"}`}
+                            ? "bg-accent-10 border-accent-20 text-(--accent) cursor-wait"
+                            : "bg-(--card) border-(--stroke) opacity-55 hover:opacity-90"}`}
                     >
                       {dlState === "done"
                         ? <CheckCircle2 size={11} aria-hidden="true" />
@@ -2505,14 +2505,14 @@ export function MushafPage() {
             </div>
 
             {/* Source tabs — 10 tafsirs, horizontally scrollable */}
-            <div className="shrink-0 flex gap-1.5 p-1 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] mb-3 overflow-x-auto no-scrollbar">
+            <div className="shrink-0 flex gap-1.5 p-1 rounded-2xl bg-(--card) border border-(--stroke) mb-3 overflow-x-auto no-scrollbar">
               {TAFSIR_EDITIONS.map(({ slug, label }) => (
                 <button type="button"
                   key={slug}
                   onClick={() => setInlineTafseerSource(slug)}
                   className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
                     inlineTafseerSource === slug
-                      ? "bg-accent-20 text-[var(--accent)] border border-accent-30"
+                      ? "bg-accent-20 text-(--accent) border border-accent-30"
                       : "opacity-55 hover:opacity-80"
                   }`}
                 >
@@ -2532,7 +2532,7 @@ export function MushafPage() {
             >
               {inlineTafseerLoading && !inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
                 <span className="flex items-center gap-2 justify-center py-3 opacity-40 text-xs">
-                  <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" aria-hidden="true" />
+                  <span className="w-3 h-3 border border-(--stroke) border-t-(--accent) rounded-full animate-spin inline-block" aria-hidden="true" />
                   جارٍ تحميل التفسير…
                 </span>
               ) : inlineTafseerError ? (
@@ -2561,13 +2561,13 @@ export function MushafPage() {
                 </div>
                 {mutashabihatLoading ? (
                   <span className="flex items-center gap-2 py-1 opacity-40 text-xs">
-                    <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" aria-hidden="true" />
+                    <span className="w-3 h-3 border border-(--stroke) border-t-(--accent) rounded-full animate-spin inline-block" aria-hidden="true" />
                     جارٍ البحث عن آيات متشابهة…
                   </span>
                 ) : mutashabihatMatches.length === 0 ? (
                   <p className="opacity-50 text-xs py-1">لا توجد آيات متشابهة لهذه الآية.</p>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="stack-y-1.5">
                     {mutashabihatMatches.map((m, i) => {
                       const surah = quranDB?.find((s) => s.id === m.ref.surahId);
                       const snippet = surah?.ayahs?.[m.ref.ayahStart - 1] ?? "";
@@ -2577,7 +2577,7 @@ export function MushafPage() {
                         <button type="button"
                           key={`${m.ref.surahId}-${m.ref.ayahStart}-${i}`}
                           onClick={() => jumpToAyah(m.ref.surahId, m.ref.ayahStart)}
-                          className="w-full text-right p-2.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition"
+                          className="w-full text-right p-2.5 rounded-xl border border-(--stroke) bg-(--card) hover:bg-(--card-2) transition"
                         >
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-[10px] font-semibold" style={{ color: "var(--accent)" }}>
@@ -2647,14 +2647,14 @@ export function MushafPage() {
                 </button>
               </div>
               {inlineTafseer && (
-                <div className="flex gap-1.5 p-1 rounded-xl bg-black/20 border border-[var(--stroke)] overflow-x-auto no-scrollbar">
+                <div className="flex gap-1.5 p-1 rounded-xl bg-black/20 border border-(--stroke) overflow-x-auto no-scrollbar">
                   {TAFSIR_EDITIONS.map(({ slug, label }) => (
                     <button type="button"
                       key={slug}
                       onClick={() => setInlineTafseerSource(slug)}
                       className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                         inlineTafseerSource === slug
-                          ? "bg-accent-20 text-[var(--accent)] border border-accent-30"
+                          ? "bg-accent-20 text-(--accent) border border-accent-30"
                           : "opacity-50 hover:opacity-80"
                       }`}
                     >
@@ -2693,7 +2693,7 @@ export function MushafPage() {
                       onClick={() => setLoopCount(n)}
                       aria-label={n === -1 ? "تكرار لا نهائي" : `تكرار ${n} مرات`}
                       aria-pressed={loopCount === n}
-                      className={`px-2.5 py-1 rounded-xl text-xs border transition ${loopCount === n ? "bg-accent-20 border-accent-30 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                      className={`px-2.5 py-1 rounded-xl text-xs border transition ${loopCount === n ? "bg-accent-20 border-accent-30 text-(--accent)" : "bg-(--card) border-(--stroke) opacity-65"}`}
                     >{n === -1 ? "∞" : `${n}×`}</button>
                   ))}
                 </div>
@@ -2712,7 +2712,7 @@ export function MushafPage() {
             </div>
             {/* Q5: Range loop */}
             {autoAdvance && (
-              <div className="mb-3 p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)]">
+              <div className="mb-3 p-3 rounded-2xl bg-(--card) border border-(--stroke)">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs opacity-65">تكرار نطاق</span>
                   <button type="button"
@@ -2733,12 +2733,12 @@ export function MushafPage() {
                     <input type="number" min={0} max={playableItems.length - 1} value={loopRangeStartIdx}
                       aria-label="بداية التكرار"
                       onChange={(e) => setLoopRangeStartIdx(Math.max(0, Math.min(playableItems.length - 1, Number(e.target.value))))}
-                      className="w-12 rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-1.5 py-1 text-xs text-center" />
+                      className="w-12 rounded-xl bg-(--card) border border-(--stroke) px-1.5 py-1 text-xs text-center" />
                     <span className="text-[11px] opacity-45 shrink-0">إلى</span>
                     <input type="number" min={loopRangeStartIdx} max={playableItems.length - 1} value={loopRangeEndIdx}
                       aria-label="نهاية التكرار"
                       onChange={(e) => setLoopRangeEndIdx(Math.max(loopRangeStartIdx, Math.min(playableItems.length - 1, Number(e.target.value))))}
-                      className="w-12 rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-1.5 py-1 text-xs text-center" />
+                      className="w-12 rounded-xl bg-(--card) border border-(--stroke) px-1.5 py-1 text-xs text-center" />
                     <span className="text-[11px] opacity-35 shrink-0">/ {playableItems.length}</span>
                   </div>
                 )}
@@ -2756,7 +2756,7 @@ export function MushafPage() {
                 <span>معلومات السورة</span>
               </button>
               {showSurahInfo && lastItem && (
-                <div id="mushaf-surah-info" className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-center text-sm">
+                <div id="mushaf-surah-info" className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-(--card) border border-(--stroke) text-center text-sm">
                   {[
                     ["السورة", lastItem.surahName],
                     ["الاسم بالإنجليزية", pageSurahEnglish || ""],
@@ -2785,7 +2785,7 @@ export function MushafPage() {
                   <button type="button"
                     key={t}
                     onClick={() => setPrefs({ quranTheme: t })}
-                    className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${prefs.quranTheme === t ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                    className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${prefs.quranTheme === t ? "bg-accent-15 border-accent-35 text-(--accent)" : "bg-(--card) border-(--stroke) opacity-65"}`}
                   >{{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق", forest: "🌲 غابة", rose: "🌹 وردي", ocean: "🌊 بحر", desert: "🏜️ صحراء", dawn: "🌅 فجر" }[t]}</button>
                 ))}
               </div>
@@ -2793,32 +2793,32 @@ export function MushafPage() {
 
             {/* ── M3b: Reading layout + Scroll mode (combined into ONE row) ── */}
             <div className="mt-1 mb-3 grid grid-cols-2 gap-2">
-              <div className="flex rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-0.5">
+              <div className="flex rounded-xl border border-(--stroke) bg-(--card) p-0.5">
                 <button type="button"
                   onClick={() => setPrefs({ mushafCleanMode: true })}
                   aria-pressed={(prefs.mushafCleanMode ?? true)}
                   title="قراءة مريحة"
-                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"}`}
+                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-(--accent)" : "text-(--muted) hover:bg-(--card-2)"}`}
                 >📖 مريحة</button>
                 <button type="button"
                   onClick={() => setPrefs({ mushafCleanMode: false })}
                   aria-pressed={!(prefs.mushafCleanMode ?? true)}
                   title="إطار زخرفي"
-                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${!(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"}`}
+                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${!(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-(--accent)" : "text-(--muted) hover:bg-(--card-2)"}`}
                 >🌺 إطار</button>
               </div>
-              <div className="flex rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-0.5">
+              <div className="flex rounded-xl border border-(--stroke) bg-(--card) p-0.5">
                 <button type="button"
                   onClick={() => setPrefs({ quranScrollMode: "page" })}
                   aria-pressed={(prefs.quranScrollMode ?? "page") === "page"}
                   title="صفحة صفحة"
-                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${(prefs.quranScrollMode ?? "page") === "page" ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"}`}
+                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${(prefs.quranScrollMode ?? "page") === "page" ? "bg-accent-15 border-accent-35 text-(--accent)" : "text-(--muted) hover:bg-(--card-2)"}`}
                 >📄 صفحة</button>
                 <button type="button"
                   onClick={() => setPrefs({ quranScrollMode: "scroll" })}
                   aria-pressed={prefs.quranScrollMode === "scroll"}
                   title="تمرير متصل"
-                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${prefs.quranScrollMode === "scroll" ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"}`}
+                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${prefs.quranScrollMode === "scroll" ? "bg-accent-15 border-accent-35 text-(--accent)" : "text-(--muted) hover:bg-(--card-2)"}`}
                 >📜 تمرير</button>
               </div>
             </div>
@@ -2833,7 +2833,7 @@ export function MushafPage() {
                 <button type="button"
                   onClick={() => setPrefs({ mushafTextColor: undefined })}
                   className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${
-                    !prefs.mushafTextColor ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"
+                    !prefs.mushafTextColor ? "bg-accent-15 border-accent-35 text-(--accent)" : "bg-(--card) border-(--stroke) opacity-65"
                   }`}
                 >افتراضي</button>
                 {([
@@ -2852,7 +2852,7 @@ export function MushafPage() {
                     aria-label={label}
                     onClick={() => setPrefs({ mushafTextColor: color })}
                     className={`w-7 h-7 rounded-full border-2 transition shrink-0 ${
-                      prefs.mushafTextColor === color ? "border-[var(--accent)] scale-110" : "border-transparent"
+                      prefs.mushafTextColor === color ? "border-(--accent) scale-110" : "border-transparent"
                     }`}
                     style={{ background: color, boxShadow: "0 0 0 1px rgba(0,0,0,0.18)" }}
                   />
@@ -2975,7 +2975,7 @@ export function MushafPage() {
             </button>
 
             {/* ── Offline and audio quick tools ── */}
-            <div className="mb-3 mt-3 p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)]">
+            <div className="mb-3 mt-3 p-3 rounded-2xl bg-(--card) border border-(--stroke)">
               <div className="text-xs opacity-50 mb-2">أدوات سريعة</div>
 
               <button type="button"
@@ -3009,7 +3009,7 @@ export function MushafPage() {
                 تحميل الجزء {toArabicNumeral(pageJuz)} كاملًا
               </button>
               {bulkDownloadProgress && (
-                <div className="mb-2 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+                <div className="mb-2 h-1.5 rounded-full bg-(--card) overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{ width: `${(bulkDownloadProgress.done / bulkDownloadProgress.total) * 100}%`, background: "var(--accent)" }}
@@ -3028,7 +3028,7 @@ export function MushafPage() {
                   : "تحميل ألوان التجويد كاملة"}
               </button>
               {tajweedDownloadProgress && (
-                <div className="mb-2 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+                <div className="mb-2 h-1.5 rounded-full bg-(--card) overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{ width: `${(tajweedDownloadProgress.done / 114) * 100}%`, background: "var(--accent)" }}
@@ -3041,7 +3041,7 @@ export function MushafPage() {
                   <Timer size={12} aria-hidden="true" />
                   مؤقت النوم
                   {sleepMinutes > 0 && (
-                    <span className="text-[10px] text-[var(--accent)] mr-1">{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
+                    <span className="text-[10px] text-(--accent) mr-1">{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
                   )}
                 </div>
                 <div className="flex gap-1 flex-wrap">
@@ -3049,7 +3049,7 @@ export function MushafPage() {
                     <button type="button"
                       key={m}
                       onClick={() => activateSleepTimer(m)}
-                      className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${sleepMinutes === m ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                      className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${sleepMinutes === m ? "bg-accent-15 border-accent-35 text-(--accent)" : "bg-(--card) border-(--stroke) opacity-65"}`}
                     >{m === 0 ? "إيقاف" : `${m} د`}</button>
                   ))}
                 </div>
@@ -3060,7 +3060,7 @@ export function MushafPage() {
                   <span className="text-xs opacity-50 flex items-center gap-1"><Radio size={12} aria-hidden="true" />راديو القرآن</span>
                   <button type="button"
                     onClick={handleRadioToggle}
-                    className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioState.playing ? "bg-accent-20 border-accent-30 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                    className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioState.playing ? "bg-accent-20 border-accent-30 text-(--accent)" : "bg-(--card) border-(--stroke) opacity-65"}`}
                   >{radioState.loading ? "جارٍ التشغيل…" : radioState.playing ? "⏹ إيقاف" : "▶ تشغيل"}</button>
                 </div>
                 <div className="flex gap-1 flex-wrap">
@@ -3068,7 +3068,7 @@ export function MushafPage() {
                     <button type="button"
                       key={st.label}
                       onClick={() => handleRadioStationSelect(i)}
-                      className={`text-[10px] px-2 py-1 rounded-xl border transition ${radioState.stationIdx === i ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                      className={`text-[10px] px-2 py-1 rounded-xl border transition ${radioState.stationIdx === i ? "bg-accent-15 border-accent-35 text-(--accent)" : "bg-(--card) border-(--stroke) opacity-65"}`}
                     >{st.label}</button>
                   ))}
                 </div>

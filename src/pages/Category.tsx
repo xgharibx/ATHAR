@@ -70,15 +70,15 @@ export function CategoryPage() {
   }
 
   if (isLoading) return (
-    <div className="space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
+    <div className="stack-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
       <span className="sr-only">جارٍ التحميل…</span>
-      <div className="glass-strong rounded-3xl p-5 space-y-3">
+      <div className="glass-strong rounded-3xl p-5 stack-y-3">
         <div className="skeleton h-3 w-16 rounded-lg" />
         <div className="skeleton h-7 w-48 rounded-xl" />
         <div className="skeleton h-4 w-32 rounded-lg" />
         <div className="skeleton h-2 w-full rounded-full mt-2" />
       </div>
-      <div className="glass-strong rounded-3xl p-5 space-y-4">
+      <div className="glass-strong rounded-3xl p-5 stack-y-4">
         <div className="skeleton h-4 w-full rounded-lg" />
         <div className="skeleton h-4 w-5/6 rounded-lg" />
         <div className="skeleton h-4 w-3/4 rounded-lg" />

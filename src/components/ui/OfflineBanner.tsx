@@ -33,7 +33,7 @@ export function OfflineBanner() {
       aria-live="polite" aria-atomic="true"
       dir="rtl"
       className={[
-        "fixed top-0 inset-x-0 z-[200] flex items-center justify-center gap-2 px-4 py-2",
+        "fixed top-0 inset-x-0 z-200 flex items-center justify-center gap-2 px-4 py-2",
         "text-xs font-medium banner-enter",
         offline
           ? "bg-red-900/90 text-red-100 border-b border-red-800/40 backdrop-blur-md"

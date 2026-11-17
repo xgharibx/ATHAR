@@ -37,7 +37,7 @@ export function PrayerGuidePage() {
         <Card className="p-5 overflow-hidden relative">
           <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
           <div
-            className="absolute inset-0 bg-gradient-to-bl from-emerald-500/15 to-teal-500/10 pointer-events-none opacity-55"
+            className="absolute inset-0 bg-linear-to-bl from-emerald-500/15 to-teal-500/10 pointer-events-none opacity-55"
             style={{ borderRadius: "inherit" }}
           />
           <div className="relative">
@@ -46,7 +46,7 @@ export function PrayerGuidePage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl flex-shrink-0"
+                className="mt-1 p-2 rounded-xl shrink-0"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -85,7 +85,7 @@ export function PrayerGuidePage() {
       </div>
 
       {/* Steps */}
-      <div className="px-4 mt-4 space-y-2" role="list" aria-label="خطوات الصلاة">
+      <div className="px-4 mt-4 stack-y-2" role="list" aria-label="خطوات الصلاة">
         {PRAYER_STEPS.map((step) => {
           const isOpen = expandedId === step.id;
           return (
@@ -117,7 +117,7 @@ export function PrayerGuidePage() {
                   <div className="flex items-center gap-2 justify-end">
                     <span className="font-bold text-sm">{step.title}</span>
                     <span
-                      className="text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold flex-shrink-0"
+                      className="text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold shrink-0"
                       style={{
                         background: isOpen ? "color-mix(in srgb, var(--on-accent) 12%, transparent)" : "var(--accent)",
                         color: "var(--on-accent)",

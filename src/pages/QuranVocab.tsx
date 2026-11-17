@@ -298,7 +298,7 @@ export function QuranVocabPage() {
         <Card className="p-5 overflow-hidden relative">
           <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
           <div
-            className="absolute inset-0 bg-gradient-to-bl from-sky-500/15 to-cyan-400/10 pointer-events-none opacity-55"
+            className="absolute inset-0 bg-linear-to-bl from-sky-500/15 to-cyan-400/10 pointer-events-none opacity-55"
             style={{ borderRadius: "inherit" }}
           />
           <div className="relative">
@@ -307,7 +307,7 @@ export function QuranVocabPage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl flex-shrink-0"
+                className="mt-1 p-2 rounded-xl shrink-0"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -515,7 +515,7 @@ export function QuranVocabPage() {
 
           {/* Question card */}
           {!quizDone && quizCard && (
-            <div className="space-y-4">
+            <div className="stack-y-4">
               <div className="rounded-3xl p-6 text-center" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}>
                 <div className="text-4xl font-bold mb-2" style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}>
                   {quizCard.word.arabic}
@@ -523,7 +523,7 @@ export function QuranVocabPage() {
                 <div className="text-xs opacity-40">ما معنى هذه الكلمة؟</div>
               </div>
 
-              <div className="space-y-2">
+              <div className="stack-y-2">
                 {quizCard.options.map((opt) => {
                   const isSelected = quizSelected === opt.id;
                   const isCorrect = opt.id === quizCard.word.id;
@@ -584,7 +584,7 @@ export function QuranVocabPage() {
           {browseList.length === 0 && (
             <div className="text-center py-8 text-sm opacity-50">لا توجد نتائج</div>
           )}
-          <div className="space-y-2">
+          <div className="stack-y-2">
           {browseList.map((word) => (
             <button
               key={word.id}
@@ -661,7 +661,7 @@ export function QuranVocabPage() {
                 border: "1px solid rgba(220,38,38,0.35)",
                 boxShadow: "inset 0 0 40px rgba(220,38,38,0.08)",
               } : undefined}>
-              <div className="text-center space-y-3">
+              <div className="text-center stack-y-3">
                 <div className="text-3xl font-bold" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
                   {card.arabic}
                 </div>
@@ -732,7 +732,7 @@ export function QuranVocabPage() {
         <div className="hidden md:flex items-center gap-3 text-[10px] opacity-30 mt-1" aria-hidden="true">
           {[["Space", "قلب"], ["←→", "تنقل"], ["M", "حفظ"]].map(([key, label]) => (
             <span key={key} className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded border border-current font-mono text-[9px]">{key}</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-sm border border-current font-mono text-[9px]">{key}</kbd>
               <span>{label}</span>
             </span>
           ))}
@@ -893,7 +893,7 @@ export function QuranVocabPage() {
             const midLearned = QURAN_VOCAB.filter((w) => w.id >= 51 && w.id <= 150 && learned.has(w.id)).length;
             const rareLearned = QURAN_VOCAB.filter((w) => w.id >= 151 && learned.has(w.id)).length;
             return (
-              <div className="mt-2 space-y-1.5 mb-1">
+              <div className="mt-2 stack-y-1.5 mb-1">
                 {([
                   { label: "شائع", total: TOP_TOTAL, done: topLearned, color: "#ffd780" },
                   { label: "متوسط", total: MID_TOTAL, done: midLearned, color: "#a78bfa" },

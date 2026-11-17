@@ -29,7 +29,7 @@ export function AdhkarLoadStatus({ hasData, error, isFetching, onRetry }: Adhkar
 
   if (hasData) {
     return (
-      <div role="status" aria-live="polite" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm">
+      <div role="status" aria-live="polite" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm">
         <p className="m-0 opacity-80">تعذّر تحديث الأذكار. تتابع الآن باستخدام آخر بيانات متاحة.</p>
         {retryButton}
       </div>

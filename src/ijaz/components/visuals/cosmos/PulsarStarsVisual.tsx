@@ -98,7 +98,7 @@ export default function PulsarStarsVisual({ className }: MiracleVisualProps) {
       for (let ring = 1; ring <= 4; ring++) {
         const ringR = ring * 18 + pulseGlow * 6;
         ctx.beginPath(); ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(100,180,255,${0.15 - ring * 0.03})`; ctx.lineWidth = 1; ctx.stroke();
+        ctx.strokeStyle = `rgba(100,180,255,${0.15 - ring-3 * 0.03})`; ctx.lineWidth = 1; ctx.stroke();
       }
 
       // Core star

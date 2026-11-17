@@ -349,7 +349,7 @@ function ReminderRow(props: {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-[var(--stroke)] bg-[var(--card)] overflow-hidden",
+        "rounded-2xl border border-(--stroke) bg-(--card) overflow-hidden",
         !r.enabled && "opacity-70",
       )}
     >
@@ -357,13 +357,13 @@ function ReminderRow(props: {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex min-w-0 flex-1 items-start gap-3 rounded text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          className="flex min-w-0 flex-1 items-start gap-3 rounded-sm text-start focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-(--accent)"
           aria-expanded={expanded}
         >
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-base" aria-hidden="true">{r.icon ?? "🔔"}</span>
-              <span className="truncate text-[13.5px] font-semibold text-[var(--fg)]">{r.title}</span>
+              <span className="truncate text-[13.5px] font-semibold text-(--fg)">{r.title}</span>
               <CategoryDot category={r.category} />
               {!r.enabled ? (
                 <span className="shrink-0 rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
@@ -372,20 +372,20 @@ function ReminderRow(props: {
               ) : null}
             </div>
             {r.description ? (
-              <p className="mt-0.5 truncate text-[11.5px] text-[var(--muted-2)]">{r.description}</p>
+              <p className="mt-0.5 truncate text-[11.5px] text-(--muted-2)">{r.description}</p>
             ) : null}
-            <p className="mt-1 text-[10.5px] text-[var(--muted-2)]">
+            <p className="mt-1 text-[10.5px] text-(--muted-2)">
               {repeatText(r)}
               {r.atTimeOfDay ? ` • ${timeLabel(r.atTimeOfDay)}` : ""}
             </p>
-            <p className="mt-0.5 text-[10.5px] font-semibold text-[var(--accent)]">
+            <p className="mt-0.5 text-[10.5px] font-semibold text-(--accent)">
               {nextFireLabel(r, props.prayerTimes)}
             </p>
           </div>
           {expanded ? (
-            <ChevronUp className="h-4 w-4 shrink-0 self-center text-[var(--muted-2)]" aria-hidden="true" />
+            <ChevronUp className="h-4 w-4 shrink-0 self-center text-(--muted-2)" aria-hidden="true" />
           ) : (
-            <ChevronDown className="h-4 w-4 shrink-0 self-center text-[var(--muted-2)]" aria-hidden="true" />
+            <ChevronDown className="h-4 w-4 shrink-0 self-center text-(--muted-2)" aria-hidden="true" />
           )}
         </button>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -398,7 +398,7 @@ function ReminderRow(props: {
             <button
               type="button"
               onClick={() => props.onEdit(r)}
-              className="grid h-7 w-7 place-items-center rounded-md border border-[var(--stroke)] bg-[var(--card-2)] text-[var(--muted-2)] hover:text-[var(--fg)] transition"
+              className="grid h-7 w-7 place-items-center rounded-md border border-(--stroke) bg-(--card-2) text-(--muted-2) hover:text-(--fg) transition"
               aria-label={`تعديل التذكير: ${r.title}`}
             >
               <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
@@ -414,7 +414,7 @@ function ReminderRow(props: {
             <button
               type="button"
               onClick={() => props.onOpenSettings(r)}
-              className="grid h-7 w-7 place-items-center rounded-md border border-[var(--stroke)] bg-[var(--card-2)] text-[var(--muted-2)] hover:text-[var(--fg)] transition"
+              className="grid h-7 w-7 place-items-center rounded-md border border-(--stroke) bg-(--card-2) text-(--muted-2) hover:text-(--fg) transition"
               aria-label={`إعدادات التذكير: ${r.title}`}
             >
               <SettingsIcon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -424,7 +424,7 @@ function ReminderRow(props: {
       </div>
 
       {expanded ? (
-        <div className="border-t border-[var(--stroke)] bg-[var(--card-2)]/50 px-3.5 py-3">
+        <div className="border-t border-(--stroke) bg-(--card-2)/50 px-3.5 py-3">
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
@@ -445,13 +445,13 @@ function ReminderRow(props: {
               <button
                 type="button"
                 onClick={() => props.onOpenDeeplink(r)}
-                className="inline-flex items-center gap-1 rounded-xl bg-accent-15 border border-accent-35 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--accent)] hover:bg-accent-25 transition"
+                className="inline-flex items-center gap-1 rounded-xl bg-accent-15 border border-accent-35 px-2.5 py-1.5 text-[11px] font-semibold text-(--accent) hover:bg-accent-25 transition"
               >
                 <ExternalLink className="h-3 w-3" aria-hidden="true" /> افتح الصفحة المقترحة ↗
               </button>
             ) : null}
             {r.notification?.snoozeMinutes ? (
-              <span className="inline-flex items-center gap-1 rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-2.5 py-1.5 text-[11px] text-[var(--muted-2)]">
+              <span className="inline-flex items-center gap-1 rounded-xl bg-(--card) border border-(--stroke) px-2.5 py-1.5 text-[11px] text-(--muted-2)">
                 <Timer className="h-3 w-3" aria-hidden="true" /> غفوة: {r.notification.snoozeMinutes} د
               </span>
             ) : null}
@@ -505,9 +505,9 @@ function ReminderFormDrawer(props: {
       ariaLabel={props.mode === "create" ? "تذكير جديد" : "تعديل التذكير"}
       className="max-h-[92vh]"
     >
-      <div className="flex items-center justify-between gap-3 border-b border-[var(--stroke)] p-4">
+      <div className="flex items-center justify-between gap-3 border-b border-(--stroke) p-4">
         <div className="flex items-center gap-2">
-          <Bell className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
+          <Bell className="h-4 w-4 text-(--accent)" aria-hidden="true" />
           <h2 className="text-sm font-bold">
             {props.mode === "create" ? "تذكير جديد" : "تعديل التذكير"}
           </h2>
@@ -515,13 +515,13 @@ function ReminderFormDrawer(props: {
         <ModalCloseButton onClose={props.onClose} />
       </div>
 
-      <div className="max-h-[calc(92vh-130px)] space-y-3 overflow-y-auto p-4">
+      <div className="max-h-[calc(92vh-130px)] stack-y-3 overflow-y-auto p-4">
         <Field label="العنوان">
           <input
             value={form.title}
             onChange={(e) => update("title", e.target.value)}
             placeholder="مثلًا: أذكار الصباح"
-            className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
+            className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
           />
         </Field>
 
@@ -531,7 +531,7 @@ function ReminderFormDrawer(props: {
             onChange={(e) => update("description", e.target.value)}
             rows={2}
             placeholder="ملاحظة قصيرة تساعدك على الالتزام"
-            className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
+            className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
           />
         </Field>
 
@@ -545,8 +545,8 @@ function ReminderFormDrawer(props: {
                 className={cn(
                   "rounded-xl border px-2.5 py-1.5 text-[11.5px] font-semibold transition",
                   form.category === cat
-                    ? "border-accent-45 bg-accent-15 text-[var(--accent)]"
-                    : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted-2)] hover:bg-[var(--card-2)]",
+                    ? "border-accent-45 bg-accent-15 text-(--accent)"
+                    : "border-(--stroke) bg-(--card) text-(--muted-2) hover:bg-(--card-2)",
                 )}
               >
                 {categoryLabel(cat)}
@@ -559,7 +559,7 @@ function ReminderFormDrawer(props: {
           <Select
             value={form.repeat}
             onChange={(e) => update("repeat", e.target.value as ReminderRepeat)}
-            className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
+            className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
           >
             {(Object.entries(REPEAT_LABELS) as [ReminderRepeat, string][]).map(([k, v]) => (
               <option key={k} value={k}>{v}</option>
@@ -572,7 +572,7 @@ function ReminderFormDrawer(props: {
             <Select
               value={form.dayOfWeek}
               onChange={(e) => update("dayOfWeek", Number(e.target.value))}
-              className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
+              className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
             >
               {Array.from({ length: 7 }, (_, idx) => (
                 <option key={idx} value={idx}>{`يوم ${arNum(idx + 1)}`}</option>
@@ -589,7 +589,7 @@ function ReminderFormDrawer(props: {
               max={31}
               value={form.dayOfMonth}
               onChange={(e) => update("dayOfMonth", Number(e.target.value))}
-              className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
+              className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
             />
           </Field>
         ) : null}
@@ -600,7 +600,7 @@ function ReminderFormDrawer(props: {
               <Select
                 value={form.anchorKey ?? ""}
                 onChange={(e) => update("anchorKey", (e.target.value || undefined) as CustomReminder["anchorKey"])}
-                className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
+                className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
               >
                 <option value="">— بدون —</option>
                 {(Object.entries(ANCHOR_LABELS) as [NonNullable<CustomReminder["anchorKey"]>, string][]).map(([k, v]) => (
@@ -613,7 +613,7 @@ function ReminderFormDrawer(props: {
                 type="number"
                 value={form.anchorOffsetMinutes}
                 onChange={(e) => update("anchorOffsetMinutes", Number(e.target.value))}
-                className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
+                className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
               />
             </Field>
           </>
@@ -624,7 +624,7 @@ function ReminderFormDrawer(props: {
             <TimeField
               value={form.atTimeOfDay}
               onChange={(e) => update("atTimeOfDay", e.target.value)}
-              className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition" />
+              className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition" />
           </Field>
         ) : null}
 
@@ -633,7 +633,7 @@ function ReminderFormDrawer(props: {
             value={form.deeplinkRoute}
             onChange={(e) => update("deeplinkRoute", e.target.value)}
             placeholder="مثلًا: /quran أو /c/morning"
-            className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
+            className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
           />
         </Field>
 
@@ -647,8 +647,8 @@ function ReminderFormDrawer(props: {
                 className={cn(
                   "inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11.5px] font-semibold transition",
                   form.soundId === opt.id
-                    ? "border-accent-45 bg-accent-15 text-[var(--accent)]"
-                    : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted-2)] hover:bg-[var(--card-2)]",
+                    ? "border-accent-45 bg-accent-15 text-(--accent)"
+                    : "border-(--stroke) bg-(--card) text-(--muted-2) hover:bg-(--card-2)",
                 )}
               >
                 <Volume2 className="h-3 w-3" aria-hidden="true" />
@@ -664,7 +664,7 @@ function ReminderFormDrawer(props: {
               checked={form.vibration}
               onCheckedChange={(v) => update("vibration", v)}
             />
-            <span className="inline-flex items-center gap-1 text-[12px] text-[var(--muted-2)]">
+            <span className="inline-flex items-center gap-1 text-[12px] text-(--muted-2)">
               <Vibrate className="h-3.5 w-3.5" aria-hidden="true" />
               {form.vibration ? "مفعّل" : "موقوف"}
             </span>
@@ -676,7 +676,7 @@ function ReminderFormDrawer(props: {
             <Select
               value={form.fastingPattern}
               onChange={(e) => update("fastingPattern", e.target.value as FastingPattern | "")}
-              className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
+              className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
             >
               <option value="">اختر نمطًا</option>
               {(Object.entries(FASTING_PATTERN_LABELS) as [FastingPattern, string][]).map(([pattern, label]) => (
@@ -685,23 +685,23 @@ function ReminderFormDrawer(props: {
             </Select>
           </Field>
         ) : null}
-        <p className="text-[10.5px] leading-5 text-[var(--muted-2)]">
+        <p className="text-[10.5px] leading-5 text-(--muted-2)">
           {REMINDER_NOTIFICATION_PLATFORM_NOTE}
         </p>
       </div>
 
-      <div className="flex items-center gap-2 border-t border-[var(--stroke)] p-3">
+      <div className="flex items-center gap-2 border-t border-(--stroke) p-3">
         <button
           type="button"
           onClick={props.onClose}
-          className="flex-1 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-sm font-semibold transition hover:bg-[var(--card-2)]"
+          className="flex-1 rounded-2xl border border-(--stroke) bg-(--card) px-3 py-2.5 text-sm font-semibold transition hover:bg-(--card-2)"
         >
           إلغاء
         </button>
         <button
           type="button"
           onClick={handleSubmit}
-          className="flex-1 rounded-2xl bg-[var(--accent)] px-3 py-2.5 text-sm font-bold text-black/85 transition active:scale-95"
+          className="flex-1 rounded-2xl bg-(--accent) px-3 py-2.5 text-sm font-bold text-black/85 transition active:scale-95"
         >
           {props.mode === "create" ? "أضف التذكير" : "حفظ التعديلات"}
         </button>
@@ -713,7 +713,7 @@ function ReminderFormDrawer(props: {
 function Field(props: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-semibold text-[var(--muted-2)]">
+      <span className="mb-1 block text-[11px] font-semibold text-(--muted-2)">
         {props.label}
       </span>
       {props.children}
@@ -737,21 +737,21 @@ function ReminderSettingsSheet(props: {
   const snooze = r.notification?.snoozeMinutes ?? 10;
   return (
     <Modal open={props.open} onClose={props.onClose} ariaLabel="إعدادات التذكير">
-      <div className="flex items-center justify-between gap-3 border-b border-[var(--stroke)] p-4">
+      <div className="flex items-center justify-between gap-3 border-b border-(--stroke) p-4">
         <div className="flex items-center gap-2">
-          <SettingsIcon className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
+          <SettingsIcon className="h-4 w-4 text-(--accent)" aria-hidden="true" />
           <h2 className="text-sm font-bold">إعدادات التذكير</h2>
         </div>
         <ModalCloseButton onClose={props.onClose} />
       </div>
 
-      <div className="max-h-[calc(88vh-130px)] space-y-3 overflow-y-auto p-4">
-        <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3">
+      <div className="max-h-[calc(88vh-130px)] stack-y-3 overflow-y-auto p-4">
+        <div className="rounded-2xl border border-(--stroke) bg-(--card) p-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl" aria-hidden="true">{r.icon ?? "🔔"}</span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-semibold">{r.title}</p>
-              <p className="truncate text-[10.5px] text-[var(--muted-2)]">
+              <p className="truncate text-[10.5px] text-(--muted-2)">
                 {repeatText(r)} • {timeLabel(r.atTimeOfDay) || "—"}
               </p>
             </div>
@@ -765,7 +765,7 @@ function ReminderSettingsSheet(props: {
               checked={r.enabled}
               onCheckedChange={(v) => props.onToggle(r.id, v)}
             />
-            <span className="inline-flex items-center gap-1 text-[12px] text-[var(--muted-2)]">
+            <span className="inline-flex items-center gap-1 text-[12px] text-(--muted-2)">
               {r.enabled ? <Play className="h-3.5 w-3.5" aria-hidden="true" /> : <Pause className="h-3.5 w-3.5" aria-hidden="true" />}
               {r.enabled ? "يعمل الآن" : "موقوف مؤقتًا"}
             </span>
@@ -786,8 +786,8 @@ function ReminderSettingsSheet(props: {
                 className={cn(
                   "rounded-xl border px-2.5 py-1.5 text-[11.5px] font-semibold transition",
                   snooze === m
-                    ? "border-accent-45 bg-accent-15 text-[var(--accent)]"
-                    : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted-2)] hover:bg-[var(--card-2)]",
+                    ? "border-accent-45 bg-accent-15 text-(--accent)"
+                    : "border-(--stroke) bg-(--card) text-(--muted-2) hover:bg-(--card-2)",
                 )}
               >
                 {m} د
@@ -810,8 +810,8 @@ function ReminderSettingsSheet(props: {
                 className={cn(
                   "inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11.5px] font-semibold transition",
                   r.notification?.soundId === opt.id
-                    ? "border-accent-45 bg-accent-15 text-[var(--accent)]"
-                    : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted-2)] hover:bg-[var(--card-2)]",
+                    ? "border-accent-45 bg-accent-15 text-(--accent)"
+                    : "border-(--stroke) bg-(--card) text-(--muted-2) hover:bg-(--card-2)",
                 )}
               >
                 <Volume2 className="h-3 w-3" aria-hidden="true" />
@@ -831,22 +831,22 @@ function ReminderSettingsSheet(props: {
                 })
               }
             />
-            <span className="inline-flex items-center gap-1 text-[12px] text-[var(--muted-2)]">
+            <span className="inline-flex items-center gap-1 text-[12px] text-(--muted-2)">
               <Vibrate className="h-3.5 w-3.5" aria-hidden="true" />
               {r.notification?.vibration ?? true ? "مفعّل" : "موقوف"}
             </span>
           </div>
         </Field>
-        <p className="text-[10.5px] leading-5 text-[var(--muted-2)]">
+        <p className="text-[10.5px] leading-5 text-(--muted-2)">
           {REMINDER_NOTIFICATION_PLATFORM_NOTE}
         </p>
       </div>
 
-      <div className="border-t border-[var(--stroke)] p-3">
+      <div className="border-t border-(--stroke) p-3">
         <button
           type="button"
           onClick={props.onClose}
-          className="w-full rounded-2xl bg-[var(--accent)] px-3 py-2.5 text-sm font-bold text-black/85 transition active:scale-95"
+          className="w-full rounded-2xl bg-(--accent) px-3 py-2.5 text-sm font-bold text-black/85 transition active:scale-95"
         >
           حسنًا
         </button>
@@ -1077,13 +1077,13 @@ export function RemindersPage() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-accent-15 border border-accent-35">
-            <Bell className="h-5 w-5 text-[var(--accent)]" aria-hidden="true" />
+            <Bell className="h-5 w-5 text-(--accent)" aria-hidden="true" />
           </span>
           <div>
-            <h1 className="flex items-center gap-2 text-lg font-bold text-[var(--fg)]">
+            <h1 className="flex items-center gap-2 text-lg font-bold text-(--fg)">
               تذكيراتي
             </h1>
-            <p className="text-xs text-[var(--muted-2)]">
+            <p className="text-xs text-(--muted-2)">
               التذكيرات التي أضافها لك «أثر» أو أضفتها بنفسك
             </p>
           </div>
@@ -1091,7 +1091,7 @@ export function RemindersPage() {
         <div className="flex items-center gap-2">
           <Link
             to="/companion"
-            className="flex items-center gap-1 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-2 text-[11px] font-semibold hover:bg-[var(--card-2)] transition"
+            className="flex items-center gap-1 rounded-xl border border-(--stroke) bg-(--card) px-2.5 py-2 text-[11px] font-semibold hover:bg-(--card-2) transition"
             aria-label="افتح الرفيق"
           >
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1100,7 +1100,7 @@ export function RemindersPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="grid h-10 w-10 place-items-center rounded-2xl bg-[var(--accent)] text-black/85 shadow-sm transition active:scale-95"
+            className="grid h-10 w-10 place-items-center rounded-2xl bg-(--accent) text-black/85 shadow-xs transition active:scale-95"
             aria-label="تذكير جديد"
             title="تذكير جديد"
           >
@@ -1113,17 +1113,17 @@ export function RemindersPage() {
       {reminders.length === 0 ? (
         <Card className="mt-5 p-5">
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-accent-15 border border-accent-35 mb-3">
-            <Bell className="h-6 w-6 text-[var(--accent)]" aria-hidden="true" />
+            <Bell className="h-6 w-6 text-(--accent)" aria-hidden="true" />
           </div>
           <p className="text-sm font-semibold">لا توجد تذكيرات بعد</p>
-          <p className="mt-1 text-xs text-[var(--muted-2)]">
+          <p className="mt-1 text-xs text-(--muted-2)">
             اطلب من «أثر» إضافة تذكير وسينشئه لك فورًا — مثلًا: «ذكّرني بقراءة سورة الكهف كل جمعة».
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => navigate("/companion")}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-2 text-[12px] font-bold text-black/85 active:scale-95 transition"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-(--accent) px-3.5 py-2 text-[12px] font-bold text-black/85 active:scale-95 transition"
             >
               <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
               اطلب تذكيرًا من «أثر»
@@ -1131,7 +1131,7 @@ export function RemindersPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3.5 py-2 text-[12px] font-semibold hover:bg-[var(--card-2)] transition"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-(--stroke) bg-(--card) px-3.5 py-2 text-[12px] font-semibold hover:bg-(--card-2) transition"
             >
               <Plus className="h-3.5 w-3.5" aria-hidden="true" />
               أنشئ تذكيرًا يدويًا
@@ -1141,19 +1141,19 @@ export function RemindersPage() {
       ) : (
         <Card className="mt-5 grid grid-cols-3 gap-2 p-4">
           <Stat
-            icon={<Bell className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />}
+            icon={<Bell className="h-4 w-4 text-(--accent)" aria-hidden="true" />}
             label="مفعّلة الآن"
             value={arNum(String(activeCount))}
             sub={`من ${arNum(String(stats.totalCount))}`}
           />
           <Stat
-            icon={<CalendarDays className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />}
+            icon={<CalendarDays className="h-4 w-4 text-(--accent)" aria-hidden="true" />}
             label="مواعيد اليوم"
             value={arNum(String(stats.todayOccurrences))}
             sub="وفق التكرار"
           />
           <Stat
-            icon={<CalendarDays className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />}
+            icon={<CalendarDays className="h-4 w-4 text-(--accent)" aria-hidden="true" />}
             label="خلال ٧ أيام"
             value={arNum(String(stats.nextSevenDaysOccurrences))}
             sub="وفق التكرار"
@@ -1166,7 +1166,7 @@ export function RemindersPage() {
           <div role="status" aria-live="polite" className="flex items-start gap-3">
             <Bell className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" aria-hidden="true" />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-[var(--fg)]">
+              <p className="text-xs font-semibold text-(--fg)">
                 {reminderPermission === "granted"
                   ? "إشعارات المتصفح مفعّلة"
                   : reminderPermission === "unsupported"
@@ -1175,7 +1175,7 @@ export function RemindersPage() {
                     ? "إذن إشعارات التذكيرات مرفوض في المتصفح."
                     : "التذكيرات مفعّلة، لكن إشعارات المتصفح غير مفعّلة."}
               </p>
-              <p className="mt-1 text-[11px] leading-5 text-[var(--muted-2)]">
+              <p className="mt-1 text-[11px] leading-5 text-(--muted-2)">
                 {reminderPermission === "granted"
                   ? "قد يفوت إشعار الويب إذا أُغلقت الصفحة أو أوقف المتصفح نشاطها في الخلفية."
                   : reminderPermission === "unsupported"
@@ -1203,12 +1203,12 @@ export function RemindersPage() {
           <div role="status" aria-live="polite" className="flex items-start gap-3">
             <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" aria-hidden="true" />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-[var(--fg)]">
+              <p className="text-xs font-semibold text-(--fg)">
                 {exactAlarmPermission === "denied"
                   ? "قد تتأخر إشعارات التذكير على أندرويد"
                   : "تعذّر التحقق من دقة التنبيهات على هذا الجهاز"}
               </p>
-              <p className="mt-1 text-[11px] leading-5 text-[var(--muted-2)]">
+              <p className="mt-1 text-[11px] leading-5 text-(--muted-2)">
                 {exactAlarmPermission === "denied"
                   ? "التذكيرات مفعّلة، لكن السماح للمنبهات والتذكيرات يساعد على وصولها أقرب إلى وقتها. قد يؤخر وضع توفير الطاقة التنبيه حتى بعد السماح."
                   : "التذكيرات ما زالت مفعّلة، لكن تعذّر التحقق من إعدادات دقة التنبيه على هذا الجهاز."}
@@ -1233,13 +1233,13 @@ export function RemindersPage() {
         <section className="mt-6">
           <header className="mb-2 flex items-center justify-between">
             <h2 className="text-[13px] font-bold">اقتراحات لك</h2>
-            <span className="text-[10.5px] text-[var(--muted-2)]">٦ تذكيرات منتقاة</span>
+            <span className="text-[10.5px] text-(--muted-2)">٦ تذكيرات منتقاة</span>
           </header>
           <div className="-mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1">
             {recommendedTemplates.map((t) => (
               <article
                 key={t.id}
-                className="glass-strong flex w-44 shrink-0 snap-start flex-col justify-between rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3"
+                className="glass-strong flex w-44 shrink-0 snap-start flex-col justify-between rounded-2xl border border-(--stroke) bg-(--card) p-3"
               >
                 <div>
                   <div className="flex items-center gap-2">
@@ -1247,15 +1247,15 @@ export function RemindersPage() {
                     <CategoryDot category={t.category} />
                   </div>
                   <h3 className="mt-2 text-[12.5px] font-bold leading-tight">{t.title.ar}</h3>
-                  <p className="mt-1 line-clamp-2 text-[10.5px] text-[var(--muted-2)]">{t.description}</p>
-                  <p className="mt-1 text-[10px] text-[var(--muted-2)]">
+                  <p className="mt-1 line-clamp-2 text-[10.5px] text-(--muted-2)">{t.description}</p>
+                  <p className="mt-1 text-[10px] text-(--muted-2)">
                     {timeLabel(t.defaultTime)} • {REPEAT_LABELS[getReminderTemplateRepeat(t)] ?? t.defaultRepeat}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => void handleAddTemplate(t)}
-                  className="mt-3 inline-flex items-center justify-center gap-1 rounded-xl bg-[var(--accent)] px-2.5 py-1.5 text-[11px] font-bold text-black/85 transition active:scale-95"
+                  className="mt-3 inline-flex items-center justify-center gap-1 rounded-xl bg-(--accent) px-2.5 py-1.5 text-[11px] font-bold text-black/85 transition active:scale-95"
                   aria-label={`أضف تذكير ${t.title.ar}`}
                 >
                   <Plus className="h-3 w-3" aria-hidden="true" />
@@ -1282,8 +1282,8 @@ export function RemindersPage() {
                 className={cn(
                   "shrink-0 rounded-xl border px-2.5 py-1.5 text-[11.5px] font-semibold transition",
                   active
-                    ? "border-accent-45 bg-accent-15 text-[var(--accent)]"
-                    : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted-2)] hover:bg-[var(--card-2)]",
+                    ? "border-accent-45 bg-accent-15 text-(--accent)"
+                    : "border-(--stroke) bg-(--card) text-(--muted-2) hover:bg-(--card-2)",
                 )}
               >
                 {tab.label}
@@ -1294,11 +1294,11 @@ export function RemindersPage() {
       ) : null}
 
       {/* ─── Reminders list ─────────────────────────────── */}
-      <div className="mt-4 space-y-2">
+      <div className="mt-4 stack-y-2">
         {reminders.length === 0 ? null : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[var(--stroke)] bg-[var(--card)]/60 p-5 text-center">
+          <div className="rounded-2xl border border-dashed border-(--stroke) bg-(--card)/60 p-5 text-center">
             <p className="text-sm font-semibold">لا توجد تذكيرات في هذا التصنيف</p>
-            <p className="mt-1 text-[11px] text-[var(--muted-2)]">
+            <p className="mt-1 text-[11px] text-(--muted-2)">
               جرّب تصنيفًا آخر، أو أنشئ تذكيرًا جديدًا.
             </p>
           </div>
@@ -1320,9 +1320,9 @@ export function RemindersPage() {
         )}
 
         {reminders.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-dashed border-[var(--stroke)] bg-[var(--card)]/60 p-3 text-[11.5px] text-[var(--muted-2)]">
+          <div className="mt-4 rounded-2xl border border-dashed border-(--stroke) bg-(--card)/60 p-3 text-[11.5px] text-(--muted-2)">
             <div className="flex items-start gap-2">
-              <Plus className="h-4 w-4 shrink-0 mt-0.5 text-[var(--accent)]" aria-hidden="true" />
+              <Plus className="h-4 w-4 shrink-0 mt-0.5 text-(--accent)" aria-hidden="true" />
               <p>
                 لإضافة تذكير جديد اطلبه من «أثر» بكلامك، مثلًا: «ذكّرني بأذكار المساء كل يوم الساعة السادسة».
               </p>
@@ -1366,11 +1366,11 @@ function Stat(props: {
   sub: string;
 }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)]/40 p-2 text-center">
+    <div className="flex flex-col items-center gap-0.5 rounded-xl border border-(--stroke) bg-(--card-2)/40 p-2 text-center">
       {props.icon}
       <p className="text-base font-bold leading-tight">{props.value}</p>
-      <p className="text-[10.5px] text-[var(--muted-2)]">{props.label}</p>
-      <p className="text-[9.5px] text-[var(--muted-2)] opacity-70">{props.sub}</p>
+      <p className="text-[10.5px] text-(--muted-2)">{props.label}</p>
+      <p className="text-[9.5px] text-(--muted-2) opacity-70">{props.sub}</p>
     </div>
   );
 }

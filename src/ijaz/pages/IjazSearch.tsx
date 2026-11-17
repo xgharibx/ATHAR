@@ -59,7 +59,7 @@ export default function SearchPage() {
         >
           <div className="relative">
             <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-deep-navy/80 backdrop-blur-xl border border-border-subtle focus-within:border-gold-primary/50 focus-within:shadow-gold-md transition-all">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gold-primary flex-shrink-0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gold-primary shrink-0">
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
               </svg>
@@ -68,7 +68,7 @@ export default function SearchPage() {
                 value={query}
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder="ابحث عن معجزة... كيف بدأ الكون؟ ما هي مراحل الجنين؟"
-                className="flex-1 bg-transparent border-none outline-none text-text-primary placeholder:text-text-muted font-tajawal text-lg"
+                className="flex-1 bg-transparent border-none outline-hidden text-text-primary placeholder:text-text-muted font-tajawal text-lg"
                 dir="rtl"
                 autoFocus
               />
@@ -145,7 +145,7 @@ export default function SearchPage() {
                     className="glass-card p-4 text-right hover:scale-[1.02] transition-all flex items-center gap-4"
                   >
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
                       style={{ background: `${cat.color}15` }}
                     >
                       {cat.icon}

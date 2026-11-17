@@ -60,10 +60,10 @@ export function SourcesPage() {
   };
 
   return (
-    <div className="space-y-4 page-enter">
+    <div className="stack-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center gap-2">
-          <Database size={18} aria-hidden="true" className="text-[var(--accent)]" />
+          <Database size={18} aria-hidden="true" className="text-(--accent)" />
           <h1 className="font-semibold text-base leading-none">المصادر والبيانات</h1>
         </div>
 
@@ -83,7 +83,7 @@ export function SourcesPage() {
                 e.currentTarget.value = "";
               }}
             />
-            <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] cursor-pointer text-sm min-h-[44px]">
+            <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-(--card) hover:bg-(--card-2) border border-(--stroke) cursor-pointer text-sm min-h-[44px]">
               <Upload size={16} aria-hidden="true" />
               استيراد حزمة
             </span>
@@ -94,7 +94,7 @@ export function SourcesPage() {
             target="_blank"
             rel="noreferrer"
             aria-label="فتح موقع islambook.com في تبويب جديد"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] text-sm min-h-[44px]"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-(--card) hover:bg-(--card-2) border border-(--stroke) text-sm min-h-[44px]"
           >
             <ExternalLink size={16} aria-hidden="true" />
             islambook.com
@@ -105,7 +105,7 @@ export function SourcesPage() {
             target="_blank"
             rel="noreferrer"
             aria-label="فتح المكتبة القرآنية الشاملة QUL في تبويب جديد"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] text-sm min-h-[44px]"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-(--card) hover:bg-(--card-2) border border-(--stroke) text-sm min-h-[44px]"
           >
             <ExternalLink size={16} aria-hidden="true" />
             QUL — المكتبة القرآنية الشاملة
@@ -116,12 +116,12 @@ export function SourcesPage() {
 
       <Card className="p-5">
         <div className="flex items-center gap-2">
-          <Plus size={18} aria-hidden="true" className="text-[var(--accent)]" />
+          <Plus size={18} aria-hidden="true" className="text-(--accent)" />
           <div className="font-semibold">إضافة ذكر</div>
         </div>
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_120px] gap-3">
-          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--fg)]">
+          <div className="rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm text-(--fg)">
             أذكاري
           </div>
           <Input
@@ -142,7 +142,7 @@ export function SourcesPage() {
           aria-label="نص الذكر"
           dir="rtl"
           spellCheck={false}
-          className="form-field-readable mt-3 min-h-32 w-full rounded-3xl border border-[var(--stroke)] px-4 py-3 text-sm leading-7 outline-none focus:border-accent-40"
+          className="form-field-readable mt-3 min-h-32 w-full rounded-3xl border border-(--stroke) px-4 py-3 text-sm leading-7 outline-hidden focus:border-accent-40"
         />
 
         <Input
@@ -170,12 +170,12 @@ export function SourcesPage() {
             لا توجد حزم إضافية. استورد ملفًا لإضافة أقسام جديدة.
           </div>
         ) : (
-          <div className="mt-4 space-y-2" role="list" aria-label="الحزم المستوردة">
+          <div className="mt-4 stack-y-2" role="list" aria-label="الحزم المستوردة">
             {packs.map((p) => (
               <div
                 key={p.packId}
                 role="listitem"
-                className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-center justify-between gap-3"
+                className="glass rounded-3xl p-4 border border-(--stroke) flex items-center justify-between gap-3"
               >
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{p.name}</div>
@@ -187,7 +187,7 @@ export function SourcesPage() {
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
-                      className="border-danger-40 text-[var(--danger)] hover:bg-danger-10"
+                      className="border-danger-40 text-(--danger) hover:bg-danger-10"
                       onClick={() => onRemove(p.packId)}
                     >
                       <Trash2 size={16} />
@@ -223,7 +223,7 @@ export function SourcesPage() {
 
 function MiniStat(props: Readonly<{ label: string; value: number }>) {
   return (
-    <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+    <div className="glass rounded-3xl p-4 border border-(--stroke)">
       <div className="text-xs opacity-60">{props.label}</div>
       <div className="text-2xl font-semibold mt-1 tabular-nums" style={{ color: "var(--accent)" }}>{props.value}</div>
     </div>

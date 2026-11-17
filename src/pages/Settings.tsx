@@ -114,11 +114,11 @@ function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; on
         "px-3 py-2.5 rounded-2xl border text-sm transition flex items-center gap-2 min-h-[44px]",
         props.active
           ? "bg-accent-15 border-accent-35"
-          : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+          : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
       ].join(" ")}
     >
       <span
-        className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-[var(--stroke)]"
+        className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-(--stroke)"
         style={{ backgroundColor: dotColor }}
       />
       {props.label}
@@ -160,8 +160,8 @@ function QuickTogglesStrip(props: {
         className={[
           "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11.5px] transition",
           prefs.enableHaptics
-            ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-            : "border-[var(--stroke)] bg-[var(--card)] opacity-80",
+            ? "bg-accent-15 border-accent-35 text-(--accent)"
+            : "border-(--stroke) bg-(--card) opacity-80",
         ].join(" ")}
         title="اهتزاز"
       >
@@ -175,8 +175,8 @@ function QuickTogglesStrip(props: {
         className={[
           "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11.5px] transition",
           remindersOn
-            ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-            : "border-[var(--stroke)] bg-[var(--card)] opacity-80",
+            ? "bg-accent-15 border-accent-35 text-(--accent)"
+            : "border-(--stroke) bg-(--card) opacity-80",
         ].join(" ")}
         title="التذكيرات"
       >
@@ -190,8 +190,8 @@ function QuickTogglesStrip(props: {
         className={[
           "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11.5px] transition",
           isDark
-            ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-            : "border-[var(--stroke)] bg-[var(--card)] opacity-80",
+            ? "bg-accent-15 border-accent-35 text-(--accent)"
+            : "border-(--stroke) bg-(--card) opacity-80",
         ].join(" ")}
         title="الوضع الداكن"
       >
@@ -201,7 +201,7 @@ function QuickTogglesStrip(props: {
       {REMINDER_SOUND_OPTIONS.length > 1 ? <button
         type="button"
         onClick={cycleSoundProfile}
-        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] text-[11.5px] transition"
+        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-(--stroke) bg-(--card) hover:bg-(--card-2) text-[11.5px] transition"
         title="صوت التذكير"
       >
         <Bell size={12} aria-hidden="true" />
@@ -435,24 +435,24 @@ export function SettingsPage() {
   }, [visibleSet]);
 
   return (
-    <div className="space-y-4 page-enter">
+    <div className="stack-y-4 page-enter">
       {/* ── Search bar ── */}
-      <div className="sticky top-0 z-20 -mx-3 px-3 pt-1 pb-2 bg-gradient-to-b from-[var(--bg)] via-[var(--bg)] to-[var(--bg)]/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 -mx-3 px-3 pt-1 pb-2 bg-linear-to-b from-(--bg) via-(--bg) to-(--bg)/85 backdrop-blur-md">
         <div className="relative">
-          <Search size={14} className="absolute top-1/2 -translate-y-1/2 start-3 opacity-50 pointer-events-none" aria-hidden="true" />
+          <Search size={14} className="absolute top-1/2 -translate-y-1/2 inset-s-3 opacity-50 pointer-events-none" aria-hidden="true" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="ابحث في الإعدادات… (مظهر، تذكيرات، ترجمة…)"
             aria-label="البحث في الإعدادات"
-            className="w-full ps-9 pe-9 py-2.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] text-sm focus:outline-none focus:ring-2 focus:ring-accent-30 placeholder:opacity-50"
+            className="w-full ps-9 pe-9 py-2.5 rounded-2xl border border-(--stroke) bg-(--card) text-sm focus:outline-hidden focus:ring-2 focus:ring-accent-30 placeholder:opacity-50"
           />
           {search ? (
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute top-1/2 -translate-y-1/2 end-2 p-1 rounded-full hover:bg-[var(--card-2)] opacity-60 hover:opacity-100"
+              className="absolute top-1/2 -translate-y-1/2 inset-e-2 p-1 rounded-full hover:bg-(--card-2) opacity-60 hover:opacity-100"
               aria-label="مسح البحث"
             >
               <X size={14} aria-hidden="true" />
@@ -469,7 +469,7 @@ export function SettingsPage() {
         <span className="text-xs opacity-55">احتفظ ببياناتك بأمان</span>
         <button type="button"
           onClick={onBackup}
-          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition"
+          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-2xl border border-(--stroke) bg-(--card) hover:bg-(--card-2) transition"
         >
           <Download size={12} aria-hidden="true" />
           نسخ احتياطي
@@ -482,7 +482,7 @@ export function SettingsPage() {
 
       <Card id="settings-appearance" className="p-5">
         <div className="flex items-center gap-2">
-          <Palette size={18} aria-hidden="true" className="text-[var(--accent)]" />
+          <Palette size={18} aria-hidden="true" className="text-(--accent)" />
           <div className="font-semibold">المظهر</div>
         </div>
 
@@ -560,7 +560,7 @@ export function SettingsPage() {
         </div>
 
         {/* Custom accent color */}
-        <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
+        <div className="mt-5 pt-4 border-t border-(--stroke)">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <div className="text-sm font-medium">لون مخصص</div>
@@ -576,7 +576,7 @@ export function SettingsPage() {
                   aria-label="اختيار لون مخصص"
                 />
                 <span
-                  className="block w-9 h-9 rounded-2xl border-2 border-[var(--stroke)] shadow-inner ring-1 ring-black/20 transition hover:scale-105"
+                  className="block w-9 h-9 rounded-2xl border-2 border-(--stroke) shadow-inner ring-1 ring-black/20 transition hover:scale-105"
                   style={{ background: prefs.customAccent ?? "var(--accent)" }}
                 />
               </label>
@@ -584,7 +584,7 @@ export function SettingsPage() {
                 <button type="button"
                   onClick={() => { setPrefs({ customAccent: undefined }); toast("تم مسح اللون المخصص"); }}
                   aria-label="إعادة ضبط اللون المخصص"
-                  className="text-xs px-2.5 py-1.5 rounded-xl bg-[var(--card)] border border-[var(--stroke)] opacity-70 hover:opacity-100 transition min-h-[36px]"
+                  className="text-xs px-2.5 py-1.5 rounded-xl bg-(--card) border border-(--stroke) opacity-70 hover:opacity-100 transition min-h-[36px]"
                 >
                   إعادة ضبط
                 </button>
@@ -595,10 +595,10 @@ export function SettingsPage() {
 
         {/* Se3: Language switcher */}
         {SHOW_UI_LANGUAGE && (
-        <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
+        <div className="mt-5 pt-4 border-t border-(--stroke)">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Globe size={15} className="text-[var(--accent)]" aria-hidden="true" />
+              <Globe size={15} className="text-(--accent)" aria-hidden="true" />
               <div>
                 <div className="text-sm font-medium">لغة الواجهة</div>
                 <div className="text-xs opacity-60 mt-0.5">Arabic ↔ English</div>
@@ -614,10 +614,10 @@ export function SettingsPage() {
                     "px-4 py-2 rounded-xl border text-sm transition min-h-[40px] relative",
                     (prefs.uiLanguage ?? "ar") === lang
                       ? "bg-accent-15 border-accent-35 font-semibold"
-                      : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)] opacity-60"
+                      : "bg-(--card) border-(--stroke) hover:bg-(--card-2) opacity-60"
                   ].join(" ")}
                 >
-                  {lang === "ar" ? "عربي" : <span className="flex items-center gap-1">English <span className="text-[9px] bg-[var(--card-2)] rounded px-1 py-0.5 leading-none">قريبًا</span></span>}
+                  {lang === "ar" ? "عربي" : <span className="flex items-center gap-1">English <span className="text-[9px] bg-(--card-2) rounded-sm px-1 py-0.5 leading-none">قريبًا</span></span>}
                 </button>
               ))}
             </div>
@@ -627,7 +627,7 @@ export function SettingsPage() {
 
         {/* Se4: Text direction */}
         {SHOW_TEXT_DIRECTION && (
-        <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
+        <div className="mt-5 pt-4 border-t border-(--stroke)">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-sm font-medium">اتجاه النص</div>
@@ -647,7 +647,7 @@ export function SettingsPage() {
                     "px-3 py-2 rounded-xl border text-xs transition min-h-[40px]",
                     (prefs.textDir ?? "auto") === d.id
                       ? "bg-accent-15 border-accent-35 font-semibold"
-                      : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                      : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
                   ].join(" ")}
                 >
                   {d.label}
@@ -659,14 +659,14 @@ export function SettingsPage() {
         )}
 
         {/* Se6: Restore defaults */}
-        <div className="mt-5 pt-4 border-t border-[var(--stroke)] flex items-center justify-between gap-3">
+        <div className="mt-5 pt-4 border-t border-(--stroke) flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-medium">إعادة الضبط الافتراضي</div>
             <div className="text-xs opacity-60 mt-0.5">إعادة إعدادات المظهر والقراءة دون فقدان التقدّم</div>
           </div>
           <button type="button"
             onClick={() => { resetPrefs(); toast.success("تم إعادة الضبط الافتراضي"); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition text-xs min-h-[40px]"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-(--stroke) bg-(--card) hover:bg-(--card-2) transition text-xs min-h-[40px]"
           >
             <RotateCcw size={13} aria-hidden="true" />
             إعادة ضبط
@@ -681,11 +681,11 @@ export function SettingsPage() {
 
       <Card id="settings-reading" className="p-5">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal size={18} aria-hidden="true" className="text-[var(--accent)]" />
+          <SlidersHorizontal size={18} aria-hidden="true" className="text-(--accent)" />
           <div className="font-semibold">القراءة</div>
         </div>
 
-        <div className="mt-5 space-y-5">
+        <div className="mt-5 stack-y-5">
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">حجم الخط</div>
@@ -755,7 +755,7 @@ export function SettingsPage() {
           </div>
 
           {/* ── Live Preview — right after the main sliders ── */}
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+          <div className="glass rounded-3xl p-4 border border-(--stroke)">
             <div className="text-xs opacity-65 mb-3">معاينة مباشرة</div>
             <div
               className="arabic-text"
@@ -821,7 +821,7 @@ export function SettingsPage() {
                       "text-[10px] px-2.5 py-1.5 rounded-xl border transition min-h-[36px]",
                       prefs.quranTheme === t
                         ? "bg-accent-15 border-accent-35"
-                        : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                        : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
                     ].join(" ")}
                   >
                     {{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق", forest: "🌲 غابة", rose: "🌹 وردي", ocean: "🌊 بحر", desert: "🏜️ صحراء", dawn: "🌅 فجر" }[t]}
@@ -873,7 +873,7 @@ export function SettingsPage() {
 
           {/* ── Se10: Daily goal stepper + preset buttons ──── */}
           {SHOW_QURAN_DAILY_GOAL && (
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+          <div className="glass rounded-3xl p-4 border border-(--stroke)">
             <div className="text-sm font-semibold mb-1">الهدف اليومي للقرآن</div>
             <div className="text-xs opacity-65 mb-3">عدد الآيات المستهدف يومياً</div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -892,7 +892,7 @@ export function SettingsPage() {
                     "px-3 py-2 rounded-xl border text-xs transition min-h-[36px]",
                     (prefs.quranDailyGoal ?? 10) === p.value
                       ? "bg-accent-15 border-accent-35 font-semibold"
-                      : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                      : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
                   ].join(" ")}
                 >
                   {p.label}
@@ -900,13 +900,13 @@ export function SettingsPage() {
               ))}
               <div className="flex items-center gap-2 mr-auto">
                 <button type="button"
-                  className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center hover:bg-[var(--card-2)] transition text-base"
+                  className="w-8 h-8 rounded-xl bg-(--card) border border-(--stroke) flex items-center justify-center hover:bg-(--card-2) transition text-base"
                   onClick={() => setPrefs({ quranDailyGoal: Math.max(1, (prefs.quranDailyGoal ?? 10) - 5) })}
                   aria-label="تقليل الهدف"
                 >−</button>
                 <span className="w-12 text-center text-sm tabular-nums font-semibold">{arNum((prefs.quranDailyGoal ?? 10))}</span>
                 <button type="button"
-                  className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center hover:bg-[var(--card-2)] transition text-base"
+                  className="w-8 h-8 rounded-xl bg-(--card) border border-(--stroke) flex items-center justify-center hover:bg-(--card-2) transition text-base"
                   onClick={() => setPrefs({ quranDailyGoal: Math.min(604, (prefs.quranDailyGoal ?? 10) + 5) })}
                   aria-label="زيادة الهدف"
                 >+</button>
@@ -925,17 +925,17 @@ export function SettingsPage() {
           <button type="button"
             onClick={() => setShowReciterPicker(true)}
             aria-label="اختيار القارئ"
-            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3 text-start transition hover:border-accent-35 active:scale-[0.99]">
+            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card) p-3 text-start transition hover:border-accent-35 active:scale-[0.99]">
             <div className="flex items-center gap-3 min-w-0">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-15 border border-accent-35 text-base">🎙</span>
               <div className="min-w-0">
                 <div className="truncate text-sm font-semibold">{getReciter(prefs.quranReciter ?? "Alafasy_128kbps")?.label ?? "القارئ"}</div>
-                <div className="truncate text-[10.5px] text-[var(--muted-2)]">
+                <div className="truncate text-[10.5px] text-(--muted-2)">
                   اضغط للاختيار من {arNum(QURAN_RECITERS.length)} قارئًا مع بحث
                 </div>
               </div>
             </div>
-            <span className="text-[var(--muted-2)] text-sm">←</span>
+            <span className="text-(--muted-2) text-sm">←</span>
           </button>
 
         </div>
@@ -950,7 +950,7 @@ export function SettingsPage() {
 
       <Card id="settings-tasbeeh" className="p-5">
         <div className="flex items-center gap-2">
-          <Sparkles size={18} className="text-[var(--accent)]" aria-hidden="true" />
+          <Sparkles size={18} className="text-(--accent)" aria-hidden="true" />
           <div className="font-semibold">تجربة التسبیح</div>
         </div>
 
@@ -966,7 +966,7 @@ export function SettingsPage() {
             title="قوة الاهتزاز"
             desc="خفيف · متوسط · قوي · إيقاف"
             right={
-              <div className="flex items-center gap-1 rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-1">
+              <div className="flex items-center gap-1 rounded-xl border border-(--stroke) bg-(--card) p-1">
                 {(["off", "light", "medium", "strong"] as const).map((v) => (
                   <button type="button"
                     key={v}
@@ -975,8 +975,8 @@ export function SettingsPage() {
                     className={[
                       "px-2.5 py-1.5 text-xs font-semibold rounded-lg transition",
                       (prefs.hapticStrength ?? "medium") === v
-                        ? "bg-[var(--accent)] text-[var(--on-accent)]"
-                        : "text-[var(--muted)] hover:bg-[var(--card-2)]",
+                        ? "bg-(--accent) text-(--on-accent)"
+                        : "text-(--muted) hover:bg-(--card-2)",
                     ].join(" ")}
                   >
                     {v === "off" ? "إيقاف" : v === "light" ? "خفيف" : v === "medium" ? "متوسط" : "قوي"}
@@ -1006,7 +1006,7 @@ export function SettingsPage() {
         </div>
 
         {/* ── Sebha / quick-tasbeeh goal ── */}
-        <div className="mt-5 glass rounded-3xl p-4 border border-[var(--stroke)]">
+        <div className="mt-5 glass rounded-3xl p-4 border border-(--stroke)">
           <div className="text-sm font-semibold mb-1">هدف السبحة اليومي</div>
           <div className="text-xs opacity-65 mb-3">يُطبَّق في الصفحة الرئيسية وصفحة السبحة</div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -1019,7 +1019,7 @@ export function SettingsPage() {
                   "px-4 py-2 rounded-xl border text-sm font-semibold transition min-h-[40px]",
                   sebhaTarget === v
                     ? "bg-accent-15 border-accent-35"
-                    : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                    : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
                 ].join(" ")}
               >
                 {arNum(v)}
@@ -1027,7 +1027,7 @@ export function SettingsPage() {
             ))}
             <div className="flex items-center gap-2 mr-auto">
               <button type="button"
-                className="w-9 h-9 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center hover:bg-[var(--card-2)] transition text-base"
+                className="w-9 h-9 rounded-xl bg-(--card) border border-(--stroke) flex items-center justify-center hover:bg-(--card-2) transition text-base"
                 onClick={() => setSebhaTarget(Math.max(10, sebhaTarget - 10))}
                 aria-label="تقليل الهدف"
               >−</button>
@@ -1035,7 +1035,7 @@ export function SettingsPage() {
                 {arNum(sebhaTarget)}
               </span>
               <button type="button"
-                className="w-9 h-9 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center hover:bg-[var(--card-2)] transition text-base"
+                className="w-9 h-9 rounded-xl bg-(--card) border border-(--stroke) flex items-center justify-center hover:bg-(--card-2) transition text-base"
                 onClick={() => setSebhaTarget(Math.min(9999, sebhaTarget + 10))}
                 aria-label="زيادة الهدف"
               >+</button>
@@ -1048,7 +1048,7 @@ export function SettingsPage() {
       <Card id="settings-offline-content" className="p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-2 min-w-0">
-            <Download size={18} className="mt-1 text-[var(--accent)] shrink-0" aria-hidden="true" />
+            <Download size={18} className="mt-1 text-(--accent) shrink-0" aria-hidden="true" />
             <div className="min-w-0">
               <div className="font-semibold">المحتوى دون إنترنت</div>
               <div className="text-xs opacity-65 mt-1 leading-6">
@@ -1068,7 +1068,7 @@ export function SettingsPage() {
           </span>
         </div>
 
-        <div className="mt-4 rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
+        <div className="mt-4 rounded-3xl border border-(--stroke) bg-(--card) p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="text-sm font-semibold">المصحف للقراءة</div>
@@ -1098,7 +1098,7 @@ export function SettingsPage() {
                 <span>{mushafOfflineProgress.label}</span>
                 <span className="tabular-nums">{mushafProgressPct}%</span>
               </div>
-              <div className="mt-2 h-2 rounded-full bg-[var(--card-2)] overflow-hidden border border-[var(--stroke)]">
+              <div className="mt-2 h-2 rounded-full bg-(--card-2) overflow-hidden border border-(--stroke)">
                 <div className="h-full rounded-full transition-all" style={{ width: `${mushafProgressPct}%`, background: "var(--accent)" }} />
               </div>
             </div>
@@ -1110,7 +1110,7 @@ export function SettingsPage() {
       <Card id="settings-reminders" className="p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Bell size={18} className="text-[var(--accent)]" aria-hidden="true" />
+            <Bell size={18} className="text-(--accent)" aria-hidden="true" />
             <div>
               <div className="font-semibold">التذكيرات</div>
               <div className="text-xs opacity-65 mt-1 leading-6">
@@ -1162,7 +1162,7 @@ export function SettingsPage() {
                   toast.error("تعذرت المزامنة");
                 }
               }}
-              className="text-xs px-3 py-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition flex items-center gap-1.5 min-h-[36px]"
+              className="text-xs px-3 py-1.5 rounded-xl border border-(--stroke) bg-(--card) hover:bg-(--card-2) transition flex items-center gap-1.5 min-h-[36px]"
             >
               <RotateCw size={12} aria-hidden="true" />
               مزامنة الآن
@@ -1186,7 +1186,7 @@ export function SettingsPage() {
            before. This card links straight into the reminders page where they
            can be created, edited, deleted, and AI-created ones are tagged. */}
         <div
-          className="mt-4 rounded-3xl border border-accent-35 bg-gradient-to-br from-accent-12 to-accent-5 p-4"
+          className="mt-4 rounded-3xl border border-accent-35 bg-linear-to-br from-accent-12 to-accent-5 p-4"
           data-testid="settings-custom-reminders-card"
         >
           <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -1195,7 +1195,7 @@ export function SettingsPage() {
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-accent-35 bg-accent-20"
                 aria-hidden="true"
               >
-                <Sparkles size={16} className="text-[var(--accent)]" />
+                <Sparkles size={16} className="text-(--accent)" />
               </span>
               <div className="min-w-0">
                 <div className="text-sm font-semibold flex items-center gap-2">
@@ -1213,7 +1213,7 @@ export function SettingsPage() {
             </div>
             <Link
               to="/reminders"
-              className="text-xs px-3 py-1.5 rounded-xl border border-[var(--accent)]/55 bg-[var(--accent)]/12 text-[var(--accent)] hover:bg-[var(--accent)]/20 transition flex items-center gap-1.5 min-h-[36px] font-semibold"
+              className="text-xs px-3 py-1.5 rounded-xl border border-(--accent)/55 bg-(--accent)/12 text-(--accent) hover:bg-(--accent)/20 transition flex items-center gap-1.5 min-h-[36px] font-semibold"
             >
               <BookOpen size={12} aria-hidden="true" />
               فتح صفحة التذكيرات
@@ -1236,7 +1236,7 @@ export function SettingsPage() {
           )}
         </div>
 
-        <div className="mt-4 rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
+        <div className="mt-4 rounded-3xl border border-(--stroke) bg-(--card) p-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <div className="text-sm font-semibold">صوت التذكير</div>
@@ -1253,7 +1253,7 @@ export function SettingsPage() {
                     "rounded-2xl border p-3 transition flex flex-wrap items-center justify-between gap-3",
                     active
                       ? "bg-accent-12 border-accent-30"
-                      : "bg-[var(--card)] border-[var(--stroke)]",
+                      : "bg-(--card) border-(--stroke)",
                   ].join(" ")}
                 >
                   <button type="button"
@@ -1269,7 +1269,7 @@ export function SettingsPage() {
                     <button type="button"
                       onClick={() => void toggleReminderPreview(option.id)}
                       aria-label={playingPreview === `reminder:${option.id}` ? `إيقاف معاينة صوت ${option.label}` : `معاينة صوت ${option.label}`}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-xs transition hover:bg-[var(--card-2)]"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-(--stroke) bg-(--card) px-3 py-2 text-xs transition hover:bg-(--card-2)"
                     >
                       {playingPreview === `reminder:${option.id}` ? <Square size={12} aria-hidden="true" /> : <Play size={12} aria-hidden="true" />}
                       {playingPreview === `reminder:${option.id}` ? "إيقاف" : "معاينة"}
@@ -1282,7 +1282,7 @@ export function SettingsPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div id="prayer-settings" className="glass rounded-3xl p-4 border border-[var(--stroke)] md:col-span-2">
+          <div id="prayer-settings" className="glass rounded-3xl p-4 border border-(--stroke) md:col-span-2">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">تنبيهات الصلوات</div>
@@ -1301,13 +1301,13 @@ export function SettingsPage() {
               </p>
             ) : null}
 
-            <div className="mt-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3">
+            <div className="mt-4 rounded-2xl border border-(--stroke) bg-(--card) p-3">
               <div className="text-xs font-semibold">اختر الصلوات التي تريد الأذان لها</div>
               <div className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-2">
                 {PRAYER_ALERT_OPTIONS.map((prayer) => (
                   <label
                     key={prayer.id}
-                    className="rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2.5 flex items-center justify-between gap-2 text-sm"
+                    className="rounded-2xl border border-(--stroke) bg-(--card-2) px-3 py-2.5 flex items-center justify-between gap-2 text-sm"
                   >
                     <span>{prayer.label}</span>
                     <Switch
@@ -1323,7 +1323,7 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-4">
+            <div className="mt-4 rounded-2xl border border-(--stroke) bg-(--card-2) p-4">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
                   <div className="text-sm font-semibold">صوت الأذان</div>
@@ -1340,7 +1340,7 @@ export function SettingsPage() {
                         "rounded-2xl border p-3 transition flex flex-wrap items-center justify-between gap-3",
                         active
                           ? "bg-accent-12 border-accent-30"
-                          : "bg-[var(--card)] border-[var(--stroke)]",
+                          : "bg-(--card) border-(--stroke)",
                       ].join(" ")}
                     >
                       <button type="button"
@@ -1356,7 +1356,7 @@ export function SettingsPage() {
                         <button type="button"
                           onClick={() => void togglePrayerPreview(option.id)}
                           aria-label={playingPreview === `prayer:${option.id}` ? `إيقاف معاينة صوت ${option.label}` : `معاينة صوت ${option.label}`}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-xs transition hover:bg-[var(--card-2)]"
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-(--stroke) bg-(--card) px-3 py-2 text-xs transition hover:bg-(--card-2)"
                         >
                           {playingPreview === `prayer:${option.id}` ? <Square size={12} aria-hidden="true" /> : <Play size={12} aria-hidden="true" />}
                           {playingPreview === `prayer:${option.id}` ? "إيقاف" : "معاينة"}
@@ -1370,9 +1370,9 @@ export function SettingsPage() {
           </div>
 
           <div className="md:col-span-2 pt-3 pb-1">
-            <div className="text-xs font-semibold opacity-55 border-b border-[var(--stroke)] pb-2">تذكيرات الأذكار اليومية</div>
+            <div className="text-xs font-semibold opacity-55 border-b border-(--stroke) pb-2">تذكيرات الأذكار اليومية</div>
           </div>
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+          <div className="glass rounded-3xl p-4 border border-(--stroke)">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">أذكار الصباح</div>
@@ -1397,7 +1397,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+          <div className="glass rounded-3xl p-4 border border-(--stroke)">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">أذكار المساء</div>
@@ -1422,7 +1422,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+          <div className="glass rounded-3xl p-4 border border-(--stroke)">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">ورد اليوم (القرآن)</div>
@@ -1447,7 +1447,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+          <div className="glass rounded-3xl p-4 border border-(--stroke)">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">خطة الختمة</div>
@@ -1473,7 +1473,7 @@ export function SettingsPage() {
           </div>
 
           {/* Phase 10 — Daily hadith at Fajr */}
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+          <div className="glass rounded-3xl p-4 border border-(--stroke)">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">حديث الفجر اليومي</div>
@@ -1491,7 +1491,7 @@ export function SettingsPage() {
           </div>
 
           {/* N6 — Tasbeeh & istighfar nudge */}
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+          <div className="glass rounded-3xl p-4 border border-(--stroke)">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">تسبيح واستغفار</div>
@@ -1549,7 +1549,7 @@ export function SettingsPage() {
                   if (file) void onRestore(file);
                 }}
               />
-              <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] cursor-pointer text-sm min-h-[44px] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent-50">
+              <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-(--card) hover:bg-(--card-2) border border-(--stroke) cursor-pointer text-sm min-h-[44px] peer-focus-visible:outline-solid peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent-50">
                 <Upload size={16} aria-hidden="true" />
                 استيراد
               </span>
@@ -1564,10 +1564,10 @@ export function SettingsPage() {
       {/* Se8 + Se9: Security & Advanced */}
       <Card id="settings-security" className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Fingerprint size={18} aria-hidden="true" className="text-[var(--accent)]" />
+          <Fingerprint size={18} aria-hidden="true" className="text-(--accent)" />
           <div className="font-semibold">الأمان والمتقدّم</div>
         </div>
-        <div className="space-y-3">
+        <div className="stack-y-3">
           {/* Se8: Biometric lock — only shown on native. Not implemented yet (no native
               biometric plugin wired in), so this is an honest "coming soon" stub rather
               than a switch that falsely promises protection it can't enforce. */}
@@ -1585,9 +1585,9 @@ export function SettingsPage() {
             />
           )}
           {/* Se9: App icon variants */}
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+          <div className="glass rounded-3xl p-4 border border-(--stroke)">
             <div className="flex items-center gap-2 mb-2">
-              <Layers size={14} aria-hidden="true" className="text-[var(--accent)]" />
+              <Layers size={14} aria-hidden="true" className="text-(--accent)" />
               <div className="text-sm font-semibold">أيقونة التطبيق</div>
             </div>
             <div className="text-xs opacity-60 mb-3">اختر نمط أيقونة التطبيق على شاشتك الرئيسية</div>
@@ -1603,7 +1603,7 @@ export function SettingsPage() {
                   <button type="button"
                     key={icon.id}
                     onClick={() => toast("قريبًا — تغيير أيقونة التطبيق قيد التطوير")}
-                    className="px-3 py-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] text-xs transition min-h-[36px] opacity-60 cursor-not-allowed"
+                    className="px-3 py-2 rounded-xl border border-(--stroke) bg-(--card) text-xs transition min-h-[36px] opacity-60 cursor-not-allowed"
                   >
                     {icon.label}
                   </button>
@@ -1623,7 +1623,7 @@ export function SettingsPage() {
           <span className="text-base" aria-hidden="true">📚</span>
           <div className="text-sm font-semibold">محتوى وأدلة</div>
         </div>
-        <div className="space-y-1">
+        <div className="stack-y-1">
           {[
             { icon: "✨", label: "أسماء الله الحسنى", desc: "تصفح الأسماء الـ٩٩ مع المعاني", route: "/asma" },
             { icon: "🤲", label: "الأدعية", desc: "أدعية قرآنية ونبوية", route: "/duas" },
@@ -1638,12 +1638,12 @@ export function SettingsPage() {
               className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl transition text-right"
               style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >
-              <span className="text-xl flex-shrink-0">{icon}</span>
+              <span className="text-xl shrink-0">{icon}</span>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium" style={{ color: "var(--fg)" }}>{label}</div>
                 <div className="text-xs opacity-55 mt-0.5" style={{ color: "var(--fg)" }}>{desc}</div>
               </div>
-              <ChevronLeft size={14} aria-hidden="true" className="opacity-35 flex-shrink-0" />
+              <ChevronLeft size={14} aria-hidden="true" className="opacity-35 shrink-0" />
             </button>
           ))}
         </div>
@@ -1743,10 +1743,10 @@ function TranslationSettingsCard() {
   return (
     <Card id="settings-translation" className="p-5">
       <div className="flex items-center gap-2">
-        <Globe size={18} className="text-[var(--accent)]" aria-hidden="true" />
+        <Globe size={18} className="text-(--accent)" aria-hidden="true" />
         <div className="font-semibold">ترجمة القرآن</div>
       </div>
-      <div className="mt-1 text-[11px] text-[var(--muted-2)]">
+      <div className="mt-1 text-[11px] text-(--muted-2)">
         اختر مصدر الترجمة الذي يظهر أسفل كل آية في المصحف.
       </div>
       <div className="mt-4">
@@ -1814,16 +1814,16 @@ function QuranSettingsCard() {
   return (
     <Card id="settings-quran" className="p-5">
       <div className="flex items-center gap-2">
-        <BookOpen size={18} className="text-[var(--accent)]" aria-hidden="true" />
+        <BookOpen size={18} className="text-(--accent)" aria-hidden="true" />
         <div className="font-semibold">القرآن</div>
       </div>
 
       {/* Mushaf offline status */}
-      <div className="mt-5 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-3.5">
+      <div className="mt-5 rounded-2xl border border-(--stroke) bg-(--card-2) p-3.5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold">المصحف محليًا</div>
-            <div className="text-[11px] text-[var(--muted-2)]">
+            <div className="text-[11px] text-(--muted-2)">
               {offline?.indexedDBReady
                 ? `مثبَّت · ${offline.sizeLabel}`
                 : "غير مثبَّت — النسخة المضمّنة في التطبيق تعمل، التثبيت المحلي يجعلها فورية"}
@@ -1840,22 +1840,22 @@ function QuranSettingsCard() {
           )}
         </div>
         {progress ? (
-          <div className="mt-2 h-1 overflow-hidden rounded-full bg-[var(--stroke)]/40">
+          <div className="mt-2 h-1 overflow-hidden rounded-full bg-(--stroke)/40">
             <div
-              className="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
+              className="h-full rounded-full bg-(--accent) transition-all duration-300"
               style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }}
             />
           </div>
         ) : null}
         {progress ? (
-          <p className="mt-1 text-[10.5px] text-[var(--muted-2)]">{progress.label}</p>
+          <p className="mt-1 text-[10.5px] text-(--muted-2)">{progress.label}</p>
         ) : null}
       </div>
 
       {/* Daily goal presets */}
       <div className="mt-5">
         <div className="text-sm font-semibold">ورد اليوم</div>
-        <div className="mt-1 text-[11px] text-[var(--muted-2)]">عدد الآيات الذي تريد قراءتها كل يوم</div>
+        <div className="mt-1 text-[11px] text-(--muted-2)">عدد الآيات الذي تريد قراءتها كل يوم</div>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {QURAN_DAILY_GOAL_PRESETS.map((p) => (
             <button key={p.value} type="button"
@@ -1864,8 +1864,8 @@ function QuranSettingsCard() {
               className={[
                 "rounded-xl border px-3 py-1.5 text-[12px] font-semibold transition active:scale-95",
                 (prefs.quranDailyGoal ?? 10) === p.value
-                  ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]",
+                  ? "bg-accent-15 border-accent-35 text-(--accent)"
+                  : "bg-(--card) border-(--stroke) hover:bg-(--card-2)",
               ].join(" ")}>
               {p.label}
             </button>
@@ -1876,7 +1876,7 @@ function QuranSettingsCard() {
       {/* Arabic font picker */}
       <div className="mt-5">
         <div className="text-sm font-semibold">خط القرآن</div>
-        <div className="mt-1 text-[11px] text-[var(--muted-2)]">اختر الخط المفضّل لقراءة المصحف</div>
+        <div className="mt-1 text-[11px] text-(--muted-2)">اختر الخط المفضّل لقراءة المصحف</div>
         <div className="mt-3 grid grid-cols-3 gap-2">
           {FONT_OPTIONS.map((f) => (
             <button key={f.id} type="button"
@@ -1886,7 +1886,7 @@ function QuranSettingsCard() {
                 "rounded-2xl border p-3 text-center transition",
                 (prefs.arabicFont ?? "noto_naskh") === f.id
                   ? "bg-accent-15 border-accent-35"
-                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]",
+                  : "bg-(--card) border-(--stroke) hover:bg-(--card-2)",
               ].join(" ")}>
               <div className={[
                 "text-2xl",
@@ -1899,10 +1899,10 @@ function QuranSettingsCard() {
       </div>
 
       {/* Background vibrancy */}
-      <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-3.5">
+      <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card-2) p-3.5">
         <div>
           <div className="text-sm font-semibold">حيوية الخلفية في المصحف</div>
-          <div className="text-[11px] text-[var(--muted-2)]">يظهر لون زاهي خلف الصفحة بدل الرمادي الخافت</div>
+          <div className="text-[11px] text-(--muted-2)">يظهر لون زاهي خلف الصفحة بدل الرمادي الخافت</div>
         </div>
         <Switch
           checked={!!prefs.bgVibrancyBoost}
@@ -1916,7 +1916,7 @@ function QuranSettingsCard() {
           <div className="text-sm font-semibold">حجم خط قراءة القرآن</div>
           <div className="text-xs opacity-70 tabular-nums">{arNum(Math.round((prefs.quranFontScale ?? 1.0) * 100))}٪</div>
         </div>
-        <div className="mt-1 text-[11px] text-[var(--muted-2)]">يطبَّق على قائمة آيات القرآن، ليس المصحف نفسه</div>
+        <div className="mt-1 text-[11px] text-(--muted-2)">يطبَّق على قائمة آيات القرآن، ليس المصحف نفسه</div>
         <div className="mt-3">
           <Slider
             value={[prefs.quranFontScale ?? 1.0]}
@@ -1948,10 +1948,10 @@ function QuranSettingsCard() {
       </div>
 
       {/* Quran scroll mode (page mode = flip, scroll mode = continuous) */}
-      <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-3.5">
+      <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card-2) p-3.5">
         <div>
           <div className="text-sm font-semibold">نمط التصفح</div>
-          <div className="text-[11px] text-[var(--muted-2)]">صفحة بصفحة أو تمرير مستمر</div>
+          <div className="text-[11px] text-(--muted-2)">صفحة بصفحة أو تمرير مستمر</div>
         </div>
         <div className="flex gap-1.5" role="group" aria-label="نمط تصفح القرآن">
           {([
@@ -1965,7 +1965,7 @@ function QuranSettingsCard() {
                 "rounded-xl border px-3 py-1.5 text-xs font-semibold transition min-h-[36px]",
                 (prefs.quranScrollMode ?? "page") === m.id
                   ? "bg-accent-15 border-accent-35"
-                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]",
+                  : "bg-(--card) border-(--stroke) hover:bg-(--card-2)",
               ].join(" ")}>
               {m.label}
             </button>
@@ -2028,7 +2028,7 @@ function HomeWidgetsCard(props: {
         aria-controls="home-widgets-list"
         className="w-full flex items-center gap-2 text-right"
       >
-        <Layers size={18} aria-hidden="true" className="text-[var(--accent)] shrink-0" />
+        <Layers size={18} aria-hidden="true" className="text-(--accent) shrink-0" />
         <div className="flex-1 min-w-0">
           <div className="font-semibold">عناصر الصفحة الرئيسية</div>
           <div className="text-xs opacity-60 mt-0.5">
@@ -2043,18 +2043,18 @@ function HomeWidgetsCard(props: {
       </button>
 
       {open && (
-      <div id="home-widgets-list" role="list" aria-label="ترتيب عناصر الصفحة الرئيسية" className="mt-4 space-y-2">
+      <div id="home-widgets-list" role="list" aria-label="ترتيب عناصر الصفحة الرئيسية" className="mt-4 stack-y-2">
         {order.map((key, i) => (
           <div
             key={key}
             role="listitem"
-            className="flex items-center gap-3 glass rounded-2xl border border-[var(--stroke)] px-3 py-2.5"
+            className="flex items-center gap-3 glass rounded-2xl border border-(--stroke) px-3 py-2.5"
           >
             <div className="flex flex-col gap-0.5">
               <button type="button"
                 onClick={() => moveUp(i)}
                 disabled={i === 0}
-                className="p-1 rounded-lg hover:bg-[var(--card-2)] transition disabled:opacity-25"
+                className="p-1 rounded-lg hover:bg-(--card-2) transition disabled:opacity-25"
                 aria-label={`تحريك ${HOME_WIDGET_LABELS[key]} لأعلى`}
               >
                 <ArrowUp size={12} aria-hidden="true" />
@@ -2062,14 +2062,14 @@ function HomeWidgetsCard(props: {
               <button type="button"
                 onClick={() => moveDown(i)}
                 disabled={i === order.length - 1}
-                className="p-1 rounded-lg hover:bg-[var(--card-2)] transition disabled:opacity-25"
+                className="p-1 rounded-lg hover:bg-(--card-2) transition disabled:opacity-25"
                 aria-label={`تحريك ${HOME_WIDGET_LABELS[key]} لأسفل`}
               >
                 <ArrowDown size={12} aria-hidden="true" />
               </button>
             </div>
             <span
-              className={`flex-1 text-sm ${key === "prayer" ? "cursor-pointer hover:text-[var(--accent)] transition-colors" : ""}`}
+              className={`flex-1 text-sm ${key === "prayer" ? "cursor-pointer hover:text-(--accent) transition-colors" : ""}`}
               role={key === "prayer" ? "button" : undefined}
               tabIndex={key === "prayer" ? 0 : undefined}
               onClick={key === "prayer" ? () => { document.getElementById("prayer-settings")?.scrollIntoView({ behavior: "smooth", block: "center" }); } : undefined}
@@ -2077,10 +2077,10 @@ function HomeWidgetsCard(props: {
             >
               {HOME_WIDGET_LABELS[key]}
               {(key === "wisdom" || key === "dailyVerse") && (
-                <span className="text-[10px] opacity-35 bg-[var(--card)] rounded-md px-1.5 py-0.5 mr-1 whitespace-nowrap">ضمن شريط اليومي</span>
+                <span className="text-[10px] opacity-35 bg-(--card) rounded-md px-1.5 py-0.5 mr-1 whitespace-nowrap">ضمن شريط اليومي</span>
               )}
               {key === "quests" && (
-                <span className="text-[10px] opacity-35 bg-[var(--card)] rounded-md px-1.5 py-0.5 mr-1 whitespace-nowrap">ضمن القائمة</span>
+                <span className="text-[10px] opacity-35 bg-(--card) rounded-md px-1.5 py-0.5 mr-1 whitespace-nowrap">ضمن القائمة</span>
               )}
             </span>
             <Switch
@@ -2118,7 +2118,7 @@ function SettingRow(props: {
     ? React.cloneElement(props.right as React.ReactElement<Record<string, unknown>>, { "aria-label": props.title })
     : props.right;
   return (
-    <div className={`glass rounded-3xl p-4 border border-[var(--stroke)] flex items-center justify-between gap-4${props.disabled ? " opacity-35 pointer-events-none select-none" : ""}`}>
+    <div className={`glass rounded-3xl p-4 border border-(--stroke) flex items-center justify-between gap-4${props.disabled ? " opacity-35 pointer-events-none select-none" : ""}`}>
       <div className="min-w-0">
         <div className="text-sm font-semibold">{props.title}</div>
         <div className="text-xs opacity-65 mt-1 leading-5">{props.desc}</div>
@@ -2172,8 +2172,8 @@ function DangerZone() {
   return (
     <Card className="p-5 border border-danger-20">
       <div className="flex items-center gap-2 mb-3">
-        <Trash2 size={16} className="text-[var(--danger)]" aria-hidden="true" />
-        <div className="text-sm font-semibold text-[var(--danger)]">منطقة الخطر</div>
+        <Trash2 size={16} className="text-(--danger)" aria-hidden="true" />
+        <div className="text-sm font-semibold text-(--danger)">منطقة الخطر</div>
       </div>
       <div className="text-xs opacity-65 mb-4 leading-6">
         إعادة تعيين بياناتك المحلية. لا يمكن التراجع عن هذه الإجراءات.
@@ -2183,7 +2183,7 @@ function DangerZone() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            className="border-danger-40 text-[var(--danger)] hover:bg-danger-10"
+            className="border-danger-40 text-(--danger) hover:bg-danger-10"
             onClick={handleReset}
           >
             <Trash2 size={15} aria-hidden="true" />

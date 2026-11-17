@@ -206,7 +206,7 @@ export function CommandPalette(props: Props) {
       <Dialog.Portal>
         <Dialog.Overlay
           aria-hidden="true"
-          className={cn("fixed inset-0 z-[60] bg-[var(--card)]0 backdrop-blur-sm opacity-0 transition", props.open && "opacity-100")}
+          className={cn("fixed inset-0 z-60 bg-[var(--card)]0 backdrop-blur-xs opacity-0 transition", props.open && "opacity-100")}
           onClick={() => props.setOpen(false)}
         />
 
@@ -225,12 +225,12 @@ export function CommandPalette(props: Props) {
             const restoreTarget = restoreFocusRef.current;
             if (restoreTarget?.isConnected) restoreTarget.focus({ preventScroll: true });
           }}
-          className={cn("fixed left-1/2 top-14 z-[61] -translate-x-1/2 w-[92vw] max-w-2xl opacity-0 scale-[.98] transition", props.open && "opacity-100 scale-100")}
+          className={cn("fixed left-1/2 top-14 z-61 -translate-x-1/2 w-[92vw] max-w-2xl opacity-0 scale-[.98] transition", props.open && "opacity-100 scale-100")}
         >
           <Dialog.Title className="sr-only">البحث السريع</Dialog.Title>
-        <div className="glass-strong rounded-3xl overflow-hidden border border-[var(--stroke)]">
+        <div className="glass-strong rounded-3xl overflow-hidden border border-(--stroke)">
           <Command className="w-full" shouldFilter={false}>
-            <div className="flex items-center gap-3 px-4 py-4 border-b border-[var(--stroke)]">
+            <div className="flex items-center gap-3 px-4 py-4 border-b border-(--stroke)">
               <Search size={18} aria-hidden="true" className="opacity-70" />
               <Command.Input
                 ref={inputRef}
@@ -241,10 +241,10 @@ export function CommandPalette(props: Props) {
                 autoComplete="off"
                 autoCapitalize="none"
                 spellCheck={false}
-                className="w-full bg-transparent outline-none text-sm placeholder:text-[var(--muted-2)]"
+                className="w-full bg-transparent outline-hidden text-sm placeholder:text-(--muted-2)"
               />
-              <kbd className="text-[11px] opacity-40 pointer-events-none shrink-0 font-mono border border-[var(--stroke)] rounded-md px-1.5 py-0.5">Ctrl+K</kbd>
-              <kbd className="text-[11px] opacity-40 pointer-events-none shrink-0 font-mono border border-[var(--stroke)] rounded-md px-1.5 py-0.5">esc</kbd>
+              <kbd className="text-[11px] opacity-40 pointer-events-none shrink-0 font-mono border border-(--stroke) rounded-md px-1.5 py-0.5">Ctrl+K</kbd>
+              <kbd className="text-[11px] opacity-40 pointer-events-none shrink-0 font-mono border border-(--stroke) rounded-md px-1.5 py-0.5">esc</kbd>
             </div>
 
             <Command.List className="max-h-[60vh] overflow-auto py-2">
@@ -268,7 +268,7 @@ export function CommandPalette(props: Props) {
                     <Item onSelect={() => go("/settings")} icon={<span className="text-base" aria-hidden="true">⚙️</span>}>الإعدادات</Item>
                   </Command.Group>
 
-                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                  <Command.Separator className="h-px bg-(--card) my-2" />
                   <Command.Group heading="محتوى وأدلة" className="px-2">
                     <Item onSelect={() => go("/asma")} icon={<span className="text-base" aria-hidden="true">✨</span>}>أسماء الله الحسنى</Item>
                     <Item onSelect={() => go("/duas")} icon={<span className="text-base" aria-hidden="true">🤲</span>}>الأدعية المأثورة</Item>
@@ -279,12 +279,12 @@ export function CommandPalette(props: Props) {
                     <Item onSelect={() => go("/wudu")} icon={<span className="text-base" aria-hidden="true">💧</span>}>كيفية الوضوء</Item>
                   </Command.Group>
 
-                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                  <Command.Separator className="h-px bg-(--card) my-2" />
                   <Command.Group heading="روابط إضافية" className="px-2">
                     <Item onSelect={() => go("/sources")}>المصادر والبيانات</Item>
                   </Command.Group>
 
-                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                  <Command.Separator className="h-px bg-(--card) my-2" />
 
                   <Command.Group heading="أوامر سريعة" className="px-2">
                     <Item
@@ -318,7 +318,7 @@ export function CommandPalette(props: Props) {
 
                   {data?.db?.sections?.length ? (
                     <>
-                      <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                      <Command.Separator className="h-px bg-(--card) my-2" />
                       <Command.Group heading="الأقسام" className="px-2">
                         {data.db.sections.map((s) => {
                           const identity = getSectionIdentity(s.id);
@@ -336,7 +336,7 @@ export function CommandPalette(props: Props) {
 
               {surahResults.length ? (
                 <>
-                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                  <Command.Separator className="h-px bg-(--card) my-2" />
                   <Command.Group heading="السور" className="px-2">
                     {surahResults.map((s) => (
                       <Item key={s.id} onSelect={() => go(`/mushaf?surah=${s.id}`)} icon={<span className="text-base" aria-hidden="true">📖</span>}>
@@ -354,7 +354,7 @@ export function CommandPalette(props: Props) {
 
               {ayahResults.length ? (
                 <>
-                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                  <Command.Separator className="h-px bg-(--card) my-2" />
                   <Command.Group heading="آيات قرآنية" className="px-2">
                     {ayahResults.map((a) => (
                       <Item key={`${a.surahId}:${a.ayahIndex}`} onSelect={() => go(`/mushaf?surah=${a.surahId}&ayah=${a.ayahIndex}`)} icon={<span className="text-base">🌙</span>}>
@@ -368,7 +368,7 @@ export function CommandPalette(props: Props) {
 
               {libraryResults.length ? (
                 <>
-                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                  <Command.Separator className="h-px bg-(--card) my-2" />
                   <Command.Group heading="نتائج داخل المكتبة" className="px-2">
                     {libraryResults.map((entry) => (
                       <Item key={entry.key} onSelect={() => go(`/library/${entry.collectionId}/${entry.id}`)} icon={<span className="text-base">{entry.collectionIcon}</span>}>
@@ -384,7 +384,7 @@ export function CommandPalette(props: Props) {
 
               {results.length ? (
                 <>
-                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                  <Command.Separator className="h-px bg-(--card) my-2" />
                   <Command.Group heading="نتائج داخل الأذكار" className="px-2">
                     {results.map((r) => (
                       <Item key={r.key} onSelect={() => go(`/c/${r.sectionId}?focus=${r.index}`)}>
@@ -410,7 +410,7 @@ function Item(props: { children: React.ReactNode; onSelect: () => void; icon?: R
   return (
     <Command.Item
       onSelect={props.onSelect}
-      className="flex items-start gap-2 rounded-2xl px-3 py-2.5 text-sm cursor-pointer select-none data-[selected=true]:bg-accent-12 data-[selected=true]:text-[var(--accent)] min-h-[44px]"
+      className="flex items-start gap-2 rounded-2xl px-3 py-2.5 text-sm cursor-pointer select-none data-[selected=true]:bg-accent-12 data-[selected=true]:text-(--accent) min-h-[44px]"
     >
       <span className="mt-0.5 opacity-70">{props.icon}</span>
       <div className="min-w-0">{props.children}</div>

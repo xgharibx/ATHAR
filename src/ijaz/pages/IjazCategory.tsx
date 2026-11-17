@@ -38,7 +38,7 @@ export default function CategoryPage() {
             transformOrigin: 'bottom',
           }}
         />
-        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-vanta via-vanta/60 to-transparent" />
+        <div className="absolute inset-0 z-1 bg-linear-to-t from-vanta via-vanta/60 to-transparent" />
 
         <div className="relative z-10 container mx-auto px-6 pb-12">
           <nav className="flex items-center gap-2 text-sm font-tajawal text-text-muted mb-4">

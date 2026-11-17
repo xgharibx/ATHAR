@@ -68,11 +68,11 @@ export function AsmaAlHusnaPage() {
   return (
     <div dir="rtl" className="min-h-screen-safe pb-32 page-enter">
       {/* Header Card — matches DhikrList style */}
-      <div className="px-4 pt-4 space-y-4">
+      <div className="px-4 pt-4 stack-y-4">
         <Card className="p-5 overflow-hidden relative">
           <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
           <div
-            className="absolute inset-0 bg-gradient-to-bl from-amber-400/15 to-yellow-300/10 pointer-events-none opacity-55"
+            className="absolute inset-0 bg-linear-to-bl from-amber-400/15 to-yellow-300/10 pointer-events-none opacity-55"
             style={{ borderRadius: "inherit" }}
           />
           <div className="relative">
@@ -81,7 +81,7 @@ export function AsmaAlHusnaPage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl flex-shrink-0"
+                className="mt-1 p-2 rounded-xl shrink-0"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -123,7 +123,7 @@ export function AsmaAlHusnaPage() {
                 spellCheck={false}
                 autoComplete="off"
                 autoCapitalize="none"
-                className="flex-1 bg-transparent text-sm outline-none"
+                className="flex-1 bg-transparent text-sm outline-hidden"
                 style={{ color: "var(--fg)" }}
               />
               {query && (
@@ -148,7 +148,7 @@ export function AsmaAlHusnaPage() {
                   role="tab"
                   aria-selected={tab === t}
                   onClick={() => { setTab(t); setExpandedId(null); }}
-                  className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
+                  className="shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
                   style={{
                     background: tab === t ? "#f59e0b" : "var(--card)",
                     color: tab === t ? "var(--on-accent)" : "var(--fg)",

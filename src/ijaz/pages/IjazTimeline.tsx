@@ -119,7 +119,7 @@ export default function TimelinePage() {
         {/* Timeline */}
         <div ref={containerRef} className="relative max-w-4xl mx-auto">
           {/* Vertical Line */}
-          <div className="absolute right-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-gold-primary/50 via-gold-primary/20 to-transparent" />
+          <div className="absolute right-1/2 top-0 bottom-0 w-px bg-linear-to-b from-gold-primary/50 via-gold-primary/20 to-transparent" />
 
           {timelineEvents.map((event, i) => {
             const isLeft = i % 2 === 0;

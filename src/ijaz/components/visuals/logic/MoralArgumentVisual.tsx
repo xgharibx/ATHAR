@@ -162,7 +162,7 @@ export default function MoralArgumentVisual({ className }: MiracleVisualProps) {
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 + i * 0.45, duration: 0.5 }}
-            className={`flex items-center gap-1.5 rounded-md px-2 py-1 backdrop-blur-sm border ${
+            className={`flex items-center gap-1.5 rounded-md px-2 py-1 backdrop-blur-xs border ${
               i === 2 ? 'bg-verse-green/15 border-verse-green/40' : 'bg-black/30 border-gold-primary/20'
             }`}
           >
