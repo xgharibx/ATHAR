@@ -10,7 +10,7 @@
  *
  * Native setup required:
  *  Android — WidgetProvider reads key "noor_widget_prayer_v2" from SharedPreferences
- *  iOS     — WidgetExtension reads key "noor_widget_prayer_v2" from UserDefaults(suiteName: "group.app.athar")
+ *  iOS     — AtharWidgets reads key "noor_widget_prayer_v2" from UserDefaults(suiteName: "group.com.athar.adhkar")
  *  Both    — Capacitor Preferences plugin bridges the data bridge below.
  */
 
@@ -165,10 +165,10 @@ export async function syncPrayerWidget(timings: Record<string, string>, dateKey:
           key: "noor_widget_last_update",
           value: new Date().toISOString(),
         });
-        // Repaint the prayer widgets with the fresh timings right away.
-        const { refreshHomeWidgets } = await import("@/lib/widgetRefresh");
-        await refreshHomeWidgets();
       }
+      // Repaint the prayer widgets with the fresh timings right away.
+      const { refreshHomeWidgets } = await import("@/lib/widgetRefresh");
+      await refreshHomeWidgets();
     } catch {
       // Plugin not available — widget sync degrades to localStorage only
     }

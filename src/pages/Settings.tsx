@@ -1472,6 +1472,33 @@ export function SettingsPage() {
             </div>
           </div>
 
+          {/* iOS Live Activity — next-prayer countdown on the Lock Screen */}
+          {isIOS && (
+            <div className="glass rounded-3xl p-4 border border-(--stroke)">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold">عدّاد الصلاة القادمة</div>
+                  <div className="text-xs opacity-65 mt-1">
+                    عدّ تنازلي للصلاة القادمة على شاشة القفل وفي الجزيرة التفاعلية
+                  </div>
+                </div>
+                <Switch
+                  aria-label="عدّاد الصلاة القادمة على شاشة القفل"
+                  checked={reminders.prayerLiveActivity ?? false}
+                  onCheckedChange={(v) => {
+                    setReminders({ prayerLiveActivity: v });
+                    if (!v) return;
+                    void import("@/lib/prayerLiveActivity").then(async ({ prayerLiveActivitiesAllowed }) => {
+                      if (!(await prayerLiveActivitiesAllowed())) {
+                        toast.error("فعّل «الأنشطة المباشرة» لتطبيق أثر من إعدادات الجهاز");
+                      }
+                    });
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Phase 10 — Daily hadith at Fajr */}
           <div className="glass rounded-3xl p-4 border border-(--stroke)">
             <div className="flex items-center justify-between gap-3">

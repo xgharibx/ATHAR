@@ -234,6 +234,7 @@ export type Reminders = {
   tasbeehTime: string; // HH:MM
   dailyHadithNotif: boolean; // Phase 10 — daily hadith at Fajr
   iqamaOffsets: Record<PrayerAlertPrayer, number>; // minutes after adhan per prayer
+  prayerLiveActivity: boolean; // iOS: next-prayer countdown on the Lock Screen and Dynamic Island
 };
 
 // L1: Friends leaderboard
@@ -826,7 +827,8 @@ const DEFAULT_REMINDERS: Reminders = {
   tasbeehEnabled: false,
   tasbeehTime: "13:00",
   dailyHadithNotif: false,
-  iqamaOffsets: { Fajr: 20, Dhuhr: 15, Asr: 15, Maghrib: 10, Isha: 15 }
+  iqamaOffsets: { Fajr: 20, Dhuhr: 15, Asr: 15, Maghrib: 10, Isha: 15 },
+  prayerLiveActivity: false,
 };
 
 function normalizeReminderSoundProfile(value: unknown): ReminderSoundProfile {

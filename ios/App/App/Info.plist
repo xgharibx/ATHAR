@@ -91,6 +91,8 @@
 	<string>Athar uses Apple's speech-recognition service to transcribe optional dhikr counting and Quran recitation. Audio may be sent to Apple for processing.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
