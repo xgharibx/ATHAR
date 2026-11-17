@@ -4,7 +4,6 @@ import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { vendorChunk } from "./tools/build/vendorChunks.ts";
 import { hardenHtmlPlugin } from "./tools/build/hardenHtml.ts";
 import { thirdPartyNoticesPlugin } from "./tools/build/thirdPartyNotices.ts";
 
@@ -88,9 +87,6 @@ export default defineConfig(({ mode }) => {
         // that configures them (for example the validation library's settings).
         strictExecutionOrder: true,
         comments: { legal: false },
-        codeSplitting: {
-          groups: [{ name: (id: string) => vendorChunk(id) ?? null, debugName: "vendor" }],
-        },
       },
     },
   },
