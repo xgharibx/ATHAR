@@ -9,7 +9,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
-import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels } from "@/lib/reminders";
+import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels, type PrayerNotificationDay } from "@/lib/reminders";
 import { syncCustomReminders } from "@/lib/reminderSync";
 import { CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT } from "@/lib/customReminderNotifications";
 import { listenForAppResume } from "@/lib/reminderAppResume";
@@ -238,6 +238,15 @@ function AppContent() {
     prayerTimes.data?.data?.timings?.Sunrise,
   ]);
 
+  // The rest of the week, so native prayer alarms stay queued while the app
+  // is closed. A stable key keeps the reminder sync from re-running on every
+  // render of the same data.
+  const upcomingPrayerDaysKey = JSON.stringify(prayerTimes.upcoming ?? null);
+  const upcomingNotificationPrayerDays = React.useMemo(
+    () => (JSON.parse(upcomingPrayerDaysKey) as PrayerNotificationDay[] | null),
+    [upcomingPrayerDaysKey],
+  );
+
   const tomorrowNotificationPrayerTimings = React.useMemo(() => {
     const timings = prayerTimes.tomorrow?.data?.timings;
     if (!timings) return null;
@@ -425,11 +434,12 @@ function AppContent() {
   }, [ensureDailyResets, fajrTime]);
 
   React.useEffect(() => {
-    void syncReminders(reminders, notificationPrayerTimings, reminderCompletion, tomorrowNotificationPrayerTimings);
+    void syncReminders(reminders, notificationPrayerTimings, reminderCompletion, tomorrowNotificationPrayerTimings, upcomingNotificationPrayerDays);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     notificationPrayerTimings,
     tomorrowNotificationPrayerTimings,
+    upcomingNotificationPrayerDays,
     reminders,
     reminderCompletion.morningDone,
     reminderCompletion.morningStarted,

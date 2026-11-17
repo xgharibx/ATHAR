@@ -75,6 +75,19 @@ const RAMADAN_IDS = {
 // N5: Daily hadith at Fajr (Phase 10)
 const DAILY_HADITH_ID = 9501;
 const NOTIFICATION_DATE_SLOT_OFFSET = 10;
+/**
+ * Prayer alarms are queued a week ahead so they keep firing while the app
+ * stays closed. Each date takes one of seven ID slots (day ordinal mod 7):
+ * the seven days in any window never share a slot, and every ID stays
+ * inside its own block (prayers 92xx, follow-ups 93xx, Ramadan 94xx,
+ * hadith 95xx).
+ */
+const NOTIFICATION_DATE_SLOTS = 7;
+export const PRAYER_SCHEDULE_DAYS = 7;
+/** Follow-ups and the daily hadith only matter for today and tomorrow. */
+const NEAR_TERM_DAYS = 2;
+/** iOS keeps the 64 soonest pending notifications; leave room for snoozes. */
+const IOS_PENDING_NOTIFICATION_BUDGET = 60;
 
 // 40 brief excerpts from Nawawi's 40 Hadiths (rotate daily). Exported so
 // other real-source callers (e.g. the companion's weekly reflection) can
@@ -138,15 +151,16 @@ function notificationDateSlot(dateISO: string): number {
   const date = parseDateKey(dateISO);
   if (!date || getLocalDateKey(date) !== dateISO) return 0;
   const dayOrdinal = Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000);
-  return dayOrdinal % 2;
+  return dayOrdinal % NOTIFICATION_DATE_SLOTS;
 }
 
 function notificationIdForDate(baseId: number, dateISO: string): number {
   return baseId + notificationDateSlot(dateISO) * NOTIFICATION_DATE_SLOT_OFFSET;
 }
 
-function notificationIdsForBothDateSlots(ids: readonly number[]): number[] {
-  return [0, 1].flatMap((slot) => ids.map((id) => id + slot * NOTIFICATION_DATE_SLOT_OFFSET));
+function notificationIdsForAllDateSlots(ids: readonly number[]): number[] {
+  return Array.from({ length: NOTIFICATION_DATE_SLOTS }, (_, slot) => slot)
+    .flatMap((slot) => ids.map((id) => id + slot * NOTIFICATION_DATE_SLOT_OFFSET));
 }
 
 function notificationIdsForDateSlot(ids: readonly number[], dateISO: string): number[] {
@@ -157,7 +171,8 @@ function notificationIdsForDateSlot(ids: readonly number[], dateISO: string): nu
 function dateSlotIdForAction(baseId: number, dateISO?: string): number | null {
   const today = getLocalDateKey();
   const targetDate = dateISO ?? today;
-  if (targetDate !== today && targetDate !== shiftDateKey(today, 1)) return null;
+  const inWindow = Array.from({ length: PRAYER_SCHEDULE_DAYS }, (_, offset) => shiftDateKey(today, offset)).includes(targetDate);
+  if (!inWindow) return null;
   return notificationIdForDate(baseId, targetDate);
 }
 
@@ -476,10 +491,10 @@ export async function cancelAllReminders() {
       { id: REMINDER_SNOOZE_IDS.dailyWird },
       { id: REMINDER_SNOOZE_IDS.khatma },
       { id: REMINDER_SNOOZE_IDS.tasbeeh },
-      ...notificationRefs(notificationIdsForBothDateSlots(Object.values(PRAYER_NOTIFICATION_IDS))),
-      ...notificationRefs(notificationIdsForBothDateSlots(Object.values(PRAYER_FOLLOWUP_IDS))),
-      ...notificationRefs(notificationIdsForBothDateSlots(Object.values(RAMADAN_IDS))),
-      ...notificationRefs(notificationIdsForBothDateSlots([DAILY_HADITH_ID])),
+      ...notificationRefs(notificationIdsForAllDateSlots(Object.values(PRAYER_NOTIFICATION_IDS))),
+      ...notificationRefs(notificationIdsForAllDateSlots(Object.values(PRAYER_FOLLOWUP_IDS))),
+      ...notificationRefs(notificationIdsForAllDateSlots(Object.values(RAMADAN_IDS))),
+      ...notificationRefs(notificationIdsForAllDateSlots([DAILY_HADITH_ID])),
     ]
   });
 }
@@ -643,7 +658,7 @@ function buildReminderNotifications(
   });
 }
 
-type PrayerNotificationDay = { dateISO: string; timings: PrayerNotificationTimings };
+export type PrayerNotificationDay = { dateISO: string; timings: PrayerNotificationTimings };
 
 export function buildPrayerNotificationsForDays(
   days: PrayerNotificationDay[],
@@ -657,7 +672,8 @@ export function buildPrayerNotificationsForDays(
   } = {},
 ): LocalNotification[] {
   const now = options.now ?? new Date();
-  return days.slice(0, 2).flatMap((day) => {
+  return days.slice(0, PRAYER_SCHEDULE_DAYS).flatMap((day, dayIndex) => {
+    const nearTerm = dayIndex < NEAR_TERM_DAYS;
     const dayStart = parseDateKey(day.dateISO);
     if (!dayStart || getLocalDateKey(dayStart) !== day.dateISO) return [];
 
@@ -670,7 +686,7 @@ export function buildPrayerNotificationsForDays(
       const extra = { prayerName, dateISO: day.dateISO, ...wallClockNotificationExtra(at) };
       const followUpAt = new Date(at.getTime() + 30 * 60_000);
       const prayerWasLogged = options.prayerLog?.[day.dateISO]?.[prayerName] === true;
-      const shouldScheduleFollowUp = !prayerWasLogged && followUpAt.getTime() > now.getTime() + 30_000;
+      const shouldScheduleFollowUp = nearTerm && !prayerWasLogged && followUpAt.getTime() > now.getTime() + 30_000;
       const followUp = {
         id: notificationIdForDate(PRAYER_FOLLOWUP_IDS[prayerName], day.dateISO),
         title: "أثر — تذكير لطيف",
@@ -712,7 +728,7 @@ export function buildPrayerNotificationsForDays(
     if (isRamadan(dayStart)) notifications.push(...buildRamadanNotifications(
       day, audio, now, enabledPrayers.Maghrib ? quiet : audio,
     ));
-    if (options.includeDailyHadith) {
+    if (options.includeDailyHadith && nearTerm) {
       const hadith = buildDailyHadithNotification(day, quiet, now);
       if (hadith) notifications.push(hadith);
     }
@@ -726,7 +742,7 @@ export function buildDailyHadithNotificationsForDays(
   audio: NotificationAudioConfig,
   now = new Date(),
 ): LocalNotification[] {
-  return days.slice(0, 2).flatMap((day) => {
+  return days.slice(0, NEAR_TERM_DAYS).flatMap((day) => {
     const dayStart = parseDateKey(day.dateISO);
     if (!dayStart || getLocalDateKey(dayStart) !== day.dateISO) return [];
     const notification = buildDailyHadithNotification(day, audio, now);
@@ -1030,6 +1046,7 @@ export function syncReminders(
   prayerTimings?: PrayerNotificationTimings | null,
   completion?: ReminderCompletionInfo,
   tomorrowPrayerTimings?: PrayerNotificationTimings | null,
+  laterPrayerDays?: readonly PrayerNotificationDay[] | null,
 ): Promise<void> {
   const owner = getAccountStorageOwner();
   return enqueueReminderOperation(async () => {
@@ -1040,8 +1057,57 @@ export function syncReminders(
       prayerTimings,
       completion,
       tomorrowPrayerTimings,
+      laterPrayerDays,
     );
   });
+}
+
+/**
+ * The days prayer alarms are queued for: today, then tomorrow and the
+ * following days only while they run on without a gap.
+ */
+export function prayerScheduleDays(
+  todayISO: string,
+  prayerTimings: PrayerNotificationTimings,
+  tomorrowPrayerTimings?: PrayerNotificationTimings | null,
+  laterPrayerDays?: readonly PrayerNotificationDay[] | null,
+): PrayerNotificationDay[] {
+  const days: PrayerNotificationDay[] = [{ dateISO: todayISO, timings: prayerTimings }];
+  if (!tomorrowPrayerTimings) return days;
+  days.push({ dateISO: shiftDateKey(todayISO, 1), timings: tomorrowPrayerTimings });
+  const later = new Map((laterPrayerDays ?? []).map((day) => [day.dateISO, day.timings] as const));
+  for (let offset = 2; offset < PRAYER_SCHEDULE_DAYS; offset += 1) {
+    const dateISO = shiftDateKey(todayISO, offset);
+    const timings = later.get(dateISO);
+    if (!timings) break;
+    days.push({ dateISO, timings });
+  }
+  return days;
+}
+
+/**
+ * Keep a schedule within iOS's pending-notification budget by dropping whole
+ * days of prayer alarms, latest first. Today and tomorrow, and the daily
+ * reminders, are never dropped.
+ */
+export function fitToNotificationBudget(
+  notifications: LocalNotification[],
+  budget: number,
+  todayISO: string,
+): LocalNotification[] {
+  if (notifications.length <= budget) return notifications;
+  const nearTermDates = new Set(Array.from({ length: NEAR_TERM_DAYS }, (_, offset) => shiftDateKey(todayISO, offset)));
+  const dateOf = (notification: LocalNotification) =>
+    typeof notification.extra?.dateISO === "string" ? notification.extra.dateISO as string : null;
+  const droppableDates = [...new Set(notifications.map(dateOf).filter((date): date is string => !!date && !nearTermDates.has(date)))]
+    .sort()
+    .reverse();
+  let kept = notifications;
+  for (const date of droppableDates) {
+    if (kept.length <= budget) break;
+    kept = kept.filter((notification) => dateOf(notification) !== date);
+  }
+  return kept;
 }
 
 /** Whether a notification belongs to the active scope and may affect its UI. */
@@ -1068,6 +1134,7 @@ async function syncRemindersForOwner(
   prayerTimings?: PrayerNotificationTimings | null,
   completion?: ReminderCompletionInfo,
   tomorrowPrayerTimings?: PrayerNotificationTimings | null,
+  laterPrayerDays?: readonly PrayerNotificationDay[] | null,
 ): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
 
@@ -1082,14 +1149,17 @@ async function syncRemindersForOwner(
   const reminderIds = Object.values(REMINDER_IDS);
   const shouldRefreshPrayerNotifications = !reminders.prayerAlertsEnabled || !!prayerTimings;
   const todayISO = getLocalDateKey();
+  const scheduleDays = prayerTimings
+    ? prayerScheduleDays(todayISO, prayerTimings, tomorrowPrayerTimings, laterPrayerDays)
+    : [];
   const prayerIdsForRefresh = (ids: readonly number[]) => {
     if (!shouldRefreshPrayerNotifications) return [];
-    // A caller may only have today's times available. Keep tomorrow's already
-    // scheduled alarms until tomorrow's refreshed timings are ready.
-    if (reminders.prayerAlertsEnabled && prayerTimings && !tomorrowPrayerTimings) {
-      return notificationIdsForDateSlot(ids, todayISO);
+    // Replace only the days whose times are known now. Later days keep their
+    // queued alarms until their refreshed times arrive.
+    if (reminders.prayerAlertsEnabled && prayerTimings) {
+      return scheduleDays.flatMap((day) => notificationIdsForDateSlot(ids, day.dateISO));
     }
-    return notificationIdsForBothDateSlots(ids);
+    return notificationIdsForAllDateSlots(ids);
   };
   const prayerIds = prayerIdsForRefresh(Object.values(PRAYER_NOTIFICATION_IDS));
   const followUpIds = prayerIdsForRefresh(Object.values(PRAYER_FOLLOWUP_IDS));
@@ -1098,7 +1168,7 @@ async function syncRemindersForOwner(
   await LocalNotifications.cancel({
     notifications: notificationRefs([
       ...reminderIds,
-      ...notificationIdsForBothDateSlots([DAILY_HADITH_ID]),
+      ...notificationIdsForAllDateSlots([DAILY_HADITH_ID]),
       ...(shouldRefreshPrayerNotifications ? [...prayerIds, ...followUpIds, ...ramadanIds] : []),
     ]),
   });
@@ -1122,10 +1192,6 @@ async function syncRemindersForOwner(
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
     if (getAccountStorageOwner() !== owner) return;
-    const scheduleDays: PrayerNotificationDay[] = [
-      { dateISO: todayISO, timings: prayerTimings },
-      ...(tomorrowPrayerTimings ? [{ dateISO: shiftDateKey(todayISO, 1), timings: tomorrowPrayerTimings }] : []),
-    ];
     notifications.push(...buildPrayerNotificationsForDays(
       scheduleDays,
       prayerNotificationAudio,
@@ -1139,18 +1205,30 @@ async function syncRemindersForOwner(
   }
 
   if (reminders.dailyHadithNotif && prayerTimings) {
-    const scheduleDays: PrayerNotificationDay[] = [
-      { dateISO: todayISO, timings: prayerTimings },
-      ...(tomorrowPrayerTimings ? [{ dateISO: shiftDateKey(todayISO, 1), timings: tomorrowPrayerTimings }] : []),
-    ];
     notifications.push(...buildDailyHadithNotificationsForDays(scheduleDays, quiet));
   }
 
   if (!notifications.length) return;
   if (getAccountStorageOwner() !== owner) return;
 
+  let scheduled = notifications;
+  if (Capacitor.getPlatform() === "ios") {
+    // Count what is already queued and not being replaced now: custom
+    // reminders, snoozes and later prayer days kept from an earlier sync.
+    let alreadyQueued: number;
+    try {
+      const replacing = new Set(notifications.map((notification) => notification.id));
+      const pending = await LocalNotifications.getPending();
+      alreadyQueued = pending.notifications.filter((item) => !replacing.has(Number(item.id))).length;
+    } catch {
+      alreadyQueued = 0;
+    }
+    scheduled = fitToNotificationBudget(notifications, IOS_PENDING_NOTIFICATION_BUDGET - alreadyQueued, todayISO);
+  }
+  if (getAccountStorageOwner() !== owner) return;
+
   await LocalNotifications.schedule({
-    notifications: notifications.map((notification) => ({
+    notifications: scheduled.map((notification) => ({
       ...notification,
       extra: { ...notification.extra, accountOwner: owner },
     })),
