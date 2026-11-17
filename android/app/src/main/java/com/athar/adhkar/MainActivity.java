@@ -36,6 +36,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(StoreInfoPlugin.class);
         registerPlugin(CompassPlugin.class);
         registerPlugin(NativeHapticsPlugin.class);
+        registerPlugin(QuranAudioPlugin.class);
         super.onCreate(savedInstanceState);
 
         // Ask once a day, in the background, whether a newer version has been

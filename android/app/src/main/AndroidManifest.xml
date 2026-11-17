@@ -66,6 +66,16 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
+        <!-- Native Quran recitation: media playback foreground service (Media3). -->
+        <service
+            android:name=".RecitationService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+
         <!-- Prayer Times Widget (4×3) -->
         <receiver
             android:name=".NoorPrayerFullWidgetProvider"

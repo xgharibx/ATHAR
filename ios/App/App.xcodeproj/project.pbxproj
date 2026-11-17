@@ -21,6 +21,7 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		50D0FF26EC625D95099D470B /* AtharWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 381C3C0056E75304760BD959 /* AtharWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6EFED682B60C1D97E4CD99D8 /* AtharWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B340E0473BDAA3AF7C2A77 /* AtharWidgets.swift */; };
+		86E19F44582074A545E5E539 /* QuranAudioPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCEBF9CF003CBE36CAA7B5C3 /* QuranAudioPlugin.swift */; };
 		A62F5D8330BB8E6F49B43C6A /* WidgetRefreshPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */; };
 		A7D84291C0A24D96A7A11001 /* AuthBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */; };
 		A7D84291C0A24D96A7A11002 /* ShareBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */; };
@@ -81,6 +82,7 @@
 		A7D84291C0A24D96A7A12005 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetRefreshPlugin.swift; sourceTree = "<group>"; };
 		DC241998B23C88977A89039F /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DCEBF9CF003CBE36CAA7B5C3 /* QuranAudioPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuranAudioPlugin.swift; sourceTree = "<group>"; };
 		F4A7B13E0D804E928F0C2001 /* adhan_ahmad_al_nafees.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = adhan_ahmad_al_nafees.caf; sourceTree = "<group>"; };
 		F4A7B13E0D804E928F0C2002 /* birds.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = birds.caf; sourceTree = "<group>"; };
 		F7238335C463F957088B1646 /* AtharWidgets.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = AtharWidgets.entitlements; sourceTree = "<group>"; };
@@ -165,6 +167,7 @@
 				275FA8C0A3494BAD1F058741 /* PrayerActivityPlugin.swift */,
 				C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */,
 				21BD0F60D9CBF1755C249433 /* CompassPlugin.swift */,
+				DCEBF9CF003CBE36CAA7B5C3 /* QuranAudioPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -318,6 +321,7 @@
 				44295D741B785CFED93713C0 /* PrayerActivityPlugin.swift in Sources */,
 				A62F5D8330BB8E6F49B43C6A /* WidgetRefreshPlugin.swift in Sources */,
 				3A3E5D9FE31030D4CF420644 /* CompassPlugin.swift in Sources */,
+				86E19F44582074A545E5E539 /* QuranAudioPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

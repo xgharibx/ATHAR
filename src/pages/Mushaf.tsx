@@ -40,7 +40,8 @@ import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { ShareAyahModal } from "@/components/quran/ShareAyahModal";
 import { MemorizationAyahContent } from "@/components/quran/MemorizationAyahContent";
 import { FocusManagedDialog } from "@/components/ui/FocusManagedDialog";
-import { cacheAudioUrlsWithinBudget, MUSHAF_AUDIO_CACHE_NAME } from "@/lib/offlineAudioCache";
+import { hasNativeRecitation, planRecitationQueue, startNativeRecitation, type NativeRecitationSession, type RecitationHandle } from "@/lib/nativeRecitation";
+import { canSaveRecitationsOffline, everyAyahUrl, saveRecitationsOffline } from "@/lib/recitationDownloads";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import { CompanionModal } from "@/components/companion/CompanionModal";
@@ -101,6 +102,22 @@ const SAJDA_AYAHS = new Set([
   "7:206","13:15","16:50","17:109","19:58","22:26","22:77","25:60",
   "27:26","32:15","38:24","41:38","53:62","84:21","96:19",
 ]);
+
+/** Move the Mushaf page with the finger during a swipe. */
+function dragPageTo(el: HTMLElement, shift: number) {
+  el.style.transition = "none";
+  el.style.transform = `translateX(${shift}px)`;
+  el.style.opacity = String(1 - Math.min(Math.abs(shift) / 600, 0.25));
+}
+
+/** Put a dragged page back, springing into place or at once (when the next page slides in). */
+function settleDraggedPage(el: HTMLElement, animate: boolean) {
+  if (!el.style.transform) return;
+  el.style.transition = animate ? "transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease" : "";
+  el.style.transform = "";
+  el.style.opacity = "";
+  if (animate) window.setTimeout(() => { if (!el.style.transform) el.style.transition = ""; }, 220);
+}
 
 function useRadioState() {
   const [state, setState] = React.useState(getRadioState);
@@ -578,7 +595,9 @@ export function MushafPage() {
 
   // Audio refs & state
   const [playingKey, setPlayingKey] = React.useState<string | null>(null);
-  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  // The web player's audio element, or the native recitation player in the apps.
+  const audioRef = React.useRef<RecitationHandle | null>(null);
+  const nativeSessionRef = React.useRef<NativeRecitationSession | null>(null);
   const [audioBarVisible, setAudioBarVisible] = React.useState(true);
   const [showReciterSheet, setShowReciterSheet] = React.useState(false);
 
@@ -876,6 +895,120 @@ export function MushafPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefs.quranReciter]);
 
+  // Native recitation (Android and iOS apps): the whole run of verses goes to
+  // the native player, which reports each verse as it starts.
+  const nativeTokenRef = React.useRef(0);
+  const nativeVerseKeyRef = React.useRef<string | null>(null);
+  const nativeStartRef = React.useRef<(surahId: number, originalAyah: number, displayAyah: number) => Promise<void>>(async () => {});
+  React.useEffect(() => {
+    nativeStartRef.current = async (surahId, originalAyah, displayAyah) => {
+      const pst = audioPlayRef.current;
+      let plan = planRecitationQueue({
+        items: pst.items,
+        currentIndex: pst.currentIdx,
+        loop: pst.loop,
+        loopCount: pst.loopRemaining,
+        useRange: pst.useRange,
+        rangeStartIdx: pst.rangeStartIdx,
+        rangeEndIdx: pst.rangeEndIdx,
+        advance: pst.advance,
+      });
+      if (plan.items.length === 0) plan = { items: [{ surahId, originalAyah, displayAyah }], startIndex: 0, repeat: "none" };
+      const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
+      const reciterName = QURAN_RECITERS.find((r) => r.id === reciter)?.label ?? "تلاوة";
+      const surahName = (id: number) => quranDBRef.current?.find((s) => s.id === id)?.name ?? "";
+      const verses = plan.items.map((item) => ({
+        id: `${item.surahId}:${item.displayAyah}`,
+        url: everyAyahUrl(reciter, item.surahId, item.originalAyah),
+        title: `${surahName(item.surahId)} · آية ${toArabicNumeral(item.displayAyah)}`,
+        artist: reciterName,
+      }));
+      const token = ++nativeTokenRef.current;
+      const stillWanted = () => nativeTokenRef.current === token && audioPlayRef.current.active;
+      // One recitation at a time, and the native player owns the lock screen.
+      if (getRadioState().playing) stopRadio();
+      void releaseMediaSession("quran");
+
+      const showVerse = (index: number) => {
+        const item = plan.items[index];
+        if (!item) return;
+        const key = `${item.surahId}:${item.displayAyah}`;
+        nativeVerseKeyRef.current = key;
+        setPlayingKey(key);
+        const targetPage = Number(pageMapRef.current[`${item.surahId}:${item.originalAyah}`]);
+        if (Number.isFinite(targetPage) && targetPage >= 1 && targetPage !== currentPageRef.current) {
+          goPageRef.current(targetPage);
+        }
+      };
+      const celebrate = (item: { surahId: number; originalAyah: number } | undefined) => {
+        if (!item) return;
+        const surahInfo = quranDBRef.current?.find((s) => s.id === item.surahId);
+        if (surahInfo && item.originalAyah === surahInfo.ayahs.length && !sessionSurahCompletedRef.current.has(item.surahId)) {
+          sessionSurahCompletedRef.current.add(item.surahId);
+          toast.success(`أتممت سورة ${surahInfo.name} 🌟`, { duration: 3500 });
+        }
+      };
+      let session: NativeRecitationSession | null = null;
+      const finish = () => {
+        audioPlayRef.current.active = false;
+        if (session && audioRef.current === session) audioRef.current = null;
+        if (nativeSessionRef.current === session) nativeSessionRef.current = null;
+        nativeVerseKeyRef.current = null;
+        setPlayingKey(null);
+      };
+      let lastIndex = plan.startIndex;
+      session = await startNativeRecitation(
+        { verses, startIndex: plan.startIndex, rate: pst.speed, volume: audioVolume, repeat: plan.repeat },
+        {
+          onVerse: (index) => {
+            if (!stillWanted()) return;
+            if (index !== lastIndex) celebrate(plan.items[lastIndex]);
+            lastIndex = index;
+            showVerse(index);
+          },
+          onState: (state) => {
+            if (!stillWanted()) return;
+            // Paused from the lock screen, headphones or a call: show it as
+            // stopped; the play button resumes from the same verse.
+            if (state === "paused") setPlayingKey(null);
+            else if (state === "playing" && nativeVerseKeyRef.current) setPlayingKey(nativeVerseKeyRef.current);
+          },
+          onEnded: () => {
+            if (!stillWanted()) return;
+            celebrate(plan.items[lastIndex]);
+            const finishedRun = pst.advance && !pst.loop;
+            finish();
+            if (finishedRun) toast.success("✅ انتهت التلاوة");
+          },
+          onError: () => {
+            if (!stillWanted()) return;
+            session?.pause();
+            finish();
+            toast.error("تعذر تشغيل التلاوة");
+          },
+        },
+      );
+      if (!stillWanted()) {
+        session?.pause();
+        return;
+      }
+      if (!session) {
+        // An app build without the native player: use the web player.
+        playItemCoreRef.current?.(surahId, originalAyah, displayAyah);
+        return;
+      }
+      nativeSessionRef.current = session;
+      audioRef.current = session;
+      showVerse(plan.startIndex);
+    };
+  });
+
+  // Speed changes apply to a native recitation straight away.
+  React.useEffect(() => {
+    audioPlayRef.current.speed = playbackSpeed;
+    nativeSessionRef.current?.setRate(playbackSpeed);
+  }, [playbackSpeed]);
+
   const playAyah = React.useCallback((surahId: number, originalAyah: number, displayAyah: number) => {
     const key = `${surahId}:${displayAyah}`;
     const pst = audioPlayRef.current;
@@ -903,7 +1036,10 @@ export function MushafPage() {
     pst.useRange = loopRange;
     pst.rangeStartIdx = Math.max(0, loopRangeStartIdx);
     pst.rangeEndIdx = Math.min(snapshot.length - 1, Math.max(loopRangeStartIdx, loopRangeEndIdx));
-    playItemCoreRef.current?.(surahId, originalAyah, displayAyah);
+    // The apps play natively (gapless, and on with the screen locked); the
+    // equalizer needs the web player's audio graph, so it keeps the web player.
+    if (hasNativeRecitation() && !eqEnabledRef.current) void nativeStartRef.current(surahId, originalAyah, displayAyah);
+    else playItemCoreRef.current?.(surahId, originalAyah, displayAyah);
   }, [playingKey, playbackSpeed, loopEnabled, loopCount, autoAdvance, playableItems, loopRange, loopRangeStartIdx, loopRangeEndIdx, buildSurahQueue]);
 
   React.useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
@@ -1117,7 +1253,18 @@ export function MushafPage() {
   // tafsirs must not also turn the page behind it.
   const inSheet = (t: EventTarget | null) =>
     t instanceof Element && !!t.closest('[role="dialog"],[aria-modal="true"],[data-no-swipe]');
+  // The page follows a horizontal swipe, like a native reader, and springs
+  // back if the swipe is too short to turn it. Styled directly on the element
+  // so nothing re-renders while the finger moves.
+  const swipeAxis = React.useRef<"x" | "y" | null>(null);
+  const dragMotionAllowed = () =>
+    !document.documentElement.classList.contains("reduce-motion") &&
+    !(typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const settlePage = (animate: boolean) => {
+    if (pageContentRef.current) settleDraggedPage(pageContentRef.current, animate);
+  };
   const onTouchStart = (e: React.TouchEvent) => {
+    swipeAxis.current = null;
     if (inSheet(e.target)) {
       touchStartX.current = null;
       touchStartY.current = null;
@@ -1138,6 +1285,22 @@ export function MushafPage() {
     }
   };
   const onTouchMove = React.useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1 && touchStartX.current !== null && touchStartY.current !== null && pinchStartDist.current === null) {
+      const dx = (e.touches[0]?.clientX ?? 0) - touchStartX.current;
+      const dy = (e.touches[0]?.clientY ?? 0) - touchStartY.current;
+      if (swipeAxis.current === null) {
+        if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.2) swipeAxis.current = "x";
+        else if (Math.abs(dy) > 10) swipeAxis.current = "y";
+      }
+      const el = pageContentRef.current;
+      if (swipeAxis.current === "x" && el && dragMotionAllowed()) {
+        // Swiping right moves forward in the Mushaf; resist past the first and last page.
+        const page = currentPageRef.current;
+        const atEdge = (dx > 0 && page >= totalPages) || (dx < 0 && page <= 1);
+        dragPageTo(el, dx * (atEdge ? 0.15 : 0.5));
+      }
+      return;
+    }
     if (e.touches.length >= 2 && pinchStartDist.current !== null) {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -1147,7 +1310,7 @@ export function MushafPage() {
       setFontScale(newScale);
       setPrefs({ mushafFontScale: newScale });
     }
-  }, [setPrefs]);
+  }, [setPrefs, totalPages]);
   const onTouchEnd = (e: React.TouchEvent) => {
     if (inSheet(e.target)) return;
     if (pinchStartDist.current !== null) {
@@ -1161,10 +1324,21 @@ export function MushafPage() {
     const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - touchStartY.current);
     touchStartX.current = null;
     touchStartY.current = null;
-    if (Math.abs(dx) < 55 || dy > Math.abs(dx) * 0.8) return;
+    const target = dx > 0 ? currentPage + 1 : currentPage - 1;
+    if (Math.abs(dx) < 55 || dy > Math.abs(dx) * 0.8 || target < 1 || target > totalPages) {
+      settlePage(true);
+      return;
+    }
+    // The new page slides in from the swipe's side.
+    settlePage(false);
     // Arabic Mushaf: swipe right (dx > 0) = next page (forward in Arabic reading order)
-    if (dx > 0) goPage(currentPage + 1);
-    else goPage(currentPage - 1);
+    goPage(target);
+  };
+  const onTouchCancel = () => {
+    touchStartX.current = null;
+    touchStartY.current = null;
+    pinchStartDist.current = null;
+    settlePage(true);
   };
 
   // Keyboard navigation
@@ -1335,21 +1509,14 @@ export function MushafPage() {
 
   // A2: Download current page ayah audio for offline use
   const downloadPageAudio = React.useCallback(async () => {
-    if (!("caches" in window)) { toast.error("التخزين غير متاح في هذا المتصفح"); return; }
+    if (!canSaveRecitationsOffline()) { toast.error("التخزين غير متاح في هذا المتصفح"); return; }
     const items = playableItems.slice();
     if (items.length === 0) return;
     setCacheProgress({ done: 0, total: items.length });
     try {
-      const cache = await caches.open(MUSHAF_AUDIO_CACHE_NAME);
       const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
-      const urls = items.map((item) => {
-        const surah = String(item.surahId).padStart(3, "0");
-        const ayah = String(item.originalAyah).padStart(3, "0");
-        return "https://everyayah.com/data/" + reciter + "/" + surah + ayah + ".mp3";
-      });
-      const { saved, evicted } = await cacheAudioUrlsWithinBudget(cache, urls, {
-        onProgress: (done, total) => setCacheProgress({ done, total }),
-      });
+      const urls = items.map((item) => everyAyahUrl(reciter, item.surahId, item.originalAyah));
+      const { saved, evicted } = await saveRecitationsOffline(urls, (done, total) => setCacheProgress({ done, total }));
       const reclaimed = evicted > 0 ? " · أُزيل " + evicted + " ملفًا صوتيًا أقدم لإفساح مساحة" : "";
       if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
       else if (saved === items.length) toast.success("✓ تم تخزين " + saved + " ملفًا صوتيًا للاستماع دون إنترنت" + reclaimed);
@@ -1381,20 +1548,13 @@ export function MushafPage() {
 
   const runBulkDownload = React.useCallback(
     async (items: { surahId: number; originalAyah: number }[], label: string, successLabel: string) => {
-      if (!("caches" in window)) { toast.error("التخزين غير متاح في هذا المتصفح"); return; }
+      if (!canSaveRecitationsOffline()) { toast.error("التخزين غير متاح في هذا المتصفح"); return; }
       if (items.length === 0) return;
       setBulkDownloadProgress({ done: 0, total: items.length, label });
       try {
-        const cache = await caches.open(MUSHAF_AUDIO_CACHE_NAME);
         const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
-        const urls = items.map((item) => {
-          const surah = String(item.surahId).padStart(3, "0");
-          const ayah = String(item.originalAyah).padStart(3, "0");
-          return "https://everyayah.com/data/" + reciter + "/" + surah + ayah + ".mp3";
-        });
-        const { saved, evicted } = await cacheAudioUrlsWithinBudget(cache, urls, {
-          onProgress: (done, total) => setBulkDownloadProgress({ done, total, label }),
-        });
+        const urls = items.map((item) => everyAyahUrl(reciter, item.surahId, item.originalAyah));
+        const { saved, evicted } = await saveRecitationsOffline(urls, (done, total) => setBulkDownloadProgress({ done, total, label }));
         const reclaimed = evicted > 0 ? " · أُزيل " + evicted + " ملفًا صوتيًا أقدم لإفساح مساحة" : "";
         if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
         else if (saved === items.length) toast.success("✓ تم تخزين " + successLabel + " كاملة (" + saved + " آية) للاستماع دون إنترنت" + reclaimed);
@@ -1437,20 +1597,16 @@ export function MushafPage() {
 
   // A2-B: Download current page audio for a specific reciter (from reciter sheet)
   const downloadReciterPage = React.useCallback(async (reciterId: string) => {
-    if (!("caches" in window)) { toast.error("التخزين غير متاح في هذا المتصفح"); return; }
+    if (!canSaveRecitationsOffline()) { toast.error("التخزين غير متاح في هذا المتصفح"); return; }
     const items = playableItems.slice();
     if (items.length === 0) return;
     setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: { done: 0, total: items.length } }));
     try {
-      const cache = await caches.open(MUSHAF_AUDIO_CACHE_NAME);
-      const urls = items.map((item) => {
-        const surah = String(item.surahId).padStart(3, "0");
-        const ayah = String(item.originalAyah).padStart(3, "0");
-        return "https://everyayah.com/data/" + reciterId + "/" + surah + ayah + ".mp3";
-      });
-      const { saved, evicted } = await cacheAudioUrlsWithinBudget(cache, urls, {
-        onProgress: (done, total) => setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: { done, total } })),
-      });
+      const urls = items.map((item) => everyAyahUrl(reciterId, item.surahId, item.originalAyah));
+      const { saved, evicted } = await saveRecitationsOffline(
+        urls,
+        (done, total) => setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: { done, total } })),
+      );
       setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: saved === items.length ? "done" : "partial" }));
       const name = QURAN_RECITERS.find((r) => r.id === reciterId)?.label ?? reciterId;
       const reclaimed = evicted > 0 ? " · أُزيل " + evicted + " ملفًا صوتيًا أقدم لإفساح مساحة" : "";
@@ -1493,6 +1649,9 @@ export function MushafPage() {
     };
   });
   React.useEffect(() => {
+    // In the apps the native player shows its own lock-screen controls (the
+    // equalizer keeps the web player, and with it these controls).
+    if (hasNativeRecitation() && !eqEnabledRef.current) return;
     const info = {
       title: `${pageSurahName} · آية ${playingKey?.split(":")[1] ?? ""}`,
       artist: reciterLabel,
@@ -1634,6 +1793,7 @@ export function MushafPage() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       onTouchMove={onTouchMove}
+      onTouchCancel={onTouchCancel}
     >
       {/* ── Top chrome bar ───────────────────────────────── */}
       <div
@@ -2152,7 +2312,9 @@ export function MushafPage() {
           <button type="button"
             className="mushaf-audio-play-btn"
             onClick={() => {
+              const native = nativeSessionRef.current;
               if (playingKey && audioRef.current) { audioRef.current.pause(); setPlayingKey(null); }
+              else if (native?.paused && audioRef.current === native) { audioPlayRef.current.active = true; native.resume(); }
               else if (firstPlayableItem) playAyah(firstPlayableItem.surahId, firstPlayableItem.originalAyah, firstPlayableItem.displayAyah);
             }}
             aria-label={playingKey ? "إيقاف التلاوة" : "تشغيل التلاوة"}
