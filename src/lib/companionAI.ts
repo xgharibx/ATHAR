@@ -21,7 +21,9 @@
  *  - Retrieval block pulled from the local Islamic-library index.
  *  - Post-stream verifier that flags unverifiable Quran/hadith claims.
  */
-import Anthropic from "@anthropic-ai/sdk";
+import { BaseAnthropic } from "@anthropic-ai/sdk/client";
+import { APIConnectionError, APIError, AuthenticationError, RateLimitError } from "@anthropic-ai/sdk/core/error";
+import { Messages, type Tool, type WebSearchTool20250305 } from "@anthropic-ai/sdk/resources/messages/messages";
 import { getSession } from "@/lib/authClient";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
@@ -524,9 +526,9 @@ export const ROUTE_LABELS: Record<string, string> = {
 
 /** Naming the search tool opts this request in to web search. The server
  *  replaces the definition with its own, which fixes the allowed sources. */
-const WEB_SEARCH_TOOL: Anthropic.WebSearchTool20250305 = { type: "web_search_20250305", name: "web_search" };
+const WEB_SEARCH_TOOL: WebSearchTool20250305 = { type: "web_search_20250305", name: "web_search" };
 
-const COMPANION_TOOLS: Anthropic.Tool[] = [
+const COMPANION_TOOLS: Tool[] = [
   {
     name: "next_step",
     description: "اقتراح خطوة عملية واحدة على المستخدم (مثلاً «افتح أذكار الصباح» أو «اقرأ وردي»). استخدم route من قائمة المسارات الصالحة فقط. اكتب description قصيرًا وواضحًا بالعربية.",
@@ -747,28 +749,28 @@ export function describeError(err: unknown): CompanionError {
   }
 
   // Try the SDK instance check first — the canonical path.
-  if (err instanceof Anthropic.AuthenticationError) {
+  if (err instanceof AuthenticationError) {
     return {
       kind: "auth",
       message: "تعذّر التحقق من الطلب لخدمة أثر الذكية. أعد المحاولة.",
       detail: `HTTP ${err.status ?? "?"} — ${err.message ?? ""}`,
     };
   }
-  if (err instanceof Anthropic.RateLimitError) {
+  if (err instanceof RateLimitError) {
     return {
       kind: "rate",
       message: "كثرة الطلبات الآن — انتظر قليلًا ثم أعد المحاولة.",
       detail: `rate-limited HTTP ${err.status ?? "429"}`,
     };
   }
-  if (err instanceof Anthropic.APIConnectionError) {
+  if (err instanceof APIConnectionError) {
     return {
       kind: "offline",
       message: "تعذَّر الوصول إلى خادم الذكاء. تحقَّق من اتصالك بالإنترنت.",
       detail: `connection-failed: ${(err as Error).message ?? "unknown"}`,
     };
   }
-  if (err instanceof Anthropic.APIError) {
+  if (err instanceof APIError) {
     const s = err.status ?? 0;
     if (s >= 500) {
       return { kind: "server", message: "خادم الذكاء مُتعَبٌ قليلًا — أعد المحاولة.", detail: `HTTP ${s}` };
@@ -819,7 +821,19 @@ export function describeError(err: unknown): CompanionError {
   };
 }
 
-async function createClient(): Promise<Anthropic> {
+/* Only the Messages API is used, and every request goes through the Athar
+   proxy. Building on the SDK's base client keeps the rest of the SDK (admin,
+   files, batches, local credential discovery) out of the app bundle. */
+class CompanionClient extends BaseAnthropic {
+  messages: Messages = new Messages(this);
+
+  /* Authentication is the proxy's job: never look for local credentials. */
+  protected override _shouldResolveDefaultCredentials(): boolean {
+    return false;
+  }
+}
+
+async function createClient(): Promise<CompanionClient> {
   if (!PROXY_URL) throw new Error("no-proxy-configured");
   const session = await getSession().catch(() => null);
   const headers: Record<string, string> = {
@@ -834,7 +848,7 @@ async function createClient(): Promise<Anthropic> {
     headers.apikey = SUPABASE_ANON_KEY;
   }
   headers.Authorization = `Bearer ${session?.access_token || SUPABASE_ANON_KEY}`;
-  return new Anthropic({
+  return new CompanionClient({
     apiKey: "proxy",
     baseURL: PROXY_URL,
     dangerouslyAllowBrowser: true,

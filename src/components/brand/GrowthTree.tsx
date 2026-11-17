@@ -33,8 +33,12 @@ const STAGE_LABELS = [
   "شجرة مكتملة الإزهار 🌸",
 ];
 
+// One shared empty value: a selector that returned a new object each time
+// would make the store report a change on every read.
+const NO_ACTIVITY: Record<string, number> = {};
+
 export function GrowthTree() {
-  const activity = useNoorStore((s) => (s as unknown as { activity?: Record<string, number> }).activity ?? {});
+  const activity = useNoorStore((s) => (s as unknown as { activity?: Record<string, number> }).activity ?? NO_ACTIVITY);
   const days = React.useMemo(() => activeDaysLast7(activity), [activity]);
 
   const stem = Math.min(1, days / 7);

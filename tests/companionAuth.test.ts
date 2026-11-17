@@ -9,33 +9,23 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/authClient", () => ({ getSession: mocks.getSession }));
-vi.mock("@anthropic-ai/sdk", () => {
-  class APIError extends Error {
-    status?: number;
-    constructor(message: string, status?: number) { super(message); this.status = status; }
-  }
-  class AuthenticationError extends APIError {}
-  class RateLimitError extends APIError {}
-  class APIConnectionError extends Error {}
-  class AnthropicMock {
-    static APIError = APIError;
-    static AuthenticationError = AuthenticationError;
-    static RateLimitError = RateLimitError;
-    static APIConnectionError = APIConnectionError;
-    messages = {
-      stream: (...args: unknown[]) => {
-        mocks.stream(...args);
-        return {
-          controller: { abort: vi.fn() },
-          async *[Symbol.asyncIterator]() {},
-          finalMessage: async () => mocks.finalMessage,
-        };
-      },
-    };
+vi.mock("@anthropic-ai/sdk/client", () => ({
+  BaseAnthropic: class {
     constructor(options: Record<string, unknown>) { mocks.clientOptions = options; }
-  }
-  return { default: AnthropicMock };
-});
+  },
+}));
+vi.mock("@anthropic-ai/sdk/resources/messages/messages", () => ({
+  Messages: class {
+    stream(...args: unknown[]) {
+      mocks.stream(...args);
+      return {
+        controller: { abort: vi.fn() },
+        async *[Symbol.asyncIterator]() {},
+        finalMessage: async () => mocks.finalMessage,
+      };
+    }
+  },
+}));
 
 import { clearMemory, recordMemory, streamCompanionReply } from "@/lib/companionAI";
 import { updateProfile } from "@/lib/companionProfile";

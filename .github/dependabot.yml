@@ -44,6 +44,10 @@ updates:
       # Node type definitions follow the Node.js version the builds run on (26).
       - dependency-name: "@types/node"
         update-types: [version-update:semver-major]
+      # The lint parser (typescript-eslint) supports TypeScript below 6.1.
+      # Take newer compilers once it does.
+      - dependency-name: typescript
+        versions: [">=6.1.0"]
       # Published without the signed provenance earlier releases carry. Take a
       # later release once it is signed again.
       - dependency-name: "@tsparticles/*"

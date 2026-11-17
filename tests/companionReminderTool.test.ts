@@ -24,9 +24,12 @@ import "fake-indexeddb/auto";
    We don't need a real client for this test — the assertion is purely on
    the COMPANION_TOOLS export, the onToolCalls callback signature, and the
    helper parsers. Mock the SDK so accidental imports don't try to network. */
-vi.mock("@anthropic-ai/sdk", () => ({
-  default: class FakeAnthropic {
-    messages = { stream: () => ({ controller: { abort: () => {} }, finalMessage: async () => ({ content: [], stop_reason: "end_turn" }), [Symbol.asyncIterator]: async function* () {} }) };
+vi.mock("@anthropic-ai/sdk/client", () => ({ BaseAnthropic: class {} }));
+vi.mock("@anthropic-ai/sdk/resources/messages/messages", () => ({
+  Messages: class {
+    stream() {
+      return { controller: { abort: () => {} }, finalMessage: async () => ({ content: [], stop_reason: "end_turn" }), [Symbol.asyncIterator]: async function* () {} };
+    }
   },
 }));
 

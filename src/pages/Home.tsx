@@ -53,6 +53,9 @@ import { toArabicNumeral } from "@/lib/quranMeta";
 import { arNum } from "@/lib/formatNumber";
 import { countCompletedKhatmaDays, getKhatmaTimeline } from "@/lib/quranKhatma";
 
+// Shared empty value, so the store selectors return the same object each time.
+const NO_CHECKLIST: Record<string, boolean> = {};
+
 const HomePulse = React.lazy(() => import("@/components/brand/HomePulse"));
 
 
@@ -522,9 +525,9 @@ export function HomePage() {
     mode: "ibadah",
     fajrTime: prayerTimes.data?.data?.timings?.Fajr ?? lastKnownFajrTime ?? undefined,
   });
-  const dailyChecklistToday = useNoorStore((s) => s.dailyChecklist[worshipDayKey] ?? {});
+  const dailyChecklistToday = useNoorStore((s) => s.dailyChecklist[worshipDayKey] ?? NO_CHECKLIST);
   const yesterdayKey = React.useMemo(() => shiftDateKey(worshipDayKey, -1), [worshipDayKey]);
-  const dailyChecklistYesterday = useNoorStore((s) => s.dailyChecklist[yesterdayKey] ?? {});
+  const dailyChecklistYesterday = useNoorStore((s) => s.dailyChecklist[yesterdayKey] ?? NO_CHECKLIST);
   const toggleDailyChecklist = useNoorStore((s) => s.toggleDailyChecklist);
 
   React.useEffect(() => {
