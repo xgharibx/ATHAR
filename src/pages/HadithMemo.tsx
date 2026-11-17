@@ -9,6 +9,7 @@ import { ArrowRight, BrainCircuit, CheckCircle, ChevronLeft, ChevronRight, Copy,
 import { useHadithPack, loadHadithPack } from "@/data/useHadithBook";
 import { HADITH_BOOKS_STATIC, type HadithItem, type HadithPack } from "@/data/hadithTypes";
 import { splitHadithText } from "@/lib/hadithText";
+import { useShallow } from "zustand/react/shallow";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
@@ -112,11 +113,11 @@ export function HadithMemoPage() {
   const { data: nawawi } = useHadithPack("nawawi"); // the "add" tab browses Nawawi 40
   const accentColor = "var(--accent)";
 
-  const { hadithMemoCards, addHadithMemoCard, reviewHadithMemo } = useNoorStore((s) => ({
+  const { hadithMemoCards, addHadithMemoCard, reviewHadithMemo } = useNoorStore(useShallow((s) => ({
     hadithMemoCards: s.hadithMemoCards,
     addHadithMemoCard: s.addHadithMemoCard,
     reviewHadithMemo: s.reviewHadithMemo,
-  }));
+  })));
 
   const today = todayISO();
 

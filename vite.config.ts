@@ -217,10 +217,9 @@ export default defineConfig(({ mode }) => {
   resolve: {
     alias: [
       { find: "@", replacement: path.resolve(__dirname, "./src") },
-      // These packages declare a UMD build in "browser" next to an ES module
+      // webgl-constants declares a UMD build in "browser" next to an ES module
       // build. Vite 8 no longer detects that and would import the UMD build,
-      // whose default export arrives wrapped. Use the ES module builds.
-      { find: /^lottie-react$/, replacement: path.resolve(__dirname, "node_modules/lottie-react/build/index.es.js") },
+      // whose default export arrives wrapped. Use the ES module build.
       { find: /^webgl-constants$/, replacement: path.resolve(__dirname, "node_modules/webgl-constants/dist/webgl-constants.esm.js") },
     ],
   },

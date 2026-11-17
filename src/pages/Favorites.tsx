@@ -22,6 +22,9 @@ import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { AdhkarLoadStatus } from "@/components/home/AdhkarLoadStatus";
 
+// Shared empty value, so the store selector returns the same array each time.
+const NO_DUA_FAVORITES: string[] = [];
+
 function useLocalBookmarkSet(key: string): [Set<string>, (id: string) => void] {
   const [ids, setIds] = React.useState<Set<string>>(() => {
     try {
@@ -57,7 +60,7 @@ export function FavoritesPage() {
   const hadithBookmarks = useNoorStore((s) => s.hadithBookmarks);
   const toggleHadithBookmark = useNoorStore((s) => s.toggleHadithBookmark);
 
-  const duaFavorites = useNoorStore((s) => s.duaFavorites ?? []);
+  const duaFavorites = useNoorStore((s) => s.duaFavorites ?? NO_DUA_FAVORITES);
   const toggleDuaFavorite = useNoorStore((s) => s.toggleDuaFavorite);
 
   const [activeTab, setActiveTab] = React.useState<"adhkar" | "quran" | "hadith" | "duas" | "stories" | "companions">("adhkar");

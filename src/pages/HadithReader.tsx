@@ -35,6 +35,7 @@ import {
   hadithRef,
   type HadithItem,
 } from "@/data/hadithTypes";
+import { useShallow } from "zustand/react/shallow";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
@@ -154,7 +155,7 @@ export function HadithReaderPage() {
   const { data: pack, isLoading, isError, refetch } = useHadithPack(bookKey);
 
   const { hadithBookmarks, toggleHadithBookmark, setHadithProgress, hadithNotes, setHadithNote, addHadithMemoCard, hadithMemoCards } = useNoorStore(
-    (s) => ({
+    useShallow((s) => ({
       hadithBookmarks: s.hadithBookmarks,
       toggleHadithBookmark: s.toggleHadithBookmark,
       setHadithProgress: s.setHadithProgress,
@@ -162,7 +163,7 @@ export function HadithReaderPage() {
       setHadithNote: s.setHadithNote,
       addHadithMemoCard: s.addHadithMemoCard,
       hadithMemoCards: s.hadithMemoCards,
-    }),
+    })),
   );
   // The matn honours the app-wide reading size + line-height (Settings →
   // حجم الخط), same preference the adhkar and Quran text follow — matters
