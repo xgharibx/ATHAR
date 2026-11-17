@@ -41,7 +41,7 @@ updates:
       # React Compiler lint rules: enabling them is a code migration (143 new findings).
       - dependency-name: eslint-plugin-react-hooks
         update-types: [version-update:semver-major]
-      # Node type definitions follow the Node.js version the builds run on (24).
+      # Node type definitions follow the Node.js version the builds run on (26).
       - dependency-name: "@types/node"
         update-types: [version-update:semver-major]
       # Published without the signed provenance earlier releases carry. Take a
