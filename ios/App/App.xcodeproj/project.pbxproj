@@ -10,6 +10,7 @@
 		0C45654F4D15DBB810F0EDC1 /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */; };
 		185FCCCF943857665BB09FDD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 35281742DA46EB40310EDCB8 /* Foundation.framework */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
+		3A3E5D9FE31030D4CF420644 /* CompassPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21BD0F60D9CBF1755C249433 /* CompassPlugin.swift */; };
 		44295D741B785CFED93713C0 /* PrayerActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 275FA8C0A3494BAD1F058741 /* PrayerActivityPlugin.swift */; };
 		44594294AA8E7BE6C19E6A8A /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 9349BF7F4A89B845F3880B82 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
@@ -58,6 +59,7 @@
 /* Begin PBXFileReference section */
 		17B10A020A6515A15E2717EF /* debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		1C9D82B08E87261CC48FC478 /* App.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
+		21BD0F60D9CBF1755C249433 /* CompassPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CompassPlugin.swift; sourceTree = "<group>"; };
 		275FA8C0A3494BAD1F058741 /* PrayerActivityPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerActivityPlugin.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerActivityAttributes.swift; sourceTree = "<group>"; };
@@ -162,6 +164,7 @@
 				1C9D82B08E87261CC48FC478 /* App.entitlements */,
 				275FA8C0A3494BAD1F058741 /* PrayerActivityPlugin.swift */,
 				C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */,
+				21BD0F60D9CBF1755C249433 /* CompassPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -314,6 +317,7 @@
 				C3A8C972A619C4FD7C74D5F7 /* PrayerActivityAttributes.swift in Sources */,
 				44295D741B785CFED93713C0 /* PrayerActivityPlugin.swift in Sources */,
 				A62F5D8330BB8E6F49B43C6A /* WidgetRefreshPlugin.swift in Sources */,
+				3A3E5D9FE31030D4CF420644 /* CompassPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

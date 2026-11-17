@@ -34,6 +34,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(ShareBridgePlugin.class);
         registerPlugin(QuietChannelPlugin.class);
         registerPlugin(StoreInfoPlugin.class);
+        registerPlugin(CompassPlugin.class);
         super.onCreate(savedInstanceState);
 
         // Ask once a day, in the background, whether a newer version has been
