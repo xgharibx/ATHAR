@@ -56,7 +56,6 @@ const ARTEFACTS: Array<[RegExp, string]> = [
 /** Imperative verbs that signal the AI is asking the user to navigate somewhere.
  *  When followed by `[/route]` or `[/route label]`, we promote the phrase to a
  *  real action block. */
-const IMPERATIVE = /^(افتح|افتحي|اقرأ|اقرأي|ارجع|ارجعي|اذهب|اذهبي|شغّل|شغلي|احفظ|احفظي|ابدأ|ابدئي|انتقل|انتقلي|جرّب|جرّبي|ادخل|ادخلي)\b/;
 
 const ARABIC_TO_LATIN_VERB: Record<string, string> = {
   "افتح": "افتح", "افتحي": "افتح",

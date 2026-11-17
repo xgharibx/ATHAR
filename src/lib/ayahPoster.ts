@@ -253,7 +253,7 @@ function bgCelestial(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, rng: ()
   drawStarfield(ctx, rng, W, H, p.ink, p.accent, 220);
 }
 
-function bgGeometric(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, rng: () => number) {
+function bgGeometric(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, _rng: () => number) {
   const { W, H } = g;
   // deep base
   ctx.fillStyle = p.bg;
@@ -294,12 +294,12 @@ function bgGeometric(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, rng: ()
     [W - 80, H - 80, -1, -1],
     [80, H - 80, 1, -1],
   ];
-  for (const [cx, cy, sx, sy] of corners) {
+  for (const [cx, cy, sx] of corners) {
     drawCrescent(ctx, cx, cy, 14, rgba(p.accent, 0.65), sx > 0 ? 1 : -1);
   }
 }
 
-function bgMihrab(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, rng: () => number) {
+function bgMihrab(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, _rng: () => number) {
   const { W, H } = g;
   ctx.fillStyle = p.bg;
   ctx.fillRect(0, 0, W, H);
@@ -349,7 +349,7 @@ function bgMihrab(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, rng: () =>
   ctx.restore();
 }
 
-function bgCalligraphic(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, rng: () => number) {
+function bgCalligraphic(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, _rng: () => number) {
   const { W, H } = g;
   // Warm parchment base — using accent2 for paper tint
   ctx.fillStyle = rgba(p.accent2, 0.10);
@@ -405,7 +405,7 @@ function bgCalligraphic(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, rng:
     [W - 110, H - 110, -1, -1],
     [110, H - 110, 1, -1],
   ];
-  for (const [cx, cy, sx, sy] of corners) {
+  for (const [cx, cy, sx] of corners) {
     drawCrescent(ctx, cx, cy, 12, rgba(p.accent, 0.65), sx > 0 ? 1 : -1);
   }
 }
@@ -487,7 +487,7 @@ function bgNebula(ctx: CanvasRenderingContext2D, g: Geom, p: Palette, rng: () =>
     [W - 90, H - 90, -1, -1],
     [90, H - 90, 1, -1],
   ];
-  for (const [cx, cy, sx, sy] of corners) {
+  for (const [cx, cy, sx] of corners) {
     drawCrescent(ctx, cx, cy, 11, rgba(p.accent, 0.55), sx > 0 ? 1 : -1);
   }
 }
@@ -808,7 +808,7 @@ export async function renderAyahPosterBlob(cfg: AyahPosterConfig): Promise<Blob>
 
 /* Wrap helper for Latin (translation) text. */
 function wrapLatin(
-  ctx: CanvasRenderingContext2D, text: string, maxWidth: number, lh: number,
+  ctx: CanvasRenderingContext2D, text: string, maxWidth: number, _lh: number,
 ): string[] {
   const words = (text ?? "").split(/\s+/).filter(Boolean);
   const out: string[] = [];

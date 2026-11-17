@@ -17,7 +17,6 @@ export default function EmbryoBonesFieshVisual({ className }: MiracleVisualProps
     if (!ctx) return;
 
     let animId: number;
-    let time = 0;
 
     // 2-phase animation: bone formation then muscle coverage
     let phase: 'bones' | 'flesh' | 'complete' = 'bones';
@@ -26,7 +25,6 @@ export default function EmbryoBonesFieshVisual({ className }: MiracleVisualProps
     let fleshProgress = 0;
 
     const draw = () => {
-      time += 0.007;
       phaseTime += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
 

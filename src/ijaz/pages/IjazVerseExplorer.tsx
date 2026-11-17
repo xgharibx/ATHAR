@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import VerseDisplay from '@/ijaz/components/ui/VerseDisplay';
-import { verses, getVersesByKeyword } from '@/ijaz/data/verses';
+import { verses } from '@/ijaz/data/verses';
 import { miracles } from '@/ijaz/data/miracles';
 import { QuranicVerse } from '@/ijaz/types';
 

@@ -48,7 +48,7 @@ export default function BlackHolesQuranVisual({ className }: MiracleVisualProps)
       });
 
       // Accretion disk (rotating ellipse glow)
-      [-0.15, -0.08, 0, 0.08, 0.15].forEach((off, idx) => {
+      [-0.15, -0.08, 0, 0.08, 0.15].forEach((off) => {
         const diskGrad = ctx.createLinearGradient(cx - bhR * 2.5, cy, cx + bhR * 2.5, cy);
         diskGrad.addColorStop(0, 'rgba(0,0,0,0)');
         diskGrad.addColorStop(0.2, `rgba(255,150,30,0.05)`);

@@ -1,10 +1,9 @@
 
 import { useState, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { miracles } from '@/ijaz/data/miracles';
 import { TimelineEvent } from '@/ijaz/types';
-import { getVisualizationColor, getCategoryLabel } from '@/ijaz/lib/utils';
 
 // Build timeline events from miracles data
 const timelineEvents: TimelineEvent[] = [

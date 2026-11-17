@@ -2704,12 +2704,12 @@ export const useNoorStore = create<NoorState>()(
       //      Also exclude customReminders (IDB-backed — see reminderStorage).
       partialize: (state) => {
         const {
-          hadithBookmarks,
-          hadithProgress,
-          hadithNotes,
-          hadithMemoCards,
-          customReminders,
-          seenTemplateIds,
+          hadithBookmarks: _hadithBookmarks,
+          hadithProgress: _hadithProgress,
+          hadithNotes: _hadithNotes,
+          hadithMemoCards: _hadithMemoCards,
+          customReminders: _customReminders,
+          seenTemplateIds: _seenTemplateIds,
           ...rest
         } = state as Record<string, unknown>;
         return rest as Partial<NoorState>;

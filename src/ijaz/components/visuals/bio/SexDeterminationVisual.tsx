@@ -13,7 +13,6 @@ export default function SexDeterminationVisual({ className }: MiracleVisualProps
     if (!ctx) return;
 
     let animId: number;
-    let time = 0;
 
     type Sperm = { x: number; y: number; angle: number; speed: number; type: 'X' | 'Y'; wag: number; wagSpeed: number };
     const sperms: Sperm[] = Array.from({ length: 18 }, (_, i) => ({
@@ -25,7 +24,6 @@ export default function SexDeterminationVisual({ className }: MiracleVisualProps
     }));
 
     const draw = () => {
-      time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
       const cx = w * 0.5, cy = h * 0.42;
 

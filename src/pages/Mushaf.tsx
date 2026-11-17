@@ -7,7 +7,7 @@ import {
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Mic2, Repeat2,
   Eye, EyeOff, CheckCircle2, Languages, Search, WholeWord,
   ArrowUpRight, Settings, Info, Shuffle,
-  Radio, Timer, Download, SlidersHorizontal,
+  Radio, Timer, Download,
   Image as ImageIcon, Sparkles, Loader2,
 } from "lucide-react";
 import { useQuranDB } from "@/data/useQuranDB";
@@ -49,7 +49,6 @@ import { TAFSIR_EDITIONS, getTafsirEditionSlug, getTafsirLabel, loadTafsirSurah 
 import { getMutashabihatForAyah, type MutashabihMatch } from "@/lib/mutashabihat";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { QURAN_TRANSLATION_CACHE_EXPIRED_EVENT } from "@/lib/quranIDB";
-import { TranslationPicker } from "@/components/quran/TranslationPicker";
 import toast from "react-hot-toast";
 import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 
@@ -79,14 +78,9 @@ interface SurahGroup {
 
 // ── Constants ──────────────────────────────────────────────────
 const BASMALAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
-const BASMALAH_VARIANTS = [
-  "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
-  "بِسْمِ ٱللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-  "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-  "بسم الله الرحمن الرحيم",
-];
+/** Recitation speeds offered in the audio bar; slower helps memorization. */
+const RECITATION_SPEEDS = [0.75, 1, 1.25, 1.5];
 // Pre-normalized variants for robust comparison regardless of diacritic combining order
-const BASMALAH_NFC = BASMALAH_VARIANTS.map((v) => v.normalize("NFC"));
 
 const HL_COLORS = {
   gold:  { swatch: "rgba(251,191,36,0.85)",  bg: "rgba(251,191,36,0.22)",  dot: "rgba(251,191,36,0.85)"  },
@@ -199,7 +193,7 @@ export function MushafPage() {
 
   const { data: quranDB, isLoading: dbLoading, isError: dbError, refetch: refetchQuranDB } = useQuranDB();
   const { data: pmData, isLoading: pmLoading, isError: pmError, refetch: refetchPageMap } = useQuranPageMap();
-  const { data: piData, isLoading: piLoading, isError: piError, refetch: refetchPageIndex } = useQuranPageIndex();
+  const { data: piData } = useQuranPageIndex();
   // Keep a ref so audio callbacks can access latest DB without closure stale-ness
   const quranDBRef = React.useRef(quranDB);
   React.useEffect(() => { quranDBRef.current = quranDB; }, [quranDB]);
@@ -604,8 +598,13 @@ export function MushafPage() {
   // Q4/Q7/Q8: Enhanced audio controls (replaces simple repeatMode)
   const [loopEnabled, setLoopEnabled] = React.useState(false);
   const [loopCount, setLoopCount] = React.useState(3); // -1=∞
-  const [playbackSpeed, setPlaybackSpeed] = React.useState(1);
-  const [audioVolume, setAudioVolume] = React.useState<number>(() => {
+  const [playbackSpeed, setPlaybackSpeed] = React.useState<number>(() => {
+    try {
+      const saved = Number(accountScopedLocalStorage.getItem("noor_mushaf_speed"));
+      return RECITATION_SPEEDS.includes(saved) ? saved : 1;
+    } catch { return 1; }
+  });
+  const [audioVolume] = React.useState<number>(() => {
     try { const raw = accountScopedLocalStorage.getItem("noor_mushaf_volume"); return raw === null ? 1 : Math.max(0, Math.min(1, parseFloat(raw) || 1)); } catch { return 1; }
   });
   React.useEffect(() => {
@@ -797,9 +796,10 @@ export function MushafPage() {
   const sleepTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
   // A6: Equalizer (Web Audio API)
-  const [eqEnabled, setEqEnabled] = React.useState(false);
-  const [bassGain, setBassGain] = React.useState(0);
-  const [trebleGain, setTrebleGain] = React.useState(0);
+  // No control turns the equalizer on today; it stays wired for when one does.
+  const [eqEnabled] = React.useState(false);
+  const [bassGain] = React.useState(0);
+  const [trebleGain] = React.useState(0);
   const eqEnabledRef = React.useRef(false);
   const audioCtxRef = React.useRef<AudioContext | null>(null);
   const bassNodeRef = React.useRef<BiquadFilterNode | null>(null);
@@ -1003,10 +1003,13 @@ export function MushafPage() {
     };
   });
 
-  // Speed changes apply to a native recitation straight away.
+  // Speed changes apply to the verse playing now, in either player.
   React.useEffect(() => {
     audioPlayRef.current.speed = playbackSpeed;
     nativeSessionRef.current?.setRate(playbackSpeed);
+    const current = audioRef.current;
+    if (typeof HTMLAudioElement !== "undefined" && current instanceof HTMLAudioElement) current.playbackRate = playbackSpeed;
+    try { accountScopedLocalStorage.setItem("noor_mushaf_speed", String(playbackSpeed)); } catch { /* ignore */ }
   }, [playbackSpeed]);
 
   const playAyah = React.useCallback((surahId: number, originalAyah: number, displayAyah: number) => {
@@ -2333,6 +2336,14 @@ export function MushafPage() {
                 : (QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي")}
             </span>
             <ChevronDown size={12} aria-hidden="true" style={{ opacity: 0.5, flexShrink: 0 }} />
+          </button>
+          <button type="button"
+            className="mushaf-audio-toggle mushaf-audio-speed"
+            dir="ltr"
+            onClick={() => setPlaybackSpeed((speed) => RECITATION_SPEEDS[(RECITATION_SPEEDS.indexOf(speed) + 1) % RECITATION_SPEEDS.length] ?? 1)}
+            aria-label={`سرعة التلاوة ${arNum(playbackSpeed)}×، اضغط للتغيير`}
+          >
+            {arNum(playbackSpeed)}×
           </button>
           <button type="button"
             className="mushaf-audio-toggle"

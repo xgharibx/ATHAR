@@ -13,7 +13,7 @@ export default function VideoOverlay({
   youtubeId,
   title,
   titleAr,
-  thumbnailUrl,
+  thumbnailUrl: _thumbnailUrl,
   onClose,
 }: VideoOverlayProps) {
   return (

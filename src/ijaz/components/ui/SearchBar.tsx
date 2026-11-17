@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { searchMiracles, getSemanticSuggestions } from '@/ijaz/lib/search';
 import { SearchResult } from '@/ijaz/types';
-import { getCategoryLabel, getVisualizationColor, truncate } from '@/ijaz/lib/utils';
+import { getVisualizationColor, truncate } from '@/ijaz/lib/utils';
 
 interface SearchBarProps {
   large?: boolean;

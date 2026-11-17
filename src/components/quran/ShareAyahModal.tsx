@@ -51,7 +51,7 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ChipButton<T extends string>({
+function ChipButton({
   active, onClick, label,
 }: {
   active: boolean; onClick: () => void; label: string;

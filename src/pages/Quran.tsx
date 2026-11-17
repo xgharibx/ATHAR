@@ -2,7 +2,7 @@ import * as React from "react";
 import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, Filter, Plus, ChevronDown } from "lucide-react";
+  Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, ChevronDown } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
 import { getFirstAyahOfJuz, getHizbProgress, getJuzProgress, surahContainsJuz } from "@/lib/quranJuz";
 
@@ -12,15 +12,14 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { useNoorStore } from "@/store/noorStore";
-import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
-import { QURAN_RECITERS } from "@/lib/quranReciters";
+import { normalizeArabicSearch } from "@/lib/arabic";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { SurahInfoPopover } from "@/components/quran/SurahInfoPopover";
 import { sajdaInSurah, getEnglishRowPreview } from "@/data/quranExtras";
 import { useQuranExtras } from "@/hooks/useQuranExtras";
 import { parseDirectAyahQuery } from "@/data/quranDirectSearch";
-import { searchAyah, buildAyahIndex, type AyahHit } from "@/data/quranAyahIndex";
+import { searchAyah, type AyahHit } from "@/data/quranAyahIndex";
 type AyahHitLite = AyahHit;
 import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { getReciter } from "@/lib/quranReciters";
@@ -283,7 +282,6 @@ export function QuranPage() {
   const [infoSurahId, setInfoSurahId] = React.useState<number | null>(null);
   const [infoAnchor, setInfoAnchor] = React.useState<DOMRect | null>(null);
   const [reciterOpen, setReciterOpen] = React.useState(false);
-  const [reciterQuery, setReciterQuery] = React.useState("");
   const [showTranslation, setShowTranslation] = React.useState(false);
   const extras = useQuranExtras(showTranslation || infoSurahId !== null);
   const [pageMap, setPageMap] = React.useState<Record<string, number> | null>(null);
