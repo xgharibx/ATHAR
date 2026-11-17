@@ -3,48 +3,78 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 48;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		185FCCCF943857665BB09FDD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 35281742DA46EB40310EDCB8 /* Foundation.framework */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
-		A7D84291C0A24D96A7A11004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12004 /* PrivacyInfo.xcprivacy */; };
-		A7D84291C0A24D96A7A11005 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12006 /* InfoPlist.strings */; };
+		44594294AA8E7BE6C19E6A8A /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 9349BF7F4A89B845F3880B82 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
-		A7D84291C0A24D96A7A11001 /* AuthBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */; };
-		A7D84291C0A24D96A7A11002 /* ShareBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */; };
-		A7D84291C0A24D96A7A11003 /* AtharBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12003 /* AtharBridgeViewController.swift */; };
 		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		50D0FF26EC625D95099D470B /* AtharWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 381C3C0056E75304760BD959 /* AtharWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6EFED682B60C1D97E4CD99D8 /* AtharWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B340E0473BDAA3AF7C2A77 /* AtharWidgets.swift */; };
+		A7D84291C0A24D96A7A11001 /* AuthBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */; };
+		A7D84291C0A24D96A7A11002 /* ShareBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */; };
+		A7D84291C0A24D96A7A11003 /* AtharBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12003 /* AtharBridgeViewController.swift */; };
+		A7D84291C0A24D96A7A11004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12004 /* PrivacyInfo.xcprivacy */; };
+		A7D84291C0A24D96A7A11005 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12006 /* InfoPlist.strings */; };
 		F4A7B13E0D804E928F0C1001 /* adhan_ahmad_al_nafees.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2001 /* adhan_ahmad_al_nafees.caf */; };
 		F4A7B13E0D804E928F0C1002 /* birds.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2002 /* birds.caf */; };
-		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		0B787326987AD3D3D093FADF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DED54F5F2E54B378395C4EDA;
+			remoteInfo = AtharWidgets;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		35521E157F4D2D60CC1B56AE /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				50D0FF26EC625D95099D470B /* AtharWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		17B10A020A6515A15E2717EF /* debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		1C9D82B08E87261CC48FC478 /* App.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
+		35281742DA46EB40310EDCB8 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		381C3C0056E75304760BD959 /* AtharWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AtharWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		46B340E0473BDAA3AF7C2A77 /* AtharWidgets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharWidgets.swift; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthBridgePlugin.swift; sourceTree = "<group>"; };
-		A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareBridgePlugin.swift; sourceTree = "<group>"; };
-		A7D84291C0A24D96A7A12003 /* AtharBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtharBridgeViewController.swift; sourceTree = "<group>"; };
 		504EC30C1FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		504EC30E1FED79650016851F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthBridgePlugin.swift; sourceTree = "<group>"; };
+		A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareBridgePlugin.swift; sourceTree = "<group>"; };
+		A7D84291C0A24D96A7A12003 /* AtharBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtharBridgeViewController.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12004 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12005 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		DC241998B23C88977A89039F /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F4A7B13E0D804E928F0C2001 /* adhan_ahmad_al_nafees.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = adhan_ahmad_al_nafees.caf; sourceTree = "<group>"; };
 		F4A7B13E0D804E928F0C2002 /* birds.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = birds.caf; sourceTree = "<group>"; };
-		A7D84291C0A24D96A7A12006 /* InfoPlist.strings */ = {isa = PBXVariantGroup; children = (A7D84291C0A24D96A7A12005 /* ar */,); name = InfoPlist.strings; sourceTree = "<group>"; };
-		AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
-		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
+		F7238335C463F957088B1646 /* AtharWidgets.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = AtharWidgets.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,17 +82,25 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */,
+				44594294AA8E7BE6C19E6A8A /* CapApp-SPM in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8886EE34D9F6578DCD7660F7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				185FCCCF943857665BB09FDD /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		27E2DDA53C4D2A4D1A88CE4A /* Frameworks */ = {
+		2D3950C38D16CB8BFB51AA1E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */,
+				E72BE053BD77963C348BCA45 /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -72,8 +110,9 @@
 			children = (
 				504EC3061FED79650016851F /* App */,
 				504EC3051FED79650016851F /* Products */,
-				7F8756D8B27F46E3366F6CEA /* Pods */,
-				27E2DDA53C4D2A4D1A88CE4A /* Frameworks */,
+				17B10A020A6515A15E2717EF /* debug.xcconfig */,
+				2D3950C38D16CB8BFB51AA1E /* Frameworks */,
+				9B80049D9D5A8E0D01DB3E35 /* AtharWidgets */,
 			);
 			sourceTree = "<group>";
 		};
@@ -81,6 +120,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
+				381C3C0056E75304760BD959 /* AtharWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,8 +142,28 @@
 				F4A7B13E0D804E928F0C3001 /* sounds */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
+				1C9D82B08E87261CC48FC478 /* App.entitlements */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		9B80049D9D5A8E0D01DB3E35 /* AtharWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				46B340E0473BDAA3AF7C2A77 /* AtharWidgets.swift */,
+				DC241998B23C88977A89039F /* Info.plist */,
+				F7238335C463F957088B1646 /* AtharWidgets.entitlements */,
+			);
+			name = AtharWidgets;
+			path = AtharWidgets;
+			sourceTree = "<group>";
+		};
+		E72BE053BD77963C348BCA45 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				35281742DA46EB40310EDCB8 /* Foundation.framework */,
+			);
+			name = iOS;
 			sourceTree = "<group>";
 		};
 		F4A7B13E0D804E928F0C3001 /* sounds */ = {
@@ -115,15 +175,6 @@
 			path = sounds;
 			sourceTree = "<group>";
 		};
-		7F8756D8B27F46E3366F6CEA /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */,
-				AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */,
-			);
-			name = Pods;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -131,20 +182,40 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 504EC3161FED79650016851F /* Build configuration list for PBXNativeTarget "App" */;
 			buildPhases = (
-				6634F4EFEBD30273BCE97C65 /* [CP] Check Pods Manifest.lock */,
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
-				9592DBEFFC6D2A0C8D5DEB22 /* [CP] Embed Pods Frameworks */,
+				35521E157F4D2D60CC1B56AE /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BB7D11292A10BFA69FF190C3 /* PBXTargetDependency */,
+			);
+			name = App;
+			packageProductDependencies = (
+				9349BF7F4A89B845F3880B82 /* CapApp-SPM */,
+			);
+			productName = App;
+			productReference = 504EC3041FED79650016851F /* App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DED54F5F2E54B378395C4EDA /* AtharWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0CB342478AC7A211D2E4D06E /* Build configuration list for PBXNativeTarget "AtharWidgets" */;
+			buildPhases = (
+				8497BA5DDD5B65C34B9C970E /* Sources */,
+				8886EE34D9F6578DCD7660F7 /* Frameworks */,
+				4F3D49A2456995880F54116A /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = App;
-			productName = App;
-			productReference = 504EC3041FED79650016851F /* App.app */;
-			productType = "com.apple.product-type.application";
+			name = AtharWidgets;
+			productName = AtharWidgets;
+			productReference = 381C3C0056E75304760BD959 /* AtharWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -173,17 +244,26 @@
 			);
 			mainGroup = 504EC2FB1FED79650016851F;
 			packageReferences = (
+				9539BCDC80C06E6784E38AE1 /* XCLocalSwiftPackageReference "CapApp-SPM" */,
 			);
 			productRefGroup = 504EC3051FED79650016851F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
+				DED54F5F2E54B378395C4EDA /* AtharWidgets */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4F3D49A2456995880F54116A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3021FED79650016851F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -203,42 +283,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		6634F4EFEBD30273BCE97C65 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-App-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		9592DBEFFC6D2A0C8D5DEB22 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-App/Pods-App-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		504EC3001FED79650016851F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -251,7 +295,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8497BA5DDD5B65C34B9C970E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EFED682B60C1D97E4CD99D8 /* AtharWidgets.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BB7D11292A10BFA69FF190C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AtharWidgets;
+			target = DED54F5F2E54B378395C4EDA /* AtharWidgets */;
+			targetProxy = 0B787326987AD3D3D093FADF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
@@ -270,11 +331,20 @@
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
+		A7D84291C0A24D96A7A12006 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A7D84291C0A24D96A7A12005 /* ar */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		504EC3141FED79650016851F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 17B10A020A6515A15E2717EF /* debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -380,9 +450,10 @@
 		};
 		504EC3171FED79650016851F /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */;
+			baseConfigurationReference = 17B10A020A6515A15E2717EF /* debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 104;
 				INFOPLIST_FILE = App/Info.plist;
@@ -400,9 +471,9 @@
 		};
 		504EC3181FED79650016851F /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 104;
 				INFOPLIST_FILE = App/Info.plist;
@@ -417,9 +488,61 @@
 			};
 			name = Release;
 		};
+		7FD1FF706865BFD8C2869AA3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = AtharWidgets/AtharWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 104;
+				INFOPLIST_FILE = AtharWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.2.91;
+				PRODUCT_BUNDLE_IDENTIFIER = com.athar.adhkar.AtharWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B6425645E76176F0069BC9FA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = AtharWidgets/AtharWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 104;
+				INFOPLIST_FILE = AtharWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.2.91;
+				PRODUCT_BUNDLE_IDENTIFIER = com.athar.adhkar.AtharWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0CB342478AC7A211D2E4D06E /* Build configuration list for PBXNativeTarget "AtharWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B6425645E76176F0069BC9FA /* Release */,
+				7FD1FF706865BFD8C2869AA3 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		504EC2FF1FED79650016851F /* Build configuration list for PBXProject "App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -439,6 +562,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		9539BCDC80C06E6784E38AE1 /* XCLocalSwiftPackageReference "CapApp-SPM" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "CapApp-SPM";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9349BF7F4A89B845F3880B82 /* CapApp-SPM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9539BCDC80C06E6784E38AE1 /* XCLocalSwiftPackageReference "CapApp-SPM" */;
+			productName = "CapApp-SPM";
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 504EC2FC1FED79650016851F /* Project object */;
 }

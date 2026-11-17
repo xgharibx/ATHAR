@@ -2,10 +2,9 @@
 //  AtharWidgets.swift
 //  Athar home-screen widgets (WidgetKit)
 //
-//  NOT yet part of an Xcode target — see README.md in this folder for the
-//  one-time Xcode setup (Widget Extension target + App Group). The app side
-//  is already done: AppDelegate mirrors widget payloads into the App Group
-//  "group.com.athar.adhkar" every time the app goes to background.
+//  The AtharWidgets extension target. AppDelegate mirrors the widget payloads
+//  into the App Group "group.com.athar.adhkar" each time the app goes to the
+//  background and asks WidgetKit to reload.
 //
 
 import WidgetKit
@@ -80,16 +79,32 @@ struct PrayerProvider: TimelineProvider {
 
 // ─── Views ───────────────────────────────────────────────────────────────────
 
+private let widgetBackground = LinearGradient(
+    colors: [Color(red: 0.02, green: 0.14, blue: 0.10), Color(red: 0.04, green: 0.20, blue: 0.13)],
+    startPoint: .top,
+    endPoint: .bottom
+)
+
+extension View {
+    /// iOS 17 requires widgets to declare their background through
+    /// containerBackground; earlier systems draw it behind the content.
+    @ViewBuilder
+    func atharWidgetBackground() -> some View {
+        if #available(iOS 17.0, *) {
+            containerBackground(for: .widget) { widgetBackground }
+        } else {
+            background(widgetBackground)
+        }
+    }
+}
+
 struct PrayerWidgetView: View {
     let entry: PrayerEntry
 
-    private let bgTop = Color(red: 0.02, green: 0.14, blue: 0.10)
-    private let bgBottom = Color(red: 0.04, green: 0.20, blue: 0.13)
     private let gold = Color(red: 1.0, green: 0.91, blue: 0.69)
 
     var body: some View {
-        ZStack {
-            LinearGradient(colors: [bgTop, bgBottom], startPoint: .top, endPoint: .bottom)
+        Group {
             if let payload = entry.payload {
                 VStack(alignment: .trailing, spacing: 6) {
                     HStack {
@@ -132,6 +147,7 @@ struct PrayerWidgetView: View {
                 }
             }
         }
+        .atharWidgetBackground()
     }
 }
 
