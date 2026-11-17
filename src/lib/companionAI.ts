@@ -65,9 +65,6 @@ const SUPABASE_ANON_KEY: string =
     (import.meta.env.VITE_LEADERBOARD_ANON_KEY as string | undefined) ?? "").trim()
   || DEFAULT_SUPABASE_ANON_KEY;
 
-/* Where the resolved values actually came from — surfaces in diagnostics. */
-const PROXY_URL_SOURCE: "env" | "default" =
-  (((import.meta.env.VITE_COMPANION_PROXY_URL as string | undefined) ?? "").trim()) ? "env" : "default";
 
 export const COMPANION_MODEL = MODEL;
 export const COMPANION_DISPLAY_NAME = "أثر";

@@ -234,7 +234,7 @@ export type Reminders = {
   tasbeehTime: string; // HH:MM
   dailyHadithNotif: boolean; // Phase 10 — daily hadith at Fajr
   iqamaOffsets: Record<PrayerAlertPrayer, number>; // minutes after adhan per prayer
-  prayerLiveActivity: boolean; // iOS: next-prayer countdown on the Lock Screen and Dynamic Island
+  prayerLiveActivity: boolean; // next-prayer countdown outside the app: iOS Live Activity, Android ongoing notification
 };
 
 // L1: Friends leaderboard
@@ -2704,12 +2704,12 @@ export const useNoorStore = create<NoorState>()(
       //      Also exclude customReminders (IDB-backed — see reminderStorage).
       partialize: (state) => {
         const {
-          hadithBookmarks,
-          hadithProgress,
-          hadithNotes,
-          hadithMemoCards,
-          customReminders,
-          seenTemplateIds,
+          hadithBookmarks: _hadithBookmarks,
+          hadithProgress: _hadithProgress,
+          hadithNotes: _hadithNotes,
+          hadithMemoCards: _hadithMemoCards,
+          customReminders: _customReminders,
+          seenTemplateIds: _seenTemplateIds,
           ...rest
         } = state as Record<string, unknown>;
         return rest as Partial<NoorState>;

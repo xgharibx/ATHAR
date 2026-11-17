@@ -2,11 +2,10 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ScrollReveal, TextReveal } from '@/ijaz/components/effects/ScrollAnimations';
-import { AnimatedGradientText, CinematicTypewriter } from '@/ijaz/components/effects/TextEffects';
+import { ScrollReveal } from '@/ijaz/components/effects/ScrollAnimations';
+import { AnimatedGradientText } from '@/ijaz/components/effects/TextEffects';
 
 /* Dynamic imports — no SSR */
-import SacredGeometry from '@/ijaz/components/effects/SacredGeometry';
 
 /* ================================================================
    JOURNEY DATA

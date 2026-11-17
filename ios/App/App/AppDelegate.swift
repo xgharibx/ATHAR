@@ -74,6 +74,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
+        if let route = Self.inAppRoute(from: url) {
+            // A widget or the prayer countdown was tapped: open that screen.
+            Self.deliverRoute(route)
+            return true
+        }
         let handled = ApplicationDelegateProxy.shared.application(app, open: url, options: options)
         guard Self.isNativeAuthCallbackURL(url) else { return handled }
         Self.deliverNativeAuthCallback(url)
@@ -94,6 +99,38 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             appDelegate.pendingNativeAuthURL = url
             appDelegate.nativeAuthDeliveryAttempts = 0
             appDelegate.deliverPendingNativeAuthURLIfReady()
+        }
+    }
+
+    /// `app.athar://open/prayer-times` → `/prayer-times`. Only plain in-app
+    /// paths are accepted; the links come from Athar's own widgets.
+    static func inAppRoute(from url: URL) -> String? {
+        guard url.scheme?.lowercased() == "app.athar", url.host == "open" else { return nil }
+        let path = url.path.isEmpty ? "/" : url.path
+        guard path.range(of: "^/[A-Za-z0-9/_-]*$", options: .regularExpression) != nil else { return nil }
+        return path
+    }
+
+    /// Navigate the web app to `route` once it has mounted, retrying briefly on a cold start.
+    static func deliverRoute(_ route: String, attempt: Int = 0) {
+        DispatchQueue.main.async {
+            guard let appDelegate = UIApplication.shared.delegate as? AppDelegate,
+                  let controller = appDelegate.window?.rootViewController as? CAPBridgeViewController,
+                  let webView = controller.bridge?.webView,
+                  webView.url != nil,
+                  let data = try? JSONSerialization.data(withJSONObject: route, options: [.fragmentsAllowed]),
+                  let json = String(data: data, encoding: .utf8) else {
+                if attempt < 25 {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { deliverRoute(route, attempt: attempt + 1) }
+                }
+                return
+            }
+            let script = "(function(){var r=document.querySelector('#root');if(!r||!r.firstChild)return 'wait';var p=\(json);if(location.pathname!==p){history.pushState({},'',p);window.dispatchEvent(new PopStateEvent('popstate'));}return 'ok';})()"
+            webView.evaluateJavaScript(script) { result, _ in
+                if result as? String != "ok", attempt < 25 {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { deliverRoute(route, attempt: attempt + 1) }
+                }
+            }
         }
     }
 

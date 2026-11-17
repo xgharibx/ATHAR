@@ -90,7 +90,6 @@ import {
   peekCompanionHealth,
   type CompanionHealthState,
 } from "@/lib/companionHealth";
-import { COMPANION_PROXY_URL } from "@/lib/companionAI";
 import { shareImageBlob } from "@/lib/shareTargets";
 import { canSendCompanionAiMessage, grantCompanionAiConsent } from "@/lib/companionConsent";
 import { CompanionAiConsentDialog } from "@/components/companion/CompanionAiConsentDialog";

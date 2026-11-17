@@ -754,7 +754,6 @@ export function SebhaPage() {
   const resetQuickTasbeeh = useNoorStore((s) => s.resetQuickTasbeeh);
   const resetAllQuickTasbeeh = useNoorStore((s) => s.resetAllQuickTasbeeh);
   const prefs = useNoorStore((s) => s.prefs);
-  const setPrefs = useNoorStore((s) => s.setPrefs);
   const sebhaSessions = useNoorStore((s) => s.sebhaSessions);
   const addSebhaSession = useNoorStore((s) => s.addSebhaSession);
   const clearSebhaSessions = useNoorStore((s) => s.clearSebhaSessions);
@@ -953,7 +952,7 @@ export function SebhaPage() {
   // 6B: Voice recognition — when a phrase matches, switch + count; null = count current.
   // Pass the matched key directly to increment() so the correct dhikr is counted
   // even before React re-renders with the new selected state.
-  const { listening, starting: voiceStarting, toggle: toggleVoice, supported: voiceSupported } = useSpeechCount(
+  useSpeechCount(
     React.useCallback((matchedKey: string | null) => {
       if (matchedKey && TASBEEHAT.some(t => t.key === matchedKey)) {
         const mk = matchedKey as TasbeehKey;

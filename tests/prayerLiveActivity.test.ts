@@ -112,11 +112,17 @@ describe("next-prayer Live Activity", () => {
       expect(native.sync).toHaveBeenCalledTimes(2);
     });
 
-    it("does nothing outside the iOS app", async () => {
+    it("drives the Android countdown the same way, and does nothing on the web", async () => {
       native.platform = "android";
-      await syncPrayerLiveActivity(null);
+      const request = buildPrayerActivityRequest(new Date(at(today.dateISO, "13:00")), [today, tomorrow]);
+      await syncPrayerLiveActivity(request);
+      expect(native.sync).toHaveBeenCalledWith(request);
+      resetPrayerLiveActivityCache();
       native.platform = "web";
+      native.sync.mockClear();
+      await syncPrayerLiveActivity(request);
       await syncPrayerLiveActivity(null);
+      expect(native.sync).not.toHaveBeenCalled();
       expect(native.end).not.toHaveBeenCalled();
     });
   });

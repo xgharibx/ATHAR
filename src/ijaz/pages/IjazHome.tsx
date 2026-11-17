@@ -2,13 +2,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import CategoryBadge from '@/ijaz/components/ui/CategoryBadge';
 import VerseDisplay from '@/ijaz/components/ui/VerseDisplay';
-import MiracleCard from '@/ijaz/components/ui/MiracleCard';
 import { miracles } from '@/ijaz/data/miracles';
 import { categories } from '@/ijaz/data/categories';
 import { verses } from '@/ijaz/data/verses';
-import { MiracleCategory } from '@/ijaz/types';
 import { ScrollReveal, TextReveal, AnimatedCounter } from '@/ijaz/components/effects/ScrollAnimations';
 import { CinematicTypewriter, AnimatedGradientText } from '@/ijaz/components/effects/TextEffects';
 import { useIsMobile } from '@/ijaz/hooks/useIsMobile';
@@ -462,7 +459,6 @@ function MobileGalaxyBackdrop() {
    HOME PAGE
    ================================================================ */
 export default function HomePage() {
-  const [selectedCategory, setSelectedCategory] = useState<MiracleCategory | 'all'>('all');
   const [activeShowcase, setActiveShowcase] = useState(0);
   const isMobile = useIsMobile();
   const activeHeroShowcase = beforeAfterShowcases[activeShowcase];
@@ -480,10 +476,6 @@ export default function HomePage() {
   ] as const;
 
   const featuredVerse = verses[0];
-  const filteredMiracles =
-    selectedCategory === 'all'
-      ? miracles.slice(0, 12)
-      : miracles.filter((m) => m.category === selectedCategory).slice(0, 12);
 
   useEffect(() => {
     const timer = setInterval(

@@ -1,5 +1,5 @@
 import Fuse from 'fuse.js';
-import { Miracle, SearchResult } from '@/ijaz/types';
+import { SearchResult } from '@/ijaz/types';
 import { miracles } from '@/ijaz/data/miracles';
 
 const fuseOptions = {

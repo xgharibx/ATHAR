@@ -21,7 +21,7 @@ export default function DeepOceanDarknessVisual({ className }: MiracleVisualProp
 
     // Bioluminescent creatures
     type BioCreature = { x: number; y: number; vx: number; vy: number; zone: number; phase: number };
-    const creatures: BioCreature[] = Array.from({ length: 20 }, (_, i) => ({
+    const creatures: BioCreature[] = Array.from({ length: 20 }, () => ({
       x: Math.random(), y: 0.3 + Math.random() * 0.6,
       vx: (Math.random() - 0.5) * 0.001, vy: (Math.random() - 0.5) * 0.0005,
       zone: Math.floor(Math.random() * 3) + 1, phase: Math.random() * Math.PI * 2,

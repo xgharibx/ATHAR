@@ -1,13 +1,11 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import SearchBar from '@/ijaz/components/ui/SearchBar';
 import MiracleCard from '@/ijaz/components/ui/MiracleCard';
-import CategoryBadge from '@/ijaz/components/ui/CategoryBadge';
-import { searchMiracles, getSemanticSuggestions } from '@/ijaz/lib/search';
+import { searchMiracles } from '@/ijaz/lib/search';
 import { miracles } from '@/ijaz/data/miracles';
 import { categories } from '@/ijaz/data/categories';
-import { SearchResult, MiracleCategory } from '@/ijaz/types';
+import { SearchResult } from '@/ijaz/types';
 
 const presetQueries = [
   { label: 'توسع الكون', queryText: 'توسع الكون' },

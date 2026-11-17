@@ -8,7 +8,6 @@ import SearchBar from '@/ijaz/components/ui/SearchBar';
 import { miracles } from '@/ijaz/data/miracles';
 import { categories } from '@/ijaz/data/categories';
 import { MiracleCategory } from '@/ijaz/types';
-import { ScrollReveal } from '@/ijaz/components/effects/ScrollAnimations';
 import { AnimatedGradientText } from '@/ijaz/components/effects/TextEffects';
 import { useScrollRestoration } from '@/hooks/useScrollRestoration';
 import { useIsMobile } from '@/ijaz/hooks/useIsMobile';

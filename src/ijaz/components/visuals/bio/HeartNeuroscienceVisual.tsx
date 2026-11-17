@@ -85,7 +85,7 @@ export default function HeartNeuroscienceVisual({ className }: MiracleVisualProp
       ctx.strokeStyle = `rgba(120,160,255,${0.2 + activity * 0.15})`; ctx.lineWidth = 0.8;
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * Math.PI * 2;
-        const r1 = size * 0.45, r2 = size * 0.8;
+        const r1 = size * 0.45;
         ctx.beginPath();
         ctx.arc(Math.cos(a) * size * 0.2, Math.sin(a) * size * 0.2, r1 * (0.4 + Math.sin(i) * 0.15), a, a + Math.PI * 0.6);
         ctx.stroke();

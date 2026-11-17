@@ -63,7 +63,6 @@ export function SurahInfoPopover(props: {
       top = anchorRect.top - estimatedH - 8;
     } else {
       placement = "below";
-      const estimatedH = Math.min(spaceBelow, 440);
       top = anchorRect.bottom + 8;
     }
     setPos({ top: Math.max(margin, top), left: wantLeft, placement });

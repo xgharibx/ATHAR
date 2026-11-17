@@ -13,7 +13,6 @@
  * fast transition.
  */
 
-const REDUCED_MOTION_MS = 220; // snappy fallback when the user prefers no motion
 
 /**
  * Animate `el.scrollTop` from its current value to `target` over

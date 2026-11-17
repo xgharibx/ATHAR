@@ -25,7 +25,6 @@ import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
  * app was relaunched.
  */
 const getConfetti = async () => (opts: Record<string, unknown>) => { void celebrate([opts]); };
-const getToPng = () => import("html-to-image").then((m) => m.toPng);
 import toast from "react-hot-toast";
 
 // D8: parse hadith grade from benefit text

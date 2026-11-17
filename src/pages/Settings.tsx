@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, RotateCw, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft, Search, X, Vibrate, Moon, Volume2, ChevronDown } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, RotateCw, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft, Search, X, Vibrate, Moon, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
@@ -33,12 +33,12 @@ import { QURAN_RECITERS, getReciter } from "@/lib/quranReciters";
 import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { TranslationPicker } from "@/components/quran/TranslationPicker";
 import { TRANSLATION_SOURCES, getTranslation as getTranslationAny, type TranslationId } from "@/lib/quranTranslations";
+import { RecitationDownloadsRow } from "@/components/quran/RecitationDownloadsRow";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
 
 import {
   SECTIONS,
-  SETTINGS_CATEGORIES,
   type SettingsSectionId,
   filterSettingsSections,
 } from "@/lib/settingsLayout";
@@ -228,21 +228,10 @@ export function SettingsPage() {
   const sebhaTarget = useNoorStore((s) => s.sebhaTarget);
   const setSebhaTarget = useNoorStore((s) => s.setSebhaTarget);
   const [showReciterPicker, setShowReciterPicker] = React.useState(false);
-  const favorites = useNoorStore((s) => s.favorites);
-  const quranBookmarks = useNoorStore((s) => s.quranBookmarks);
-  const activity = useNoorStore((s) => s.activity);
-  const progress = useNoorStore((s) => s.progress);
-
-  const dataSummary = React.useMemo(() => {
-    const favoriteCount = Object.values(favorites).filter(Boolean).length;
-    const bookmarkCount = Object.values(quranBookmarks).filter(Boolean).length;
-    const activeDays = Object.values(activity).filter((n) => (n ?? 0) > 0).length;
-    const touchedItems = Object.values(progress).filter((n) => (n ?? 0) > 0).length;
-    return { favoriteCount, bookmarkCount, activeDays, touchedItems };
-  }, [activity, favorites, progress, quranBookmarks]);
 
   const [isNative, setIsNative] = React.useState(false);
   const isIOS = Capacitor.getPlatform() === "ios";
+  const countdownPlatform = isIOS ? "ios" : Capacitor.getPlatform() === "android" ? "android" : null;
   const [, refreshAiSharingConsent] = React.useReducer((revision: number) => revision + 1, 0);
   // Read the active owner's grant during render so an in-place account switch
   // cannot leave the previous account's consent state visible in Settings.
@@ -389,7 +378,7 @@ export function SettingsPage() {
 
   // ── Smart Settings: search + auto-highlight nav + collapse-by-default ──
   const [search, setSearch] = React.useState("");
-  const [activeSection, setActiveSection] = React.useState<SettingsSectionId | null>(null);
+  const [, setActiveSection] = React.useState<SettingsSectionId | null>(null);
   const visibleIds = React.useMemo(() => filterSettingsSections(search), [search]);
   const visibleSet = React.useMemo(() => new Set(visibleIds), [visibleIds]);
 
@@ -937,6 +926,7 @@ export function SettingsPage() {
             </div>
             <span className="text-(--muted-2) text-sm">←</span>
           </button>
+          <RecitationDownloadsRow />
 
         </div>
       </Card>
@@ -1472,14 +1462,16 @@ export function SettingsPage() {
             </div>
           </div>
 
-          {/* iOS Live Activity — next-prayer countdown on the Lock Screen */}
-          {isIOS && (
+          {/* Next-prayer countdown: iOS Live Activity / Android ongoing notification */}
+          {countdownPlatform && (
             <div className="glass rounded-3xl p-4 border border-(--stroke)">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="text-sm font-semibold">عدّاد الصلاة القادمة</div>
                   <div className="text-xs opacity-65 mt-1">
-                    عدّ تنازلي للصلاة القادمة على شاشة القفل وفي الجزيرة التفاعلية
+                    {countdownPlatform === "ios"
+                      ? "عدّ تنازلي للصلاة القادمة على شاشة القفل وفي الجزيرة التفاعلية"
+                      : "عدّ تنازلي للصلاة القادمة في شريط الإشعارات وعلى شاشة القفل"}
                   </div>
                 </div>
                 <Switch
@@ -1488,9 +1480,11 @@ export function SettingsPage() {
                   onCheckedChange={(v) => {
                     setReminders({ prayerLiveActivity: v });
                     if (!v) return;
-                    void import("@/lib/prayerLiveActivity").then(async ({ prayerLiveActivitiesAllowed }) => {
-                      if (!(await prayerLiveActivitiesAllowed())) {
-                        toast.error("فعّل «الأنشطة المباشرة» لتطبيق أثر من إعدادات الجهاز");
+                    void import("@/lib/prayerLiveActivity").then(async ({ prayerCountdownAllowed }) => {
+                      if (!(await prayerCountdownAllowed())) {
+                        toast.error(countdownPlatform === "ios"
+                          ? "فعّل «الأنشطة المباشرة» لتطبيق أثر من إعدادات الجهاز"
+                          : "اسمح لتطبيق أثر بإرسال الإشعارات من إعدادات الجهاز");
                       }
                     });
                   }}
@@ -1741,6 +1735,7 @@ export function SettingsPage() {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- hidden on request (2026-08-24); restore by rendering <TranslationSettingsCard />
 function TranslationSettingsCard() {
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
@@ -1878,6 +1873,7 @@ function QuranSettingsCard() {
           <p className="mt-1 text-[10.5px] text-(--muted-2)">{progress.label}</p>
         ) : null}
       </div>
+
 
       {/* Daily goal presets */}
       <div className="mt-5">

@@ -5,7 +5,7 @@
  * page (for the reactive rendering) can use the exact same logic without
  * dragging the full Mushaf component in just for the builder.
  */
-import type { QuranDB, QuranPageMap } from "./quranTypes";
+import type { QuranDB } from "./quranTypes";
 
 export interface PageItem {
   surahId: number;

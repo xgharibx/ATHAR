@@ -13,7 +13,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import {
-  Sparkles, Send, X as XIcon, AlertCircle, Loader2, History, Plus, Mic, MicOff,
+  Sparkles, Send, X as XIcon, AlertCircle, History, Plus,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { getInternalAppRoute } from "@/lib/internalAppRoute";

@@ -14,6 +14,8 @@ import SwiftUI
 import WidgetKit
 
 private let appGroup = "group.com.athar.adhkar"
+/// Tapping a widget or the countdown opens the app on Prayer Times.
+private let prayerTimesURL = URL(string: "app.athar://open/prayer-times")
 
 // ─── Shared payload (written by the web app) ────────────────────────────────
 
@@ -199,6 +201,7 @@ struct PrayerWidgetView: View {
         }
         .environment(\.layoutDirection, .rightToLeft)
         .atharWidgetBackground()
+        .widgetURL(prayerTimesURL)
     }
 }
 
@@ -289,6 +292,7 @@ struct AtharNextPrayerWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "AtharNextPrayerWidget", provider: PrayerProvider()) { entry in
             NextPrayerWidgetView(entry: entry)
+                .widgetURL(prayerTimesURL)
         }
         .configurationDisplayName("الصلاة القادمة")
         .description("الصلاة القادمة والوقت المتبقي لها")
@@ -367,6 +371,7 @@ struct PrayerLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: PrayerActivityAttributes.self) { context in
             PrayerActivityLockScreenView(times: PrayerActivityTimes(state: context.state, arrived: context.isStale))
+                .widgetURL(prayerTimesURL)
                 .activityBackgroundTint(deepGreen)
                 .activitySystemActionForegroundColor(gold)
         } dynamicIsland: { context in
@@ -430,6 +435,7 @@ struct PrayerLiveActivity: Widget {
                     .foregroundColor(gold)
             }
             .keylineTint(gold)
+            .widgetURL(prayerTimesURL)
         }
     }
 }
