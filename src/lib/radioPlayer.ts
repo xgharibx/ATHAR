@@ -1,6 +1,7 @@
 /**
  * radioPlayer.ts — module-level singleton so audio persists across page navigation
  */
+import { claimMediaSession, releaseMediaSession, setMediaPlaybackState } from "@/lib/mediaSession";
 
 export const QURAN_RADIO_STATIONS: Array<{ label: string; url: string }> = [
   { label: "راديو القرآن الكريم",  url: "https://backup.qurango.net/radio/mishary_alafasi" },
@@ -45,6 +46,24 @@ function _setReady(playToken: number) {
   _loading = false;
   _playing = true;
   _notify();
+  void setMediaPlaybackState("radio", "playing");
+}
+
+/** Lock-screen and notification controls for the station now playing. */
+function _claimControls(stationIdx: number) {
+  const station = QURAN_RADIO_STATIONS[stationIdx];
+  if (!station) return;
+  void claimMediaSession(
+    "radio",
+    { title: station.label, artist: "إذاعة القرآن الكريم", album: "أثر" },
+    {
+      play: () => playRadio(_stationIdx),
+      pause: () => stopRadio(),
+      stop: () => stopRadio(),
+      nexttrack: () => playRadio((_stationIdx + 1) % QURAN_RADIO_STATIONS.length),
+      previoustrack: () => playRadio((_stationIdx - 1 + QURAN_RADIO_STATIONS.length) % QURAN_RADIO_STATIONS.length),
+    },
+  );
 }
 
 function _resetAudio() {
@@ -95,6 +114,7 @@ export function playRadio(idx: number, triedStations = new Set<number>()) {
   _loading = true;
   _playing = true;
   _notify();
+  _claimControls(stationIdx);
 
   const failOrFallback = () => {
     if (playToken !== _playToken) return;
@@ -107,6 +127,7 @@ export function playRadio(idx: number, triedStations = new Set<number>()) {
     _loading = false;
     _playing = false;
     _notify();
+    void releaseMediaSession("radio");
   };
 
   _startTimer = setTimeout(failOrFallback, RADIO_START_TIMEOUT_MS);
@@ -126,6 +147,7 @@ export function stopRadio() {
   _playing = false;
   _loading = false;
   _notify();
+  void releaseMediaSession("radio");
 }
 
 export function toggleRadio() {
