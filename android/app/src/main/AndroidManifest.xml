@@ -66,6 +66,11 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
+        <!-- Next-prayer countdown: moves on at the adhan, remembers a swipe-away. -->
+        <receiver
+            android:name=".PrayerCountdownReceiver"
+            android:exported="false" />
+
         <!-- Native Quran recitation: media playback foreground service (Media3). -->
         <service
             android:name=".RecitationService"

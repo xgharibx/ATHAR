@@ -1,14 +1,17 @@
 /**
- * The next prayer as an iOS Live Activity: a countdown on the Lock Screen and
- * in the Dynamic Island (see ios/App/App/PrayerActivityPlugin.swift and the
- * PrayerLiveActivity widget).
+ * The next prayer as a live countdown outside the app:
+ *   - iOS: a Live Activity on the Lock Screen and in the Dynamic Island
+ *     (ios/App/App/PrayerActivityPlugin.swift and the PrayerLiveActivity widget).
+ *   - Android: an ongoing notification whose system timer counts down, in the
+ *     notification shade and on the Lock Screen (PrayerActivityPlugin.java). An
+ *     alarm moves it on to the following prayer at the adhan.
  *
  * The app works out which prayer is next and hands its time to the native
  * side, which draws the countdown itself; nothing has to run while the phone
  * is locked. The activity goes stale at the adhan and then counts down to the
  * prayer after it, until the app is opened again and moves it forward.
  *
- * iOS only. Every other platform is a no-op.
+ * Both share one native contract, so this module drives either. The web is a no-op.
  */
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { getLocalDateKey, parseClockTime, parseDateKey } from "@/lib/dayBoundaries";
@@ -109,13 +112,21 @@ function nativePlugin(): PrayerActivityPlugin | null {
   return plugin;
 }
 
-/** Live Activities exist only in the iOS app. */
-export function isPrayerLiveActivitySupported(): boolean {
-  return Capacitor.getPlatform() === "ios";
+/** The app the countdown runs in, or null on the web. */
+export function prayerCountdownPlatform(): "ios" | "android" | null {
+  const platform = Capacitor.getPlatform();
+  return platform === "ios" || platform === "android" ? platform : null;
 }
 
-/** Whether the user allows Athar's Live Activities in iOS Settings. */
-export async function prayerLiveActivitiesAllowed(): Promise<boolean> {
+export function isPrayerLiveActivitySupported(): boolean {
+  return prayerCountdownPlatform() !== null;
+}
+
+/**
+ * Whether the system lets the countdown show: Live Activities allowed for
+ * Athar on iOS; notifications allowed on Android.
+ */
+export async function prayerCountdownAllowed(): Promise<boolean> {
   const native = nativePlugin();
   if (!native) return false;
   try {

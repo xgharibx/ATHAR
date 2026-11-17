@@ -38,6 +38,8 @@ type QuranAudioPlugin = {
   setRate(options: { rate: number }): Promise<void>;
   setVolume(options: { volume: number }): Promise<void>;
   download(options: { urls: string[]; maxBytes: number }): Promise<{ saved: number; failed: number; evicted: number }>;
+  downloadedBytes(): Promise<{ bytes: number }>;
+  clearDownloads(): Promise<void>;
   addListener(event: "itemChange", listener: (event: { index: number; id: string }) => void): Promise<PluginListenerHandle>;
   addListener(event: "stateChange", listener: (event: { state: RecitationState }) => void): Promise<PluginListenerHandle>;
   addListener(event: "ended", listener: () => void): Promise<PluginListenerHandle>;
@@ -214,4 +216,28 @@ export function planRecitationQueue<T>(options: {
   }
   if (options.advance) return { items: items.slice(currentIndex), startIndex: 0, repeat: "none" };
   return { items: [current], startIndex: 0, repeat: "none" };
+}
+
+/** Space taken by recitations saved for offline listening, or null outside the apps. */
+export async function downloadedRecitationBytes(): Promise<number | null> {
+  const native = nativePlugin();
+  if (!native) return null;
+  try {
+    const { bytes } = await native.downloadedBytes();
+    return Number.isFinite(bytes) && bytes >= 0 ? bytes : 0;
+  } catch {
+    return null;
+  }
+}
+
+/** Delete every recitation saved for offline listening. */
+export async function clearDownloadedRecitations(): Promise<boolean> {
+  const native = nativePlugin();
+  if (!native) return false;
+  try {
+    await native.clearDownloads();
+    return true;
+  } catch {
+    return false;
+  }
 }

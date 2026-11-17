@@ -31,6 +31,7 @@ import {
 import { downloadMushafCore, getMushafOfflineStatus, clearMushafOfflineCore, type MushafOfflineProgress, type MushafOfflineStatus } from "@/lib/mushafOffline";
 import { QURAN_RECITERS, getReciter } from "@/lib/quranReciters";
 import { ReciterPicker } from "@/components/quran/ReciterPicker";
+import { RecitationDownloadsRow } from "@/components/quran/RecitationDownloadsRow";
 import { TranslationPicker } from "@/components/quran/TranslationPicker";
 import { TRANSLATION_SOURCES, getTranslation as getTranslationAny, type TranslationId } from "@/lib/quranTranslations";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
@@ -243,6 +244,7 @@ export function SettingsPage() {
 
   const [isNative, setIsNative] = React.useState(false);
   const isIOS = Capacitor.getPlatform() === "ios";
+  const countdownPlatform = isIOS ? "ios" : Capacitor.getPlatform() === "android" ? "android" : null;
   const [, refreshAiSharingConsent] = React.useReducer((revision: number) => revision + 1, 0);
   // Read the active owner's grant during render so an in-place account switch
   // cannot leave the previous account's consent state visible in Settings.
@@ -1472,14 +1474,16 @@ export function SettingsPage() {
             </div>
           </div>
 
-          {/* iOS Live Activity — next-prayer countdown on the Lock Screen */}
-          {isIOS && (
+          {/* Next-prayer countdown: iOS Live Activity / Android ongoing notification */}
+          {countdownPlatform && (
             <div className="glass rounded-3xl p-4 border border-(--stroke)">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="text-sm font-semibold">عدّاد الصلاة القادمة</div>
                   <div className="text-xs opacity-65 mt-1">
-                    عدّ تنازلي للصلاة القادمة على شاشة القفل وفي الجزيرة التفاعلية
+                    {countdownPlatform === "ios"
+                      ? "عدّ تنازلي للصلاة القادمة على شاشة القفل وفي الجزيرة التفاعلية"
+                      : "عدّ تنازلي للصلاة القادمة في شريط الإشعارات وعلى شاشة القفل"}
                   </div>
                 </div>
                 <Switch
@@ -1488,9 +1492,11 @@ export function SettingsPage() {
                   onCheckedChange={(v) => {
                     setReminders({ prayerLiveActivity: v });
                     if (!v) return;
-                    void import("@/lib/prayerLiveActivity").then(async ({ prayerLiveActivitiesAllowed }) => {
-                      if (!(await prayerLiveActivitiesAllowed())) {
-                        toast.error("فعّل «الأنشطة المباشرة» لتطبيق أثر من إعدادات الجهاز");
+                    void import("@/lib/prayerLiveActivity").then(async ({ prayerCountdownAllowed }) => {
+                      if (!(await prayerCountdownAllowed())) {
+                        toast.error(countdownPlatform === "ios"
+                          ? "فعّل «الأنشطة المباشرة» لتطبيق أثر من إعدادات الجهاز"
+                          : "اسمح لتطبيق أثر بإرسال الإشعارات من إعدادات الجهاز");
                       }
                     });
                   }}
@@ -1878,6 +1884,8 @@ function QuranSettingsCard() {
           <p className="mt-1 text-[10.5px] text-(--muted-2)">{progress.label}</p>
         ) : null}
       </div>
+
+      <RecitationDownloadsRow />
 
       {/* Daily goal presets */}
       <div className="mt-5">

@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { PrayerCountdown } from "@/components/layout/PrayerCountdown";
+import { CountdownSuggestion } from "@/components/prayer/CountdownSuggestion";
 import { PrayerTimesPageSkeleton } from "@/components/ui/Skeleton";
 import { requestPrayerLocation, usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useTodayKey } from "@/hooks/useTodayKey";
@@ -1360,6 +1361,9 @@ export function PrayerTimesPage() {
           </div>
           <div className="rounded-[28px] border border-(--stroke) bg-(--card) p-4 md:p-5">
             <PrayerCountdown timings={timings} />
+          </div>
+          <div className="mt-3">
+            <CountdownSuggestion />
           </div>
           {data.__fromCache && !isOnline && (
             <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-(--stroke) bg-(--card) px-3 py-1.5 text-[11px] opacity-60">

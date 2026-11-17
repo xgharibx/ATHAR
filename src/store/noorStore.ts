@@ -234,7 +234,7 @@ export type Reminders = {
   tasbeehTime: string; // HH:MM
   dailyHadithNotif: boolean; // Phase 10 — daily hadith at Fajr
   iqamaOffsets: Record<PrayerAlertPrayer, number>; // minutes after adhan per prayer
-  prayerLiveActivity: boolean; // iOS: next-prayer countdown on the Lock Screen and Dynamic Island
+  prayerLiveActivity: boolean; // next-prayer countdown outside the app: iOS Live Activity, Android ongoing notification
 };
 
 // L1: Friends leaderboard

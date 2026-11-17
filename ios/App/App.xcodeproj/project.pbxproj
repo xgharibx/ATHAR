@@ -29,6 +29,7 @@
 		A7D84291C0A24D96A7A11004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12004 /* PrivacyInfo.xcprivacy */; };
 		A7D84291C0A24D96A7A11005 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12006 /* InfoPlist.strings */; };
 		C3A8C972A619C4FD7C74D5F7 /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */; };
+		F404E6873083F61F275D7063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 20C3FCB675C0844437B74CB3 /* PrivacyInfo.xcprivacy */; };
 		F4A7B13E0D804E928F0C1001 /* adhan_ahmad_al_nafees.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2001 /* adhan_ahmad_al_nafees.caf */; };
 		F4A7B13E0D804E928F0C1002 /* birds.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2002 /* birds.caf */; };
 /* End PBXBuildFile section */
@@ -60,6 +61,7 @@
 /* Begin PBXFileReference section */
 		17B10A020A6515A15E2717EF /* debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		1C9D82B08E87261CC48FC478 /* App.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
+		20C3FCB675C0844437B74CB3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		21BD0F60D9CBF1755C249433 /* CompassPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CompassPlugin.swift; sourceTree = "<group>"; };
 		275FA8C0A3494BAD1F058741 /* PrayerActivityPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerActivityPlugin.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
@@ -178,6 +180,7 @@
 				46B340E0473BDAA3AF7C2A77 /* AtharWidgets.swift */,
 				DC241998B23C88977A89039F /* Info.plist */,
 				F7238335C463F957088B1646 /* AtharWidgets.entitlements */,
+				20C3FCB675C0844437B74CB3 /* PrivacyInfo.xcprivacy */,
 			);
 			name = AtharWidgets;
 			path = AtharWidgets;
@@ -286,6 +289,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F404E6873083F61F275D7063 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
