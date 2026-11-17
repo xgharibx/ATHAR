@@ -1,4 +1,5 @@
 import * as React from "react";
+import { vibrate } from "@/lib/haptics";
 import { shareText } from "@/lib/shareTargets";
 import { celebrate } from "@/lib/celebrate";
 import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, MoreHorizontal, RotateCcw, Share2, ZoomIn, ZoomOut } from "lucide-react";
@@ -112,7 +113,7 @@ export function DhikrCard(props: {
       if (pct >= m && !milestonesHit.current.has(m)) {
         milestonesHit.current.add(m);
         toast(label, { icon, duration: 2000 });
-        if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate([15, 8, 15]);
+        if (prefs.enableHaptics) vibrate([15, 8, 15]);
       }
     }
   }, [current, target, done, prefs.enableHaptics]);
@@ -128,7 +129,7 @@ export function DhikrCard(props: {
       if (!mountedRef.current) return;
       setIsLongPressing(false);
       void doCopy(true);
-      if (navigator.vibrate) navigator.vibrate([20, 10, 20]);
+      vibrate([20, 10, 20]);
     }, 1000);
   };
   const onSwipeTouchEnd = (e: React.TouchEvent) => {
@@ -151,7 +152,7 @@ export function DhikrCard(props: {
             setTimeout(() => { if (mountedRef.current) props.onComplete?.(); }, 184);
           }
         }
-        if (navigator.vibrate) navigator.vibrate([15, 10, 15]);
+        vibrate([15, 10, 15]);
         toast.success("✓ تم إتمام الذكر", { duration: 1500 });
         if (cardRef.current) {
           const el = cardRef.current;
@@ -162,7 +163,7 @@ export function DhikrCard(props: {
       } else {
         // De7: Left swipe → toggle favorite
         toggleFavorite(sectionId, index, itemId);
-        if (navigator.vibrate) navigator.vibrate(10);
+        vibrate(10);
         toast(fav ? "💔 أُزيل من المفضلة" : "❤️ أُضيف إلى المفضلة", { duration: 1500 });
         if (cardRef.current) {
           const el = cardRef.current;
@@ -268,8 +269,8 @@ export function DhikrCard(props: {
     doHaptic(next, target, prefs.enableHaptics, prefs.hapticStrength);
     // Tap-target hit? Extra celebratory pulse with the user's strength
     // so the milestone feels proportional.
-    if (next === target && prefs.enableHaptics && typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
-      navigator.vibrate([18, 8, 18]);
+    if (next === target && prefs.enableHaptics) {
+      vibrate([18, 8, 18]);
     }
 
     // Per-tap press feedback via the Web Animations API instead of toggling
@@ -315,7 +316,7 @@ export function DhikrCard(props: {
     // Completion confetti
     if (next === target && before < target) {
       // Haptic + auto-advance signal after a short delay
-      if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate([15, 8, 15]);
+      if (prefs.enableHaptics) vibrate([15, 8, 15]);
       if (prefs.autoAdvanceDhikr && props.onComplete) {
         // Hand-off to the next dhikr: the old 480ms felt like a lag, but
         // 160ms overshot into "too fast to register" — 184ms (15% slower)

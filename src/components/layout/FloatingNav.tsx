@@ -1,4 +1,5 @@
 import * as React from "react";
+import { vibrate } from "@/lib/haptics";
 import { NavLink, useLocation } from "react-router-dom";
 import { House, BookOpenText, Sparkles, BookMarked, Atom, Trophy, MoreVertical, Clapperboard, BarChart3, Heart, Zap, TimerReset } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -163,7 +164,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   React.useEffect(() => {
     if (prevPath.current !== location.pathname) {
       prevPath.current = location.pathname;
-      if (navigator.vibrate) navigator.vibrate(8);
+      vibrate(8);
     }
     // Scroll the active tab into view when nav is in compact/scrollable mode
     const activeEl = document.querySelector('.floating-nav-item.active') as HTMLElement | null;
@@ -279,7 +280,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
         onClick={() => {
           const opening = !moreOpen;
           setMoreOpen((v) => !v);
-          if (navigator.vibrate) navigator.vibrate(8);
+          vibrate(8);
           // Shorts lives in this menu, and its slowest step is fetching
           // YouTube's IFrame API — measured at ~900ms, and it only started once
           // the feed was already open. Opening this menu is the earliest honest
@@ -315,7 +316,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
       <button
         type="button"
         onClick={() => {
-          if (navigator.vibrate) navigator.vibrate(8);
+          vibrate(8);
           navigate("/qadaa");
         }}
         className={`floating-nav-dots floating-nav-qadaa ${qadaaActive ? "active" : ""}`}

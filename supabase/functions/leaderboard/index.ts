@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 import { computeScores, hasMetrics, FARD_PRAYERS_PER_DAY } from "./scoring.ts";
 import { authorizeLeaderboardIdentity } from "./ownership.ts";
 import { readTrustedClientIp } from "./clientIp.ts";

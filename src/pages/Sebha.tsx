@@ -1,4 +1,5 @@
 import * as React from "react";
+import { vibrate } from "@/lib/haptics";
 import { celebrate } from "@/lib/celebrate";
 import {
   ArrowRight,
@@ -815,11 +816,11 @@ export function SebhaPage() {
       const nextCount = tallyCount + 1;
       setTallyCount(nextCount);
       doHaptic(nextCount, null, prefs.enableHaptics, prefs.hapticStrength);
-      if (prefs.enableHaptics && typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+      if (prefs.enableHaptics) {
         // Tiny extra buzz every 33 in free mode since the user is
         // explicitly counting without a target — feels rewarding
         // without being noisy.
-        if (nextCount % 33 === 0) navigator.vibrate(15);
+        if (nextCount % 33 === 0) vibrate(15);
       }
       return;
     }

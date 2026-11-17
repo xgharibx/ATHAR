@@ -22,6 +22,7 @@
  * is the like, and it reuses the favourites that already sync to the account.
  */
 import * as React from "react";
+import { vibrate } from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { Heart, Volume2, VolumeX, ChevronLeft, Play, Pause, Share2, EyeOff, Bookmark } from "lucide-react";
@@ -376,7 +377,7 @@ function ShortCard({
       if (!liked) onToggleLike();
       setBurst(true);
       window.setTimeout(() => setBurst(false), 650);
-      if (navigator.vibrate) navigator.vibrate(12);
+      vibrate(12);
       lastTap.current = 0;
       return;
     }

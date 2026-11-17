@@ -9,7 +9,7 @@
  * the caller's JWT first and only ever deletes *that* user — it never accepts a
  * user id from the request body, which would let anyone delete anyone.
  */
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 
 const ALLOWED_ORIGINS = new Set([
   "https://www.athark.org",

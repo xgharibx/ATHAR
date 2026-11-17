@@ -15,7 +15,7 @@
  * reply then passes through a guard that replaces every verse and hadith with
  * its verified text and removes any that cannot be verified.
  */
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 import { companionCorsHeaders } from "./cors.ts";
 import { EVIDENCE_STEP_SYSTEM, EVIDENCE_TOOL, buildEvidenceBlock, gatherHadith, gatherVerses, loadQuran, readEvidencePlan } from "./evidence.ts";
 import { ReplyGuard, UNAVAILABLE_REPLY, finalizeReplyDetailed, isUsableReply } from "./guard.ts";

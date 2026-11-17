@@ -1,3 +1,5 @@
+import { vibrate } from "@/lib/haptics";
+
 export type HapticStrength = "off" | "light" | "medium" | "strong";
 
 function hapticMs(strength: HapticStrength | undefined, base: number): number {
@@ -9,9 +11,9 @@ function hapticMs(strength: HapticStrength | undefined, base: number): number {
 }
 
 /**
- * Play a haptic pulse via navigator.vibrate. Respects the user's
- * enableHaptics preference and the chosen hapticStrength. Safe to call
- * even when navigator.vibrate is unavailable — no-op in that case.
+ * Play a haptic pulse (the Vibration API on Android and the web, the Taptic
+ * Engine on iOS). Respects the user's enableHaptics preference and the
+ * chosen hapticStrength, and does nothing where haptics are unavailable.
  */
 export function doHaptic(
   count: number,
@@ -20,12 +22,11 @@ export function doHaptic(
   strength: HapticStrength | undefined = "medium",
 ): void {
   if (!enabled || strength === "off") return;
-  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
   const isCompletion = target !== null && count >= target;
   const isHundred = count % 100 === 0 && count > 0;
   const isThirtyThree = count % 33 === 0 && count > 0 && !isHundred;
   if (isCompletion) {
-    navigator.vibrate([
+    vibrate([
       hapticMs(strength, 40), 30,
       hapticMs(strength, 40), 30,
       hapticMs(strength, 60),
@@ -33,7 +34,7 @@ export function doHaptic(
     return;
   }
   if (isHundred) {
-    navigator.vibrate([
+    vibrate([
       hapticMs(strength, 30), 20,
       hapticMs(strength, 30), 20,
       hapticMs(strength, 30),
@@ -41,10 +42,10 @@ export function doHaptic(
     return;
   }
   if (isThirtyThree) {
-    navigator.vibrate([hapticMs(strength, 40), 20, hapticMs(strength, 40)]);
+    vibrate([hapticMs(strength, 40), 20, hapticMs(strength, 40)]);
     return;
   }
-  navigator.vibrate(hapticMs(strength, 10));
+  vibrate(hapticMs(strength, 10));
 }
 
 import type { SoundProfileDef } from "./dhikrCatalog";
