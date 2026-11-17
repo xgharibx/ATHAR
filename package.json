@@ -96,7 +96,7 @@
     "tailwind-merge": "^2.5.2",
     "three": "^0.187.0",
     "zod": "^4.6.7",
-    "zustand": "^4.5.5"
+    "zustand": "^5.1.0"
   },
   "devDependencies": {
     "@capacitor/android": "^6.2.3",
