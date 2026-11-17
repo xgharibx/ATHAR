@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#123a2b" />
+    <meta name="description" content="شروط استخدام تطبيق أثر وموقعه: الترخيص، المحتوى الديني، المساعد الذكي، والملكية الفكرية." />
+    <meta name="referrer" content="no-referrer" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="شروط الاستخدام — أثر" />
+    <meta property="og:description" content="الشروط التي تحكم استخدامك لتطبيق أثر." />
+    <meta property="og:url" content="https://www.athark.org/terms.html" />
+    <title>شروط الاستخدام — أثر | ATHAR Terms of Use</title>
+    <link rel="canonical" href="https://www.athark.org/terms.html" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #173329;
+        --muted: #596b61;
+        --green: #123a2b;
+        --deep: #08291f;
+        --gold: #e4c970;
+        --paper: #faf9f5;
+        --line: #dedfd5;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: Tahoma, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.85;
+      }
+      a { color: inherit; text-underline-offset: .22em; overflow-wrap: anywhere; }
+      a:hover { color: #86671f; }
+      a:focus-visible { outline: 3px solid #ad842a; outline-offset: 5px; border-radius: 4px; }
+      .skip {
+        position: absolute;
+        z-index: 3;
+        inset-inline-start: 1rem;
+        top: -5rem;
+        padding: .5rem 1rem;
+        border-radius: 8px;
+        background: white;
+      }
+      .skip:focus { top: 1rem; }
+      .wrap { width: min(100% - 2.5rem, 960px); margin-inline: auto; }
+      header { border-bottom: 1px solid var(--line); }
+      .topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1rem; }
+      .brand { display: inline-flex; align-items: center; gap: .7rem; color: var(--ink); text-decoration: none; font-size: 1.2rem; font-weight: 700; }
+      .brand img { width: 44px; height: 44px; border-radius: 13px; }
+      .top-link { color: var(--muted); font-size: .92rem; }
+      main { padding-block: clamp(1.5rem, 5vw, 3.25rem) 3rem; }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        padding: clamp(1.5rem, 5vw, 3.25rem);
+        border: 1px solid #245442;
+        border-radius: 28px;
+        background: radial-gradient(ellipse at 80% 0%, #1e5842 0, transparent 56%), linear-gradient(145deg, var(--green), var(--deep));
+        color: #f8f5e9;
+        box-shadow: 0 22px 55px rgb(8 41 31 / 12%);
+      }
+      .hero::before {
+        position: absolute;
+        z-index: -1;
+        inset: 0;
+        content: "";
+        background-image: radial-gradient(circle, rgb(246 225 153 / 60%) 1px, transparent 1.5px), radial-gradient(circle, rgb(255 255 255 / 36%) 1px, transparent 1.5px);
+        background-size: 83px 91px, 127px 139px;
+        background-position: 8px 17px, 31px 49px;
+        opacity: .23;
+        pointer-events: none;
+      }
+      .eyebrow { margin: 0 0 .45rem; color: var(--gold); font-size: .88rem; font-weight: 700; letter-spacing: .03em; }
+      h1 { max-width: 700px; margin: 0; font-size: clamp(2rem, 6vw, 3.35rem); line-height: 1.45; letter-spacing: -.035em; }
+      .intro { max-width: 690px; margin-block: .8rem 0; color: #e1e9df; font-size: clamp(1rem, 2vw, 1.1rem); }
+      .support-card {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: start;
+        gap: 1rem;
+        max-width: 690px;
+        margin-top: 2rem;
+        padding: clamp(1.1rem, 4vw, 1.6rem);
+        border: 1px solid rgb(255 255 255 / 60%);
+        border-radius: 20px;
+        background: #fffefa;
+        color: var(--ink);
+        box-shadow: 0 12px 35px rgb(0 0 0 / 14%);
+      }
+      .mail-icon { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 15px; background: #edf4ed; color: var(--green); }
+      .mail-icon svg { width: 23px; height: 23px; }
+      .support-card h2 { margin: 0 0 .3rem; font-size: 1.12rem; }
+      .support-card p { margin: 0; color: var(--muted); }
+      .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; margin-top: 1rem; }
+      .button {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        padding: .55rem 1.1rem;
+        border: 1px solid #c6ab53;
+        border-radius: 12px;
+        background: #e8d177;
+        color: #173329;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform .18s ease, background-color .18s ease;
+      }
+      .button:hover { transform: translateY(-1px); background: #f0df9b; color: #173329; }
+      .email { color: var(--green); font-weight: 700; }
+      .privacy-note { margin-top: 1rem !important; font-size: .86rem; }
+      .below { display: grid; grid-template-columns: 1.1fr .9fr; gap: 1rem; margin-top: 1rem; }
+      .info-card { padding: clamp(1.1rem, 3vw, 1.6rem); border: 1px solid var(--line); border-radius: 20px; background: white; }
+      .info-card h2 { margin: 0 0 .45rem; font-size: 1.15rem; }
+      .info-card p { margin: 0; color: var(--muted); }
+      .info-card a { color: var(--green); font-weight: 700; }
+      .terms { display: grid; gap: 1rem; margin-top: 1rem; }
+      .terms .info-card h2 { margin-top: 1.1rem; }
+      .terms .info-card h2:first-child { margin-top: 0; }
+      .terms .info-card p { margin-bottom: .6rem; }
+      .terms .info-card p, .terms .info-card li { color: var(--ink); }
+      .terms ul { margin: 0 0 .6rem; padding-inline-start: 1.3rem; }
+      .english { direction: ltr; text-align: left; }
+      .links { display: flex; flex-wrap: wrap; gap: .55rem 1.1rem; margin-top: 1rem; }
+      .links a { font-size: .92rem; }
+      footer { border-top: 1px solid var(--line); padding-block: 1.1rem; color: var(--muted); font-size: .84rem; }
+      .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+      footer a { color: var(--green); }
+      @media (max-width: 640px) {
+        .wrap { width: min(100% - 1.5rem, 960px); }
+        .topbar { padding-block: .8rem; }
+        .hero { border-radius: 21px; }
+        .support-card { grid-template-columns: 1fr; gap: .7rem; }
+        .below { grid-template-columns: 1fr; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+      }
+      @media print { body { background: white; color: black; } .hero { color: black; border: 1px solid #777; background: white; box-shadow: none; } .intro { color: #333; } .hero::before { display: none; } }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#content">انتقل إلى المحتوى</a>
+    <header>
+      <div class="wrap topbar">
+        <a class="brand" href="/" aria-label="أثر — الصفحة الرئيسية">
+          <img src="/logo.svg" alt="" width="44" height="44" />
+          <span>أثر <span lang="en" dir="ltr">ATHAR</span></span>
+        </a>
+        <a class="top-link" href="#terms-en" lang="en" dir="ltr">English</a>
+      </div>
+    </header>
+    <main id="content" class="wrap">
+      <section class="hero" aria-labelledby="terms-title">
+        <p class="eyebrow">أثر — أذكار وقرآن وصلاة</p>
+        <h1 id="terms-title">شروط الاستخدام</h1>
+        <p class="intro">تحكم هذه الشروط استخدامك لتطبيق أثر وموقعه athark.org. باستخدامك أثر فأنت توافق عليها. مالك أثر وناشره: <span lang="en" dir="ltr">Amr Abdel-Aziz Gharib</span>، جمهورية مصر العربية. تاريخ السريان: ١٦ نوفمبر ٢٠٢٦.</p>
+      </section>
+
+      <section class="terms" aria-label="شروط الاستخدام">
+        <div class="info-card">
+          <h2>١. الخدمة</h2>
+          <p>أثر تطبيق مجاني للأذكار والقرآن الكريم ومواقيت الصلاة والمحتوى الإسلامي، متاح على الويب وعلى متاجر التطبيقات الرسمية. نطوّره باستمرار، وقد نضيف مزايا أو نعدّلها أو نوقفها.</p>
+
+          <h2>٢. الترخيص الممنوح لك</h2>
+          <p>نمنحك ترخيصًا شخصيًّا محدودًا، غير حصري، غير قابل للتحويل، وقابلًا للإلغاء، لتثبيت أثر واستخدامه لأغراضك الشخصية غير التجارية. لا يمنحك هذا الترخيص أي حق في الشيفرة المصدرية أو في تصميم التطبيق.</p>
+
+          <h2>٣. ما لا يجوز</h2>
+          <ul>
+            <li>نسخ التطبيق أو تعديله أو إعادة نشره أو بيعه، باسمه أو بأي اسم آخر.</li>
+            <li>تفكيك التطبيق أو هندسته عكسيًّا، إلا بالقدر الذي يجيزه القانون صراحةً.</li>
+            <li>استخدام اسم «أثر» أو ATHAR أو شعاره أو أيقونته دون إذن كتابي منا.</li>
+            <li>الوصول إلى خدماتنا بغير التطبيقات المنشورة، أو تعطيلها، أو تجاوز حدود الاستخدام أو وسائل الحماية.</li>
+            <li>استخدام أثر في ما يخالف القانون أو يسيء إلى الآخرين.</li>
+          </ul>
+
+          <h2>٤. المحتوى الديني</h2>
+          <p>نبذل جهدنا في توثيق نصوص القرآن الكريم والأحاديث والأذكار وعزوها إلى مصادرها. ومع ذلك قد يقع خطأ؛ فإن وجدت خطأً فأبلغنا لنصححه. المرجع عند الاختلاف هو المصحف الشريف والمصادر الأصلية المعتمدة.</p>
+          <p>أثر وسيلة تعليمية وتذكيرية، وليس جهة إفتاء. ما تقرؤه فيه لا يُغني عن سؤال أهل العلم في ما يخصّ حالتك.</p>
+
+          <h2>٥. «اسأل أثر» (المساعد الذكي)</h2>
+          <p>يعتمد «اسأل أثر» على نموذج ذكاء اصطناعي. نتحقق آليًّا من نصوص الآيات والأحاديث التي يعرضها، ونحصر مصادره في مواقع علمية موثوقة، لكن أجوبته قد تتضمن أخطاء أو نقصًا.</p>
+          <ul>
+            <li>أجوبته ليست فتوى ولا حكمًا شرعيًّا ملزمًا؛ راجع عالمًا موثوقًا في مسائل دينك.</li>
+            <li>وليست نصيحة طبية أو نفسية أو قانونية أو مالية.</li>
+            <li>أنت مسؤول عن التحقق مما تعتمد عليه منها.</li>
+          </ul>
+
+          <h2>٦. مواقيت الصلاة والقبلة</h2>
+          <p>تُحسب مواقيت الصلاة واتجاه القبلة بطرق حسابية معروفة وبحسب موقعك وإعدادات جهازك، وقد تختلف دقائقها عن توقيت مسجدك أو الجهة المعتمدة في بلدك. المعتمد عند الاختلاف هو التوقيت المحلي الرسمي.</p>
+
+          <h2>٧. الحساب والمزامنة</h2>
+          <p>إنشاء الحساب اختياري. إن أنشأته فأنت مسؤول عن الحفاظ على سرية بيانات دخولك. يمكنك حذف حسابك وبياناته السحابية من الإعدادات في أي وقت. تفاصيل البيانات في <a href="/privacy.html">سياسة الخصوصية</a>.</p>
+          <p>الأسماء الظاهرة في لوحات الترتيب يجب أن تكون لائقة. لنا أن نغيّر أو نحذف الأسماء المسيئة.</p>
+
+          <h2>٨. الملكية الفكرية</h2>
+          <p>التطبيق، بشيفرته وتصميمه ونصوصه الخاصة ورسومه واسمه «أثر» و ATHAR وشعاره، ملك لمالك أثر (<span lang="en" dir="ltr">Amr Abdel-Aziz Gharib</span>) ومحميٌّ بقوانين حقوق المؤلف والعلامات التجارية. جميع الحقوق محفوظة.</p>
+          <p>لا ندّعي ملكية القرآن الكريم ولا الأحاديث ولا النصوص الدينية. التلاوات والترجمات والتفاسير والمواد الأخرى ملك لأصحابها وتُستخدم وفق شروطهم، وتظهر نسبتها داخل التطبيق. إشعارات المكوّنات مفتوحة المصدر المستخدمة في التطبيق منشورة في <a href="/third-party-licenses.txt">ملف التراخيص</a>.</p>
+
+          <h2>٩. خدمات الأطراف الأخرى</h2>
+          <p>بعض المزايا تعتمد على خدمات يقدّمها غيرنا، مثل مواقيت الصلاة والتلاوات والمقاطع المرئية. تخضع تلك الخدمات لشروط أصحابها، ولسنا مسؤولين عن توفرها أو محتواها.</p>
+
+          <h2>١٠. إخلاء المسؤولية</h2>
+          <p>يُقدَّم أثر «كما هو» و«بحسب توفره»، دون أي ضمان صريح أو ضمني، بما في ذلك ضمان الدقة أو الخلو من الأخطاء أو استمرار الخدمة دون انقطاع.</p>
+
+          <h2>١١. حدود المسؤولية</h2>
+          <p>في الحدود القصوى التي يجيزها القانون، لا نتحمل مسؤولية أي ضرر غير مباشر أو تبعي ينشأ عن استخدامك أثر أو تعذُّر استخدامه. لا يحدّ هذا البند من أي حق لا يجيز القانون استبعاده.</p>
+
+          <h2>١٢. الإنهاء</h2>
+          <p>لك أن تتوقف عن استخدام أثر متى شئت. ولنا أن نوقف أو نقيّد وصول من يخالف هذه الشروط. ينتهي الترخيص الممنوح لك تلقائيًّا عند مخالفتها.</p>
+
+          <h2>١٣. تعديل الشروط</h2>
+          <p>قد نحدّث هذه الشروط. ننشر النسخة الجديدة في هذه الصفحة مع تاريخ سريانها، واستمرارك في استخدام أثر بعد ذلك يعني قبولك لها.</p>
+
+          <h2>١٤. القانون الواجب التطبيق</h2>
+          <p>تخضع هذه الشروط لقوانين جمهورية مصر العربية، وتختص محاكمها بنظر أي نزاع ينشأ عنها. لا يمسّ ذلك أي حق مقرَّر لك بموجب قواعد حماية المستهلك الآمرة في بلد إقامتك.</p>
+
+          <h2>١٥. التواصل</h2>
+          <p>للاستفسار عن هذه الشروط أو لطلب إذن: <a href="mailto:amr@gharib.dev?subject=ATHAR%20terms">amr@gharib.dev</a></p>
+          <div class="links"><a href="/privacy.html">سياسة الخصوصية</a><a href="/support.html">الدعم الفني</a><a href="/">العودة إلى أثر</a></div>
+        </div>
+
+        <div class="info-card english" id="terms-en" lang="en">
+          <h2>Terms of Use</h2>
+          <p>These terms govern your use of the ATHAR app and the website athark.org. By using ATHAR you agree to them. ATHAR is owned and published by Amr Abdel-Aziz Gharib, Arab Republic of Egypt. Effective 16 November 2026. The Arabic text above is the authoritative version; this English text is provided for convenience.</p>
+
+          <h2>1. The service</h2>
+          <p>ATHAR is a free app for adhkar, the Quran, prayer times and Islamic content, available on the web and on official app stores. We keep developing it and may add, change or withdraw features.</p>
+
+          <h2>2. Your licence</h2>
+          <p>We grant you a personal, limited, non-exclusive, non-transferable, revocable licence to install and use ATHAR for your own non-commercial purposes. It gives you no right to the source code or to the app's design.</p>
+
+          <h2>3. What is not allowed</h2>
+          <ul>
+            <li>Copying, modifying, republishing or selling the app, under its name or any other.</li>
+            <li>Decompiling or reverse engineering the app, except where the law expressly allows it.</li>
+            <li>Using the names “أثر” or ATHAR, the logo or the app icon without our written permission.</li>
+            <li>Reaching our services other than through the published apps, disrupting them, or getting around usage limits or security measures.</li>
+            <li>Using ATHAR unlawfully or to harm others.</li>
+          </ul>
+
+          <h2>4. Religious content</h2>
+          <p>We work to source and attribute the Quran text, hadith and adhkar correctly. Errors can still occur; if you find one, tell us and we will correct it. Where there is a difference, the printed Mushaf and the recognised original sources prevail.</p>
+          <p>ATHAR is a learning and remembrance aid, not a fatwa authority. What you read in it does not replace asking a qualified scholar about your own situation.</p>
+
+          <h2>5. “Ask ATHAR” (the assistant)</h2>
+          <p>“Ask ATHAR” uses an artificial-intelligence model. We automatically verify the verses and hadith it shows and restrict its sources to trusted scholarly sites, but its answers may still contain errors or omissions.</p>
+          <ul>
+            <li>Its answers are not a fatwa or a binding religious ruling; consult a trusted scholar on matters of your religion.</li>
+            <li>They are not medical, psychological, legal or financial advice.</li>
+            <li>You are responsible for checking anything you rely on.</li>
+          </ul>
+
+          <h2>6. Prayer times and Qibla</h2>
+          <p>Prayer times and the Qibla direction are calculated with established methods from your location and device settings, and may differ by minutes from your mosque or your country's official authority. Where they differ, the official local timing prevails.</p>
+
+          <h2>7. Accounts and sync</h2>
+          <p>An account is optional. If you create one, you are responsible for keeping your sign-in details confidential. You can delete your account and its cloud data from Settings at any time. See the <a href="/privacy.html">privacy policy</a> for details.</p>
+          <p>Names shown on leaderboards must be appropriate. We may change or remove offensive names.</p>
+
+          <h2>8. Intellectual property</h2>
+          <p>The app, including its code, design, original text, artwork, the names “أثر” and ATHAR and the logo, belongs to the owner of ATHAR (Amr Abdel-Aziz Gharib) and is protected by copyright and trademark law. All rights reserved.</p>
+          <p>We claim no ownership of the Quran, of hadith or of religious texts. Recitations, translations, commentaries and other material belong to their owners, are used under their terms, and are attributed inside the app. Notices for the open-source components used in the app are published in the <a href="/third-party-licenses.txt">licences file</a>.</p>
+
+          <h2>9. Third-party services</h2>
+          <p>Some features rely on services provided by others, such as prayer times, recitations and video. Those services are subject to their providers' terms, and we are not responsible for their availability or content.</p>
+
+          <h2>10. Disclaimer</h2>
+          <p>ATHAR is provided “as is” and “as available”, without warranties of any kind, express or implied, including accuracy, freedom from errors, or uninterrupted service.</p>
+
+          <h2>11. Limitation of liability</h2>
+          <p>To the fullest extent the law permits, we are not liable for any indirect or consequential loss arising from your use of, or inability to use, ATHAR. Nothing here limits a right that the law does not allow to be excluded.</p>
+
+          <h2>12. Termination</h2>
+          <p>You may stop using ATHAR at any time. We may suspend or restrict access for anyone who breaches these terms. Your licence ends automatically if you breach them.</p>
+
+          <h2>13. Changes</h2>
+          <p>We may update these terms. The new version is published on this page with its effective date, and continuing to use ATHAR after that means you accept it.</p>
+
+          <h2>14. Governing law</h2>
+          <p>These terms are governed by the laws of the Arab Republic of Egypt, and its courts have jurisdiction over any dispute arising from them. This does not affect any right you have under mandatory consumer-protection rules in your country of residence.</p>
+
+          <h2>15. Contact</h2>
+          <p>Questions about these terms, or permission requests: <a href="mailto:amr@gharib.dev?subject=ATHAR%20terms">amr@gharib.dev</a></p>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div class="wrap footer-inner"><span>© ٢٠٢٦ أثر · ATHAR™ — جميع الحقوق محفوظة</span><a href="/">العودة إلى التطبيق</a><a href="/privacy.html">سياسة الخصوصية</a><a href="/support.html">الدعم الفني</a></div>
+    </footer>
+  </body>
+</html>

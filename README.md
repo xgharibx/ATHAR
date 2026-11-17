@@ -1,10 +1,22 @@
-# Athar
+<div align="center">
+  <img src="public/logo.svg" alt="Athar logo" width="112" height="112" />
+  <h1>Athar · أثر</h1>
+  <p>An Islamic companion for adhkar, Quran, prayer times and daily worship.<br />One codebase for web, Android and iOS.</p>
+  <p>
+    <a href="https://www.athark.org">Website</a> ·
+    <a href="https://play.google.com/store/apps/details?id=com.athar.adhkar">Google Play</a> ·
+    <a href="https://www.athark.org/support.html">Support</a> ·
+    <a href="https://www.athark.org/privacy.html">Privacy</a> ·
+    <a href="https://www.athark.org/terms.html">Terms</a>
+  </p>
+  <p>
+    <a href="https://github.com/xgharibx/ATHAR/actions/workflows/ci.yml"><img src="https://github.com/xgharibx/ATHAR/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
+    <a href="https://github.com/xgharibx/ATHAR/actions/workflows/codeql.yml"><img src="https://github.com/xgharibx/ATHAR/actions/workflows/codeql.yml/badge.svg" alt="CodeQL status" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/licence-proprietary-123a2b" alt="Licence: proprietary" /></a>
+  </p>
+</div>
 
-Athar (أثر) is an Islamic companion app for adhkar, Quran, prayer times and daily worship. It ships from one codebase as a web app, an Android app and an iOS app.
-
-- Web: <https://www.athark.org>
-- Android: `com.athar.adhkar` on Google Play
-- iOS and Huawei AppGallery: built from the same sources
+> Athar is proprietary software. The source is published for transparency, not for reuse: see [LICENSE](LICENSE) and the [trademark policy](TRADEMARKS.md).
 
 ## Features
 
@@ -70,10 +82,18 @@ Client configuration is read from `VITE_*` variables; see `.env.example`. Server
 - iOS: see `docs/RELEASE_CHECKLIST_IOS_AR.md` and the `iOS Build` workflow.
 - Backend: see `docs/ACCOUNTS_SETUP.md`.
 
+## Contributing
+
+How the team works, and how to report a bug or a content correction: [CONTRIBUTING.md](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
+
 ## Security
 
 Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
-## License
+## Licence and trademarks
 
-Copyright © 2026 Athar. All rights reserved. This is proprietary software; see [LICENSE](LICENSE). Third-party content and open-source components are listed in [NOTICE.md](NOTICE.md).
+Copyright © 2026 Amr Abdel-Aziz Gharib. All rights reserved.
+
+- **Code and design:** proprietary; see [LICENSE](LICENSE).
+- **Name and logo:** "Athar", "ATHAR", "أثر" and the Athar logo are trademarks of Amr Abdel-Aziz Gharib; see [TRADEMARKS.md](TRADEMARKS.md).
+- **Religious texts and third-party components:** belong to their owners; see [NOTICE.md](NOTICE.md).

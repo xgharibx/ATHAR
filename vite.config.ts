@@ -6,6 +6,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { vendorChunk } from "./tools/build/vendorChunks";
 import { hardenHtmlPlugin } from "./tools/build/hardenHtml";
+import { thirdPartyNoticesPlugin } from "./tools/build/thirdPartyNotices";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,6 +85,7 @@ export default defineConfig(({ mode }) => {
   plugins: [
     emitVersionManifest(),
     hardenHtmlPlugin(),
+    thirdPartyNoticesPlugin(__dirname),
     // B1: Force application/manifest+json on every .webmanifest response.
     //     VitePWA generates manifest.webmanifest at build time but the dev
     //     server's static middleware has been observed sending HTML on some

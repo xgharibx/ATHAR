@@ -1,0 +1,50 @@
+name: Bug report
+description: Something in Athar does not work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the report. For a security problem, do not open an issue: follow the security policy instead.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [Web, Android, iOS, Huawei]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown at the bottom of Settings.
+      placeholder: "1.2.91"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and system version
+      placeholder: "Pixel 8, Android 15"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Add screenshots if they help. Remove any personal information first.
+    validations:
+      required: true

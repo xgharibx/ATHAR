@@ -1,45 +1,118 @@
-Athar Proprietary Software License
+ATHAR PROPRIETARY SOFTWARE LICENSE
 
-Copyright (c) 2026 Athar (https://www.athark.org). All rights reserved.
+Copyright (c) 2026 Amr Abdel-Aziz Gharib. All rights reserved.
+Athar: https://www.athark.org
 
-1. Ownership. This repository, including its source code, designs, text,
-   graphics, data compilations and documentation (the "Software"), is the
-   confidential and proprietary property of Athar and its licensors. It is
-   protected by copyright and other intellectual property laws.
+"Athar", "ATHAR" and "أثر" are trademarks of Amr Abdel-Aziz Gharib. See TRADEMARKS.md.
 
-2. No licence granted. No right or licence is granted to any person, whether
-   expressly, by implication, by estoppel or otherwise, except under a separate
-   written agreement signed by Athar. Access to the Software, including through
-   a public or private source repository, does not grant any right to use it.
+1. DEFINITIONS
 
-3. Restrictions. Without the prior written permission of Athar you may not:
-   (a) copy, reproduce, publish or distribute the Software or any part of it;
+   "Athar" means Amr Abdel-Aziz Gharib, the owner and publisher of the Athar
+   application and of this repository, and his successors and assigns.
+   "Software" means everything in this repository and in the published Athar
+   applications that is owned by Athar: source and object code, user interface
+   and visual design, text written for the application, graphics, icons,
+   animations, sounds produced for Athar, the selection and arrangement of
+   content, database structure, documentation and build tooling.
+   "Third-Party Material" means the open-source components and the religious
+   texts, recitations, translations and other content that belong to others,
+   as described in NOTICE.md.
+
+2. OWNERSHIP
+
+   The Software is the confidential and proprietary property of Athar and is
+   protected by copyright, trademark and other intellectual property laws and
+   treaties. Athar retains all right, title and interest in the Software.
+
+3. NO LICENCE GRANTED BY ACCESS
+
+   No right or licence is granted to any person, whether expressly, by
+   implication, by estoppel or otherwise, except as stated in section 4 or in
+   a separate written agreement signed by Athar. Being able to read this
+   repository, in public or in private, grants no right to use the Software.
+
+4. USE OF THE PUBLISHED APPLICATIONS
+
+   Athar grants you a personal, limited, revocable, non-exclusive,
+   non-transferable licence to install and use the Athar applications that
+   Athar publishes on its website and on official application stores, for
+   your own non-commercial use, subject to the Terms of Use published at
+   https://www.athark.org/terms.html. This licence does not extend to the
+   source code.
+
+5. RESTRICTIONS
+
+   Without the prior written permission of Athar you may not:
+   (a) copy, reproduce, publish, host or distribute the Software or any part
+       of it;
    (b) modify, adapt, translate or create derivative works from the Software;
    (c) sell, sublicense, rent, lease or otherwise make the Software available
        to any third party;
-   (d) use the Software, or any part of it, to build, train or operate a
-       competing product or service;
-   (e) remove or alter any copyright, trademark or other proprietary notice.
+   (d) republish the application, or a modified version of it, on any
+       website or application store, under the Athar name or any other name;
+   (e) decompile, disassemble or reverse engineer the published applications,
+       except to the extent that applicable law expressly permits it despite
+       this restriction;
+   (f) use the Software, or any part of it, to build, train or operate a
+       competing product or service, or to train a machine-learning model;
+   (g) remove, obscure or alter any copyright, trademark or other proprietary
+       notice;
+   (h) access Athar's services by any means other than the published
+       applications, or interfere with or circumvent their security or usage
+       limits.
 
-4. Trademarks. The "Athar" name, the "أثر" wordmark, logos and app icons are
-   trademarks of Athar. Nothing in this licence grants any right to use them.
+6. TRADEMARKS
 
-5. Third-party material. The Software incorporates open-source components and
-   third-party content that remain the property of their respective owners and
-   are provided under their own licence terms. Those terms govern that
-   material; see NOTICE.md. Nothing in this licence restricts rights granted
-   by those terms.
+   This licence grants no right to use Athar's names, wordmarks, logos, app
+   icons or other brand features. Their use is governed solely by
+   TRADEMARKS.md.
 
-6. No warranty. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+7. THIRD-PARTY MATERIAL
 
-7. Limitation of liability. TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO
-   EVENT SHALL ATHAR OR ITS LICENSORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.
+   Third-Party Material remains the property of its respective owners and is
+   provided under their own terms, which govern that material. Athar claims no
+   ownership of the Quran, of hadith or of other religious texts. Nothing in
+   this licence restricts rights granted by those terms.
 
-8. Termination. Any use of the Software in breach of this licence ends all
-   permissions previously granted in writing and may result in legal action.
+8. FEEDBACK AND CONTRIBUTIONS
 
-Licensing and permission requests: amr@gharib.dev
+   Suggestions, corrections and other feedback you send to Athar may be used
+   by Athar without restriction or obligation to you. Code contributions are
+   accepted only under a written agreement with Athar.
+
+9. NO WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE", WITHOUT WARRANTY OF ANY
+   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, ACCURACY AND
+   NON-INFRINGEMENT.
+
+10. LIMITATION OF LIABILITY
+
+   TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL ATHAR OR ITS
+   LICENSORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+   AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+   CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+11. TERMINATION
+
+   Any use of the Software in breach of this licence automatically ends every
+   permission granted under it. Athar may pursue all remedies available in
+   law, including injunctive relief and damages. Sections 2, 5, 6, 9 and 10
+   survive termination.
+
+12. GOVERNING LAW
+
+   This licence is governed by the laws of the Arab Republic of Egypt. The
+   competent courts of the Arab Republic of Egypt have jurisdiction over any
+   dispute arising from it. This does not limit Athar's right to seek urgent
+   relief against infringement before the courts of any country where the
+   infringement occurs.
+
+13. GENERAL
+
+   If any provision of this licence is held unenforceable, the remaining
+   provisions stay in effect. A failure by Athar to enforce a provision is not
+   a waiver of it.
+
+Permission requests and licensing enquiries: amr@gharib.dev

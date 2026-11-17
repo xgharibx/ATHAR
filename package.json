@@ -10,8 +10,16 @@
   "type": "module",
   "description": "ATHAR — The ultimate Adhkar experience (PWA + Android & iOS-ready via Capacitor).",
   "license": "SEE LICENSE IN LICENSE",
-  "author": "Athar (https://www.athark.org)",
+  "author": "Amr Abdel-Aziz Gharib (https://www.athark.org)",
   "homepage": "https://www.athark.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xgharibx/ATHAR.git"
+  },
+  "bugs": {
+    "url": "https://www.athark.org/support.html",
+    "email": "amr@gharib.dev"
+  },
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",

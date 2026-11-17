@@ -1,0 +1,10 @@
+# Every change is reviewed by the project owner.
+*                       @xgharibx
+
+# Areas where a mistake reaches users or their data directly.
+/supabase/              @xgharibx
+/.github/               @xgharibx
+/LICENSE                @xgharibx
+/TRADEMARKS.md          @xgharibx
+/public/privacy.html    @xgharibx
+/public/terms.html      @xgharibx
