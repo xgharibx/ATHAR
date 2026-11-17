@@ -25,6 +25,7 @@ import {
 import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { usePressCounter } from "@/hooks/usePressCounter";
 
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -386,6 +387,7 @@ function CircularRing({
   accent?: string;
 }) {
   const offset = RING_C * (1 - Math.min(percent, 100) / 100);
+  const press = usePressCounter(onClick);
 
   return (
     <div
@@ -409,7 +411,10 @@ function CircularRing({
         />
       </svg>
       <button type="button"
-        onClick={onClick}
+        onPointerDown={press.onPointerDown}
+        onClick={press.onClick}
+        // A press on the ring is always a count, never the start of a scroll.
+        style={{ touchAction: "none", WebkitTouchCallout: "none" }}
         className={cn(
           "absolute inset-0 rounded-full border transition active:scale-[.98] select-none flex items-center justify-center",
           completed
