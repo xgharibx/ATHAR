@@ -4,7 +4,7 @@ const notificationMock = vi.hoisted(() => ({ cancel: vi.fn(async () => undefined
 vi.mock("@capacitor/core", () => ({ Capacitor: { isNativePlatform: () => true, getPlatform: () => "ios" } }));
 vi.mock("@capacitor/local-notifications", () => ({ LocalNotifications: { cancel: notificationMock.cancel } }));
 
-import { buildPrayerNotificationsForDays, cancelPrayerFollowUp } from "@/lib/reminders";
+import { buildPrayerNotificationsForDays, cancelPrayerFollowUp, fitToNotificationBudget, prayerScheduleDays } from "@/lib/reminders";
 
 const ALL_PRAYERS_ENABLED = {
   Fajr: true,
@@ -94,5 +94,66 @@ describe("native prayer notification schedule horizon", () => {
     await cancelPrayerFollowUp("Fajr", "2026-10-03");
 
     expect(notificationMock.cancel).toHaveBeenCalledWith({ notifications: [{ id: tomorrowFollowUp?.id }] });
+  });
+
+  it("queues a week of prayer alarms with unique IDs that stay in their blocks", () => {
+    const now = new Date(2026, 9, 2, 4, 0, 0);
+    const days = Array.from({ length: 7 }, (_, index) => ({
+      dateISO: `2026-10-${String(2 + index).padStart(2, "0")}`,
+      timings: { Fajr: "05:00", Dhuhr: "12:00", Asr: "15:00", Maghrib: "18:00", Isha: "20:00" },
+    }));
+    const notifications = buildPrayerNotificationsForDays(days, LOUD, ALL_PRAYERS_ENABLED, QUIET, { includeDailyHadith: true, now });
+
+    const adhans = notifications.filter((item) => item.title === "أثر — الأذان");
+    const followUps = notifications.filter((item) => item.title === "أثر — تذكير لطيف");
+    const hadiths = notifications.filter((item) => item.title === "أثر — حديث اليوم ﷺ");
+    expect(adhans).toHaveLength(35);
+    expect(new Set(adhans.map((item) => item.extra?.dateISO)).size).toBe(7);
+    expect(new Set(followUps.map((item) => item.extra?.dateISO))).toEqual(new Set(["2026-10-02", "2026-10-03"]));
+    expect(hadiths.map((item) => item.extra?.dateISO)).toEqual(["2026-10-02", "2026-10-03"]);
+
+    const ids = notifications.map((item) => item.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const item of adhans) expect(item.id).toBeGreaterThanOrEqual(9201), expect(item.id).toBeLessThan(9300);
+    for (const item of followUps) expect(item.id).toBeGreaterThanOrEqual(9301), expect(item.id).toBeLessThan(9400);
+    const lastFajr = adhans.find((item) => item.extra?.dateISO === "2026-10-08" && item.extra?.prayerName === "Fajr");
+    expect(lastFajr?.schedule.at).toEqual(new Date(2026, 9, 8, 5, 0, 0));
+  });
+
+  it("only extends the schedule over consecutive days after tomorrow", () => {
+    const timings = { Fajr: "05:00" };
+    expect(prayerScheduleDays("2026-10-02", timings).map((day) => day.dateISO)).toEqual(["2026-10-02"]);
+    expect(prayerScheduleDays("2026-10-02", timings, null, [{ dateISO: "2026-10-04", timings }])
+      .map((day) => day.dateISO)).toEqual(["2026-10-02"]);
+    expect(prayerScheduleDays("2026-10-02", timings, timings, [
+      { dateISO: "2026-10-04", timings },
+      { dateISO: "2026-10-06", timings },
+      { dateISO: "2026-10-05", timings },
+    ]).map((day) => day.dateISO)).toEqual(["2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05", "2026-10-06"]);
+  });
+
+  it("drops the latest prayer days first to fit the iOS notification budget", () => {
+    const item = (id: number, dateISO?: string) => ({ id, title: "", body: "", schedule: { at: new Date() }, extra: dateISO ? { dateISO } : {} });
+    const notifications = [
+      item(9101),
+      ...["2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05"].flatMap((dateISO, day) =>
+        [0, 1, 2, 3, 4].map((prayer) => item(9201 + prayer + day * 10, dateISO))),
+    ];
+    const fitted = fitToNotificationBudget(notifications, 12, "2026-10-02");
+    expect(fitted.map((entry) => entry.extra?.dateISO ?? "reminder")).toEqual([
+      "reminder", ...Array(5).fill("2026-10-02"), ...Array(5).fill("2026-10-03"),
+    ]);
+    expect(fitToNotificationBudget(notifications, 100, "2026-10-02")).toBe(notifications);
+  });
+
+  it("cancels a logged prayer's follow-up anywhere in the week window", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 2, 8, 0, 0));
+    notificationMock.cancel.mockClear();
+    await cancelPrayerFollowUp("Asr", "2026-10-07");
+    expect(notificationMock.cancel).toHaveBeenCalledTimes(1);
+    notificationMock.cancel.mockClear();
+    await cancelPrayerFollowUp("Asr", "2026-10-09");
+    expect(notificationMock.cancel).not.toHaveBeenCalled();
   });
 });

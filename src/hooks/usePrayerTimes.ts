@@ -125,6 +125,119 @@ async function fetchPrayerTimesByCoords(latitude: number, longitude: number, met
   return fetchPrayerTimesResponse(url);
 }
 
+type AladhanCalendarDay = {
+  timings: Record<string, string>;
+  date: {
+    readable: string;
+    gregorian: { date: string };
+    hijri: PrayerTimesResponse["data"]["date"]["hijri"];
+  };
+};
+
+/** "05:01 (EET)" or "05:01" → "05:01"; anything else → null. */
+function normalizeCalendarTiming(value: string | undefined): string | null {
+  const match = /^(\d{2}):(\d{2})/.exec(value?.trim() ?? "");
+  return match ? `${match[1]}:${match[2]}` : null;
+}
+
+async function fetchPrayerCalendarMonth(
+  year: number,
+  month: number,
+  location: { coords: PrayerCoordinates | null; city: string; country: string },
+  method: number,
+  school: number,
+  timeZoneId: string,
+): Promise<AladhanCalendarDay[]> {
+  const common = `method=${method}&school=${school}&timezonestring=${encodeURIComponent(timeZoneId)}`;
+  const url = location.coords
+    ? `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${location.coords.lat}&longitude=${location.coords.lng}&${common}`
+    : `https://api.aladhan.com/v1/calendarByCity/${year}/${month}?city=${encodeURIComponent(location.city)}&country=${encodeURIComponent(location.country)}&${common}`;
+  const controller = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error("prayer calendar unavailable");
+    const body = await res.json() as { data?: AladhanCalendarDay[] };
+    return Array.isArray(body.data) ? body.data : [];
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
+}
+
+export type UpcomingPrayerDay = { dateISO: string; timings: PrayerTimesResponse["data"]["timings"] };
+
+/**
+ * Prayer times for the days after tomorrow, so native alarms stay queued
+ * for a week even when the app is not opened. Each day comes from the cache,
+ * then AlAdhan's monthly calendar (one request per month), and finally the
+ * offline calculation.
+ */
+async function loadUpcomingPrayerDays(
+  dateKeys: string[],
+  locationKey: string,
+  location: { coords: PrayerCoordinates | null; city: string; country: string },
+  method: number,
+  school: number,
+  timeZoneId: string,
+): Promise<UpcomingPrayerDay[]> {
+  const found = new Map<string, PrayerTimesResponse["data"]["timings"]>();
+  for (const key of dateKeys) {
+    const cached = readCached(key, locationKey);
+    if (cached?.data?.timings) found.set(key, cached.data.timings);
+  }
+
+  const missingMonths = new Map<string, { year: number; month: number }>();
+  for (const key of dateKeys) {
+    if (found.has(key)) continue;
+    const date = parseDateKey(key);
+    if (!date) continue;
+    missingMonths.set(`${date.getFullYear()}-${date.getMonth() + 1}`, { year: date.getFullYear(), month: date.getMonth() + 1 });
+  }
+
+  if (missingMonths.size > 0 && !browserReportsOffline()) {
+    const wanted = new Set(dateKeys);
+    for (const { year, month } of missingMonths.values()) {
+      try {
+        const days = await fetchPrayerCalendarMonth(year, month, location, method, school, timeZoneId);
+        for (const day of days) {
+          const [dd, mm, yyyy] = (day.date?.gregorian?.date ?? "").split("-");
+          const key = `${yyyy}-${mm}-${dd}`;
+          if (!wanted.has(key) || found.has(key)) continue;
+          const timings = {
+            Fajr: normalizeCalendarTiming(day.timings.Fajr),
+            Sunrise: normalizeCalendarTiming(day.timings.Sunrise),
+            Dhuhr: normalizeCalendarTiming(day.timings.Dhuhr),
+            Asr: normalizeCalendarTiming(day.timings.Asr),
+            Maghrib: normalizeCalendarTiming(day.timings.Maghrib),
+            Isha: normalizeCalendarTiming(day.timings.Isha),
+          };
+          if (Object.values(timings).some((value) => value === null)) continue;
+          const complete = timings as PrayerTimesResponse["data"]["timings"];
+          writeCached(key, locationKey, { data: { timings: complete, date: { readable: day.date.readable, hijri: day.date.hijri } } });
+          found.set(key, complete);
+        }
+      } catch {
+        // Fall back to the offline calculation below.
+      }
+    }
+  }
+
+  const fallbackCoords = location.coords ?? { lat: 30.0444, lng: 31.2357 };
+  return dateKeys.flatMap((key) => {
+    const timings = found.get(key);
+    if (timings) return [{ dateISO: key, timings }];
+    const date = parseDateKey(key);
+    if (!date) return [];
+    return [{ dateISO: key, timings: computeLocalPrayerTimes(fallbackCoords.lat, fallbackCoords.lng, date, method, school).data.timings }];
+  });
+}
+
+/** Exported for tests. */
+export const loadUpcomingPrayerDaysForTest = loadUpcomingPrayerDays;
+
+/** Days after tomorrow that native prayer alarms are queued for (a week in total). */
+const UPCOMING_PRAYER_DAYS = 5;
+
 function browserReportsOffline(): boolean {
   return typeof navigator !== "undefined" && navigator.onLine === false;
 }
@@ -421,6 +534,26 @@ export function usePrayerTimes() {
     },
   });
 
+  // Native alarms for the rest of the week, so prayer alerts continue even
+  // if the app stays closed for several days.
+  const upcomingQuery = useQuery<UpcomingPrayerDay[]>({
+    queryKey: ["prayer-times", "upcoming-v1", dayKey, method, school, deviceTimeZoneId, clockContext.utcOffsetMinutes, locationIdentity, tomorrowLocationKey],
+    enabled: Capacitor.isNativePlatform() && tomorrowQuery.data !== undefined,
+    staleTime: Infinity,
+    networkMode: "always",
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+    queryFn: () => loadUpcomingPrayerDays(
+      Array.from({ length: UPCOMING_PRAYER_DAYS }, (_, index) => shiftDateKey(dayKey, index + 2)),
+      tomorrowLocationKey,
+      { coords: cachedCoords, city, country },
+      method,
+      school,
+      deviceTimeZoneId,
+    ),
+  });
+
   const getPrayerTimingsForDate = React.useCallback((date: Date) => {
     const requestedDay = localDateKey(date);
     if (requestedDay === dayKey && query.data?.data?.timings) return query.data.data.timings;
@@ -465,5 +598,5 @@ export function usePrayerTimes() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dayKey, query.refetch]);
 
-  return { ...query, tomorrow: tomorrowQuery.data, getPrayerTimingsForDate };
+  return { ...query, tomorrow: tomorrowQuery.data, upcoming: upcomingQuery.data, getPrayerTimingsForDate };
 }

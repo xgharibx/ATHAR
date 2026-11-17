@@ -14,6 +14,7 @@ const query = vi.hoisted(() => ({
 vi.mock("@tanstack/react-query", () => ({
   useQuery: (options: { queryFn: typeof query.run; queryKey?: readonly unknown[] }) => {
     if (options.queryKey?.[1] === "tomorrow-v2") query.tomorrowRun = options.queryFn;
+    else if (options.queryKey?.[1] === "upcoming-v1") { /* week-ahead days: covered by prayerUpcomingDays.test.ts */ }
     else {
       query.run = options.queryFn;
       query.todayKey = options.queryKey;
