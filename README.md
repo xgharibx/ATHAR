@@ -33,7 +33,7 @@
 | Layer | Stack |
 |---|---|
 | App | React 18, TypeScript, Vite, Tailwind CSS |
-| Mobile | Capacitor 6 (Android, iOS) |
+| Mobile | Capacitor 8 (Android 7+, iOS 16.4+) |
 | Backend | Supabase (Auth, Postgres, Edge Functions) |
 | Tests | Vitest, pgTAP |
 

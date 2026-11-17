@@ -1,0 +1,471 @@
+diff --git a/node_modules/@capacitor/local-notifications/android/src/main/AndroidManifest.xml b/node_modules/@capacitor/local-notifications/android/src/main/AndroidManifest.xml
+index 0db6893..b208e1d 100644
+--- a/node_modules/@capacitor/local-notifications/android/src/main/AndroidManifest.xml
++++ b/node_modules/@capacitor/local-notifications/android/src/main/AndroidManifest.xml
+@@ -11,6 +11,10 @@
+                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
++                <!-- Athar: re-arm reminders at their local times after clock or time-zone changes. -->
++                <action android:name="android.intent.action.TIME_SET" />
++                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
++                <action android:name="android.intent.action.TIMEZONE_OFFSET_CHANGED" />
+             </intent-filter>
+         </receiver>
+         <provider
+diff --git a/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/DateMatch.kt b/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/DateMatch.kt
+index e112480..85e50d1 100644
+--- a/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/DateMatch.kt
++++ b/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/DateMatch.kt
+@@ -45,6 +45,11 @@ class DateMatch {
+             }
+             if (incrementUnit != -1) {
+                 next.set(incrementUnit, next.get(incrementUnit) + 1)
++                // Athar: Calendar normalises a time inside a DST gap (00:30 -> 01:30).
++                // Reapply the requested clock after advancing so later days keep it.
++                hour?.let { next.set(Calendar.HOUR_OF_DAY, it) }
++                minute?.let { next.set(Calendar.MINUTE, it) }
++                second?.let { next.set(Calendar.SECOND, it) }
+             }
+         }
+         return next.timeInMillis
+@@ -68,6 +73,70 @@ class DateMatch {
+ 
+     companion object {
+         private const val separator = " "
++        private val CLOCK_PATTERN = Regex("[0-9]{2}:[0-9]{2}")
++        private val DATE_PATTERN = Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}")
++
++        /** Athar: parses a validated "HH:mm" local clock time. */
++        fun parseClock(value: String?): Pair<Int, Int>? {
++            if (value == null || !CLOCK_PATTERN.matches(value)) return null
++            val hour = value.substring(0, 2).toInt()
++            val minute = value.substring(3, 5).toInt()
++            return if (hour in 0..23 && minute in 0..59) hour to minute else null
++        }
++
++        /** Athar: a daily match at the configured local time, or at the clock time of [at]. */
++        fun dailyAt(at: Date, configuredTime: String?): DateMatch {
++            val clock = Calendar.getInstance()
++            clock.time = at
++            val match = DateMatch()
++            match.hour = clock.get(Calendar.HOUR_OF_DAY)
++            match.minute = clock.get(Calendar.MINUTE)
++            match.second = clock.get(Calendar.SECOND)
++            parseClock(configuredTime)?.let { (hour, minute) ->
++                match.hour = hour
++                match.minute = minute
++                match.second = 0
++            }
++            return match
++        }
++
++        /** Athar: the next instant after [now] showing [hour]:[minute] on the local clock. */
++        fun nextConfiguredLocalTimeAfter(original: Date, hour: Int, minute: Int, now: Date): Date {
++            val target = Calendar.getInstance()
++            target.time = original
++            while (true) {
++                target.set(Calendar.HOUR_OF_DAY, hour)
++                target.set(Calendar.MINUTE, minute)
++                target.set(Calendar.SECOND, 0)
++                target.set(Calendar.MILLISECOND, 0)
++                if (target.time.after(now)) return target.time
++                target.add(Calendar.DAY_OF_MONTH, 1)
++            }
++        }
++
++        /** Athar: the instant of a local date ("yyyy-MM-dd") and time ("HH:mm") in the current time zone. */
++        fun atLocalWallClock(dateISO: String?, configuredTime: String?): Date? {
++            if (dateISO == null || !DATE_PATTERN.matches(dateISO)) return null
++            val (hour, minute) = parseClock(configuredTime) ?: return null
++            val year = dateISO.substring(0, 4).toInt()
++            val month = dateISO.substring(5, 7).toInt()
++            val day = dateISO.substring(8, 10).toInt()
++            if (year < 1970 || month !in 1..12 || day !in 1..31) return null
++            return try {
++                val validation = Calendar.getInstance()
++                validation.clear()
++                validation.isLenient = false
++                validation.set(year, month - 1, day, 12, 0, 0)
++                validation.timeInMillis
++                val target = Calendar.getInstance()
++                target.clear()
++                target.set(year, month - 1, day, hour, minute, 0)
++                target.set(Calendar.MILLISECOND, 0)
++                target.time
++            } catch (error: IllegalArgumentException) {
++                null
++            }
++        }
+ 
+         fun fromMatchString(matchString: String): DateMatch {
+             val date = DateMatch()
+diff --git a/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.kt b/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.kt
+index 72c31a7..473cd79 100644
+--- a/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.kt
++++ b/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.kt
+@@ -123,7 +123,11 @@ class LocalNotificationManager(
+         return channelId
+     }
+ 
+-    fun schedule(call: PluginCall?, localNotifications: List<LocalNotification>): JSONArray? {
++    fun schedule(
++        call: PluginCall?,
++        localNotifications: List<LocalNotification>,
++        dismissVisible: Boolean = true
++    ): JSONArray? {
+         val ids = JSONArray()
+         val notificationManager = NotificationManagerCompat.from(context)
+ 
+@@ -137,7 +141,9 @@ class LocalNotificationManager(
+                 call?.let { LocalNotificationsError.MISSING_IDENTIFIER.reject(it) }
+                 return null
+             }
+-            dismissVisibleNotification(id)
++            // Athar: re-arming after a clock or time-zone change must not clear
++            // notifications the user can still see.
++            if (dismissVisible) dismissVisibleNotification(id)
+             cancelTimerForNotification(id)
+             buildNotification(notificationManager, localNotification, call)
+             ids.put(id)
+@@ -178,13 +184,24 @@ class LocalNotificationManager(
+             mBuilder.setStyle(inboxStyle)
+         }
+ 
+-        val soundUri = SoundResolver.resolveUri(context, localNotification.sound) ?: getDefaultSoundUrl(context)
+-        if (soundUri != null) {
+-            context.grantUriPermission("com.android.systemui", soundUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+-            mBuilder.setSound(soundUri)
+-            mBuilder.setDefaults(Notification.DEFAULT_VIBRATE or Notification.DEFAULT_LIGHTS)
++        // Athar: an empty `sound` means silent, and `extra.vibration == false` turns
++        // vibration off. Below Android 8 the builder (not the channel) decides both.
++        val extraJson = localNotification.extra as? JSONObject
++        val vibrationEnabled = extraJson == null || !extraJson.has("vibration") || extraJson.optBoolean("vibration", true)
++        val alertDefaults = Notification.DEFAULT_LIGHTS or (if (vibrationEnabled) Notification.DEFAULT_VIBRATE else 0)
++        val explicitSilence = localNotification.sound == ""
++        if (explicitSilence) {
++            mBuilder.setSound(null)
++            mBuilder.setDefaults(alertDefaults)
+         } else {
+-            mBuilder.setDefaults(Notification.DEFAULT_ALL)
++            val soundUri = SoundResolver.resolveUri(context, localNotification.sound) ?: getDefaultSoundUrl(context)
++            if (soundUri != null) {
++                context.grantUriPermission("com.android.systemui", soundUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
++                mBuilder.setSound(soundUri)
++                mBuilder.setDefaults(alertDefaults)
++            } else {
++                mBuilder.setDefaults(Notification.DEFAULT_SOUND or alertDefaults)
++            }
+         }
+ 
+         val group = localNotification.group
+@@ -196,7 +213,9 @@ class LocalNotificationManager(
+         }
+ 
+         mBuilder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+-        mBuilder.setOnlyAlertOnce(true)
++        // Athar: a new occurrence of a recurring reminder must alert even when the
++        // previous one is still in the shade; only silent notifications stay quiet.
++        mBuilder.setOnlyAlertOnce(explicitSilence)
+ 
+         mBuilder.setSmallIcon(localNotification.resolveSmallIcon(context, getDefaultSmallIcon(context)))
+         mBuilder.setLargeIcon(localNotification.resolveLargeIcon(context))
+@@ -318,8 +337,20 @@ class LocalNotificationManager(
+             // diverts both to an immediate catch-up fire instead. Reachable only with a
+             // still-future `at`, so the interval below is always positive.
+             if (schedule.isRepeating()) {
+-                val interval = at.time - Date().time
+-                alarmManager.setRepeating(AlarmManager.RTC, at.time, interval, pendingIntent)
++                if (schedule.every == "day" && schedule.count == 1) {
++                    // Athar: a daily `at` repeat fires once at `at`, then follows the
++                    // configured local clock (DST and time-zone safe) instead of a
++                    // fixed interval measured from the scheduling moment.
++                    val daily = DateMatch.dailyAt(at, (request.extra as? JSONObject)?.optString("reminderTime", null))
++                    daily.nextTrigger(Date())
++                    notificationIntent.putExtra(TimedNotificationPublisher.CRON_KEY, daily.toMatchString())
++                    pendingIntent = PendingIntent.getBroadcast(context, requestId, notificationIntent, flags)
++                    setExactIfPossible(alarmManager, request, at.time, pendingIntent)
++                } else {
++                    val configuredInterval = schedule.everyInterval
++                    val interval = if (configuredInterval != null && configuredInterval > 0) configuredInterval else at.time - Date().time
++                    alarmManager.setRepeating(AlarmManager.RTC, at.time, interval, pendingIntent)
++                }
+             } else {
+                 setExactIfPossible(alarmManager, request, at.time, pendingIntent)
+             }
+diff --git a/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationRestoreReceiver.kt b/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationRestoreReceiver.kt
+index 4a3f1c4..29c5a6d 100644
+--- a/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationRestoreReceiver.kt
++++ b/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationRestoreReceiver.kt
+@@ -1,12 +1,24 @@
+ package com.capacitorjs.plugins.localnotifications
+ 
++import android.app.AlarmManager
++import android.app.PendingIntent
+ import android.content.BroadcastReceiver
+ import android.content.Context
+ import android.content.Intent
++import android.os.Build
+ import android.os.UserManager
+ import com.getcapacitor.CapConfig
++import com.getcapacitor.JSObject
++import java.text.SimpleDateFormat
+ import java.util.Date
++import java.util.Locale
++import java.util.TimeZone
++import org.json.JSONObject
+ 
++/**
++ * Re-arms saved notifications after a reboot, and (Athar) after the device clock
++ * or time zone changes, so reminders keep their local wall-clock times.
++ */
+ class LocalNotificationRestoreReceiver : BroadcastReceiver() {
+ 
+     override fun onReceive(context: Context, intent: Intent) {
+@@ -15,6 +27,10 @@ class LocalNotificationRestoreReceiver : BroadcastReceiver() {
+ 
+         val storage = NotificationStorage(context)
+         val ids = storage.getSavedNotificationIds()
++        // Boot and clock/time-zone changes all mean saved instants may no longer
++        // match the local times they were scheduled for.
++        val clockMayHaveChanged = intent.action in CLOCK_ACTIONS
++        val now = Date()
+ 
+         val notifications = ArrayList<LocalNotification>(ids.size)
+         val updatedNotifications = ArrayList<LocalNotification>()
+@@ -24,28 +40,100 @@ class LocalNotificationRestoreReceiver : BroadcastReceiver() {
+             val schedule = notification.schedule
+             if (schedule != null) {
+                 if (schedule.isPerpetual() && notification.cancelled) {
+-                    // Cancelled before reboot while its current instance was still
+-                    // visible (preserved for TRIGGERED display) — the shade is wiped
+-                    // on boot, so there's nothing left to preserve it for, and
+-                    // rescheduling would resurrect an alarm the user explicitly
+-                    // cancelled.
++                    // Cancelled before reboot while still visible: nothing to restore.
+                     storage.deleteNotification(id)
+                     continue
+                 }
+-                // Fired one-shot: kept in storage only for TRIGGERED queries — never
+-                // re-arm it on boot, or it re-fires after every reboot. Same guard the
+-                // migrator's reconcileOwnStorage already uses.
++                val extra = notification.extra as? JSONObject
++                var at = schedule.at
++
++                // One-shot reminders pinned to a local date and time (prayer alarms)
++                // follow the device's wall clock across time-zone changes.
++                if (clockMayHaveChanged && at != null && !schedule.isPerpetual() && !notification.cancelled &&
++                    extra != null && extra.optBoolean("atharWallClockOnce", false)
++                ) {
++                    val rebased = DateMatch.atLocalWallClock(
++                        extra.optString("atharWallClockDateISO", null),
++                        extra.optString("atharWallClockTime", null)
++                    )
++                    if (rebased != null) {
++                        if (!rebased.after(now)) {
++                            id.toIntOrNull()?.let { cancelAlarm(context, it) }
++                            storage.deleteNotification(id)
++                            continue
++                        }
++                        if (rebased != at) {
++                            at = rebased
++                            schedule.at = rebased
++                            notification.schedule = schedule
++                            if (rewriteSavedSchedule(storage, notification, id) { it.put("at", formatUtc(rebased)) }) {
++                                updatedNotifications.add(notification)
++                            }
++                        }
++                    }
++                }
++
++                // Fired one-shot: kept only for TRIGGERED queries; never re-arm it.
+                 if (!schedule.isPerpetual() && notification.isTriggered()) {
+                     if (notification.cancelled) storage.deleteNotification(id)
+                     continue
+                 }
+-                val at = schedule.at
+-                if (at != null && at.before(Date())) {
+-                    // Show notifications that would have been delivered while the device was off.
+-                    val newDateTime = Date().time + 15 * 1000
+-                    schedule.at = Date(newDateTime)
+-                    notification.schedule = schedule
+-                    updatedNotifications.add(notification)
++
++                val isDailyAtRepeat = schedule.isRepeating() && schedule.every == "day" && schedule.count == 1
++                val configuredTime = extra?.optString("reminderTime", null)
++
++                // Daily reminders keep their configured local clock time after a
++                // time-zone change.
++                if (clockMayHaveChanged && at != null && isDailyAtRepeat) {
++                    DateMatch.parseClock(configuredTime)?.let { (hour, minute) ->
++                        val next = DateMatch.nextConfiguredLocalTimeAfter(at!!, hour, minute, now)
++                        if (next != at) {
++                            at = next
++                            schedule.at = next
++                            notification.schedule = schedule
++                            if (rewriteSavedSchedule(storage, notification, id) { it.put("at", formatUtc(next)) }) {
++                                updatedNotifications.add(notification)
++                            }
++                        }
++                    }
++                }
++
++                val due = at
++                if (due != null && !due.after(now)) {
++                    if (isDailyAtRepeat) {
++                        // Missed while the device was off: continue as a calendar
++                        // repeat at the configured local time, with no catch-up burst
++                        // and no fixed interval measured from the restore moment.
++                        val daily = DateMatch.dailyAt(due, configuredTime)
++                        schedule.at = null
++                        schedule.every = null
++                        schedule.on = daily
++                        notification.schedule = schedule
++                        val rewritten = rewriteSavedSchedule(storage, notification, id) {
++                            val on = JSObject()
++                            on.put("hour", daily.hour)
++                            on.put("minute", daily.minute)
++                            on.put("second", daily.second)
++                            it.remove("at")
++                            it.remove("every")
++                            it.put("on", on)
++                            it.put("repeats", true)
++                        }
++                        if (!rewritten) continue
++                        updatedNotifications.add(notification)
++                    } else if (schedule.isRepeating() && schedule.every != null) {
++                        val interval = schedule.everyInterval
++                        if (interval == null || interval <= 0) continue
++                        val missedIntervals = (now.time - due.time) / interval + 1
++                        val nextAt = Date(due.time + missedIntervals * interval)
++                        schedule.at = nextAt
++                        notification.schedule = schedule
++                        if (!rewriteSavedSchedule(storage, notification, id) { it.put("at", formatUtc(nextAt)) }) continue
++                        updatedNotifications.add(notification)
++                    } else {
++                        // Never replay an expired trigger as a catch-up notification.
++                        continue
++                    }
+                 }
+             }
+ 
+@@ -58,6 +146,52 @@ class LocalNotificationRestoreReceiver : BroadcastReceiver() {
+ 
+         val config = CapConfig.loadDefault(context)
+         val localNotificationManager = LocalNotificationManager(storage, null, context, config)
+-        localNotificationManager.schedule(null, notifications)
++        localNotificationManager.schedule(null, notifications, dismissVisible = false)
++    }
++
++    /** Applies [change] to the saved schedule JSON and keeps the notification's source in step. */
++    private fun rewriteSavedSchedule(
++        storage: NotificationStorage,
++        notification: LocalNotification,
++        id: String,
++        change: (JSObject) -> Unit
++    ): Boolean {
++        val saved = storage.getSavedNotificationAsJSObject(id) ?: return false
++        val savedSchedule = saved.getJSObject("schedule") ?: return false
++        change(savedSchedule)
++        saved.put("schedule", savedSchedule)
++        notification.source = saved.toString()
++        return true
++    }
++
++    private fun formatUtc(date: Date): String {
++        val format = SimpleDateFormat(LocalNotificationSchedule.JS_DATE_FORMAT, Locale.US)
++        format.timeZone = TimeZone.getTimeZone("UTC")
++        return format.format(date)
++    }
++
++    private fun cancelAlarm(context: Context, id: Int) {
++        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
++        val alarmIntent = Intent(context, TimedNotificationPublisher::class.java)
++        var flags = PendingIntent.FLAG_NO_CREATE
++        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
++            flags = flags or PendingIntent.FLAG_MUTABLE
++        }
++        val pendingIntent = PendingIntent.getBroadcast(context, id, alarmIntent, flags)
++        if (pendingIntent != null) {
++            alarmManager.cancel(pendingIntent)
++            pendingIntent.cancel()
++        }
++    }
++
++    companion object {
++        private val CLOCK_ACTIONS = setOf(
++            Intent.ACTION_TIME_CHANGED,
++            Intent.ACTION_TIMEZONE_CHANGED,
++            "android.intent.action.TIMEZONE_OFFSET_CHANGED",
++            Intent.ACTION_BOOT_COMPLETED,
++            Intent.ACTION_LOCKED_BOOT_COMPLETED,
++            "android.intent.action.QUICKBOOT_POWERON"
++        )
+     }
+ }
+diff --git a/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.kt b/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.kt
+index 52def58..fb82726 100644
+--- a/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.kt
++++ b/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.kt
+@@ -63,12 +63,20 @@ class TimedNotificationPublisher : BroadcastReceiver() {
+         val storedNotification = NotificationStorage(context).getSavedNotificationAsJSObject(id.toString())
+         val wantsExact = storedNotification?.getBoolean("isExactNotification", true) ?: true
+         val canExact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
++        // Athar: keep Doze-safe delivery for every later occurrence, not just the first.
++        val allowWhileIdle = storedNotification?.getJSObject("schedule")?.optBoolean("allowWhileIdle", false) ?: false
++        if (wantsExact && !canExact) {
++            Logger.warn("Capacitor/LocalNotification", "Exact alarms not allowed in user settings.  Notification scheduled with non-exact alarm.")
++        }
+         if (wantsExact && canExact) {
+-            alarmManager.setExact(AlarmManager.RTC, trigger, pendingIntent)
+-        } else {
+-            if (wantsExact) {
+-                Logger.warn("Capacitor/LocalNotification", "Exact alarms not allowed in user settings.  Notification scheduled with non-exact alarm.")
++            if (allowWhileIdle) {
++                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pendingIntent)
++            } else {
++                alarmManager.setExact(AlarmManager.RTC, trigger, pendingIntent)
+             }
++        } else if (allowWhileIdle) {
++            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pendingIntent)
++        } else {
+             alarmManager.set(AlarmManager.RTC, trigger, pendingIntent)
+         }
+         val sdf = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
+index a9ac9bd..e6fb745 100644
+--- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
++++ b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
+@@ -193,7 +193,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+ 
+             do {
+                 if let schedule = notification["schedule"] as? JSObject {
+-                    try trigger = handleScheduledNotification(schedule)
++                    try trigger = handleScheduledNotification(schedule, notification["extra"] as? JSObject ?? [:])
+                 }
+             } catch let err as LocalNotificationsError {
+                 self.reject(call, err)
+@@ -515,7 +515,7 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+      * Build a notification trigger, such as triggering each N seconds, or
+      * on a certain date "shape" (such as every first of the month)
+      */
+-    func handleScheduledNotification(_ schedule: JSObject) throws -> UNNotificationTrigger? {
++    func handleScheduledNotification(_ schedule: JSObject, _ extra: JSObject = [:]) throws -> UNNotificationTrigger? {
+         var at: Date?
+         if let scheduleDate = schedule["at"] as? NSDate {
+             at = scheduleDate as Date
+@@ -545,6 +545,14 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
+                 throw LocalNotificationError.triggerRepeatIntervalTooShort
+             }
+ 
++            // Athar: a date-specific prayer reminder follows the local wall clock, so
++            // it still fires at the right local time after a time-zone change.
++            if extra["atharWallClockOnce"] as? Bool == true, !repeats {
++                var localComponents = Calendar.autoupdatingCurrent.dateComponents([.year, .month, .day, .hour, .minute, .second], from: at)
++                localComponents.calendar = Calendar.autoupdatingCurrent
++                localComponents.timeZone = TimeZone.autoupdatingCurrent
++                return UNCalendarNotificationTrigger(dateMatching: localComponents, repeats: false)
++            }
+             return UNTimeIntervalNotificationTrigger(timeInterval: dateInterval.duration, repeats: repeats)
+         }
+ 
