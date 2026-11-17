@@ -110,7 +110,7 @@ jobs:
           VITE_RUNTIME_VERSION: ${{ github.sha }}
         run: npm run build
 
-      - name: Sync iOS project (copies web assets + pod install)
+      - name: Sync iOS project (web assets and Swift packages)
         run: npx cap sync ios
 
       - name: Build (unsigned) to validate

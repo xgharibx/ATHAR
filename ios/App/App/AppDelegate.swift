@@ -10,8 +10,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
-    /// App Group shared with the (optional) WidgetKit extension.
-    /// Must match the App Group enabled on both targets in Xcode.
+    /// App Group shared with the AtharWidgets extension. Must match the
+    /// entitlements of both targets (App.entitlements, AtharWidgets.entitlements).
     static let widgetAppGroup = "group.com.athar.adhkar"
 
     /// Widget payload keys written by the web app via @capacitor/preferences.
@@ -43,8 +43,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     /// Copies the web app's widget payloads into the shared App Group and asks
-    /// WidgetKit to re-render. No-ops harmlessly until a widget extension +
-    /// App Group are configured in Xcode (see ios/WidgetExtension/README.md).
+    /// WidgetKit to re-render the AtharWidgets extension.
     private func mirrorWidgetDataToAppGroup() {
         guard let shared = UserDefaults(suiteName: AppDelegate.widgetAppGroup) else { return }
         let standard = UserDefaults.standard
