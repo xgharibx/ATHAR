@@ -266,7 +266,7 @@ const REMINDERS_QUERY_RE =
  *  up without any extra wiring. */
 export function retrieveUserRemindersAsPassages(query: string, k = 16): Passage[] {
   if (!REMINDERS_QUERY_RE.test(query)) return [];
-  let reminders: ReturnType<typeof useNoorStore.getState>["customReminders"] = [];
+  let reminders: ReturnType<typeof useNoorStore.getState>["customReminders"];
   try { reminders = useNoorStore.getState().customReminders ?? []; } catch { return []; }
   if (!Array.isArray(reminders) || reminders.length === 0) return [];
   const out: Passage[] = [];

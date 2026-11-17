@@ -405,7 +405,6 @@ export function HomePage() {
 
     // Fallback: long-press also activates drag (280ms, shorter than before)
     stripLongPressRef.current = window.setTimeout(activateDrag, 280);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultStripIds, prefs.enableHaptics, reorderStripAtPoint, updateStripAutoScroll]);
 
   const onStripPointerMove = React.useCallback((pointer: { clientX: number; clientY: number }) => {
@@ -711,7 +710,6 @@ export function HomePage() {
     const xpPct = Math.min(100, Math.round(((totalXp - prevLevelXp) / (nextLevelXp - prevLevelXp)) * 100));
 
     return { quests, doneCount, totalXp, xpLevel, xpPct };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activity, civilTodayKey, customPacks, dailyChecklistByDay, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs, tasbeehDayTotals, worshipDayKey]);
 
   const todayPrayerTimings = prayerTimes.data?.data?.timings;

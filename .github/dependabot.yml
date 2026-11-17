@@ -38,7 +38,7 @@ updates:
         update-types: [version-update:semver-major, version-update:semver-minor]
       - dependency-name: eslint-plugin-react-refresh
         update-types: [version-update:semver-major, version-update:semver-minor]
-      # React Compiler lint rules: enabling them is a code migration (143 new findings).
+      # Lint rule sets: a new major adds rules that need code changes.
       - dependency-name: eslint-plugin-react-hooks
         update-types: [version-update:semver-major]
       # Node type definitions follow the Node.js version the builds run on (26).

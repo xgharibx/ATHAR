@@ -269,7 +269,6 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
   const handleCopyImage = async () => {
     try {
       const blob = await renderAyahPosterBlob(config);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await navigator.clipboard.write([
         new (window as any).ClipboardItem({ "image/png": blob }),
       ]);

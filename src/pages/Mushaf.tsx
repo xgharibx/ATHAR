@@ -1146,7 +1146,6 @@ export function MushafPage() {
       setFontScale(newScale);
       setPrefs({ mushafFontScale: newScale });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setPrefs]);
   const onTouchEnd = (e: React.TouchEvent) => {
     if (inSheet(e.target)) return;

@@ -843,7 +843,7 @@ export function SebhaPage() {
     recordTasbeehActivity(getLocalDateKey());
     // Daily goal completion
     const todayKey = getLocalDateKey();
-    const todayTotal = Object.values(useNoorStore.getState().tasbeehDailyLog[todayKey] ?? {}).reduce((s, v) => s + (Number(v) ?? 0), 0);
+    const todayTotal = Object.values(useNoorStore.getState().tasbeehDailyLog[todayKey] ?? {}).reduce((s, v) => s + (Number(v) || 0), 0);
     if (tasbeehDailyGoal > 0 && todayTotal >= tasbeehDailyGoal && tasbeehGoalCelebratedDate !== todayKey) {
       markTasbeehGoalCelebrated(todayKey);
       const getConfetti = async () => (opts: Record<string, unknown>) => { void celebrate([opts]); };
