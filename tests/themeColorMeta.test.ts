@@ -41,3 +41,15 @@ describe("theme-color follows the chosen theme", () => {
     expect(metas()[0]!.content.toLowerCase()).toBe("#000000");
   });
 });
+
+describe("native system bar icons", () => {
+  it("uses light icons on dark theme colours and dark icons on light ones", async () => {
+    const { systemBarsStyleFor, THEME_META_COLORS } = await import("@/hooks/useApplyTheme");
+    expect(systemBarsStyleFor(THEME_META_COLORS.forest)).toBe("DARK");
+    expect(systemBarsStyleFor(THEME_META_COLORS.layl)).toBe("DARK");
+    expect(systemBarsStyleFor(THEME_META_COLORS.light)).toBe("LIGHT");
+    expect(systemBarsStyleFor(THEME_META_COLORS.bustan)).toBe("LIGHT");
+    expect(systemBarsStyleFor("#fff")).toBe("LIGHT");
+    expect(systemBarsStyleFor("rgb(0, 0, 0)")).toBeNull();
+  });
+});

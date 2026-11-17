@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
 import { useNoorStore, type NoorTheme } from "@/store/noorStore";
 import { isAccountStorageOwnerTransitionInProgress } from "@/lib/accountStorageScope";
 import { getAccessibleAccentForeground, isSupportedOpaqueAccentColor } from "@/lib/accentContrast";
@@ -108,6 +109,37 @@ function setMetaThemeColor(color: string) {
     document.head.appendChild(meta);
   }
   meta.content = color;
+  syncNativeSystemBars(color);
+}
+
+/** Relative luminance of a "#rgb" or "#rrggbb" colour, or null for anything else. */
+function hexLuminance(color: string): number | null {
+  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color.trim());
+  if (!match) return null;
+  const hex = match[1].length === 3 ? match[1].replace(/./g, (c) => c + c) : match[1];
+  const channel = (offset: number) => {
+    const value = parseInt(hex.slice(offset, offset + 2), 16) / 255;
+    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
+}
+
+/** Light icons on dark theme colours, dark icons on light ones. Exported for tests. */
+export function systemBarsStyleFor(color: string): SystemBarsStyle | null {
+  const luminance = hexLuminance(color);
+  if (luminance === null) return null;
+  return luminance < 0.4 ? SystemBarsStyle.Dark : SystemBarsStyle.Light;
+}
+
+/**
+ * In the Android and iOS apps, match the status and navigation bar icons to
+ * the theme the user picked rather than the phone's light or dark mode, so
+ * they stay readable on every Athar theme.
+ */
+function syncNativeSystemBars(color: string) {
+  if (!Capacitor.isNativePlatform()) return;
+  const style = systemBarsStyleFor(color);
+  if (style) void SystemBars.setStyle({ style }).catch(() => {});
 }
 
 function applyAccentForeground(root: HTMLElement) {
