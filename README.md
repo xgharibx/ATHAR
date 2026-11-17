@@ -39,7 +39,7 @@
 
 ## Getting started
 
-Requirements: Node.js 24 and npm.
+Requirements: Node.js 26 (the current long-term-support release) and npm.
 
 ```bash
 npm install
