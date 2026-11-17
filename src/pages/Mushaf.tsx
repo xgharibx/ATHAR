@@ -103,6 +103,22 @@ const SAJDA_AYAHS = new Set([
   "27:26","32:15","38:24","41:38","53:62","84:21","96:19",
 ]);
 
+/** Move the Mushaf page with the finger during a swipe. */
+function dragPageTo(el: HTMLElement, shift: number) {
+  el.style.transition = "none";
+  el.style.transform = `translateX(${shift}px)`;
+  el.style.opacity = String(1 - Math.min(Math.abs(shift) / 600, 0.25));
+}
+
+/** Put a dragged page back, springing into place or at once (when the next page slides in). */
+function settleDraggedPage(el: HTMLElement, animate: boolean) {
+  if (!el.style.transform) return;
+  el.style.transition = animate ? "transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease" : "";
+  el.style.transform = "";
+  el.style.opacity = "";
+  if (animate) window.setTimeout(() => { if (!el.style.transform) el.style.transition = ""; }, 220);
+}
+
 function useRadioState() {
   const [state, setState] = React.useState(getRadioState);
   React.useEffect(() => subscribeRadio(() => setState(getRadioState())), []);
@@ -1237,7 +1253,18 @@ export function MushafPage() {
   // tafsirs must not also turn the page behind it.
   const inSheet = (t: EventTarget | null) =>
     t instanceof Element && !!t.closest('[role="dialog"],[aria-modal="true"],[data-no-swipe]');
+  // The page follows a horizontal swipe, like a native reader, and springs
+  // back if the swipe is too short to turn it. Styled directly on the element
+  // so nothing re-renders while the finger moves.
+  const swipeAxis = React.useRef<"x" | "y" | null>(null);
+  const dragMotionAllowed = () =>
+    !document.documentElement.classList.contains("reduce-motion") &&
+    !(typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const settlePage = (animate: boolean) => {
+    if (pageContentRef.current) settleDraggedPage(pageContentRef.current, animate);
+  };
   const onTouchStart = (e: React.TouchEvent) => {
+    swipeAxis.current = null;
     if (inSheet(e.target)) {
       touchStartX.current = null;
       touchStartY.current = null;
@@ -1258,6 +1285,22 @@ export function MushafPage() {
     }
   };
   const onTouchMove = React.useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1 && touchStartX.current !== null && touchStartY.current !== null && pinchStartDist.current === null) {
+      const dx = (e.touches[0]?.clientX ?? 0) - touchStartX.current;
+      const dy = (e.touches[0]?.clientY ?? 0) - touchStartY.current;
+      if (swipeAxis.current === null) {
+        if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.2) swipeAxis.current = "x";
+        else if (Math.abs(dy) > 10) swipeAxis.current = "y";
+      }
+      const el = pageContentRef.current;
+      if (swipeAxis.current === "x" && el && dragMotionAllowed()) {
+        // Swiping right moves forward in the Mushaf; resist past the first and last page.
+        const page = currentPageRef.current;
+        const atEdge = (dx > 0 && page >= totalPages) || (dx < 0 && page <= 1);
+        dragPageTo(el, dx * (atEdge ? 0.15 : 0.5));
+      }
+      return;
+    }
     if (e.touches.length >= 2 && pinchStartDist.current !== null) {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -1267,7 +1310,7 @@ export function MushafPage() {
       setFontScale(newScale);
       setPrefs({ mushafFontScale: newScale });
     }
-  }, [setPrefs]);
+  }, [setPrefs, totalPages]);
   const onTouchEnd = (e: React.TouchEvent) => {
     if (inSheet(e.target)) return;
     if (pinchStartDist.current !== null) {
@@ -1281,10 +1324,21 @@ export function MushafPage() {
     const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - touchStartY.current);
     touchStartX.current = null;
     touchStartY.current = null;
-    if (Math.abs(dx) < 55 || dy > Math.abs(dx) * 0.8) return;
+    const target = dx > 0 ? currentPage + 1 : currentPage - 1;
+    if (Math.abs(dx) < 55 || dy > Math.abs(dx) * 0.8 || target < 1 || target > totalPages) {
+      settlePage(true);
+      return;
+    }
+    // The new page slides in from the swipe's side.
+    settlePage(false);
     // Arabic Mushaf: swipe right (dx > 0) = next page (forward in Arabic reading order)
-    if (dx > 0) goPage(currentPage + 1);
-    else goPage(currentPage - 1);
+    goPage(target);
+  };
+  const onTouchCancel = () => {
+    touchStartX.current = null;
+    touchStartY.current = null;
+    pinchStartDist.current = null;
+    settlePage(true);
   };
 
   // Keyboard navigation
@@ -1739,6 +1793,7 @@ export function MushafPage() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       onTouchMove={onTouchMove}
+      onTouchCancel={onTouchCancel}
     >
       {/* ── Top chrome bar ───────────────────────────────── */}
       <div
