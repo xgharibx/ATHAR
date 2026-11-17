@@ -102,7 +102,7 @@ function EntryCard({
           )}
         </div>
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
+          className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold shrink-0"
           style={{ background: accent, color: "#fff" }}
         >
           {entry.nameAr.charAt(0)}
@@ -112,11 +112,11 @@ function EntryCard({
       <div
         id={`entry-panel-${entry.id}`}
         aria-hidden={!open}
-        className={open ? "px-4 pb-4 space-y-4" : "hidden"}
+        className={open ? "px-4 pb-4 stack-y-4" : "hidden"}
       >
         <div className="h-px" style={{ background: "var(--stroke)" }} />
         {entry.chapters && entry.chapters.length > 0 ? (
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {entry.chapters.map((chapter, idx) => {
               const chOpen = openChapter === idx;
               return (
@@ -144,7 +144,7 @@ function EntryCard({
                     </span>
                   </button>
                   <div className={chOpen ? "block" : "hidden"} aria-hidden={!chOpen}>
-                    <div className="px-3 pb-3 space-y-3">
+                    <div className="px-3 pb-3 stack-y-3">
                       <div className="h-px" style={{ background: "var(--stroke)" }} />
                       {chapter.content.split("\n\n").map((para, i) => (
                         <p key={i} className="text-sm leading-loose text-right" style={{ color: "var(--fg)", opacity: 0.85 }}>
@@ -158,7 +158,7 @@ function EntryCard({
             })}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="stack-y-3">
             {(entry.fullStory ?? entry.summary).split("\n\n").map((para, i) => (
               <p key={i} className="text-sm leading-loose text-right" style={{ color: "var(--fg)", opacity: 0.85 }}>
                 {para}
@@ -195,10 +195,10 @@ function EntryCard({
         {entry.lessons.length > 0 && (
           <div>
             <p className="text-xs font-bold mb-2" style={{ color: accent }}>الدروس والفوائد:</p>
-            <ul role="list" className="space-y-1.5">
+            <ul role="list" className="stack-y-1.5">
               {entry.lessons.map((lesson) => (
                 <li key={lesson} className="flex items-start gap-2 text-sm text-right" style={{ color: "var(--fg)" }}>
-                  <span style={{ color: accent }} className="mt-0.5 flex-shrink-0">•</span>
+                  <span style={{ color: accent }} className="mt-0.5 shrink-0">•</span>
                   <span className="opacity-80">{lesson}</span>
                 </li>
               ))}
@@ -294,7 +294,7 @@ export function KnowledgeSectionPage({ config }: { config: KnowledgeSectionConfi
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="mt-1 p-2 rounded-xl shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -332,7 +332,7 @@ export function KnowledgeSectionPage({ config }: { config: KnowledgeSectionConfi
                 spellCheck={false}
                 autoComplete="off"
                 autoCapitalize="none"
-                className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none"
+                className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-hidden"
                 style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
               />
               {query && (
@@ -348,7 +348,7 @@ export function KnowledgeSectionPage({ config }: { config: KnowledgeSectionConfi
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {query ? `نتائج البحث: ${filtered.length}` : null}
       </div>
-      <div className="px-4 pt-4 space-y-3" role="list" aria-label={title}>
+      <div className="px-4 pt-4 stack-y-3" role="list" aria-label={title}>
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-1 py-10 opacity-50 text-sm" style={{ color: "var(--fg)" }}>
             {showBookmarksOnly ? (

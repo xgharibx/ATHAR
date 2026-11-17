@@ -92,7 +92,7 @@ export default function SearchBar({ large = false, autoFocus = false }: SearchBa
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-gold-primary flex-shrink-0"
+          className="text-gold-primary shrink-0"
         >
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.3-4.3" />
@@ -108,7 +108,7 @@ export default function SearchBar({ large = false, autoFocus = false }: SearchBa
           onFocus={() => query.length >= 2 && setIsOpen(true)}
           placeholder="ابحث عن معجزة... كيف بدأ الكون؟ ما هي مراحل الجنين؟"
           autoFocus={autoFocus}
-          className={`flex-1 bg-transparent border-none outline-none text-text-primary placeholder:text-text-muted font-tajawal ${
+          className={`flex-1 bg-transparent border-none outline-hidden text-text-primary placeholder:text-text-muted font-tajawal ${
             large ? 'text-lg' : 'text-sm'
           }`}
           dir="rtl"
@@ -178,7 +178,7 @@ export default function SearchBar({ large = false, autoFocus = false }: SearchBa
                   >
                     {/* Icon */}
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-lg"
                       style={{ background: `${accentColor}15` }}
                     >
                       {result.miracle.visualizationType === 'cosmos' && '🌌'}
@@ -202,7 +202,7 @@ export default function SearchBar({ large = false, autoFocus = false }: SearchBa
                     </div>
 
                     {/* Score */}
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <div
                         className="w-2 h-2 rounded-full"
                         style={{

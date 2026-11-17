@@ -122,7 +122,7 @@ export function LibraryItemPage() {
   };
 
   return (
-    <div className="space-y-4 page-enter" dir="rtl">
+    <div className="stack-y-4 page-enter" dir="rtl">
       <Card className="p-5 overflow-hidden relative">
         <div className="absolute inset-x-0 top-0 h-1" style={{ background: entry.collectionAccent }} />
         <div className="flex items-center justify-between gap-3 mb-4">
@@ -189,9 +189,9 @@ export function LibraryItemPage() {
         <Card className="p-5">
           <div className="text-sm font-semibold mb-3">الفهم والعمل</div>
           {entry.explanation && <div className="text-sm opacity-70 leading-7 mb-4">{entry.explanation}</div>}
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {entry.benefits.map((benefit, index) => (
-              <div key={benefit} className="flex items-start gap-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] p-3">
+              <div key={benefit} className="flex items-start gap-2 rounded-2xl bg-(--card) border border-(--stroke) p-3">
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: entry.collectionAccent, color: "black" }}>{arNum((index + 1))}</span>
                 <div className="text-sm opacity-75 leading-7">{benefit}</div>
               </div>
@@ -210,7 +210,7 @@ export function LibraryItemPage() {
             href={verificationUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-2.5 text-sm hover:bg-[var(--card-2)] transition"
+            className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-(--stroke) bg-(--card) px-4 py-2.5 text-sm hover:bg-(--card-2) transition"
           >
             <ExternalLink size={15} aria-hidden="true" />
             تحقق في الدرر
@@ -221,12 +221,12 @@ export function LibraryItemPage() {
       {related.length > 0 && (
         <Card className="p-5">
           <div className="text-sm font-semibold mb-3">مواد قريبة</div>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {related.map((item) => (
               <button type="button"
                 key={item.key}
                 onClick={() => navigate(`/library/${item.collectionId}/${item.id}`)}
-                className="w-full text-right rounded-2xl bg-[var(--card)] border border-[var(--stroke)] p-3 hover:bg-[var(--card-2)] transition"
+                className="w-full text-right rounded-2xl bg-(--card) border border-(--stroke) p-3 hover:bg-(--card-2) transition"
               >
                 <div className="text-xs font-semibold mb-1" style={{ color: item.collectionAccent }}>{item.collectionTitle}</div>
                 <div className="arabic-text text-sm leading-7 line-clamp-2">{item.arabic}</div>

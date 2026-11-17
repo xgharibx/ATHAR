@@ -120,7 +120,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
 
   return (
     <div
-      className="fixed z-[9990] xl:hidden"
+      className="fixed z-9990 xl:hidden"
       style={{
         bottom: QUICK_TASBEEH_BOTTOM,
         right: "calc(16px + var(--sar))",
@@ -130,13 +130,13 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
       {/* Backdrop */}
       <div
         aria-hidden="true"
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1]"
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[-1]"
         onClick={() => setOpen(false)}
       />
 
       {/* Panel */}
       <div
-        className="w-[280px] glass-strong rounded-3xl p-4 border border-[var(--stroke)] page-enter"
+        className="w-[280px] glass-strong rounded-3xl p-4 border border-(--stroke) page-enter"
         style={{ boxShadow: "0 12px 48px rgba(0,0,0,0.5)" }}
         ref={panelRef}
         onKeyDown={trapFocus}
@@ -151,7 +151,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
           <button type="button"
             autoFocus
             onClick={() => setOpen(false)}
-            className="w-11 h-11 rounded-full bg-[var(--card)] border border-[var(--stroke)] grid place-items-center text-xs"
+            className="w-11 h-11 rounded-full bg-(--card) border border-(--stroke) grid place-items-center text-xs"
             aria-label="إغلاق"
           >
             ✕
@@ -168,8 +168,8 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
               className={cn(
                 "rounded-2xl px-2.5 py-3 text-sm border transition press-effect min-h-[44px]",
                 selected === t.key
-                  ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent font-semibold"
-                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                  ? "bg-(--accent) text-(--on-accent) border-transparent font-semibold"
+                  : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
               )}
             >
               {t.short}
@@ -177,7 +177,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
           ))}
         </div>
 
-        <div className="mb-4 grid grid-cols-3 gap-1.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1">
+        <div className="mb-4 grid grid-cols-3 gap-1.5 rounded-2xl border border-(--stroke) bg-(--card) p-1">
           {[33, 100, 1000].map((value) => (
             <button type="button"
               key={value}
@@ -186,8 +186,8 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
               className={cn(
                 "rounded-xl px-3 py-2 text-xs font-semibold transition",
                 target === value
-                  ? "bg-[var(--accent)] text-[var(--on-accent)]"
-                  : "text-[var(--muted)] hover:bg-[var(--card-2)]"
+                  ? "bg-(--accent) text-(--on-accent)"
+                  : "text-(--muted) hover:bg-(--card-2)"
               )}
             >
               {value}
@@ -214,7 +214,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
 
         {/* Progress bar */}
         <div
-          className="h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)] mb-4"
+          className="h-2 rounded-full bg-(--card) overflow-hidden border border-(--stroke) mb-4"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={target}
@@ -233,8 +233,8 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
           className={cn(
             "w-full rounded-2xl py-4 text-base font-semibold border transition btn-count press-effect",
             count >= target
-              ? "bg-[var(--ok)] text-[var(--on-ok)] border-transparent"
-              : "bg-[var(--accent)] text-[var(--on-accent)] border-transparent"
+              ? "bg-(--ok) text-(--on-ok) border-transparent"
+              : "bg-(--accent) text-(--on-accent) border-transparent"
           )}
         >
           {count >= target ? `تم ${target} — ${current.short}` : "اضغط للعدّ"}

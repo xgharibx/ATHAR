@@ -715,7 +715,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                   <ChevronDown size={14} aria-hidden="true" style={{ transform: showVocabExplain ? "rotate(180deg)" : undefined, transition: prefersReducedMotion ? "none" : "transform 0.2s" }} />
                 </button>
                 {showVocabExplain && (
-                  <div className="mt-2 space-y-2 max-h-44 overflow-y-auto rounded-xl p-2.5 text-sm leading-7" style={{ background: "var(--card-2)", color: "var(--muted)" }}>
+                  <div className="mt-2 stack-y-2 max-h-44 overflow-y-auto rounded-xl p-2.5 text-sm leading-7" style={{ background: "var(--card-2)", color: "var(--muted)" }}>
                     {vocabWord.deepMeaning ? <p>{vocabWord.deepMeaning}</p> : null}
                     {vocabWord.wrongMeaning ? (
                       <p><b style={{ color: "var(--fg)" }}>يُفهم خطأً: </b>{vocabWord.wrongMeaning}</p>

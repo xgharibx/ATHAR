@@ -119,35 +119,35 @@ export function AccountPanel() {
   };
 
   return (
-    <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4" dir="rtl">
+    <div className="rounded-2xl border border-(--stroke) bg-(--card) p-4" dir="rtl">
       <div className="mb-3 flex items-center gap-2">
-        <ShieldCheck className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
+        <ShieldCheck className="h-4 w-4 text-(--accent)" aria-hidden="true" />
         <div className="font-semibold">الحساب والمزامنة</div>
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 py-2 text-sm text-[var(--muted)]">
+        <div className="flex items-center gap-2 py-2 text-sm text-(--muted)">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           <span>جارٍ التحقق…</span>
         </div>
       ) : user ? (
         <>
-          <p className="text-sm text-[var(--fg)]">
-            مسجَّل الدخول باسم <span className="font-semibold text-[var(--accent)]">{displayNameOf(user)}</span>
+          <p className="text-sm text-(--fg)">
+            مسجَّل الدخول باسم <span className="font-semibold text-(--accent)">{displayNameOf(user)}</span>
           </p>
 
-          <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2">
+          <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-(--stroke) bg-(--card-2) px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">
               {sync.phase === "syncing" ? (
-                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[var(--accent)]" aria-hidden="true" />
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-(--accent)" aria-hidden="true" />
               ) : sync.phase === "offline" ? (
-                <CloudOff className="h-3.5 w-3.5 shrink-0 text-[var(--muted)]" aria-hidden="true" />
+                <CloudOff className="h-3.5 w-3.5 shrink-0 text-(--muted)" aria-hidden="true" />
               ) : sync.phase === "error" ? (
-                <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-[var(--danger)]" aria-hidden="true" />
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-(--danger)" aria-hidden="true" />
               ) : (
-                <Check className="h-3.5 w-3.5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+                <Check className="h-3.5 w-3.5 shrink-0 text-(--accent)" aria-hidden="true" />
               )}
-              <span className="truncate text-xs text-[var(--muted)]">
+              <span className="truncate text-xs text-(--muted)">
                 {sync.phase === "syncing"
                   ? "جارٍ المزامنة…"
                   : sync.phase === "offline"
@@ -169,7 +169,7 @@ export function AccountPanel() {
               disabled={sync.phase === "syncing"}
               aria-label="زامن الآن"
               title="المزامنة تتم تلقائيًا — هذا للتحديث الفوري فقط"
-              className="inline-flex shrink-0 items-center rounded-lg p-1.5 text-[var(--muted-2)] transition hover:text-[var(--accent)] active:scale-95 disabled:opacity-40"
+              className="inline-flex shrink-0 items-center rounded-lg p-1.5 text-(--muted-2) transition hover:text-(--accent) active:scale-95 disabled:opacity-40"
             >
               <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
@@ -180,7 +180,7 @@ export function AccountPanel() {
               type="button"
               onClick={() => window.dispatchEvent(new Event("athar-request-data-import"))}
               disabled={busy !== null}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2 text-xs font-semibold transition active:scale-95 disabled:opacity-50"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-(--stroke) bg-(--card-2) px-3 py-2 text-xs font-semibold transition active:scale-95 disabled:opacity-50"
             >
               نسخ بيانات الجهاز إلى الحساب
             </button>
@@ -189,7 +189,7 @@ export function AccountPanel() {
               type="button"
               onClick={() => void doSignOut()}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2 text-xs font-semibold transition active:scale-95 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-(--stroke) bg-(--card-2) px-3 py-2 text-xs font-semibold transition active:scale-95 disabled:opacity-50"
             >
               {busy === "out" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <LogOut className="h-3.5 w-3.5" aria-hidden="true" />}
               تسجيل الخروج
@@ -199,7 +199,7 @@ export function AccountPanel() {
               type="button"
               onClick={() => setConfirmDeleteFor((current) => current === user.id ? null : user.id)}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-danger-30 bg-danger-15 px-3 py-2 text-xs font-semibold text-[var(--danger)] transition active:scale-95 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-danger-30 bg-danger-15 px-3 py-2 text-xs font-semibold text-(--danger) transition active:scale-95 disabled:opacity-50"
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
               حذف الحساب
@@ -207,15 +207,15 @@ export function AccountPanel() {
           </div>
 
           {showSignOutAnyway && (
-            <div className="mt-3 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] p-3" role="status">
-              <p className="text-xs leading-relaxed text-[var(--muted)]">
+            <div className="mt-3 rounded-xl border border-(--stroke) bg-(--card-2) p-3" role="status">
+              <p className="text-xs leading-relaxed text-(--muted)">
                 لم تُرفع أحدث التغييرات بعد. يمكنك إعادة المحاولة أو تسجيل الخروج مع إبقائها على هذا الجهاز.
               </p>
               <button
                 type="button"
                 onClick={() => void doSignOut(true)}
                 disabled={busy !== null}
-                className="mt-2 min-h-[44px] rounded-xl border border-[var(--stroke)] px-3 py-2 text-xs font-semibold disabled:opacity-50"
+                className="mt-2 min-h-[44px] rounded-xl border border-(--stroke) px-3 py-2 text-xs font-semibold disabled:opacity-50"
               >
                 تسجيل الخروج مع الاحتفاظ بالتغييرات هنا
               </button>
@@ -224,7 +224,7 @@ export function AccountPanel() {
 
           {confirmDelete ? (
             <div className="mt-3 rounded-xl border border-danger-30 bg-danger-15 p-3">
-              <p className="text-xs leading-relaxed text-[var(--fg)]">
+              <p className="text-xs leading-relaxed text-(--fg)">
                 سيُحذف حسابك وكل ما هو محفوظ في السحابة نهائيًا ولا يمكن التراجع.
                 <br />
                 بيانات هذا الجهاز ستبقى كما هي — لن تفقد أذكارك المحفوظة محليًا.
@@ -234,7 +234,7 @@ export function AccountPanel() {
                   type="button"
                   onClick={doDelete}
                   disabled={busy !== null}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--danger)] px-3 py-1.5 text-xs font-bold text-white transition active:scale-95 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-(--danger) px-3 py-1.5 text-xs font-bold text-white transition active:scale-95 disabled:opacity-50"
                 >
                   {busy === "delete" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : null}
                   نعم، احذف نهائيًا
@@ -242,7 +242,7 @@ export function AccountPanel() {
                 <button
                   type="button"
                   onClick={() => setConfirmDeleteFor(null)}
-                  className="rounded-lg border border-[var(--stroke)] px-3 py-1.5 text-xs"
+                  className="rounded-lg border border-(--stroke) px-3 py-1.5 text-xs"
                 >
                   تراجع
                 </button>
@@ -252,7 +252,7 @@ export function AccountPanel() {
         </>
       ) : (
         <>
-          <p className="text-xs leading-relaxed text-[var(--muted)]">
+          <p className="text-xs leading-relaxed text-(--muted)">
             سجّل الدخول لتُحفظ أذكارك وسلسلتك ومفضلتك وتذكيراتك، وتعود معك على أي جهاز.
             يمكنك استخدام القرآن والأذكار و«أثر» دون حساب؛ الحساب اختياري لمزامنة بياناتك بين أجهزتك.
           </p>
@@ -262,21 +262,21 @@ export function AccountPanel() {
             type="button"
             onClick={doGoogle}
             disabled={busy !== null}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-[var(--on-accent,#0a0a0c)] transition active:scale-95 disabled:opacity-50"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-(--accent) px-4 py-2.5 text-sm font-bold text-(--on-accent,#0a0a0c) transition active:scale-95 disabled:opacity-50"
           >
             {busy === "google" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <LogIn className="h-4 w-4" aria-hidden="true" />}
             المتابعة عبر Google
           </button>
 
-          <div className="my-3 flex items-center gap-2 text-[10px] text-[var(--muted-2)]">
-            <span className="h-px flex-1 bg-[var(--stroke)]" />
+          <div className="my-3 flex items-center gap-2 text-[10px] text-(--muted-2)">
+            <span className="h-px flex-1 bg-(--stroke)" />
             أو عبر البريد
-            <span className="h-px flex-1 bg-[var(--stroke)]" />
+            <span className="h-px flex-1 bg-(--stroke)" />
           </div>
           </>)}
 
           {linkSent ? (
-            <div className="flex items-center gap-2 rounded-xl border border-accent-35 bg-accent-15 px-3 py-2.5 text-xs text-[var(--accent)]">
+            <div className="flex items-center gap-2 rounded-xl border border-accent-35 bg-accent-15 px-3 py-2.5 text-xs text-(--accent)">
               <Check className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>أرسلنا رابط الدخول إلى {email} — افتحه من نفس الجهاز.</span>
             </div>
@@ -292,14 +292,14 @@ export function AccountPanel() {
                 onKeyDown={(e) => { if (e.key === "Enter" && email.trim()) void doEmail(); }}
                 placeholder="you@example.com"
                 aria-label="البريد الإلكتروني"
-                className="form-field-readable min-w-0 flex-1 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2 text-sm"
+                className="form-field-readable min-w-0 flex-1 rounded-xl border border-(--stroke) bg-(--card-2) px-3 py-2 text-sm"
               />
               <button
                 type="button"
                 onClick={doEmail}
                 disabled={busy !== null || !email.trim()}
                 aria-label="أرسل رابط الدخول"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2 text-xs font-semibold transition active:scale-95 disabled:opacity-40"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-(--stroke) bg-(--card-2) px-3 py-2 text-xs font-semibold transition active:scale-95 disabled:opacity-40"
               >
                 {busy === "email" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <Mail className="h-3.5 w-3.5" aria-hidden="true" />}
                 إرسال

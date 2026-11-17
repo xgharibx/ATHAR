@@ -39,7 +39,7 @@ export function useIsNew(id: string): boolean {
 /** A tiny gilded "جديد" under the icon — no pill, just refined lettering. Parent must be `relative`. */
 export function NewMark() {
   return (
-    <span aria-hidden="true" className="new-mark pointer-events-none absolute left-1/2 -translate-x-1/2 -bottom-[7px]">
+    <span aria-hidden="true" className="new-mark pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-[-7px]">
       جديد
     </span>
   );

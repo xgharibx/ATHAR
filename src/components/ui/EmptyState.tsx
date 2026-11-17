@@ -180,8 +180,8 @@ export function EmptyState({
       role="status"
       aria-label={title}
     >
-      <div className="text-[var(--fg)]">{illustrations[variant]}</div>
-      <div className="space-y-1.5">
+      <div className="text-(--fg)">{illustrations[variant]}</div>
+      <div className="stack-y-1.5">
         <p className="text-sm font-semibold opacity-60 arabic-text">{title}</p>
         {description && (
           <p className="text-xs opacity-40 arabic-text leading-relaxed">{description}</p>

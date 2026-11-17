@@ -143,7 +143,7 @@ function QuranSurahDetail(props: QuranSurahDetailProps) {
   return (
     <div
       id={`surah-detail-${surah.id}`}
-      className="px-5 pb-5 pt-1 border-t border-[var(--stroke)]/20 bg-[var(--card-2)]/40"
+      className="px-5 pb-5 pt-1 border-t border-(--stroke)/20 bg-(--card-2)/40"
       role="region"
       aria-label={`سورة ${surah.name} — عرض مُصفّح`}
     >
@@ -157,7 +157,7 @@ function QuranSurahDetail(props: QuranSurahDetailProps) {
           <button
             type="button"
             onClick={onCollapse}
-            className="rounded-lg border border-[var(--stroke)] px-2 py-1 text-[11px] opacity-70 hover:opacity-100 transition"
+            className="rounded-lg border border-(--stroke) px-2 py-1 text-[11px] opacity-70 hover:opacity-100 transition"
             aria-label="إغلاق التفاصيل"
           >
             <X size={12} aria-hidden="true" />
@@ -165,7 +165,7 @@ function QuranSurahDetail(props: QuranSurahDetailProps) {
           <button
             type="button"
             onClick={() => onOpenInMushaf()}
-            className="rounded-lg border border-[var(--stroke)] px-2 py-1 text-[11px] hover:bg-[var(--card)] transition"
+            className="rounded-lg border border-(--stroke) px-2 py-1 text-[11px] hover:bg-(--card) transition"
             aria-label="افتح السورة في المصحف"
           >
             افتح في المصحف
@@ -173,7 +173,7 @@ function QuranSurahDetail(props: QuranSurahDetailProps) {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="stack-y-3">
         {items.map((text, offset) => {
           const ayahIndex = fromAyah + offset;
           return (
@@ -181,7 +181,7 @@ function QuranSurahDetail(props: QuranSurahDetailProps) {
               key={`${surah.id}:${ayahIndex}`}
               type="button"
               onClick={() => onOpenInMushaf(ayahIndex)}
-              className="block w-full text-right rounded-2xl border border-[var(--stroke)]/40 bg-[var(--card)] px-4 py-3 hover:bg-[var(--card-2)] transition"
+              className="block w-full text-right rounded-2xl border border-(--stroke)/40 bg-(--card) px-4 py-3 hover:bg-(--card-2) transition"
               aria-label={`افتح الآية ${ayahIndex} في المصحف`}
             >
               <div className="arabic-text leading-loose" style={{ fontSize: `${ayahSize}px` }} dir="rtl">
@@ -210,7 +210,7 @@ function QuranSurahDetail(props: QuranSurahDetailProps) {
             type="button"
             onClick={() => onPageChange(Math.max(0, safeIndex - 1))}
             disabled={safeIndex === 0}
-            className="rounded-lg border border-[var(--stroke)] px-3 py-1 disabled:opacity-30 hover:bg-[var(--card)] transition"
+            className="rounded-lg border border-(--stroke) px-3 py-1 disabled:opacity-30 hover:bg-(--card) transition"
             aria-label="الصفحة السابقة"
           >
             ← السابق
@@ -222,7 +222,7 @@ function QuranSurahDetail(props: QuranSurahDetailProps) {
             type="button"
             onClick={() => onPageChange(Math.min(totalPages - 1, safeIndex + 1))}
             disabled={safeIndex >= totalPages - 1}
-            className="rounded-lg border border-[var(--stroke)] px-3 py-1 disabled:opacity-30 hover:bg-[var(--card)] transition"
+            className="rounded-lg border border-(--stroke) px-3 py-1 disabled:opacity-30 hover:bg-(--card) transition"
             aria-label="الصفحة التالية"
           >
             التالي →
@@ -617,19 +617,19 @@ export function QuranPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
+      <div className="stack-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
         <span className="sr-only">جارٍ التحميل…</span>
-        <div className="glass rounded-3xl p-5 animate-pulse border border-[var(--stroke)]">
-          <div className="h-5 w-28 bg-[var(--card)] rounded-xl mb-2" />
-          <div className="h-3 w-20 bg-[var(--card)] rounded-xl" />
-          <div className="mt-4 h-10 bg-[var(--card)] rounded-3xl" />
+        <div className="glass rounded-3xl p-5 animate-pulse border border-(--stroke)">
+          <div className="h-5 w-28 bg-(--card) rounded-xl mb-2" />
+          <div className="h-3 w-20 bg-(--card) rounded-xl" />
+          <div className="mt-4 h-10 bg-(--card) rounded-3xl" />
         </div>
-        <div className="glass rounded-3xl p-5 border border-[var(--stroke)]">
+        <div className="glass rounded-3xl p-5 border border-(--stroke)">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {LOADING_SURAH_KEYS.map((key, index) => (
-              <div key={key} className="glass rounded-3xl p-4 animate-pulse border border-[var(--stroke)]" style={{ animationDelay: `${index * 45}ms` }}>
-                <div className="h-3 w-14 bg-[var(--card)] rounded-lg mb-2" />
-                <div className="h-4 w-20 bg-[var(--card)] rounded-lg" />
+              <div key={key} className="glass rounded-3xl p-4 animate-pulse border border-(--stroke)" style={{ animationDelay: `${index * 45}ms` }}>
+                <div className="h-3 w-14 bg-(--card) rounded-lg mb-2" />
+                <div className="h-4 w-20 bg-(--card) rounded-lg" />
               </div>
             ))}
           </div>
@@ -644,7 +644,7 @@ export function QuranPage() {
           <div className="text-lg font-semibold">حدث خطأ</div>
           <div className="opacity-70 mt-2 text-sm leading-6">
             تعذر تحميل بيانات القرآن. يمكنك إضافة الملف {" "}
-            <code className="px-2 py-1 rounded-lg bg-[var(--card)] border border-[var(--stroke)]">public/data/quran.json</code>
+            <code className="px-2 py-1 rounded-lg bg-(--card) border border-(--stroke)">public/data/quran.json</code>
             {" "}أو التأكد من الاتصال بالإنترنت.
           </div>
         </Card>
@@ -653,7 +653,7 @@ export function QuranPage() {
   }
 
   return (
-    <div className="space-y-4 page-enter">
+    <div className="stack-y-4 page-enter">
 
       {/* ══════════════════════════════════════════════════════
           HEADER CARD — Title + Search + Continue reading
@@ -693,7 +693,7 @@ export function QuranPage() {
           </div>
 
           {/* Mode toggle — search surahs vs ayahs */}
-          <div className="mt-3 flex rounded-2xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden w-fit" role="tablist" aria-orientation="horizontal" aria-label="وضع البحث"
+          <div className="mt-3 flex rounded-2xl bg-(--card) border border-(--stroke) overflow-hidden w-fit" role="tablist" aria-orientation="horizontal" aria-label="وضع البحث"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);
@@ -703,8 +703,8 @@ export function QuranPage() {
             else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
             else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
           }}>
-            <button type="button" id="quran-tab-surahs" role="tab" aria-controls="quran-panel-surahs" aria-selected={mode === "surahs"} onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
-            <button type="button" id="quran-tab-ayahs" role="tab" aria-controls="quran-panel-ayahs" aria-selected={mode === "ayahs"} onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
+            <button type="button" id="quran-tab-surahs" role="tab" aria-controls="quran-panel-surahs" aria-selected={mode === "surahs"} onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
+            <button type="button" id="quran-tab-ayahs" role="tab" aria-controls="quran-panel-ayahs" aria-selected={mode === "ayahs"} onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
           </div>
         </div>
 
@@ -719,7 +719,7 @@ export function QuranPage() {
                 onClick={() => navigate(`/mushaf?surah=${lastRead.surahId}&ayah=${lastRead.ayahIndex}`)}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(`/mushaf?surah=${lastRead.surahId}&ayah=${lastRead.ayahIndex}`); } }}
                 aria-label="متابعة القراءة"
-                className="flex flex-1 min-w-0 items-center gap-3 text-right transition hover:brightness-110 cursor-pointer focus:outline-none">
+                className="flex flex-1 min-w-0 items-center gap-3 text-right transition hover:brightness-110 cursor-pointer focus:outline-hidden">
                 <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 18%, transparent)" }}>
                   <BookOpen size={16} aria-hidden="true" style={{ color: "var(--accent)" }} />
                 </div>
@@ -738,7 +738,7 @@ export function QuranPage() {
               {nextUnread ? (
                 <button type="button"
                   onClick={() => navigate(`/mushaf?surah=${nextUnread.surah.id}&ayah=${nextUnread.ayahIndex}`)}
-                  className="rounded-xl border border-accent-35 bg-accent-15 px-3 py-2 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-accent-15/80 active:scale-95"
+                  className="rounded-xl border border-accent-35 bg-accent-15 px-3 py-2 text-[11px] font-semibold text-(--accent) transition hover:bg-accent-15/80 active:scale-95"
                   title="أوّل آية لم تُقرأ بعد">
                   <span className="me-1">التالي</span>
                   <span className="opacity-70">{toArabicNumeral(nextUnread.surah.id)}:{toArabicNumeral(nextUnread.ayahIndex)}</span>
@@ -841,9 +841,9 @@ export function QuranPage() {
           <div className="text-[10px] font-semibold opacity-40 mb-2.5 flex items-center justify-between">
             <span>خريطة السور — ١١٤ سورة</span>
             <div className="flex items-center gap-3 text-[9px]">
-              <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm" style={{ background: "var(--ok)" }}></span>مكتملة</span>
-              <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm" style={{ background: "var(--accent)" }}></span>جاري</span>
-              <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}></span>لم تبدأ</span>
+              <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-xs" style={{ background: "var(--ok)" }}></span>مكتملة</span>
+              <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-xs" style={{ background: "var(--accent)" }}></span>جاري</span>
+              <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-xs" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}></span>لم تبدأ</span>
             </div>
           </div>
           <div
@@ -865,7 +865,7 @@ export function QuranPage() {
                   onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
                   title={`${s.name} — ${pct > 0 ? `${pct}%` : "لم تقرأ"}`}
                   aria-label={`${s.name}${isComplete ? " – مكتملة" : isStarted ? ` – ${pct}%` : ""}`}
-                  className="rounded-sm transition-all active:scale-90 hover:opacity-80"
+                  className="rounded-xs transition-all active:scale-90 hover:opacity-80"
                   style={{
                     aspectRatio: "1",
                     background: isComplete
@@ -896,7 +896,7 @@ export function QuranPage() {
             borderColor: "color-mix(in srgb, var(--accent) 22%, transparent)",
           }}
         >
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[var(--accent)]">
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-(--accent)">
             <span aria-hidden="true">📅</span>
             <span>خطة تلاوة مجدولة</span>
           </div>
@@ -906,7 +906,7 @@ export function QuranPage() {
           <button
             type="button"
             onClick={() => navigate("/quran/plans")}
-            className="text-xs font-semibold text-[var(--accent)] underline underline-offset-2"
+            className="text-xs font-semibold text-(--accent) underline underline-offset-2"
           >
             عرض خطة التلاوة
           </button>
@@ -958,7 +958,7 @@ export function QuranPage() {
       {/* ── Khatma finished celebration ───────────────── */}
       {mode === "surahs" && !query && khatma?.isCompleted && (
         <div
-          className="w-full text-center rounded-3xl border p-5 space-y-2"
+          className="w-full text-center rounded-3xl border p-5 stack-y-2"
           style={{
             background: "color-mix(in srgb, var(--ok, #3ddc97) 8%, var(--card))",
             borderColor: "color-mix(in srgb, var(--ok, #3ddc97) 25%, transparent)",
@@ -977,7 +977,7 @@ export function QuranPage() {
       )}
 
       {mode === "surahs" && !query && khatma?.isExpired && !khatma.isCompleted && (
-        <div className="w-full text-center rounded-3xl border p-5 space-y-2 quran-surface">
+        <div className="w-full text-center rounded-3xl border p-5 stack-y-2 quran-surface">
           <div className="text-sm font-bold">انتهت مدة خطة الختمة</div>
           <div className="text-xs opacity-55">يمكنك مراجعة تقدمك أو بدء خطة جديدة.</div>
           <button
@@ -1030,7 +1030,7 @@ export function QuranPage() {
             style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 40%, transparent)" }}
           >
             {/* Sort toggle */}
-            <div className="flex rounded-xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden text-sm" role="tablist" aria-orientation="horizontal" aria-label="ترتيب السور"
+            <div className="flex rounded-xl bg-(--card) border border-(--stroke) overflow-hidden text-sm" role="tablist" aria-orientation="horizontal" aria-label="ترتيب السور"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);
@@ -1045,7 +1045,7 @@ export function QuranPage() {
                 aria-controls="quran-surah-list"
                 aria-selected={sortMode === "mushaf"}
                 onClick={() => setSortMode("mushaf")}
-                className={`px-3.5 h-9 transition ${sortMode === "mushaf" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
+                className={`px-3.5 h-9 transition ${sortMode === "mushaf" ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
                 المصحف
               </button>
@@ -1054,7 +1054,7 @@ export function QuranPage() {
                 aria-controls="quran-surah-list"
                 aria-selected={sortMode === "progress"}
                 onClick={() => setSortMode("progress")}
-                className={`px-3.5 h-9 transition ${sortMode === "progress" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
+                className={`px-3.5 h-9 transition ${sortMode === "progress" ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
                 التقدم
               </button>
@@ -1064,7 +1064,7 @@ export function QuranPage() {
                 aria-controls="quran-surah-list"
                 aria-selected={sortMode === "recent"}
                 onClick={() => setSortMode("recent")}
-                className={`px-3.5 h-9 transition ${sortMode === "recent" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
+                className={`px-3.5 h-9 transition ${sortMode === "recent" ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
                 الأخيرة
               </button>
@@ -1074,7 +1074,7 @@ export function QuranPage() {
                 aria-controls="quran-surah-list"
                 aria-selected={sortMode === "unread"}
                 onClick={() => setSortMode("unread")}
-                className={`px-3.5 h-9 transition ${sortMode === "unread" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
+                className={`px-3.5 h-9 transition ${sortMode === "unread" ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
                 غير مقروء
               </button>
@@ -1084,7 +1084,7 @@ export function QuranPage() {
                 aria-controls="quran-surah-list"
                 aria-selected={sortMode === "nearly"}
                 onClick={() => setSortMode("nearly")}
-                className={`px-3.5 h-9 transition ${sortMode === "nearly" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
+                className={`px-3.5 h-9 transition ${sortMode === "nearly" ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
                 تقريباً
               </button>
@@ -1092,7 +1092,7 @@ export function QuranPage() {
             </div>
 
             {/* Revelation filter */}
-            <div className="flex rounded-xl overflow-hidden border border-[var(--stroke)] text-[10px] shrink-0">
+            <div className="flex rounded-xl overflow-hidden border border-(--stroke) text-[10px] shrink-0">
               <button type="button"
                 onClick={() => setFilterRevelation(filterRevelation === "meccan" ? "all" : "meccan")}
                 aria-pressed={filterRevelation === "meccan"}
@@ -1101,7 +1101,7 @@ export function QuranPage() {
               >
                 مكية
               </button>
-              <div className="w-px bg-[var(--stroke)]" />
+              <div className="w-px bg-(--stroke)" />
               <button type="button"
                 onClick={() => setFilterRevelation(filterRevelation === "medinan" ? "all" : "medinan")}
                 aria-pressed={filterRevelation === "medinan"}
@@ -1129,7 +1129,7 @@ export function QuranPage() {
                 const ayahIndex = r < next.ayahs.length ? r + 1 : 1;
                 navigate(`/mushaf?surah=${next.id}&ayah=${ayahIndex}`);
               }}
-              className="w-9 h-9 rounded-xl border bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-100 flex items-center justify-center transition shrink-0"
+              className="w-9 h-9 rounded-xl border bg-(--card) border-(--stroke) opacity-55 hover:opacity-100 flex items-center justify-center transition shrink-0"
               title="سورة عشوائية (تفضّل غير المقروء)" aria-label="سورة عشوائية"
             >
               <Shuffle size={14} aria-hidden="true" />
@@ -1144,8 +1144,8 @@ export function QuranPage() {
               className={[
                 "h-9 px-2.5 rounded-xl border text-[11px] font-semibold transition shrink-0",
                 showTranslation
-                  ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                  : "bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-100",
+                  ? "bg-accent-15 border-accent-35 text-(--accent)"
+                  : "bg-(--card) border-(--stroke) opacity-55 hover:opacity-100",
               ].join(" ")}>
               EN
             </button>
@@ -1153,10 +1153,10 @@ export function QuranPage() {
             <button type="button"
               onClick={() => setReciterOpen(true)}
               aria-label="اختيار القارئ"
-              className="h-9 px-2.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] opacity-75 hover:opacity-100 transition shrink-0 inline-flex items-center gap-1.5 text-xs"
+              className="h-9 px-2.5 rounded-xl border border-(--stroke) bg-(--card) opacity-75 hover:opacity-100 transition shrink-0 inline-flex items-center gap-1.5 text-xs"
             >
-              <Volume2 size={13} className="text-[var(--accent)]" />
-              <span className="max-w-[7rem] truncate" title={getReciter(prefs.quranReciter)?.label ?? "القارئ"}>{getReciter(prefs.quranReciter)?.label ?? "القارئ"}</span>
+              <Volume2 size={13} className="text-(--accent)" />
+              <span className="max-w-28 truncate" title={getReciter(prefs.quranReciter)?.label ?? "القارئ"}>{getReciter(prefs.quranReciter)?.label ?? "القارئ"}</span>
             </button>
 
             {/* Theme color dots */}
@@ -1165,7 +1165,7 @@ export function QuranPage() {
                 <button type="button"
                   key={t}
                   onClick={() => setPrefs({ quranTheme: t })}
-                  className={`w-5 h-5 rounded-full border-2 transition-all ${prefs.quranTheme === t ? "scale-125 border-[var(--accent)]" : "border-[var(--stroke)] opacity-50 hover:opacity-80"}`}
+                  className={`w-5 h-5 rounded-full border-2 transition-all ${prefs.quranTheme === t ? "scale-125 border-(--accent)" : "border-(--stroke) opacity-50 hover:opacity-80"}`}
                   style={{ background: { default: "#1e1b2e", sepia: "#c8a97a", midnight: "#0d1b2a", parchment: "#f0e6c8", forest: "#0a1a0e", rose: "#2a0a12", ocean: "#0a1525", desert: "#2a1a08", dawn: "#1a0d22" }[t] }}
                   title={{ default: "افتراضي", sepia: "سيبيا", midnight: "ليلي", parchment: "رق", forest: "غابة", rose: "وردي", ocean: "بحر", desert: "صحراء", dawn: "فجر" }[t]}
                   aria-label={{ default: "افتراضي", sepia: "سيبيا", midnight: "ليلي", parchment: "رق", forest: "غابة", rose: "وردي", ocean: "بحر", desert: "صحراء", dawn: "فجر" }[t]}
@@ -1179,7 +1179,7 @@ export function QuranPage() {
                 onClick={() => setShowBookmarks((v) => !v)}
                 aria-pressed={showBookmarks}
                 aria-label={showBookmarks ? "إخفاء المحفوظات" : "عرض المحفوظات"}
-                className={`flex items-center gap-1.5 px-3 h-9 rounded-xl border text-sm transition ${showBookmarks ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-90"}`}
+                className={`flex items-center gap-1.5 px-3 h-9 rounded-xl border text-sm transition ${showBookmarks ? "bg-accent-15 border-accent-35 text-(--accent)" : "bg-(--card) border-(--stroke) opacity-55 hover:opacity-90"}`}
               >
                 <Bookmark size={13} aria-hidden="true" />
                 <span className="tabular-nums">{bookmarkedCount}</span>
@@ -1196,7 +1196,7 @@ export function QuranPage() {
                   <button type="button"
                     key={`${bm.surahId}:${bm.ayahIndex}`}
                     onClick={() => navigate(`/mushaf?surah=${bm.surahId}&ayah=${bm.ayahIndex}`)}
-                    className="w-full flex items-center gap-3 px-5 py-3 hover:bg-[var(--card)] transition text-right"
+                    className="w-full flex items-center gap-3 px-5 py-3 hover:bg-(--card) transition text-right"
                     style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 20%, transparent)" }}
                   >
                     {bm.highlight && hlSwatches[bm.highlight] && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: hlSwatches[bm.highlight] }} />}
@@ -1238,7 +1238,7 @@ export function QuranPage() {
                         type="button"
                         onClick={(e) => { e.stopPropagation(); removeRecentSurah(sid); }}
                         aria-label={`إزالة ${surah.name} من التصفّح الأخير`}
-                        className="grid h-6 w-6 me-1 place-items-center rounded-md text-[var(--accent)] opacity-0 group-hover:opacity-100 transition"
+                        className="grid h-6 w-6 me-1 place-items-center rounded-md text-(--accent) opacity-0 group-hover:opacity-100 transition"
                         style={{ background: "color-mix(in srgb, var(--accent) 18%, transparent)" }}
                       >
                         <X size={11} aria-hidden="true" />
@@ -1282,8 +1282,8 @@ export function QuranPage() {
                   </button>
                   {/* Hizb quarter markers */}
                   <div className="mt-0.5 flex gap-0.5">
-                    <span className={["h-1 w-1 rounded-full", h1Done ? "bg-emerald-400" : "bg-[var(--muted-2)]/30"].join(" ")} />
-                    <span className={["h-1 w-1 rounded-full", h2Done ? "bg-emerald-400" : "bg-[var(--muted-2)]/30"].join(" ")} />
+                    <span className={["h-1 w-1 rounded-full", h1Done ? "bg-emerald-400" : "bg-(--muted-2)/30"].join(" ")} />
+                    <span className={["h-1 w-1 rounded-full", h2Done ? "bg-emerald-400" : "bg-(--muted-2)/30"].join(" ")} />
                   </div>
                 </div>
               );
@@ -1379,7 +1379,7 @@ export function QuranPage() {
                 <div role="listitem" ref={isCurrent ? currentSurahRef : undefined}
                   className="relative">
                 <div
-                  className="w-full flex items-center gap-4 ps-5 pe-2 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)]"
+                  className="w-full flex items-center gap-4 ps-5 pe-2 py-4 text-right transition hover:bg-(--card) active:bg-(--card)"
                   style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
                 >
                 <button type="button"
@@ -1388,7 +1388,7 @@ export function QuranPage() {
                     navigate(`/mushaf?surah=${s.id}${juzStartAyah === null ? "" : `&ayah=${juzStartAyah}`}`);
                   }}
                   aria-label={`افتح سورة ${s.name} في المصحف${juzStartAyah === null ? "" : ` عند الآية ${arNum(juzStartAyah)} في الجزء ${arNum(filterJuz!)}`} — ${s.ayahs.length} آية`}
-                  className="min-w-0 flex-1 flex items-center gap-4 border-0 bg-transparent p-0 text-right text-inherit cursor-pointer focus:outline-none focus:bg-accent-8"
+                  className="min-w-0 flex-1 flex items-center gap-4 border-0 bg-transparent p-0 text-right text-inherit cursor-pointer focus:outline-hidden focus:bg-accent-8"
                 >
                   {/* Number badge */}
                   <div className={`surah-num-badge shrink-0 ${isCurrent ? "ring-2 ring-accent-50" : ""}`}>
@@ -1447,7 +1447,7 @@ export function QuranPage() {
                     )}
                     {/* Phase 3 — Translation preview */}
                     {firstEnglish ? (
-                      <p lang="en" className="mt-1.5 line-clamp-2 text-[11.5px] italic leading-5 text-[var(--muted)] border-t border-[var(--stroke)]/30 pt-1.5">
+                      <p lang="en" className="mt-1.5 line-clamp-2 text-[11.5px] italic leading-5 text-(--muted) border-t border-(--stroke)/30 pt-1.5">
                         {firstEnglish}
                       </p>
                     ) : null}
@@ -1471,7 +1471,7 @@ export function QuranPage() {
                     aria-expanded={expandedSurahId === s.id}
                     aria-controls={`surah-detail-${s.id}`}
                     aria-label={expandedSurahId === s.id ? `إغلاق معاينة ${s.name}` : `معاينة آيات ${s.name}`}
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-[var(--muted-2)] transition hover:bg-[var(--card-2)] hover:text-[var(--accent)] hover:border-accent-35"
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-(--muted-2) transition hover:bg-(--card-2) hover:text-(--accent) hover:border-accent-35"
                   >
                     <ChevronDown
                       size={14}
@@ -1489,7 +1489,7 @@ export function QuranPage() {
                       setInfoSurahId(s.id);
                     }}
                     aria-label={`معلومات سورة ${s.name}`}
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-[var(--muted-2)] transition hover:bg-[var(--card-2)] hover:text-[var(--accent)] hover:border-accent-35">
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-(--muted-2) transition hover:bg-(--card-2) hover:text-(--accent) hover:border-accent-35">
                     <Info size={14} aria-hidden="true" />
                   </button>
                 </div>
@@ -1531,12 +1531,12 @@ export function QuranPage() {
               </div>
             </div>
           ) : (
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 stack-y-3">
               {ayahResults.map((r) => (
                 <button type="button"
                   key={`${r.surahId}:${r.ayahIndex}`}
                   onClick={() => navigate(`/mushaf?surah=${r.surahId}&ayah=${r.ayahIndex}`)}
-                  className="glass rounded-3xl p-4 text-right hover:bg-[var(--card-2)] transition border border-[var(--stroke)] w-full"
+                  className="glass rounded-3xl p-4 text-right hover:bg-(--card-2) transition border border-(--stroke) w-full"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">

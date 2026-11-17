@@ -195,10 +195,10 @@ export function QiblaPage() {
   const hasTiltWarning = orient.tiltWarning;
 
   return (
-    <div className="p-4 md:p-5 space-y-4 max-w-lg mx-auto" dir="rtl">
+    <div className="p-4 md:p-5 stack-y-4 max-w-lg mx-auto" dir="rtl">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Compass size={20} aria-hidden="true" className="text-[var(--accent)]" />
+          <Compass size={20} aria-hidden="true" className="text-(--accent)" />
           <h1 className="text-xl font-bold">القبلة</h1>
         </div>
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
@@ -276,7 +276,7 @@ export function QiblaPage() {
 
         {/* Bearing info */}
         {qiblaBearing != null ? (
-          <div className="text-center space-y-1" aria-live="polite" aria-atomic="true">
+          <div className="text-center stack-y-1" aria-live="polite" aria-atomic="true">
             <div className="text-3xl font-bold" style={{ color: "var(--accent)" }}>
               {Math.round(qiblaBearing)}°
             </div>
@@ -290,7 +290,7 @@ export function QiblaPage() {
               </div>
             )}
             {hasTiltWarning && hasOrientation && (
-              <div className="text-[11px] text-[var(--danger)] opacity-80 mt-1">امسك الجهاز أفقياً للحصول على دقة أعلى</div>
+              <div className="text-[11px] text-(--danger) opacity-80 mt-1">امسك الجهاز أفقياً للحصول على دقة أعلى</div>
             )}
             {!hasOrientation && (
               <div className="text-xs opacity-40 mt-2">
@@ -298,13 +298,13 @@ export function QiblaPage() {
               </div>
             )}
             {hasOrientation && (
-              <div className="flex flex-col items-center gap-1 text-xs text-[var(--accent)] opacity-80 mt-1">
+              <div className="flex flex-col items-center gap-1 text-xs text-(--accent) opacity-80 mt-1">
                 <div className="flex items-center justify-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" aria-hidden="true" />
+                  <span className="w-2 h-2 rounded-full bg-(--accent) animate-pulse" aria-hidden="true" />
                   بوصلة نشطة
                 </div>
                 {compassAccuracy != null && (
-                  <div className={cn("text-[11px]", hasPoorCompassAccuracy ? "text-[var(--danger)] opacity-90" : "opacity-65")}>
+                  <div className={cn("text-[11px]", hasPoorCompassAccuracy ? "text-(--danger) opacity-90" : "opacity-65")}>
                     دقة البوصلة ±{Math.round(compassAccuracy)}°
                     {hasPoorCompassAccuracy ? " · حرّك الجهاز بعيداً عن المعادن" : ""}
                   </div>
@@ -341,12 +341,12 @@ export function QiblaPage() {
       {/* Location status card */}
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <MapPin size={16} aria-hidden="true" className="text-[var(--accent)]" />
+          <MapPin size={16} aria-hidden="true" className="text-(--accent)" />
           <span className="text-sm font-semibold">الموقع الجغرافي</span>
         </div>
 
         {geo.status === "idle" ? (
-          <div className="space-y-3">
+          <div className="stack-y-3">
             <div className="text-sm opacity-60 leading-relaxed">
               استخدم موقعك الحالي لتحديد اتجاه القبلة.
             </div>
@@ -361,7 +361,7 @@ export function QiblaPage() {
             جارٍ تحديد موقعك...
           </div>
         ) : geo.status === "error" ? (
-          <div className="space-y-3">
+          <div className="stack-y-3">
             <div className="text-sm opacity-60">
               {geo.code === 1
                 ? "رفضت الإذن بالوصول للموقع. يرجى السماح للتطبيق بتحديد موقعك من الإعدادات."
@@ -379,7 +379,7 @@ export function QiblaPage() {
         ) : geo.status === "unsupported" ? (
           <div className="text-sm opacity-60">تحديد الموقع غير مدعوم في هذا المتصفح</div>
         ) : (
-          <div className="space-y-2 text-sm">
+          <div className="stack-y-2 text-sm">
             <div className="flex gap-4">
               <div className="opacity-60">خط العرض</div>
               <div dir="ltr" className="font-mono font-medium">{Math.abs(geo.lat).toFixed(4)}°{geo.lat >= 0 ? "N" : "S"}</div>
@@ -401,7 +401,7 @@ export function QiblaPage() {
       </Card>
 
       {/* Info card */}
-      <Card className="p-4 pr-24 md:pr-4 text-sm opacity-70 space-y-1">
+      <Card className="p-4 pr-24 md:pr-4 text-sm opacity-70 stack-y-1">
         <div className="font-semibold opacity-100 mb-2">كيفية الاستخدام</div>
         <p>١. امسك الجهاز أفقياً (موازياً للأرض) للحصول على أدق النتائج</p>
         <p>٢. اضغط "تفعيل البوصلة" إن ظهر الزر (iOS يحتاج إذن صريح)</p>

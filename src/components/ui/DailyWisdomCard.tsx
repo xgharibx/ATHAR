@@ -45,7 +45,7 @@ export function DailyWisdomCard(props: { dateKey?: string }) {
       <div className="relative">
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <BookOpen size={15} className="text-[var(--accent)]" aria-hidden="true" />
+            <BookOpen size={15} className="text-(--accent)" aria-hidden="true" />
             <div className="text-xs font-semibold opacity-60">تدبّر اليوم</div>
           </div>
           <div className="flex items-center gap-1">

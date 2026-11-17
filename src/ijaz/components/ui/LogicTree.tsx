@@ -244,7 +244,7 @@ function LogicNodeCard({ node, depth = 0 }: { node: LogicNode; depth?: number })
 
       {/* Children */}
       {isExpanded && children.length > 0 && (
-        <div className="relative mt-4 space-y-4">
+        <div className="relative mt-4 stack-y-4">
           {children.map((child) => (
             <LogicNodeCard key={child.id} node={child} depth={depth + 1} />
           ))}
@@ -260,7 +260,7 @@ export default function LogicTree() {
   if (!rootNode) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="stack-y-6">
       {/* Header */}
       <div className="text-center mb-8">
         <h2 className="text-gold-primary font-amiri text-2xl md:text-3xl font-bold mb-2">

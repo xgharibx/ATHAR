@@ -111,7 +111,7 @@ export function PwaInstallBanner() {
   return (
     <div
       dir="rtl"
-      className="fixed bottom-20 inset-x-3 z-[9995] flex items-center gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--bg)]/95 px-4 py-3 shadow-2xl backdrop-blur-xl"
+      className="fixed bottom-20 inset-x-3 z-9995 flex items-center gap-3 rounded-2xl border border-(--stroke) bg-(--bg)/95 px-4 py-3 shadow-2xl backdrop-blur-xl"
       role="dialog"
       aria-label="تثبيت أثر على الشاشة الرئيسية"
     >
@@ -125,18 +125,18 @@ export function PwaInstallBanner() {
       />
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold leading-snug text-[var(--fg)]">
+        <p className="text-sm font-semibold leading-snug text-(--fg)">
           ثبّت أثر على شاشتك الرئيسية
         </p>
         {ios ? (
           // No install API on iOS — tell the user exactly where to tap.
-          <p className="mt-0.5 flex flex-wrap items-center gap-x-1 text-xs text-[var(--muted)]">
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-1 text-xs text-(--muted)">
             <span>اضغط</span>
             <ShareGlyph />
             <span>في شريط المتصفح، ثم اختر «أضف إلى الشاشة الرئيسية»</span>
           </p>
         ) : (
-          <p className="mt-0.5 text-xs text-[var(--muted)]">وصول أسرع بدون متصفح</p>
+          <p className="mt-0.5 text-xs text-(--muted)">وصول أسرع بدون متصفح</p>
         )}
       </div>
 
@@ -156,7 +156,7 @@ export function PwaInstallBanner() {
         type="button"
         onClick={handleDismiss}
         aria-label="إغلاق"
-        className="shrink-0 rounded-xl p-1.5 text-[var(--muted-2)] transition-transform hover:text-[var(--muted)] active:scale-95"
+        className="shrink-0 rounded-xl p-1.5 text-(--muted-2) transition-transform hover:text-(--muted) active:scale-95"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -170,7 +170,7 @@ export function PwaInstallBanner() {
 function ShareGlyph() {
   return (
     <svg
-      className="inline-block h-4 w-4 shrink-0 align-text-bottom text-[var(--accent)]"
+      className="inline-block h-4 w-4 shrink-0 align-text-bottom text-(--accent)"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

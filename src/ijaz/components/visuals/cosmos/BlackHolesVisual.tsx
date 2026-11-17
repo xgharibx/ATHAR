@@ -85,7 +85,7 @@ export default function BlackHolesVisual({ className }: MiracleVisualProps) {
         ctx.rotate(diskAngle);
         ctx.beginPath();
         ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = `hsla(${hue}, 90%, ${55 + ring * 3}%, ${alpha})`;
+        ctx.strokeStyle = `hsla(${hue}, 90%, ${55 + ring-3 * 3}%, ${alpha})`;
         ctx.lineWidth = 3 - ring * 0.2;
         ctx.stroke();
         ctx.restore();

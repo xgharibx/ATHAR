@@ -132,10 +132,10 @@ export function TafsirPage() {
   const currentEntries = selectionIsLoaded ? tafsirEntries : [];
 
   return (
-    <div className="space-y-4 page-enter">
+    <div className="stack-y-4 page-enter">
       <Card className="p-5 quran-surface overflow-hidden">
         <div className="flex items-center gap-2 mb-1">
-          <Sparkles size={16} className="text-[var(--accent)]" aria-hidden="true" />
+          <Sparkles size={16} className="text-(--accent)" aria-hidden="true" />
           <span className="text-[11px] opacity-55 uppercase tracking-wider">التفسير</span>
         </div>
         <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--accent)" }}>
@@ -168,7 +168,7 @@ export function TafsirPage() {
               setSelectedSource("muyassar");
               navigate(`/tafsir?surah=${surahId}&source=muyassar`, { replace: true });
             }}
-            className="w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-sm text-[var(--text)]"
+            className="w-full rounded-2xl border border-(--stroke) bg-(--card) px-3 py-2.5 text-sm text-(--text)"
           >
             <option value="">اختر سورة</option>
             {surahs.map((s) => (
@@ -195,8 +195,8 @@ export function TafsirPage() {
               }}
               className={`text-right rounded-2xl border px-3 py-2 text-xs transition ${
                 selectedSource === ed.slug
-                  ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                  : "bg-[var(--card)] border-[var(--stroke)] opacity-65 hover:opacity-100"
+                  ? "bg-accent-15 border-accent-35 text-(--accent)"
+                  : "bg-(--card) border-(--stroke) opacity-65 hover:opacity-100"
               }`}
             >
               <div className="font-semibold">{ed.label}</div>
@@ -212,7 +212,7 @@ export function TafsirPage() {
         <Card className="p-5 quran-surface overflow-hidden">
           <div className="flex items-baseline justify-between gap-3 mb-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <BookOpen size={14} className="text-[var(--accent)]" aria-hidden="true" />
+              <BookOpen size={14} className="text-(--accent)" aria-hidden="true" />
               <h2 className="arabic-text text-lg font-bold">{currentSurah.name}</h2>
             </div>
             <span className="text-[11px] opacity-55">
@@ -223,7 +223,7 @@ export function TafsirPage() {
           </div>
 
           {!selectedSource.startsWith("muyassar") && !currentLoading ? (
-            <div className="rounded-2xl border border-[var(--stroke)] p-4 text-xs leading-7 opacity-80">
+            <div className="rounded-2xl border border-(--stroke) p-4 text-xs leading-7 opacity-80">
               <p>
                 مفسر «{TAFSIR_EDITIONS.find((e) => e.slug === selectedSource)?.label ?? selectedSource}»
                 يُفتح تلقائيًا داخل المصحف. اضغط الزر للانتقال إلى القارئ وقراءة التفسير على الصفحة الكاملة.
@@ -257,11 +257,11 @@ export function TafsirPage() {
           ) : null}
 
           {!currentLoading && !currentError && currentEntries.length > 0 ? (
-            <ol className="space-y-3 mt-2" aria-label={`تفسير ${currentSurah.name}`}>
+            <ol className="stack-y-3 mt-2" aria-label={`تفسير ${currentSurah.name}`}>
               {currentEntries.map(({ ayahNumber, text }) => (
                 <li
                   key={ayahNumber}
-                  className="rounded-2xl border border-[var(--stroke)] p-3"
+                  className="rounded-2xl border border-(--stroke) p-3"
                   id={`tafsir-ayah-${ayahNumber}`}
                 >
                   <div className="text-[11px] font-bold opacity-60 mb-1.5 tabular-nums">
@@ -269,7 +269,7 @@ export function TafsirPage() {
                   </div>
                   <p
                     className={`arabic-text leading-7 ${
-                      requestedAyah === ayahNumber ? "text-[var(--accent)]" : ""
+                      requestedAyah === ayahNumber ? "text-(--accent)" : ""
                     }`}
                   >
                     {text}

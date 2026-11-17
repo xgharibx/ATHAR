@@ -103,7 +103,7 @@ function ProgressRing({
 
 function ThinBar({ percent, accent }: { percent: number; accent?: string }) {
   return (
-    <div className="h-1 rounded-full bg-[var(--card)] overflow-hidden">
+    <div className="h-1 rounded-full bg-(--card) overflow-hidden">
       <div
         className="h-full rounded-full transition-all duration-700"
         style={{ width: `${Math.max(0, Math.min(100, percent))}%`, background: accent ?? "var(--accent)" }}
@@ -337,7 +337,7 @@ function CourseCard2({
           {course.title}
         </h3>
         {stats.total > 0 && (
-          <div className="space-y-1">
+          <div className="stack-y-1">
             <ThinBar percent={stats.percent} accent={accent} />
             <div className="flex items-center justify-between text-[9px] opacity-55">
               <span>{stats.done}/{stats.total}</span>
@@ -431,7 +431,7 @@ function LessonRow({
 
         {/* Progress bar at bottom of thumbnail */}
         {pct > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--card)]">
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-(--card)">
             <div className="h-full transition-all" style={{ width: `${pct}%`, background: accent }} />
           </div>
         )}
@@ -443,7 +443,7 @@ function LessonRow({
         style={isActive ? { background: `${accent}10` } : { background: "var(--card)" }}
       >
         <div
-          className={cn("text-[12px] font-semibold arabic-text leading-[1.4] line-clamp-2", isActive ? "text-[var(--fg)]" : "opacity-85")}
+          className={cn("text-[12px] font-semibold arabic-text leading-[1.4] line-clamp-2", isActive ? "text-(--fg)" : "opacity-85")}
         >
           {video.title}
         </div>
@@ -477,7 +477,7 @@ function VideoThumbCard({
     <button
       type="button"
       onClick={onClick}
-      className="flex-shrink-0 press-effect text-right rounded-2xl overflow-hidden border border-[var(--stroke)]"
+      className="shrink-0 press-effect text-right rounded-2xl overflow-hidden border border-(--stroke)"
       style={{ width: 190 }}
     >
       <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
@@ -489,19 +489,19 @@ function VideoThumbCard({
             style={{ background: `radial-gradient(ellipse at 30% 30%, ${accent}35 0%, #0a0a14 100%)` }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-9 h-9 rounded-full glass border border-[var(--stroke)] flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full glass border border-(--stroke) flex items-center justify-center">
             <Play size={13} aria-hidden="true" className="text-white" style={{ marginLeft: 2 }} />
           </div>
         </div>
         {bookmarked && (
           <div className="absolute top-1.5 left-1.5">
-            <Bookmark size={11} aria-hidden="true" className="fill-[var(--accent)] text-[var(--accent)]" />
+            <Bookmark size={11} aria-hidden="true" className="fill-(--accent) text-(--accent)" />
           </div>
         )}
         {pct > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--card)]">
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--card)">
             <div className="h-full transition-all" style={{ width: `${pct}%`, background: accent }} />
           </div>
         )}
@@ -515,7 +515,7 @@ function VideoThumbCard({
           </div>
         )}
       </div>
-      <div className="p-2 bg-[var(--card)]">
+      <div className="p-2 bg-(--card)">
         <div className="text-xs font-semibold line-clamp-2 arabic-text leading-4 mb-1">{video.title}</div>
         <div className="flex items-center justify-between">
           <span className="text-[10px] opacity-40">{formatDuration(video.durationSeconds)}</span>
@@ -548,7 +548,7 @@ function VideoListRow({
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-right press-effect rounded-2xl overflow-hidden border border-transparent hover:border-[var(--stroke)] transition-all"
+      className="w-full text-right press-effect rounded-2xl overflow-hidden border border-transparent hover:border-(--stroke) transition-all"
     >
       {/* Wide 16/9 thumbnail */}
       <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
@@ -583,13 +583,13 @@ function VideoListRow({
         {/* Bookmark dot top-right */}
         {bookmarked && (
           <div className="absolute top-1.5 right-1.5">
-            <Bookmark size={11} aria-hidden="true" className="fill-[var(--accent)] text-[var(--accent)]" />
+            <Bookmark size={11} aria-hidden="true" className="fill-(--accent) text-(--accent)" />
           </div>
         )}
 
         {/* Progress bar */}
         {pct > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--card)]">
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-(--card)">
             <div className="h-full" style={{ width: `${pct}%`, background: accent }} />
           </div>
         )}
@@ -722,10 +722,10 @@ function VideoHome({
   const overallStats = aggregateProgress(data.db.videos, progress);
 
   return (
-    <div className="space-y-5 page-enter" dir="rtl">
+    <div className="stack-y-5 page-enter" dir="rtl">
       {/* ── Hero header ── */}
       <div
-        className="relative rounded-3xl overflow-hidden p-5 pb-6 border border-[var(--stroke)]"
+        className="relative rounded-3xl overflow-hidden p-5 pb-6 border border-(--stroke)"
         style={{
           background:
             "radial-gradient(ellipse at 15% 0%, var(--accent)30 0%, transparent 55%), radial-gradient(ellipse at 88% 90%, var(--accent-2)20 0%, transparent 50%), rgba(7,8,15,0.82)",
@@ -736,8 +736,8 @@ function VideoHome({
           {/* Title row */}
           <div className="flex items-start justify-between gap-3 mb-4">
             <div>
-              <div className="flex items-center gap-1.5 text-[var(--accent)] mb-1.5">
-                <Star size={13} aria-hidden="true" className="fill-[var(--accent)]" />
+              <div className="flex items-center gap-1.5 text-(--accent) mb-1.5">
+                <Star size={13} aria-hidden="true" className="fill-(--accent)" />
                 <span className="text-[9px] font-bold tracking-widest uppercase opacity-55">مكتبة النور</span>
               </div>
               <h1
@@ -757,7 +757,7 @@ function VideoHome({
                 if (searchOpen) setQ("");
               }}
               className={cn(
-                "w-11 h-11 rounded-2xl glass border border-[var(--stroke)] flex items-center justify-center shrink-0 press-effect transition-all",
+                "w-11 h-11 rounded-2xl glass border border-(--stroke) flex items-center justify-center shrink-0 press-effect transition-all",
                 searchOpen && "bg-accent-20 border-accent-50",
               )}
             >
@@ -776,7 +776,7 @@ function VideoHome({
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="ابحث عن شيخ، دورة، أو درس..."
                 aria-label="بحث في مكتبة الدروس"
-                className="w-full rounded-2xl bg-[var(--card)] border border-[var(--stroke)] pr-9 pl-4 py-3 text-sm outline-none focus:border-accent-60 transition-colors"
+                className="w-full rounded-2xl bg-(--card) border border-(--stroke) pr-9 pl-4 py-3 text-sm outline-hidden focus:border-accent-60 transition-colors"
                 dir="rtl"
               />
             </div>
@@ -792,7 +792,7 @@ function VideoHome({
               ].map((s) => (
                 <div
                   key={s.label}
-                  className="flex items-center gap-1.5 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-1.5"
+                  className="flex items-center gap-1.5 rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5"
                 >
                   <span className="text-[10px] opacity-50">{s.label}</span>
                   <span className="text-[13px] font-bold">{s.value}</span>
@@ -821,7 +821,7 @@ function VideoHome({
 
       {/* ── Search results ── */}
       {searchResults && q.trim() && (
-        <div className="space-y-4">
+        <div className="stack-y-4">
           <div className="sr-only" aria-live="polite" aria-atomic="true">
             {searchResults.videos.length === 0 && searchResults.courses.length === 0
               ? `لا نتائج للبحث عن "${q}"`
@@ -834,7 +834,7 @@ function VideoHome({
                 onClick={() => setSearchChannelFilter(null)}
                 aria-pressed={searchChannelFilter === null}
                 className={cn("shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
-                  searchChannelFilter === null ? "text-[var(--on-accent)] border-transparent bg-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
+                  searchChannelFilter === null ? "text-(--on-accent) border-transparent bg-(--accent)" : "bg-(--card) border-(--stroke) hover:bg-(--card-2)")}
               >
                 الكل ({searchResults.channelChips.reduce((a, c) => a + c.count, 0)})
               </button>
@@ -843,7 +843,7 @@ function VideoHome({
                   onClick={() => setSearchChannelFilter(searchChannelFilter === ch.id ? null : ch.id)}
                   aria-pressed={searchChannelFilter === ch.id}
                   className={cn("shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
-                    searchChannelFilter === ch.id ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
+                    searchChannelFilter === ch.id ? "border-transparent" : "bg-(--card) border-(--stroke) hover:bg-(--card-2)")}
                   style={searchChannelFilter === ch.id ? { background: ch.accent, color: contrastText(ch.accent) } : { borderColor: `${ch.accent}40` }}>
                   {ch.name} ({ch.count})
                 </button>
@@ -880,7 +880,7 @@ function VideoHome({
           {searchResults.videos.length > 0 && (
             <section aria-label="الفيديوهات">
               <h2 className="text-[11px] font-semibold mb-2 opacity-60 tracking-wide">الفيديوهات</h2>
-              <div className="space-y-2">
+              <div className="stack-y-2">
                 {searchResults.videos.map((v) => (
                   <VideoListRow
                     key={v.id}
@@ -935,7 +935,7 @@ function VideoHome({
                   }}
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/25 to-transparent" />
               <div className="dhikr-card-stars absolute inset-0 pointer-events-none" style={{ opacity: 0.3 }} />
               {/* Play button */}
               <div className="absolute inset-0 flex items-center justify-center">
@@ -968,7 +968,7 @@ function VideoHome({
               </div>
             </div>
             {/* Progress strip */}
-            <div className="h-1 bg-[var(--card)]">
+            <div className="h-1 bg-(--card)">
               <div
                 className="h-full transition-all"
                 style={{
@@ -1080,7 +1080,7 @@ function VideoHome({
         <section aria-label="المحفوظات">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">المحفوظات</h2>
-            <Bookmark size={14} aria-hidden="true" className="fill-[var(--accent)] text-[var(--accent)]" />
+            <Bookmark size={14} aria-hidden="true" className="fill-(--accent) text-(--accent)" />
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-0.5 px-0.5">
             {bookmarkedVideos.map((v) => (
@@ -1132,8 +1132,8 @@ function VideoHome({
               <div className="font-bold text-sm text-amber-300">اربط القنوات بمحتوى حقيقي</div>
               <div className="text-xs opacity-60 mt-1 leading-5">
                 شغّل{" "}
-                <code className="text-[11px] bg-[var(--card)] px-1 rounded">tools/scripts/sync-video-library.mjs</code> بعد
-                ضبط <code className="text-[11px] bg-[var(--card)] px-1 rounded">YOUTUBE_API_KEY</code> لجلب كل فيديوهات
+                <code className="text-[11px] bg-(--card) px-1 rounded-sm">tools/scripts/sync-video-library.mjs</code> بعد
+                ضبط <code className="text-[11px] bg-(--card) px-1 rounded-sm">YOUTUBE_API_KEY</code> لجلب كل فيديوهات
                 القنوات الست تلقائياً.
               </div>
             </div>
@@ -1206,7 +1206,7 @@ function SheikhScreen({
     .slice(0, 2);
 
   return (
-    <div className="space-y-4 page-enter" dir="rtl">
+    <div className="stack-y-4 page-enter" dir="rtl">
       {/* ── Hero ── */}
       <div
         className="relative rounded-3xl overflow-hidden p-5 border"
@@ -1285,18 +1285,18 @@ function SheikhScreen({
                 </div>
               )}
               {channelCourses.length > 0 && (
-                <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-1.5 text-xs">
+                <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs">
                   {channelCourses.length} دورة
                 </div>
               )}
               {stats.done > 0 && (
-                <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-1.5 text-xs flex items-center gap-1">
+                <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs flex items-center gap-1">
                   <CheckCircle2 size={11} className="opacity-60" />
                   <span>{stats.done} مكتمل</span>
                 </div>
               )}
               {channelVideos.length > 0 && Math.floor(channelVideos.reduce((s, v) => s + (v.durationSeconds ?? 0), 0) / 3600) > 0 && (
-                <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-1.5 text-xs flex items-center gap-1">
+                <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs flex items-center gap-1">
                   <Clock size={11} aria-hidden="true" className="opacity-60" />
                   <span>{Math.floor(channelVideos.reduce((s, v) => s + (v.durationSeconds ?? 0), 0) / 3600)}+ ساعة</span>
                 </div>
@@ -1335,8 +1335,8 @@ function SheikhScreen({
             type="button"
             onClick={() => setTopicFilter(null)}
             className={cn(
-              "flex-shrink-0 px-3 py-1.5 rounded-2xl border text-xs transition-colors",
-              !topicFilter ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]",
+              "shrink-0 px-3 py-1.5 rounded-2xl border text-xs transition-colors",
+              !topicFilter ? "border-transparent" : "bg-(--card) border-(--stroke)",
             )}
             style={!topicFilter ? { background: channel.accent, color: contrastText(channel.accent) } : undefined}
           >
@@ -1348,8 +1348,8 @@ function SheikhScreen({
               key={t.id}
               onClick={() => setTopicFilter(topicFilter === t.id ? null : t.id)}
               className={cn(
-                "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs transition-colors",
-                topicFilter === t.id ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]",
+                "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs transition-colors",
+                topicFilter === t.id ? "border-transparent" : "bg-(--card) border-(--stroke)",
               )}
               style={topicFilter === t.id ? { background: t.accent, color: contrastText(t.accent) } : undefined}
             >
@@ -1373,7 +1373,7 @@ function SheikhScreen({
             return (
               <button key={sk} type="button" onClick={() => setSortKey(sk)} aria-pressed={sortKey === sk}
                 className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
-                  sortKey === sk ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+                  sortKey === sk ? "border-transparent" : "bg-(--card) border-(--stroke)")}
                 style={sortKey === sk ? { background: channel.accent, color: contrastText(channel.accent) } : undefined}>
                 {labels[sk]}
               </button>
@@ -1387,7 +1387,7 @@ function SheikhScreen({
             <div className="text-xs opacity-50 mt-1 leading-5">شغّل أداة المزامنة لتحميل محتوى هذه القناة</div>
           </div>
         ) : (
-          <div className="space-y-2" role="list" aria-label="قائمة الفيديوهات">
+          <div className="stack-y-2" role="list" aria-label="قائمة الفيديوهات">
             {visibleVideos.slice(0, videoPage * PAGE_SIZE).map((v) => (
               <div key={v.id} role="listitem">
               <VideoListRow
@@ -1403,7 +1403,7 @@ function SheikhScreen({
               <button
                 type="button"
                 onClick={() => setVideoPage((p) => p + 1)}
-                className="w-full py-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-sm font-semibold press-effect"
+                className="w-full py-3 rounded-2xl bg-(--card) border border-(--stroke) text-sm font-semibold press-effect"
                 style={{ color: channel.accent }}
               >
                 تحميل المزيد ({visibleVideos.length - videoPage * PAGE_SIZE} متبقٍ)
@@ -1468,7 +1468,7 @@ function CourseScreen({
   const continueTarget = lastWatched ?? nextToDo;
 
   return (
-    <div className="space-y-4 page-enter" dir="rtl">
+    <div className="stack-y-4 page-enter" dir="rtl">
       {/* ── Hero ── */}
       <div
         className="relative rounded-3xl overflow-hidden p-5 border"
@@ -1528,7 +1528,7 @@ function CourseScreen({
               {stats.done}/{stats.total} مكتمل
             </div>
             {stats.totalSeconds > 0 && (
-              <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-1.5 text-xs flex items-center gap-1">
+              <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs flex items-center gap-1">
                 <Clock size={10} aria-hidden="true" />
                 <span>{formatDuration(stats.totalSeconds)}</span>
               </div>
@@ -1577,7 +1577,7 @@ function CourseScreen({
             return (
               <button key={sk} type="button" onClick={() => { setSortKey(sk); setLessonPage(1); }} aria-pressed={sortKey === sk}
                 className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
-                  sortKey === sk ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+                  sortKey === sk ? "border-transparent" : "bg-(--card) border-(--stroke)")}
                 style={sortKey === sk ? { background: accent, color: contrastText(accent) } : undefined}>
                 {labels[sk]}
               </button>
@@ -1591,7 +1591,7 @@ function CourseScreen({
             <div className="text-xs opacity-50 mt-1">شغّل أداة المزامنة لتحميل دروس هذه الدورة</div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {sortedLessons.slice(0, lessonPage * COURSE_PAGE_SIZE).map((v, i) => (
               <LessonRow
                 key={v.id}
@@ -1607,7 +1607,7 @@ function CourseScreen({
               <button
                 type="button"
                 onClick={() => setLessonPage((p) => p + 1)}
-                className="w-full py-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-sm font-semibold press-effect"
+                className="w-full py-3 rounded-2xl bg-(--card) border border-(--stroke) text-sm font-semibold press-effect"
                 style={{ color: accent }}
               >
                 تحميل المزيد ({sortedLessons.length - lessonPage * COURSE_PAGE_SIZE} درس متبقٍ)
@@ -1689,7 +1689,7 @@ function WatchScreen({
 
   if (!video) {
     return (
-      <div className="page-enter space-y-3" dir="rtl">
+      <div className="page-enter stack-y-3" dir="rtl">
         <button
           type="button"
           onClick={() => navigate("/video-library")}
@@ -1708,7 +1708,7 @@ function WatchScreen({
   }
 
   return (
-    <div className="space-y-3 page-enter" dir="rtl">
+    <div className="stack-y-3 page-enter" dir="rtl">
       {/* ── Breadcrumb ── */}
       <div className="flex items-center gap-1.5 text-[11px] opacity-45 flex-wrap">
         <button
@@ -1772,7 +1772,7 @@ function WatchScreen({
 
       {/* ── Course playlist panel ── */}
       {course && courseVideos.length > 0 && (
-        <div className="glass-strong rounded-3xl border border-[var(--stroke)] overflow-hidden">
+        <div className="glass-strong rounded-3xl border border-(--stroke) overflow-hidden">
           <button
             type="button"
             onClick={() => setPlaylistOpen(!playlistOpen)}
@@ -1789,7 +1789,7 @@ function WatchScreen({
             </div>
             <div className="flex items-center gap-2.5">
               <div
-                className="w-16 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+                className="w-16 h-1.5 rounded-full bg-(--card) overflow-hidden"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={courseVideos.length}
@@ -1814,7 +1814,7 @@ function WatchScreen({
             </div>
           </button>
           {playlistOpen && (
-            <div className="px-3 pb-3 border-t border-[var(--stroke)] pt-3 space-y-2 max-h-[60vh] overflow-y-auto">
+            <div className="px-3 pb-3 border-t border-(--stroke) pt-3 stack-y-2 max-h-[60vh] overflow-y-auto">
               {courseVideos.slice(0, playlistPage * PLAYLIST_PAGE_SIZE).map((v, i) => (
                 <div key={v.id} ref={v.id === videoId ? activeItemRef : undefined}>
                   <LessonRow
@@ -1831,7 +1831,7 @@ function WatchScreen({
                 <button
                   type="button"
                   onClick={() => setPlaylistPage((p) => p + 1)}
-                  className="w-full py-2.5 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-xs font-semibold press-effect"
+                  className="w-full py-2.5 rounded-2xl bg-(--card) border border-(--stroke) text-xs font-semibold press-effect"
                   style={{ color: channel?.accent }}
                 >
                   تحميل المزيد ({courseVideos.length - playlistPage * PLAYLIST_PAGE_SIZE} درس متبقٍ)
@@ -1846,7 +1846,7 @@ function WatchScreen({
       {related.length > 0 && (
         <section aria-label="فيديوهات ذات صلة">
           <h2 className="text-[13px] font-semibold arabic-text mb-3">فيديوهات ذات صلة</h2>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {related.map((v) => (
               <VideoListRow
                 key={v.id}
@@ -1926,7 +1926,7 @@ function TopicScreen({
   }
 
   return (
-    <div className="space-y-4 page-enter" dir="rtl">
+    <div className="stack-y-4 page-enter" dir="rtl">
       {/* ── Hero ── */}
       <div
         className="relative rounded-3xl overflow-hidden p-5 border"
@@ -1953,12 +1953,12 @@ function TopicScreen({
               {topicVideos.length} فيديو
             </div>
             {topicCourses.length > 0 && (
-              <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-1.5 text-xs flex items-center gap-1">
+              <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs flex items-center gap-1">
                 <GraduationCap size={10} aria-hidden="true" /><span>{topicCourses.length} دورة</span>
               </div>
             )}
             {channelIds.length > 0 && (
-              <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-1.5 text-xs">
+              <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs">
                 {channelIds.length} مشايخ
               </div>
             )}
@@ -1992,7 +1992,7 @@ function TopicScreen({
             onClick={() => setChannelFilter(null)}
             aria-pressed={channelFilter === null}
             className={cn("shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
-              channelFilter === null ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
+              channelFilter === null ? "border-transparent" : "bg-(--card) border-(--stroke) hover:bg-(--card-2)")}
             style={channelFilter === null ? { background: topic.accent, color: contrastText(topic.accent) } : {}}
           >
             الكل ({topicVideos.length})
@@ -2002,7 +2002,7 @@ function TopicScreen({
               onClick={() => setChannelFilter(channelFilter === id ? null : id)}
               aria-pressed={channelFilter === id}
               className={cn("shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
-                channelFilter === id ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
+                channelFilter === id ? "border-transparent" : "bg-(--card) border-(--stroke) hover:bg-(--card-2)")}
               style={channelFilter === id ? { background: channel.accent, color: contrastText(channel.accent) } : { borderColor: `${channel.accent}40` }}
             >
               {channel.displayName} ({count})
@@ -2024,7 +2024,7 @@ function TopicScreen({
             return (
               <button key={sk} type="button" onClick={() => setSortKey(sk)} aria-pressed={sortKey === sk}
                 className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
-                  sortKey === sk ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+                  sortKey === sk ? "border-transparent" : "bg-(--card) border-(--stroke)")}
                 style={sortKey === sk ? { background: topic.accent, color: contrastText(topic.accent) } : undefined}>
                 {labels[sk]}
               </button>
@@ -2037,7 +2037,7 @@ function TopicScreen({
             <div className="font-semibold text-sm">لا توجد فيديوهات بعد لهذا الموضوع</div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {visibleVideos.slice(0, videoPage * PAGE_SIZE).map((v) => (
               <VideoListRow
                 key={v.id}
@@ -2052,7 +2052,7 @@ function TopicScreen({
               <button
                 type="button"
                 onClick={() => setVideoPage((p) => p + 1)}
-                className="w-full py-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-sm font-semibold press-effect"
+                className="w-full py-3 rounded-2xl bg-(--card) border border-(--stroke) text-sm font-semibold press-effect"
                 style={{ color: topic.accent }}
               >
                 تحميل المزيد ({visibleVideos.length - videoPage * PAGE_SIZE} متبقٍ)
@@ -2103,9 +2103,9 @@ export function VideoLibraryPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4 page-enter" dir="rtl" role="status" aria-label="جارٍ التحميل…">
+      <div className="stack-y-4 page-enter" dir="rtl" role="status" aria-label="جارٍ التحميل…">
         <span className="sr-only">جارٍ التحميل…</span>
-        <div className="rounded-3xl glass-strong border border-[var(--stroke)] p-5 space-y-3">
+        <div className="rounded-3xl glass-strong border border-(--stroke) p-5 stack-y-3">
           <div className="skeleton h-7 w-48 rounded-2xl" />
           <div className="skeleton h-4 w-64 rounded-2xl" />
           <div className="grid grid-cols-3 gap-3 mt-3">
@@ -2125,7 +2125,7 @@ export function VideoLibraryPage() {
 
   if (error || !data) {
     return (
-      <div className="page-enter glass rounded-3xl border border-[var(--stroke)] p-7 text-center" dir="rtl">
+      <div className="page-enter glass rounded-3xl border border-(--stroke) p-7 text-center" dir="rtl">
         <div className="text-3xl mb-3">⚠️</div>
         <div className="font-bold">تعذر تحميل مكتبة الفيديو</div>
         <div className="text-sm opacity-55 mt-2">تأكد من وجود ملف البيانات ثم أعد المحاولة.</div>

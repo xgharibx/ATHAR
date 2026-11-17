@@ -97,7 +97,7 @@ function ScrollProgress() {
 
   return (
     <motion.div
-      className="fixed top-0 left-0 right-0 h-[2px] z-[100] origin-left"
+      className="fixed top-0 left-0 right-0 h-[2px] z-100 origin-left"
       style={{
         scaleX,
         background: 'linear-gradient(90deg, #6366f1, #a5b4fc, #e879f9, #2dd4a8)',
@@ -499,14 +499,14 @@ export default function HomePage() {
       {!isMobile && <FloatingNav />}
 
       {/* ═══════════ SECTION 1: CINEMATIC HERO ═══════════ */}
-      <section data-section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
+      <section data-section className="relative min-h-svh flex items-center justify-center overflow-hidden">
         {isMobile
           ? <MobileGalaxyBackdrop />
           : <StaticStarsBackdrop variant="hero" mobile={false} className="z-0" />}
 
         {/* Gradient overlays */}
-        <div className="absolute inset-0 z-[2] bg-gradient-to-b from-vanta/40 via-transparent to-vanta pointer-events-none" />
-        <div className="absolute inset-0 z-[2] bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(10,10,15,0.2)_100%)] pointer-events-none" />
+        <div className="absolute inset-0 z-2 bg-linear-to-b from-vanta/40 via-transparent to-vanta pointer-events-none" />
+        <div className="absolute inset-0 z-2 bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(10,10,15,0.2)_100%)] pointer-events-none" />
 
         {/* Content */}
         <div className="relative z-10 container mx-auto px-6 text-center py-16 md:py-20 lg:py-24 2xl:py-32">
@@ -560,13 +560,13 @@ export default function HomePage() {
               className="mb-6 md:mb-8"
             >
               <div
-                className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full backdrop-blur-sm"
+                className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full backdrop-blur-xs"
                 style={{ background: 'rgba(212,168,83,0.07)', border: '1px solid rgba(212,168,83,0.18)' }}
               >
                 <motion.div
                   animate={{ scale: [1, 1.6, 1], opacity: [0.8, 0.4, 0.8] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="w-1.5 h-1.5 rounded-full bg-gold-primary flex-shrink-0"
+                  className="w-1.5 h-1.5 rounded-full bg-gold-primary shrink-0"
                 />
                 <span className="font-tajawal text-gold-primary/85 text-sm md:text-lg tracking-wide">
                   {'\u0647\u0644 \u062A\u062C\u0631\u0624 \u0639\u0644\u0649 \u0623\u0646 \u062A\u0633\u0623\u0644 \u0646\u0641\u0633\u0643...'}
@@ -723,7 +723,7 @@ export default function HomePage() {
                         <p className="mt-2 text-sm md:text-[15px] text-text-secondary font-tajawal leading-relaxed">
                           {activeHeroShowcase.before}
                         </p>
-                        <div className="mt-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                        <div className="mt-4 h-px bg-linear-to-r from-transparent via-white/10 to-transparent" />
                         <div className="mt-4 flex items-center justify-between gap-3">
                           <span className="text-[10px] font-tajawal text-text-muted">يتبدل المشهد تلقائياً</span>
                           <div className="flex items-center gap-2">
@@ -903,9 +903,9 @@ export default function HomePage() {
                             </motion.p>
                             <p className="text-gold-primary/50 text-sm font-tajawal mt-2 relative z-10 tracking-widest">{item.surah}</p>
                             <div className="flex items-center justify-center gap-3 mt-5 relative z-10">
-                              <div className="h-px flex-1 max-w-[140px] bg-gradient-to-r from-transparent to-gold-primary/15" />
+                              <div className="h-px flex-1 max-w-[140px] bg-linear-to-r from-transparent to-gold-primary/15" />
                               <div className="w-1.5 h-1.5 rotate-45 bg-gold-primary/25" />
-                              <div className="h-px flex-1 max-w-[140px] bg-gradient-to-l from-transparent to-gold-primary/15" />
+                              <div className="h-px flex-1 max-w-[140px] bg-linear-to-l from-transparent to-gold-primary/15" />
                             </div>
                           </div>
 
@@ -914,8 +914,8 @@ export default function HomePage() {
 
                             {/* PAST panel */}
                             <div className="relative px-6 md:px-10 py-8">
-                              <div className="absolute inset-0 bg-gradient-to-br from-red-950/60 via-red-900/15 to-transparent" />
-                              <div className="absolute top-6 bottom-6 right-0 w-px bg-gradient-to-b from-transparent via-red-500/15 to-transparent" />
+                              <div className="absolute inset-0 bg-linear-to-br from-red-950/60 via-red-900/15 to-transparent" />
+                              <div className="absolute top-6 bottom-6 right-0 w-px bg-linear-to-b from-transparent via-red-500/15 to-transparent" />
                               <div className="relative z-10 flex flex-col items-center text-center gap-3">
                                 <div className="flex items-center gap-2">
                                   <div className="h-px w-8 bg-red-400/25" />
@@ -937,7 +937,7 @@ export default function HomePage() {
 
                             {/* CENTER divider */}
                             <div className="flex flex-col items-center justify-center gap-4 px-5 md:px-10 py-6 relative">
-                              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-transparent via-gold-primary/20 to-transparent" />
+                              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-linear-to-b from-transparent via-gold-primary/20 to-transparent" />
                               <motion.div
                                 animate={{ scale: [1, 1.2, 1], rotate: [0, 12, -12, 0] }}
                                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -969,8 +969,8 @@ export default function HomePage() {
 
                             {/* DISCOVERY panel */}
                             <div className="relative px-6 md:px-10 py-8">
-                              <div className="absolute inset-0 bg-gradient-to-bl from-emerald-950/60 via-emerald-900/15 to-transparent" />
-                              <div className="absolute top-6 bottom-6 left-0 w-px bg-gradient-to-b from-transparent via-emerald-500/15 to-transparent" />
+                              <div className="absolute inset-0 bg-linear-to-bl from-emerald-950/60 via-emerald-900/15 to-transparent" />
+                              <div className="absolute top-6 bottom-6 left-0 w-px bg-linear-to-b from-transparent via-emerald-500/15 to-transparent" />
                               <div className="relative z-10 flex flex-col items-center text-center gap-3">
                                 <div className="flex items-center gap-2">
                                   <div className="h-px w-8 bg-verse-green/20" />
@@ -993,7 +993,7 @@ export default function HomePage() {
 
                           {/* Bottom bar */}
                           <div className="relative px-8 py-5 text-center">
-                            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-gold-primary/10 to-transparent" />
+                            <div className="absolute top-0 left-8 right-8 h-px bg-linear-to-r from-transparent via-gold-primary/10 to-transparent" />
                             <p className="text-text-muted/55 text-xs font-tajawal group-hover:text-gold-primary transition-colors duration-300 tracking-wide">
                               {'\u0627\u0636\u063A\u0637 \u0644\u0627\u0633\u062A\u0643\u0634\u0627\u0641 \u0627\u0644\u062F\u0644\u064A\u0644 \u0627\u0644\u0643\u0627\u0645\u0644 \u2190'}
                             </p>
@@ -1031,8 +1031,8 @@ export default function HomePage() {
       {/* ═══════════ SECTION 3: CONVICTION COUNTER ═══════════ */}
       <section data-section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,168,83,0.04)_0%,transparent_70%)]" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold-primary/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold-primary/20 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-gold-primary/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-gold-primary/20 to-transparent" />
 
         <div className="container mx-auto px-6 relative z-10">
           <ScrollReveal variant="scale">
@@ -1153,7 +1153,7 @@ export default function HomePage() {
 
       {/* ═══════════ SECTION 5: FEATURED VERSE ═══════════ */}
       <section data-section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cosmic-purple/10 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-cosmic-purple/10 to-transparent" />
         <StaticStarsBackdrop variant="emerald" mobile={isMobile} className="z-0" />
         <div className="container mx-auto px-6 max-w-4xl relative z-10">
           <ScrollReveal variant="scale">
@@ -1164,7 +1164,7 @@ export default function HomePage() {
 
       {/* ═══════════ SECTION 6: DOUBT RESOLVER ═══════════ */}
       <section data-section className="relative py-16 md:py-28">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-red-950/5 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-red-950/5 to-transparent" />
         <div className="container mx-auto px-6 max-w-4xl relative z-10">
           <ScrollReveal variant="blur">
             <div className="text-center mb-16">
@@ -1182,7 +1182,7 @@ export default function HomePage() {
             </div>
           </ScrollReveal>
 
-          <div className="space-y-6">
+          <div className="stack-y-6">
             {objections.map((item, i) => (
               <ScrollReveal key={i} variant="fade-left" delay={i * 0.15}>
                 <div className="glass-premium rounded-2xl overflow-hidden holographic-card">
@@ -1192,7 +1192,7 @@ export default function HomePage() {
                   </div>
                   <div className="px-6 py-5">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-verse-green/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-6 h-6 rounded-full bg-verse-green/15 flex items-center justify-center shrink-0 mt-0.5">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2dd4a8" strokeWidth="3">
                           <path d="M20 6 9 17l-5-5" />
                         </svg>
@@ -1318,7 +1318,7 @@ export default function HomePage() {
               <ScrollReveal key={book.title} variant="fade-up" delay={i * 0.1}>
                 <div className="glass-premium rounded-2xl p-6 flex items-start gap-4 holographic-card h-full">
                   <div
-                    className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                    className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
                     style={{ background: book.color + '15' }}
                   >
                     {book.icon}
@@ -1357,7 +1357,7 @@ export default function HomePage() {
 
       {/* ═══════════ FINAL CTA ═══════════ */}
       <section className="relative py-20 md:py-36 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cosmic-purple/15 to-vanta" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-cosmic-purple/15 to-vanta" />
         <StaticStarsBackdrop variant="violet" mobile={isMobile} className="z-0" />
 
         <div className="container mx-auto px-6 text-center relative z-10">

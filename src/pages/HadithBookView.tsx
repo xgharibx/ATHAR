@@ -28,8 +28,8 @@ function SectionHeader({ title }: { title: string }) {
       className="mx-3 mt-4 mb-2 flex items-center gap-2 rounded-2xl border px-4 py-2 glass"
       style={{ borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)", background: "color-mix(in srgb, var(--accent) 10%, transparent)" }}
     >
-      <div className="w-1.5 h-4 rounded-full bg-[var(--accent)]" />
-      <p className="text-xs font-bold font-arabic truncate text-[var(--accent)]">
+      <div className="w-1.5 h-4 rounded-full bg-(--accent)" />
+      <p className="text-xs font-bold font-arabic truncate text-(--accent)">
         {title}
       </p>
     </div>
@@ -61,7 +61,7 @@ function HadithRow({
         aria-label={`الحديث رقم ${arNum(item.n)} — اضغط للقراءة`}
         onClick={() => navigate(`/hadith/${bookKey}/${item.n}`)}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && navigate(`/hadith/${bookKey}/${item.n}`)}
-        className="group relative w-full overflow-hidden rounded-3xl border border-[var(--stroke)] p-4 text-right transition cursor-pointer glass-strong glass-hover press-effect"
+        className="group relative w-full overflow-hidden rounded-3xl border border-(--stroke) p-4 text-right transition cursor-pointer glass-strong glass-hover press-effect"
       >
         <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
         <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
@@ -74,10 +74,10 @@ function HadithRow({
               {sectionTitle && <Badge className="max-w-[180px] truncate px-2 py-0.5 text-[10px]">{sectionTitle}</Badge>}
               {item.g[0] && <GradeChip grade={item.g[0]} size="sm" />}
             </div>
-            <p className="arabic-text text-base leading-8 font-semibold text-[var(--fg)] line-clamp-3">
+            <p className="arabic-text text-base leading-8 font-semibold text-(--fg) line-clamp-3">
               {hadithPreview(item.t, 190)}
             </p>
-            <div className="mt-3 border-t border-[var(--stroke)] pt-3 flex items-center justify-between gap-3 text-xs opacity-65">
+            <div className="mt-3 border-t border-(--stroke) pt-3 flex items-center justify-between gap-3 text-xs opacity-65">
               <span className="font-arabic">حديث {arNum(item.n)}</span>
               <span className="font-semibold" style={{ color: accentColor }}>اقرأ النص الكامل</span>
             </div>
@@ -95,7 +95,7 @@ function HadithRow({
                   toast.error("تعذر النسخ");
                 }
               }}
-              className="rounded-lg border border-[var(--stroke)] bg-[var(--card)] p-1.5 opacity-50 transition-opacity hover:opacity-90 press-effect"
+              className="rounded-lg border border-(--stroke) bg-(--card) p-1.5 opacity-50 transition-opacity hover:opacity-90 press-effect"
               style={{ color: "var(--fg)" }}
               aria-label="نسخ الحديث"
             >
@@ -210,10 +210,10 @@ export function HadithBookViewPage() {
           <div className="relative flex items-center gap-3 pr-2">
             <button type="button"
               onClick={() => navigate(-1)}
-              className="h-11 w-11 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] shrink-0"
+              className="h-11 w-11 rounded-2xl border border-(--stroke) bg-(--card) grid place-items-center transition hover:bg-(--card-2) shrink-0"
               aria-label="رجوع"
             >
-              <ArrowRight size={19} aria-hidden="true" className="text-[var(--fg)]" />
+              <ArrowRight size={19} aria-hidden="true" className="text-(--fg)" />
             </button>
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2 flex-wrap">
@@ -226,7 +226,7 @@ export function HadithBookViewPage() {
                   </span>
                 )}
               </div>
-              <h1 className="font-bold text-lg text-[var(--fg)] font-arabic leading-tight truncate" dir="rtl">
+              <h1 className="font-bold text-lg text-(--fg) font-arabic leading-tight truncate" dir="rtl">
                 {meta?.title ?? bookKey}
               </h1>
               <div className="mt-1 flex items-center gap-2 text-xs opacity-60 tabular-nums">
@@ -234,7 +234,7 @@ export function HadithBookViewPage() {
                 {pack && pack.sections.length > 0 && <span>• {arNum(pack.sections.length)} باب</span>}
               </div>
             </div>
-            {isLoading && <Loader2 size={18} aria-hidden="true" className="animate-spin text-[var(--muted)] shrink-0" />}
+            {isLoading && <Loader2 size={18} aria-hidden="true" className="animate-spin text-(--muted) shrink-0" />}
           </div>
           {lastIndex !== null && activeSectionId === null && (
             <button type="button"
@@ -271,7 +271,7 @@ export function HadithBookViewPage() {
             aria-controls="hbv-list-panel"
             aria-selected={activeSectionId === null}
             onClick={() => setActiveSectionId(null)}
-            className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic press-effect", activeSectionId === null ? "font-bold" : "glass border-[var(--stroke)]")}
+            className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic press-effect", activeSectionId === null ? "font-bold" : "glass border-(--stroke)")}
             style={activeSectionId === null ? { background: accentColor, borderColor: "transparent" } : undefined}
           >
             الكل · {arNum(pack.count)}
@@ -283,7 +283,7 @@ export function HadithBookViewPage() {
               aria-controls="hbv-list-panel"
               aria-selected={activeSectionId === s.id}
               onClick={() => setActiveSectionId(s.id)}
-              className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic whitespace-nowrap press-effect", activeSectionId === s.id ? "font-bold" : "glass border-[var(--stroke)]")}
+              className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic whitespace-nowrap press-effect", activeSectionId === s.id ? "font-bold" : "glass border-(--stroke)")}
               style={activeSectionId === s.id ? { background: accentColor, borderColor: "transparent" } : undefined}
             >
               {s.title}
@@ -296,14 +296,14 @@ export function HadithBookViewPage() {
       {isLoading && (
         <div dir="rtl" role="status" aria-live="polite" aria-atomic="true" aria-label="جاري تحميل الكتاب" className="flex-1 flex items-center justify-center px-6">
           <div
-            className="w-full max-w-sm rounded-3xl glass-strong border border-[var(--stroke)] p-6 flex flex-col gap-4"
+            className="w-full max-w-sm rounded-3xl glass-strong border border-(--stroke) p-6 flex flex-col gap-4"
           >
             <div className="flex items-center gap-3">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)" }}
               >
-                <Loader2 size={20} aria-hidden="true" className="animate-spin text-[var(--accent)]" />
+                <Loader2 size={20} aria-hidden="true" className="animate-spin text-(--accent)" />
               </div>
               <div>
                 <p className="font-bold text-sm font-arabic" style={{ color: "var(--fg)" }}>
@@ -340,14 +340,14 @@ export function HadithBookViewPage() {
       {/* Error state */}
       {isError && !isLoading && (
         <div dir="rtl" className="flex-1 flex flex-col items-center justify-center gap-2 px-8 text-center">
-          <p className="text-[var(--muted)] font-arabic">تعذّر تحميل الكتاب</p>
-          <p className="text-xs text-[var(--muted)]">
+          <p className="text-(--muted) font-arabic">تعذّر تحميل الكتاب</p>
+          <p className="text-xs text-(--muted)">
             يرجى التحقق من اتصالك بالإنترنت وإعادة المحاولة
           </p>
           <button
             type="button"
             onClick={() => void refetch()}
-            className="mt-2 rounded-xl border border-[var(--stroke)] px-4 py-2 text-sm font-arabic text-[var(--accent)] transition hover:bg-[var(--card)]"
+            className="mt-2 rounded-xl border border-(--stroke) px-4 py-2 text-sm font-arabic text-(--accent) transition hover:bg-(--card)"
           >
             إعادة المحاولة
           </button>
@@ -368,7 +368,7 @@ export function HadithBookViewPage() {
 
       {/* Empty after filter */}
       {pack && listRows.length === 0 && !isLoading && (
-        <div dir="rtl" role="status" className="flex-1 flex items-center justify-center text-[var(--muted)] font-arabic">
+        <div dir="rtl" role="status" className="flex-1 flex items-center justify-center text-(--muted) font-arabic">
           لا توجد أحاديث في هذا الباب
         </div>
       )}

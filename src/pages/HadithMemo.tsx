@@ -239,7 +239,7 @@ export function HadithMemoPage() {
           >
             <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
             <p className="text-xl font-bold font-arabic" style={{ color: accentColor }}>{val}</p>
-            <p className="text-[10px] text-[var(--muted)]">{label}</p>
+            <p className="text-[10px] text-(--muted)">{label}</p>
           </div>
         ))}
       </div>
@@ -282,8 +282,8 @@ export function HadithMemoPage() {
       {viewMode === "due" && dueCards.length === 0 && (
         <div className="relative z-10 flex flex-col items-center gap-4 py-16">
           <CheckCircle size={48} aria-hidden="true" style={{ color: accentColor }} />
-          <p className="text-base font-bold font-arabic text-[var(--fg)]">أحسنت! أنهيت مراجعة اليوم</p>
-          <p className="text-sm text-[var(--muted)] font-arabic">ارجع غداً لمراجعة جديدة</p>
+          <p className="text-base font-bold font-arabic text-(--fg)">أحسنت! أنهيت مراجعة اليوم</p>
+          <p className="text-sm text-(--muted) font-arabic">ارجع غداً لمراجعة جديدة</p>
           <button type="button"
             onClick={() => { setViewMode("add"); setCardIndex(0); setIsFlipped(false); }}
             className="mt-2 rounded-2xl px-6 py-2.5 text-sm font-arabic font-bold press-effect"
@@ -296,14 +296,14 @@ export function HadithMemoPage() {
 
       {/* Flip card area */}
       {current && (
-        <div className="relative z-10 space-y-4 px-4">
+        <div className="relative z-10 stack-y-4 px-4">
           {/* Progress bar */}
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-[var(--muted)] font-arabic" aria-live="polite" aria-atomic="true">
+            <span className="text-xs text-(--muted) font-arabic" aria-live="polite" aria-atomic="true">
               {cardIndex + 1} / {currentCards.length}
             </span>
             {cardState && (
-              <span className="text-[10px] text-[var(--muted)]">
+              <span className="text-[10px] text-(--muted)">
                 تكرار {cardState.reviews} • التالي: {cardState.due}
               </span>
             )}
@@ -314,7 +314,7 @@ export function HadithMemoPage() {
             aria-valuemax={currentCards.length}
             aria-valuenow={cardIndex}
             aria-label="تقدم مراجعة البطاقات"
-            className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--card)]"
+            className="h-1.5 w-full overflow-hidden rounded-full bg-(--card)"
           >
             <div
               className="h-full rounded-full transition-all"
@@ -328,23 +328,23 @@ export function HadithMemoPage() {
             onFlip={() => setIsFlipped((f) => !f)}
             front={
               <div dir="rtl">
-                <p className="text-[10px] text-[var(--muted)] mb-2 font-arabic">
+                <p className="text-[10px] text-(--muted) mb-2 font-arabic">
                   {bookTitle(current.bookKey)} · حديث {arNum(current.item.a)} — اضغط للكشف
                 </p>
                 {isnad ? (
-                  <p className="text-sm font-arabic text-[var(--fg)] opacity-60 leading-loose">{isnad}</p>
+                  <p className="text-sm font-arabic text-(--fg) opacity-60 leading-loose">{isnad}</p>
                 ) : (
-                  <p className="text-base font-arabic text-[var(--fg)] leading-loose line-clamp-6">
+                  <p className="text-base font-arabic text-(--fg) leading-loose line-clamp-6">
                     {matn.slice(0, 200)}…
                   </p>
                 )}
-                <p className="mt-3 text-[10px] text-center text-[var(--muted)] opacity-50">↺ اضغط للكشف</p>
+                <p className="mt-3 text-[10px] text-center text-(--muted) opacity-50">↺ اضغط للكشف</p>
               </div>
             }
             back={
               <div dir="rtl">
                 <p className="text-[10px] mb-2 font-arabic" style={{ color: accentColor }}>المتن</p>
-                <p className="text-base font-arabic text-[var(--fg)] leading-loose">
+                <p className="text-base font-arabic text-(--fg) leading-loose">
                   {matn}
                 </p>
               </div>
@@ -388,13 +388,13 @@ export function HadithMemoPage() {
             <button type="button"
               onClick={() => { setCardIndex((i) => Math.max(0, i - 1)); setIsFlipped(false); }}
               disabled={cardIndex === 0}
-              className="rounded-full border border-[var(--stroke)] bg-[var(--card)] p-2 transition hover:bg-[var(--card-2)] disabled:opacity-30 press-effect"
+              className="rounded-full border border-(--stroke) bg-(--card) p-2 transition hover:bg-(--card-2) disabled:opacity-30 press-effect"
               aria-label="البطاقة السابقة"
             >
-              <ChevronRight size={20} aria-hidden="true" className="text-[var(--muted)]" />
+              <ChevronRight size={20} aria-hidden="true" className="text-(--muted)" />
             </button>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-[var(--muted)] font-arabic">
+              <span className="text-xs text-(--muted) font-arabic">
                 {arNum(current.item.a)}
               </span>
               <button
@@ -407,7 +407,7 @@ export function HadithMemoPage() {
                     toast.error("تعذر النسخ");
                   }
                 }}
-                className="rounded-lg border border-[var(--stroke)] bg-[var(--card)] p-1.5 opacity-60 transition hover:opacity-100 press-effect"
+                className="rounded-lg border border-(--stroke) bg-(--card) p-1.5 opacity-60 transition hover:opacity-100 press-effect"
                 style={{ color: "var(--fg)" }}
                 aria-label="نسخ الحديث"
               >
@@ -424,7 +424,7 @@ export function HadithMemoPage() {
                     try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
                   }
                 }}
-                className="rounded-lg border border-[var(--stroke)] bg-[var(--card)] p-1.5 opacity-60 transition hover:opacity-100 press-effect"
+                className="rounded-lg border border-(--stroke) bg-(--card) p-1.5 opacity-60 transition hover:opacity-100 press-effect"
                 style={{ color: "var(--fg)" }}
                 aria-label="مشاركة الحديث"
               >
@@ -434,10 +434,10 @@ export function HadithMemoPage() {
             <button type="button"
               onClick={() => { setCardIndex((i) => Math.min(currentCards.length - 1, i + 1)); setIsFlipped(false); }}
               disabled={cardIndex === currentCards.length - 1}
-              className="rounded-full border border-[var(--stroke)] bg-[var(--card)] p-2 transition hover:bg-[var(--card-2)] disabled:opacity-30 press-effect"
+              className="rounded-full border border-(--stroke) bg-(--card) p-2 transition hover:bg-(--card-2) disabled:opacity-30 press-effect"
               aria-label="البطاقة التالية"
             >
-              <ChevronLeft size={20} aria-hidden="true" className="text-[var(--muted)]" />
+              <ChevronLeft size={20} aria-hidden="true" className="text-(--muted)" />
             </button>
           </div>
         </div>
@@ -445,8 +445,8 @@ export function HadithMemoPage() {
 
       {/* No pack loaded yet */}
       {!nawawi && viewMode === "add" && (
-        <div className="relative z-10 flex flex-col items-center gap-3 py-16 text-[var(--muted)]">
-          <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+        <div className="relative z-10 flex flex-col items-center gap-3 py-16 text-(--muted)">
+          <div className="w-6 h-6 border-2 border-(--accent) border-t-transparent rounded-full animate-spin" aria-hidden="true" />
           <p className="text-sm font-arabic">جارٍ التحميل…</p>
         </div>
       )}

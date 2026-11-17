@@ -167,10 +167,10 @@ function CompanionStatusChip({ state, onRefresh }: {
       <button
         type="button"
         onClick={onRefresh}
-        className="flex items-center gap-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-1 text-[10.5px] opacity-80 hover:opacity-100 transition"
+        className="flex items-center gap-1.5 rounded-full border border-(--stroke) bg-(--card) px-2.5 py-1 text-[10.5px] opacity-80 hover:opacity-100 transition"
         title="تحقّق من خادم الذكاء"
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-pulse" />
+        <span className="w-1.5 h-1.5 rounded-full bg-(--muted) animate-pulse" />
         <span>جاري التحقّق…</span>
       </button>
     );
@@ -688,11 +688,11 @@ export function CompanionPage() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-accent-15 border border-accent-35">
-            <Sparkles className="h-5 w-5 text-[var(--accent)]" aria-hidden="true" />
+            <Sparkles className="h-5 w-5 text-(--accent)" aria-hidden="true" />
           </span>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="flex items-center gap-2 text-lg font-bold text-[var(--fg)]">
+              <h1 className="flex items-center gap-2 text-lg font-bold text-(--fg)">
                 أثر
               </h1>
               <CompanionStatusChip state={aiHealth} onRefresh={refreshAiHealth} />
@@ -703,10 +703,10 @@ export function CompanionPage() {
           <button type="button"
             onClick={() => setShowPins(true)}
             aria-label="الإجابات المثبَّتة"
-            className="relative rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-2.5 hover:bg-[var(--card-2)] transition">
+            className="relative rounded-xl border border-(--stroke) bg-(--card) p-2.5 hover:bg-(--card-2) transition">
             <Pin className="h-4 w-4" aria-hidden="true" />
             {pins.length > 0 ? (
-              <span className="absolute -top-1 -end-1 grid h-4 min-w-4 place-items-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-black">
+              <span className="absolute -top-1 -inset-e-1 grid h-4 min-w-4 place-items-center rounded-full bg-(--accent) px-1 text-[9px] font-bold text-black">
                 {arNum(pins.length)}
               </span>
             ) : null}
@@ -714,22 +714,22 @@ export function CompanionPage() {
           <button type="button"
             onClick={() => setShowHistory(true)}
             aria-label="المحادثات السابقة"
-            className="rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-2.5 hover:bg-[var(--card-2)] transition">
+            className="rounded-xl border border-(--stroke) bg-(--card) p-2.5 hover:bg-(--card-2) transition">
             <History className="h-4 w-4" aria-hidden="true" />
           </button>
           <button type="button"
             onClick={() => { clearMemory(); toast("تم مسح الذاكرة", { icon: "🧹" }); }}
             aria-label="مسح الذاكرة"
-            className="rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-2.5 hover:bg-[var(--card-2)] transition">
+            className="rounded-xl border border-(--stroke) bg-(--card) p-2.5 hover:bg-(--card-2) transition">
             <Sparkles className="h-4 w-4 opacity-70" aria-hidden="true" />
           </button>
         </div>
       </div>
 
-      <div className="mt-2 space-y-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3">
+      <div className="mt-2 stack-y-2 rounded-2xl border border-(--stroke) bg-(--card) p-3">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-[var(--fg)]">تخصيص الردود بسياقي الشخصي</p>
+            <p className="text-xs font-semibold text-(--fg)">تخصيص الردود بسياقي الشخصي</p>
           </div>
           <Switch
             aria-label="تخصيص الردود بسياقي الشخصي"
@@ -749,34 +749,34 @@ export function CompanionPage() {
             style={{ backgroundColor: "color-mix(in srgb, var(--bg) 42%, transparent)" }}
           >
             <StarrySlideOverBg />
-            <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] p-4">
+            <div className="flex items-center justify-between gap-2 border-b border-(--stroke) p-4">
               <div>
                 <h2 className="text-sm font-bold">المحادثات السابقة</h2>
-                <p className="text-[11px] text-[var(--muted-2)]">
+                <p className="text-[11px] text-(--muted-2)">
                   {history.length === 0
                     ? "تبدأ رحلتك من هنا"
                     : `${arNum(history.length)} محادثة محفوظة على جهازك`}
                 </p>
               </div>
               <button type="button" onClick={() => setShowHistory(false)} aria-label="إغلاق"
-                className="rounded-lg p-1.5 hover:bg-[var(--card-2)] transition">
+                className="rounded-lg p-1.5 hover:bg-(--card-2) transition">
                 <XIcon className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
 
-            <div className="border-b border-[var(--stroke)] p-3 space-y-2">
+            <div className="border-b border-(--stroke) p-3 stack-y-2">
               <div className="relative">
-                <Search className="absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50" aria-hidden="true" />
+                <Search className="absolute inset-e-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50" aria-hidden="true" />
                 <input
                   value={historyQuery}
                   onChange={(e) => setHistoryQuery(e.target.value)}
                   placeholder="ابحث في محادثاتك…"
-                  className="form-field-readable w-full rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 ps-3 pe-9 text-sm"
+                  className="form-field-readable w-full rounded-xl border border-(--stroke) bg-(--card) px-3 py-2 ps-3 pe-9 text-sm"
                   aria-label="بحث في المحادثات"
                 />
               </div>
               <button type="button" onClick={startNewChat}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2.5 text-sm font-bold text-black/80 active:scale-[0.99] transition">
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-(--accent) px-3 py-2.5 text-sm font-bold text-black/80 active:scale-[0.99] transition">
                 <Plus className="h-4 w-4" aria-hidden="true" /> محادثة جديدة
               </button>
               {history.length > 0 ? (
@@ -786,7 +786,7 @@ export function CompanionPage() {
                     if (typeof window !== "undefined" && !window.confirm("هل تريد فعلًا مسح كل المحادثات؟ لا يمكن التراجع.")) return;
                     void clearAllConversations().then(() => { startNewChat(); void refreshHistory(); });
                   }}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[var(--stroke)] px-3 py-2 text-xs font-semibold text-[var(--muted)] hover:bg-red-500/10 hover:text-red-500 transition"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-(--stroke) px-3 py-2 text-xs font-semibold text-(--muted) hover:bg-red-500/10 hover:text-red-500 transition"
                   aria-label="مسح كل المحادثات"
                 >
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> مسح كل المحادثات
@@ -798,12 +798,12 @@ export function CompanionPage() {
               {filteredHistory.length === 0 ? (
                 <div className="px-4 py-10 text-center">
                   <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-accent-15 border border-accent-35 mb-3">
-                    <Sparkles className="h-6 w-6 text-[var(--accent)]" aria-hidden="true" />
+                    <Sparkles className="h-6 w-6 text-(--accent)" aria-hidden="true" />
                   </div>
                   <p className="text-sm font-semibold">
                     {historyQuery ? "لا توجد نتائج" : "لا توجد محادثات بعد"}
                   </p>
-                  <p className="mt-1 text-xs text-[var(--muted-2)]">
+                  <p className="mt-1 text-xs text-(--muted-2)">
                     {historyQuery
                       ? "جرّب كلمة مختلفة أو افتح محادثة جديدة."
                       : "ابدأ أول محادثة مع «أثر» وستظهر هنا تلقائيًا."}
@@ -831,16 +831,16 @@ export function CompanionPage() {
             {/* Companion status footer — local-only data summary */}
             <div
               data-testid="athar-companion-status-footer"
-              className="flex items-center justify-between gap-2 border-t border-[var(--stroke)] bg-[var(--card)]/60 px-4 py-2.5 text-[10.5px] text-[var(--muted)] backdrop-blur"
+              className="flex items-center justify-between gap-2 border-t border-(--stroke) bg-(--card)/60 px-4 py-2.5 text-[10.5px] text-(--muted) backdrop-blur-sm"
             >
               <span className="flex items-center gap-1.5">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
-                <span className="font-semibold text-[var(--fg)]">حالة الرفيق</span>
+                <span className="font-semibold text-(--fg)">حالة الرفيق</span>
               </span>
               <span className="flex items-center gap-3 tabular-nums">
                 <span>
                   <span className="opacity-60">المحادثات:</span>{" "}
-                  <span data-testid="athar-status-conv-count" className="font-semibold text-[var(--fg)]">
+                  <span data-testid="athar-status-conv-count" className="font-semibold text-(--fg)">
                     {arNum(history.length)}
                   </span>
                 </span>
@@ -867,31 +867,31 @@ export function CompanionPage() {
             style={{ backgroundColor: "color-mix(in srgb, var(--bg) 42%, transparent)" }}
           >
             <StarrySlideOverBg />
-            <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] p-4">
+            <div className="flex items-center justify-between gap-2 border-b border-(--stroke) p-4">
               <div>
                 <h2 className="flex items-center gap-1.5 text-sm font-bold">
                   <Pin className="h-4 w-4 text-amber-300" aria-hidden="true" />
                   الإجابات المثبَّتة
                 </h2>
-                <p className="text-[11px] text-[var(--muted-2)]">
+                <p className="text-[11px] text-(--muted-2)">
                   {pins.length === 0
                     ? "لم تثبّت أي إجابة بعد"
                     : `${arNum(pins.length)} إجابة محفوظة على جهازك`}
                 </p>
               </div>
               <button type="button" onClick={() => setShowPins(false)} aria-label="إغلاق"
-                className="rounded-lg p-1.5 hover:bg-[var(--card-2)] transition">
+                className="rounded-lg p-1.5 hover:bg-(--card-2) transition">
                 <XIcon className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+            <div className="flex-1 overflow-y-auto px-3 py-3 stack-y-2">
               {pins.length === 0 ? (
                 <div className="px-4 py-10 text-center">
                   <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-amber-500/15 border border-amber-300/30 mb-3">
                     <Pin className="h-6 w-6 text-amber-300" aria-hidden="true" />
                   </div>
                   <p className="text-sm font-semibold">لا توجد إجابات مثبَّتة</p>
-                  <p className="mt-1 text-xs text-[var(--muted-2)]">اضغط «حفظ» تحت أي رد من «أثر» لتثبيته هنا ومراجعته لاحقًا.</p>
+                  <p className="mt-1 text-xs text-(--muted-2)">اضغط «حفظ» تحت أي رد من «أثر» لتثبيته هنا ومراجعته لاحقًا.</p>
                 </div>
               ) : (
                 pins.map((p) => (
@@ -925,23 +925,23 @@ export function CompanionPage() {
 
       {/* Welcome hero (only when no conversation yet and not onboarding) */}
       {messages.length === 0 && streamingText === null && !showOnboarding ? (
-        <div className="mt-3 space-y-3.5">
+        <div className="mt-3 stack-y-3.5">
           <div className="relative overflow-hidden rounded-2xl border border-accent-35 bg-accent-8 p-4 text-center">
             <div className="pointer-events-none absolute inset-0 -z-10 opacity-60"
               style={{ background: "radial-gradient(ellipse at top, color-mix(in srgb, var(--accent) 18%, transparent), transparent 65%)" }} />
             <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-accent-15 border border-accent-35 animate-pulse">
-              <Sparkles className="h-6 w-6 text-[var(--accent)]" aria-hidden="true" />
+              <Sparkles className="h-6 w-6 text-(--accent)" aria-hidden="true" />
             </div>
-            <h2 className="mt-2 text-base font-bold text-[var(--fg)]">
+            <h2 className="mt-2 text-base font-bold text-(--fg)">
               {greeting}
             </h2>
-            <p className="mx-auto mt-1 max-w-md text-[13px] leading-relaxed text-[var(--muted)]">
-              أنا <span className="font-semibold text-[var(--accent)]">أثر</span>، رفيقك في الطريق إلى الله.
+            <p className="mx-auto mt-1 max-w-md text-[13px] leading-relaxed text-(--muted)">
+              أنا <span className="font-semibold text-(--accent)">أثر</span>، رفيقك في الطريق إلى الله.
               {ctx.streakDays > 1 ? ` سلسلتك ${arNum(ctx.streakDays)} يوم 🔥 — ` : " "}
               بمَ أُعينك اليوم؟
             </p>
             {profile.onboarded ? (
-              <p className="mt-0.5 text-[10.5px] text-[var(--muted-2)]">
+              <p className="mt-0.5 text-[10.5px] text-(--muted-2)">
                 أنت {LEVEL_LABEL[profile.level]}
               </p>
             ) : null}
@@ -949,16 +949,16 @@ export function CompanionPage() {
 
           {/* Awareness strip: Friday countdown + prayer countdown + Hijri date */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-0.5 text-[10.5px] text-[var(--muted)]">
+            <span className="rounded-full border border-(--stroke) bg-(--card) px-2.5 py-0.5 text-[10.5px] text-(--muted)">
               🕌 {fridayCountdown}
             </span>
             {prayerCountdown ? (
-              <span className="rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-0.5 text-[10.5px] text-[var(--muted)]">
+              <span className="rounded-full border border-(--stroke) bg-(--card) px-2.5 py-0.5 text-[10.5px] text-(--muted)">
                 ⏰ {prayerCountdown}
               </span>
             ) : null}
             {ctx.hijriDate ? (
-              <span className="rounded-full border border-accent-35 bg-accent-15 px-2.5 py-0.5 text-[10.5px] text-[var(--accent)]">
+              <span className="rounded-full border border-accent-35 bg-accent-15 px-2.5 py-0.5 text-[10.5px] text-(--accent)">
                 {ctx.hijriDate}
               </span>
             ) : null}
@@ -966,13 +966,13 @@ export function CompanionPage() {
 
           {primary ? (
             <button type="button" onClick={primary.onClick}
-              className="flex w-full items-center gap-2.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-2.5 text-start transition hover:border-accent-35 active:scale-[0.99]">
+              className="flex w-full items-center gap-2.5 rounded-xl border border-(--stroke) bg-(--card) p-2.5 text-start transition hover:border-accent-35 active:scale-[0.99]">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-15 text-base" aria-hidden="true">{primary.icon}</span>
               <div className="min-w-0 flex-1">
-                <div className="text-[10px] text-[var(--muted-2)]">خطوتك التالية الآن</div>
-                <div className="truncate text-[12.5px] font-semibold text-[var(--fg)]">{primary.label}</div>
+                <div className="text-[10px] text-(--muted-2)">خطوتك التالية الآن</div>
+                <div className="truncate text-[12.5px] font-semibold text-(--fg)">{primary.label}</div>
               </div>
-              <span className="shrink-0 rounded-md bg-accent-15 border border-accent-35 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--accent)]">
+              <span className="shrink-0 rounded-md bg-accent-15 border border-accent-35 px-2.5 py-0.5 text-[11px] font-semibold text-(--accent)">
                 {primary.action}
               </span>
             </button>
@@ -980,8 +980,8 @@ export function CompanionPage() {
 
           {/* 7-day adherence mini-bar — gives Athar's "I see you" feel */}
           {ctx.adherenceWeek.some((d) => d.score > 0) ? (
-            <div className="rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-2">
-              <div className="mb-1 flex items-center justify-between text-[10px] text-[var(--muted-2)]">
+            <div className="rounded-xl border border-(--stroke) bg-(--card) px-2.5 py-2">
+              <div className="mb-1 flex items-center justify-between text-[10px] text-(--muted-2)">
                 <span>أسبوعك (الأقدم → الأحدث)</span>
                 <span>{ctx.streakDays} يوم متواصل</span>
               </div>
@@ -994,12 +994,12 @@ export function CompanionPage() {
                       <div
                         className={[
                           "w-full rounded-md transition-all",
-                          d.score > 0 ? (isToday ? "bg-[var(--accent)]" : "bg-accent-35") : "bg-[var(--card-2)]",
+                          d.score > 0 ? (isToday ? "bg-(--accent)" : "bg-accent-35") : "bg-(--card-2)",
                         ].join(" ")}
                         style={{ height: `${h}px` }}
                         title={`${d.weekdayAr}: ${d.score} نشاط`}
                       />
-                      <span className={["text-[8.5px]", isToday ? "text-[var(--accent)] font-bold" : "text-[var(--muted-2)]"].join(" ")}>
+                      <span className={["text-[8.5px]", isToday ? "text-(--accent) font-bold" : "text-(--muted-2)"].join(" ")}>
                         {d.weekdayAr.slice(0, 3)}
                       </span>
                     </div>
@@ -1010,19 +1010,19 @@ export function CompanionPage() {
           ) : null}
 
           <div>
-            <div className="mb-1.5 px-1 text-[10.5px] text-[var(--muted)]">جرّب أن تسألني</div>
+            <div className="mb-1.5 px-1 text-[10.5px] text-(--muted)">جرّب أن تسألني</div>
             <div className="flex flex-wrap gap-1.5">
               {new Date().getDay() === 5 ? (
                 <button type="button"
                   onClick={() => void send(buildWeeklyReflectionPrompt())}
-                  className="rounded-full border border-accent-35 bg-accent-15 px-2.5 py-1 text-[11.5px] font-semibold text-[var(--accent)] transition hover:bg-accent-15/80">
+                  className="rounded-full border border-accent-35 bg-accent-15 px-2.5 py-1 text-[11.5px] font-semibold text-(--accent) transition hover:bg-accent-15/80">
                   ✨ {FRIDAY}
                 </button>
               ) : null}
               {QUICK_PROMPTS.map((q) => (
                 <button type="button" key={q}
                   onClick={() => void send(q)}
-                  className="rounded-full border border-[var(--stroke)] bg-[var(--card-2)] px-2.5 py-1 text-[11.5px] transition hover:border-accent-35">
+                  className="rounded-full border border-(--stroke) bg-(--card-2) px-2.5 py-1 text-[11.5px] transition hover:border-accent-35">
                   {q}
                 </button>
               ))}
@@ -1031,7 +1031,7 @@ export function CompanionPage() {
               {MOOD_PROMPTS.map(([label, mood]) => (
                 <button type="button" key={mood}
                   onClick={() => void send(label)}
-                  className="rounded-lg border border-[var(--stroke)] bg-[var(--card)] px-2 py-1.5 text-start text-[var(--muted-2)] hover:bg-[var(--card-2)] transition">
+                  className="rounded-lg border border-(--stroke) bg-(--card) px-2 py-1.5 text-start text-(--muted-2) hover:bg-(--card-2) transition">
                   {mood === "مضطرب" ? "😟" : mood === "مُفتَر" ? "🍂" : mood === "شاكر" ? "🤲" : mood === "تائب" ? "💧" : "🌙"} {label}
                 </button>
               ))}
@@ -1041,7 +1041,7 @@ export function CompanionPage() {
       ) : null}
 
       {/* Conversation */}
-      <div className="mt-5 space-y-3" aria-live="polite">
+      <div className="mt-5 stack-y-3" aria-live="polite">
         {messages.map((m, i) => (
           <MessageBubble key={i} role={m.role} text={m.content} onPin={() => pinReply(m.content)} onShare={() => shareAsImage(m.content)} />
         ))}
@@ -1061,17 +1061,17 @@ export function CompanionPage() {
             {followUps.map((s) => (
               <button type="button" key={s}
                 onClick={() => void send(s)}
-                className="rounded-full border border-accent-35 bg-accent-15 px-3 py-1.5 text-xs text-[var(--accent)] hover:bg-accent-15/80 transition">
+                className="rounded-full border border-accent-35 bg-accent-15 px-3 py-1.5 text-xs text-(--accent) hover:bg-accent-15/80 transition">
                 {s}
               </button>
             ))}
           </div>
         ) : null}
         {partialStopped && !isBusy ? (
-          <div className="mt-2 flex items-center gap-2 rounded-2xl border border-white/10 bg-[var(--card)] px-3 py-1.5 text-[11px] text-[var(--muted)]">
+          <div className="mt-2 flex items-center gap-2 rounded-2xl border border-white/10 bg-(--card) px-3 py-1.5 text-[11px] text-(--muted)">
             <XIcon className="h-3 w-3" aria-hidden="true" />
             <span>اكتمل جزئيًا — أوقفت الرد قبل انتهائه.</span>
-            <button type="button" onClick={() => setPartialStopped(false)} className="ms-auto text-[var(--accent)] hover:underline">إخفاء</button>
+            <button type="button" onClick={() => setPartialStopped(false)} className="ms-auto text-(--accent) hover:underline">إخفاء</button>
           </div>
         ) : null}
         <div ref={endRef} />
@@ -1084,7 +1084,7 @@ export function CompanionPage() {
         <button type="button"
           onClick={() => scrollToBottom("smooth")}
           aria-label="انتقل لأحدث رسالة"
-          className="fixed inset-x-0 z-40 mx-auto grid h-9 w-9 place-items-center rounded-full border border-[var(--stroke)] bg-[var(--card-2)] text-[var(--fg)] shadow-lg backdrop-blur-xl transition active:scale-90"
+          className="fixed inset-x-0 z-40 mx-auto grid h-9 w-9 place-items-center rounded-full border border-(--stroke) bg-(--card-2) text-(--fg) shadow-lg backdrop-blur-xl transition active:scale-90"
           style={{ bottom: "calc(var(--sab) + 104px)", left: 0, right: 0, width: "36px" }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7" /></svg>
         </button>
@@ -1094,7 +1094,7 @@ export function CompanionPage() {
           is hidden on this route), so the chat reads as one focused surface. */}
       <div className="fixed inset-x-0 z-40" style={{ bottom: "calc(var(--sab) + 12px)" }}>
         <div className="mx-auto w-full max-w-3xl px-4">
-          <div className="flex items-end gap-1.5 rounded-2xl border border-[var(--stroke)] bg-[var(--bg)]/95 p-2 shadow-2xl backdrop-blur-xl">
+          <div className="flex items-end gap-1.5 rounded-2xl border border-(--stroke) bg-(--bg)/95 p-2 shadow-2xl backdrop-blur-xl">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -1108,13 +1108,13 @@ export function CompanionPage() {
               placeholder="اكتب سؤالك لرفيق أثر…"
               aria-label="رسالتك"
               style={{ fontSize: "max(16px, 1rem)" }}
-              className="form-field-readable max-h-32 min-w-0 flex-1 resize-none rounded-xl border border-transparent bg-transparent px-3 py-2 text-base focus:outline-none"
+              className="form-field-readable max-h-32 min-w-0 flex-1 resize-none rounded-xl border border-transparent bg-transparent px-3 py-2 text-base focus:outline-hidden"
             />
             {isBusy ? (
               <button type="button"
                 onClick={stop}
                 aria-label="إيقاف"
-                className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--stroke)] bg-[var(--card)]">
+                className="grid h-10 w-10 place-items-center rounded-xl border border-(--stroke) bg-(--card)">
                 <XIcon className="h-4 w-4" aria-hidden="true" />
               </button>
             ) : (
@@ -1122,12 +1122,12 @@ export function CompanionPage() {
                 onClick={() => void send(input)}
                 disabled={!input.trim()}
                 aria-label="إرسال"
-                className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--accent)] text-black/80 disabled:opacity-40 active:scale-95 transition">
+                className="grid h-10 w-10 place-items-center rounded-xl bg-(--accent) text-black/80 disabled:opacity-40 active:scale-95 transition">
                 <Send className="h-4 w-4 -scale-x-100" aria-hidden="true" />
               </button>
             )}
           </div>
-          <p className="mt-1.5 text-center text-[10px] text-[var(--muted-2)]">
+          <p className="mt-1.5 text-center text-[10px] text-(--muted-2)">
             قد يخطئ الذكاء الاصطناعي — تحقَّق دائمًا من المصادر، واستشر أهل العلم في الفتوى.
           </p>
         </div>
@@ -1153,31 +1153,31 @@ function OnboardingCard({ onDone, onSkip, initial }: { onDone: (p: Partial<Compa
     setGoals((cur) => cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]);
 
   return (
-    <div className="mt-6 rounded-3xl border border-accent-35 bg-accent-8 p-5 space-y-4">
+    <div className="mt-6 rounded-3xl border border-accent-35 bg-accent-8 p-5 stack-y-4">
       <div>
         <h3 className="text-sm font-bold">عرّفني على نفسك بجملتين</h3>
       </div>
 
       <div>
-        <div className="text-[11px] text-[var(--muted)] mb-1.5">اختر اسمًا مختصرًا (اختياري)</div>
+        <div className="text-[11px] text-(--muted) mb-1.5">اختر اسمًا مختصرًا (اختياري)</div>
         <input
           value={name}
           onChange={(e) => setName(e.target.value.slice(0, 20))}
           placeholder="مثلًا: أبو عبدالله"
-          className="form-field-readable w-full rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-sm"
+          className="form-field-readable w-full rounded-xl border border-(--stroke) bg-(--card) px-3 py-2 text-sm"
           aria-label="اسم مختصر"
         />
       </div>
 
       <div>
-        <div className="text-[11px] text-[var(--muted)] mb-1.5">مستواك الآن</div>
+        <div className="text-[11px] text-(--muted) mb-1.5">مستواك الآن</div>
         <div className="grid grid-cols-3 gap-2">
           {(["new", "regular", "advanced"] as const).map((l) => (
             <button type="button" key={l}
               onClick={() => setLevel(l)}
               className={[
                 "rounded-xl border px-3 py-2 text-xs transition",
-                level === l ? "border-accent-35 bg-accent-15 text-[var(--accent)]" : "border-[var(--stroke)] bg-[var(--card)]",
+                level === l ? "border-accent-35 bg-accent-15 text-(--accent)" : "border-(--stroke) bg-(--card)",
               ].join(" ")}>
               {l === "new" ? "مبتدئ" : l === "regular" ? "منتظم" : "متقدّم"}
             </button>
@@ -1186,7 +1186,7 @@ function OnboardingCard({ onDone, onSkip, initial }: { onDone: (p: Partial<Compa
       </div>
 
       <div>
-        <div className="text-[11px] text-[var(--muted)] mb-1.5">ما الذي يهمّك هذه الفترة؟ (متعدّد)</div>
+        <div className="text-[11px] text-(--muted) mb-1.5">ما الذي يهمّك هذه الفترة؟ (متعدّد)</div>
         <div className="flex flex-wrap gap-2">
           {([
             ["quran", "القرآن"], ["adhkar", "الأذكار"], ["consistency", "المواظبة"],
@@ -1196,7 +1196,7 @@ function OnboardingCard({ onDone, onSkip, initial }: { onDone: (p: Partial<Compa
               onClick={() => toggleGoal(k)}
               className={[
                 "rounded-full border px-3 py-1.5 text-xs transition",
-                goals.includes(k) ? "border-accent-35 bg-accent-15 text-[var(--accent)]" : "border-[var(--stroke)] bg-[var(--card)]",
+                goals.includes(k) ? "border-accent-35 bg-accent-15 text-(--accent)" : "border-(--stroke) bg-(--card)",
               ].join(" ")}>
               {label}
             </button>
@@ -1206,12 +1206,12 @@ function OnboardingCard({ onDone, onSkip, initial }: { onDone: (p: Partial<Compa
 
       <button type="button"
         onClick={() => onDone({ level, goals: goals.length ? (goals as CompanionProfile["goals"]) : ["consistency"], greetingName: name.trim(), onboarded: true, createdAt: Date.now() })}
-        className="w-full rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-black/80 active:scale-95 transition">
+        className="w-full rounded-xl bg-(--accent) px-4 py-2.5 text-sm font-bold text-black/80 active:scale-95 transition">
         ابدأ الرحلة
       </button>
       <button type="button"
         onClick={onSkip}
-        className="w-full text-[11px] text-[var(--muted-2)] hover:text-[var(--accent)] transition">
+        className="w-full text-[11px] text-(--muted-2) hover:text-(--accent) transition">
         أكمل لاحقًا
       </button>
     </div>
@@ -1222,11 +1222,11 @@ function OnboardingCard({ onDone, onSkip, initial }: { onDone: (p: Partial<Compa
 
 function ThinkingIndicator({ onStop }: { onStop: () => void }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-accent-35 bg-gradient-to-br from-accent-15 via-[var(--card)] to-[var(--card)] px-4 py-3.5 shadow-[0_0_24px_-6px_var(--accent)]">
+    <div className="relative overflow-hidden rounded-2xl border border-accent-35 bg-linear-to-br from-accent-15 via-(--card) to-(--card) px-4 py-3.5 shadow-[0_0_24px_-6px_var(--accent)]">
       {/* Sweeping gradient stripe */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 -start-1/2 w-1/2 bg-gradient-to-r from-transparent via-[var(--accent)]/15 to-transparent"
+        className="pointer-events-none absolute inset-y-0 -inset-s-1/2 w-1/2 bg-linear-to-r from-transparent via-(--accent)/15 to-transparent"
         style={{ animation: "athar-thinking-sweep 2.4s ease-in-out infinite" }}
       />
       <div className="relative flex items-center justify-between gap-3">
@@ -1241,31 +1241,31 @@ function ThinkingIndicator({ onStop }: { onStop: () => void }) {
                 filter: "blur(2px)",
               }}
             />
-            <span className="absolute inset-1 rounded-full bg-gradient-to-br from-emerald-300/40 via-emerald-500/30 to-teal-500/30 backdrop-blur" />
+            <span className="absolute inset-1 rounded-full bg-linear-to-br from-emerald-300/40 via-emerald-500/30 to-teal-500/30 backdrop-blur-sm" />
             <Sparkles className="relative h-4 w-4 text-emerald-100" aria-hidden="true" />
           </span>
           <div className="flex flex-col">
-            <span className="text-[11px] font-bold text-[var(--fg)]">
+            <span className="text-[11px] font-bold text-(--fg)">
               يفكّر معك الآن
             </span>
-            <span className="text-[10px] text-[var(--muted-2)] flex items-center gap-1">
+            <span className="text-[10px] text-(--muted-2) flex items-center gap-1">
               <span
-                className="inline-block h-1 w-1 rounded-full bg-[var(--accent)]"
+                className="inline-block h-1 w-1 rounded-full bg-(--accent)"
                 style={{ animation: "athar-pulse 1.2s ease-in-out infinite" }}
               />
               <span
-                className="inline-block h-1 w-1 rounded-full bg-[var(--accent)]"
+                className="inline-block h-1 w-1 rounded-full bg-(--accent)"
                 style={{ animation: "athar-pulse 1.2s ease-in-out infinite", animationDelay: "0.15s" }}
               />
               <span
-                className="inline-block h-1 w-1 rounded-full bg-[var(--accent)]"
+                className="inline-block h-1 w-1 rounded-full bg-(--accent)"
                 style={{ animation: "athar-pulse 1.2s ease-in-out infinite", animationDelay: "0.3s" }}
               />
             </span>
           </div>
         </div>
         <button type="button" onClick={onStop}
-          className="rounded-lg border border-[var(--stroke)] bg-[var(--bg)]/60 px-2.5 py-1 text-[11px] text-[var(--muted)] backdrop-blur-sm transition hover:text-[var(--fg)]">
+          className="rounded-lg border border-(--stroke) bg-(--bg)/60 px-2.5 py-1 text-[11px] text-(--muted) backdrop-blur-xs transition hover:text-(--fg)">
           إيقاف
         </button>
       </div>
@@ -1304,21 +1304,21 @@ function MessageBubble(props: {
   return (
     <div className="flex justify-end gap-2">
       <div className="min-w-0 max-w-[88%]">
-        <div className="rounded-2xl rounded-tl-md border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm leading-relaxed">
+        <div className="rounded-2xl rounded-tl-md border border-(--stroke) bg-(--card) px-4 py-3 text-sm leading-relaxed">
           <BubbleContent text={props.text} streaming={!!props.streaming} tokens={props.tokens} />
         </div>
         {!props.streaming && props.text.trim() ? (
-          <div className="mt-1.5 flex items-center gap-1 px-1 text-[11px] text-[var(--muted-2)]">
-            <button type="button" onClick={copy} className="flex items-center gap-1 hover:text-[var(--fg)] transition" aria-label="نسخ الرد">
-              {copied ? <Check className="h-3 w-3 text-[var(--ok)]" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
+          <div className="mt-1.5 flex items-center gap-1 px-1 text-[11px] text-(--muted-2)">
+            <button type="button" onClick={copy} className="flex items-center gap-1 hover:text-(--fg) transition" aria-label="نسخ الرد">
+              {copied ? <Check className="h-3 w-3 text-(--ok)" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
               {copied ? "نُسخ" : "نسخ"}
             </button>
             <span className="opacity-30">·</span>
-            <button type="button" onClick={props.onPin} className="flex items-center gap-1 hover:text-[var(--fg)] transition" aria-label="حفظ في المفضلة">
+            <button type="button" onClick={props.onPin} className="flex items-center gap-1 hover:text-(--fg) transition" aria-label="حفظ في المفضلة">
               <Pin className="h-3 w-3" aria-hidden="true" /> حفظ
             </button>
             <span className="opacity-30">·</span>
-            <button type="button" onClick={props.onShare} className="flex items-center gap-1 hover:text-[var(--fg)] transition" aria-label="مشاركة كصورة">
+            <button type="button" onClick={props.onShare} className="flex items-center gap-1 hover:text-(--fg) transition" aria-label="مشاركة كصورة">
               <ImageIcon className="h-3 w-3" aria-hidden="true" /> صورة
             </button>
             <span className="opacity-30">·</span>
@@ -1327,7 +1327,7 @@ function MessageBubble(props: {
         ) : null}
       </div>
       <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center self-start rounded-xl bg-accent-15 border border-accent-35">
-        <Sparkles className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
+        <Sparkles className="h-4 w-4 text-(--accent)" aria-hidden="true" />
       </span>
     </div>
   );
@@ -1363,7 +1363,7 @@ function CalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; c
         <span aria-hidden="true">{style.icon}</span>
         <span>{style.label}</span>
       </div>
-      <div className="arabic-text px-3 pb-3 pt-1 text-[15.5px] leading-8 text-[var(--fg)] whitespace-pre-wrap">{children}</div>
+      <div className="arabic-text px-3 pb-3 pt-1 text-[15.5px] leading-8 text-(--fg) whitespace-pre-wrap">{children}</div>
     </div>
   );
 }
@@ -1520,7 +1520,7 @@ function ReminderChip({
         aria-label={inactive ? `افتح التذكيرات لتفعيل ${reminder.title}` : `افتح ${reminder.title}`}
       >
         <span aria-hidden="true">{inactive ? "!" : "✓"}</span>
-        <span className="min-w-0 whitespace-normal break-words font-semibold">{inactive
+        <span className="min-w-0 whitespace-normal wrap-break-word font-semibold">{inactive
           ? `حُفظ التذكير، لكنه غير مفعّل: ${reminder.title} — افتح التذكيرات لتفعيله`
           : `أُضيفت التذكير: ${reminder.title} — ${when}`}</span>
         <span className={`ms-1 shrink-0 text-[10px] ${inactive ? "text-amber-200/70" : "text-emerald-200/70"}`}>↗</span>
@@ -1559,7 +1559,7 @@ function ActionButton({ route, children }: { route: string; children: React.Reac
     <button
       type="button"
       onClick={() => navigateRoute(route)}
-      className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-2xl border border-accent-35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 px-3.5 py-2.5 text-start text-sm font-semibold text-emerald-100 shadow-sm transition hover:border-emerald-400/60 hover:from-emerald-500/25 hover:to-teal-500/15 active:scale-[0.99]"
+      className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-2xl border border-accent-35 bg-linear-to-br from-emerald-500/15 to-teal-500/10 px-3.5 py-2.5 text-start text-sm font-semibold text-emerald-100 shadow-xs transition hover:border-emerald-400/60 hover:from-emerald-500/25 hover:to-teal-500/15 active:scale-[0.99]"
     >
       <span className="flex items-center gap-2">
         <span className="grid h-7 w-7 place-items-center rounded-xl bg-emerald-500/30 text-emerald-100">
@@ -1614,7 +1614,7 @@ function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: 
         );
       })}
       {!streaming && reminders.length > 0 ? (
-        <div className="mt-2 space-y-1.5">
+        <div className="mt-2 stack-y-1.5">
           {reminders.map((r) => (
             <ReminderChip
               key={r.id}
@@ -1648,11 +1648,11 @@ function ShimmerCursor({ tokens }: { tokens?: number }) {
     <span className="relative inline-flex items-end align-baseline" aria-hidden="true">
       <span className="relative inline-block">
         <span
-          className="absolute -start-1 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-[var(--accent)]/30 blur-md"
+          className="absolute -inset-s-1 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-(--accent)/30 blur-md"
           style={{ animation: "athar-cursor-glow 1s ease-in-out infinite" }}
         />
         <span
-          className="relative inline-block h-[1.15em] w-[3px] -mb-[3px] ms-0.5 rounded-full"
+          className="relative inline-block h-[1.15em] w-[3px] mb-[-3px] ms-0.5 rounded-full"
           style={{
             background: "linear-gradient(180deg, color-mix(in srgb, var(--accent) 100%, transparent 0%) 0%, color-mix(in srgb, var(--accent) 35%, transparent 65%) 100%)",
             boxShadow: "0 0 10px color-mix(in srgb, var(--accent) 75%, transparent), 0 0 2px var(--accent)",
@@ -1663,7 +1663,7 @@ function ShimmerCursor({ tokens }: { tokens?: number }) {
       {formatted !== null ? (
         <span
           data-testid="athar-token-counter"
-          className="ms-1.5 -mb-1 text-[9.5px] font-medium text-[var(--muted-2)] tabular-nums tracking-wide"
+          className="ms-1.5 -mb-1 text-[9.5px] font-medium text-(--muted-2) tabular-nums tracking-wide"
           aria-live="polite"
         >
           جاري توليد {formatted} رمز
@@ -1692,7 +1692,7 @@ const markdownComponents: Components = {
     const safeRoute = getInternalAppRoute(to);
     if (safeRoute) {
       return (
-        <Link to={safeRoute} className="mx-0.5 inline-block rounded-lg bg-accent-15 px-2 py-0.5 text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+        <Link to={safeRoute} className="mx-0.5 inline-block rounded-lg bg-accent-15 px-2 py-0.5 text-xs font-semibold text-(--accent) underline-offset-2 hover:underline">
           {children}
         </Link>
       );
@@ -1701,26 +1701,26 @@ const markdownComponents: Components = {
     // model writes is shown as plain text.
     if (!isTrustedSourceUrl(to)) return <span>{children}</span>;
     return (
-      <a href={to} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">
+      <a href={to} target="_blank" rel="noopener noreferrer" className="text-(--accent) underline underline-offset-2">
         {children}
       </a>
     );
   },
-  h1: ({ children }) => <h3 className="mb-2 mt-3 text-base font-bold text-[var(--fg)] first:mt-0">{children}</h3>,
-  h2: ({ children }) => <h4 className="mb-2 mt-3 text-[15px] font-bold text-[var(--fg)] first:mt-0">{children}</h4>,
-  h3: ({ children }) => <h5 className="mb-1.5 mt-2 text-[14px] font-bold text-[var(--accent)] first:mt-0">{children}</h5>,
+  h1: ({ children }) => <h3 className="mb-2 mt-3 text-base font-bold text-(--fg) first:mt-0">{children}</h3>,
+  h2: ({ children }) => <h4 className="mb-2 mt-3 text-[15px] font-bold text-(--fg) first:mt-0">{children}</h4>,
+  h3: ({ children }) => <h5 className="mb-1.5 mt-2 text-[14px] font-bold text-(--accent) first:mt-0">{children}</h5>,
   p: ({ children }) => <p className="mb-2 last:mb-0 leading-7">{children}</p>,
-  strong: ({ children }) => <strong className="font-bold text-[var(--fg)]">{children}</strong>,
-  em: ({ children }) => <em className="italic text-[var(--accent)]">{children}</em>,
-  ul: ({ children }) => <ul className="mb-2.5 me-5 list-disc space-y-1.5 last:mb-0 marker:text-[var(--accent)]">{children}</ul>,
-  ol: ({ children }) => <ol className="mb-2.5 me-5 list-decimal space-y-1.5 last:mb-0 marker:text-[var(--accent)] marker:font-bold">{children}</ol>,
+  strong: ({ children }) => <strong className="font-bold text-(--fg)">{children}</strong>,
+  em: ({ children }) => <em className="italic text-(--accent)">{children}</em>,
+  ul: ({ children }) => <ul className="mb-2.5 me-5 list-disc stack-y-1.5 last:mb-0 marker:text-(--accent)">{children}</ul>,
+  ol: ({ children }) => <ol className="mb-2.5 me-5 list-decimal stack-y-1.5 last:mb-0 marker:text-(--accent) marker:font-bold">{children}</ol>,
   li: ({ children }) => <li className="leading-7">{children}</li>,
   blockquote: ({ children }) => (
-    <blockquote className="my-2.5 rounded-xl border-s-4 border-accent-35 bg-accent-8 ps-3 pe-2 py-2 text-[var(--muted)]">{children}</blockquote>
+    <blockquote className="my-2.5 rounded-xl border-s-4 border-accent-35 bg-accent-8 ps-3 pe-2 py-2 text-(--muted)">{children}</blockquote>
   ),
-  code: ({ children }) => <code className="rounded bg-[var(--card-2)] px-1 py-0.5 font-mono text-[12px]" dir="ltr">{children}</code>,
-  pre: ({ children }) => <pre className="my-2 overflow-x-auto rounded-lg bg-[var(--card-2)] p-3 text-xs leading-6" dir="ltr">{children}</pre>,
-  hr: () => <hr className="my-3 border-[var(--stroke)]" />,
+  code: ({ children }) => <code className="rounded-sm bg-(--card-2) px-1 py-0.5 font-mono text-[12px]" dir="ltr">{children}</code>,
+  pre: ({ children }) => <pre className="my-2 overflow-x-auto rounded-lg bg-(--card-2) p-3 text-xs leading-6" dir="ltr">{children}</pre>,
+  hr: () => <hr className="my-3 border-(--stroke)" />,
 };
 
 /* ─── Conversation history grouping + export helpers (in lib) ────────────── */
@@ -1758,10 +1758,10 @@ function HistoryGroups(props: {
   const { pinned, groups } = props.layout;
   if (pinned.length === 0 && groups.length === 0) return null;
   return (
-    <div className="space-y-5 pt-2">
+    <div className="stack-y-5 pt-2">
       {pinned.length > 0 ? (
         <section>
-          <header className="sticky top-0 z-[1] -mx-2 mb-2 bg-gradient-to-b from-[var(--bg)] via-[var(--bg)]/95 to-transparent px-3 py-1.5 backdrop-blur-md">
+          <header className="sticky top-0 z-1 -mx-2 mb-2 bg-linear-to-b from-(--bg) via-(--bg)/95 to-transparent px-3 py-1.5 backdrop-blur-md">
             <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-300/90">
               <Star className="h-3 w-3 fill-amber-300 text-amber-300" aria-hidden="true" />
               <span>المثبَّتة</span>
@@ -1769,7 +1769,7 @@ function HistoryGroups(props: {
               <span>{arNum(pinned.length)}</span>
             </div>
           </header>
-          <div className="space-y-1.5">
+          <div className="stack-y-1.5">
             {pinned.map((conv) => (
               <HistoryItem
                 key={conv.id}
@@ -1794,14 +1794,14 @@ function HistoryGroups(props: {
       ) : null}
       {groups.map((g) => (
         <section key={g.key}>
-          <header className="sticky top-0 z-[1] -mx-2 mb-1.5 bg-gradient-to-b from-[var(--bg)] via-[var(--bg)]/95 to-transparent px-3 py-1.5 backdrop-blur-md">
-            <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-[var(--muted-2)]">
+          <header className="sticky top-0 z-1 -mx-2 mb-1.5 bg-linear-to-b from-(--bg) via-(--bg)/95 to-transparent px-3 py-1.5 backdrop-blur-md">
+            <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-(--muted-2)">
               <span>{g.label}</span>
-              <span className="text-[var(--muted-2)]/60">·</span>
+              <span className="text-(--muted-2)/60">·</span>
               <span>{arNum(g.items.length)}</span>
             </div>
           </header>
-          <div className="space-y-1.5">
+          <div className="stack-y-1.5">
             {g.items.map((conv) => (
               <HistoryItem
                 key={conv.id}
@@ -1853,27 +1853,27 @@ function HistoryItem(props: {
       ? "border-amber-300/35 shadow-[0_4px_24px_-8px_rgba(251,191,36,0.4)]"
       : props.isCurrent
         ? "border-accent-35 shadow-[0_4px_20px_-8px_var(--accent)]"
-        : "border-[var(--stroke)]/70 shadow-sm",
+        : "border-(--stroke)/70 shadow-xs",
   ].join(" ");
 
   const containerBg = variant === "pinned"
-    ? "bg-gradient-to-br from-amber-500/[0.14] via-[var(--card)]/40 to-emerald-500/[0.08] backdrop-blur-xl"
+    ? "bg-linear-to-br from-amber-500/[0.14] via-(--card)/40 to-emerald-500/8 backdrop-blur-xl"
     : props.isCurrent
-      ? "bg-gradient-to-br from-accent-15 via-[var(--card)]/40 to-[var(--card)]/40 backdrop-blur-xl"
-      : "bg-[var(--card)]/28 backdrop-blur-xl hover:bg-[var(--card)]/45 hover:border-accent-35/50";
+      ? "bg-linear-to-br from-accent-15 via-(--card)/40 to-(--card)/40 backdrop-blur-xl"
+      : "bg-(--card)/28 backdrop-blur-xl hover:bg-(--card)/45 hover:border-accent-35/50";
 
   const iconCls = [
     "mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl border shadow-inner",
     variant === "pinned"
-      ? "bg-gradient-to-br from-amber-400/20 to-amber-500/10 border-amber-300/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+      ? "bg-linear-to-br from-amber-400/20 to-amber-500/10 border-amber-300/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
       : props.isCurrent
-        ? "bg-gradient-to-br from-[var(--accent)]/20 to-[var(--accent)]/5 border-accent-35 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-        : "bg-gradient-to-br from-accent-15 to-[var(--card-2)] border-accent-35/40",
+        ? "bg-linear-to-br from-(--accent)/20 to-(--accent)/5 border-accent-35 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+        : "bg-linear-to-br from-accent-15 to-(--card-2) border-accent-35/40",
   ].join(" ");
 
   const iconEl = variant === "pinned"
     ? <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
-    : <MessageSquareQuote className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />;
+    : <MessageSquareQuote className="h-4 w-4 text-(--accent)" aria-hidden="true" />;
 
   return (
     <div className={[containerCls, containerBg].join(" ")}>
@@ -1881,24 +1881,24 @@ function HistoryItem(props: {
       <div
         aria-hidden="true"
         className={[
-          "pointer-events-none absolute -start-2 -top-2 h-12 w-12 rounded-full opacity-60 blur-md transition-opacity group-hover:opacity-90",
+          "pointer-events-none absolute -inset-s-2 -top-2 h-12 w-12 rounded-full opacity-60 blur-md transition-opacity group-hover:opacity-90",
           variant === "pinned"
-            ? "bg-gradient-to-br from-amber-300/40 to-transparent"
+            ? "bg-linear-to-br from-amber-300/40 to-transparent"
             : props.isCurrent
-              ? "bg-gradient-to-br from-[var(--accent)]/40 to-transparent"
-              : "bg-gradient-to-br from-[var(--accent)]/15 to-transparent",
+              ? "bg-linear-to-br from-(--accent)/40 to-transparent"
+              : "bg-linear-to-br from-(--accent)/15 to-transparent",
         ].join(" ")}
       />
       {/* Right-edge strip */}
       <div
         aria-hidden="true"
         className={[
-          "pointer-events-none absolute inset-y-0 end-0 w-[3px]",
+          "pointer-events-none absolute inset-y-0 inset-e-0 w-[3px]",
           variant === "pinned"
-            ? "bg-gradient-to-b from-amber-300/80 via-amber-300/30 to-transparent"
+            ? "bg-linear-to-b from-amber-300/80 via-amber-300/30 to-transparent"
             : props.isCurrent
-              ? "bg-gradient-to-b from-[var(--accent)]/80 via-[var(--accent)]/30 to-transparent"
-              : "bg-gradient-to-b from-[var(--accent)]/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition",
+              ? "bg-linear-to-b from-(--accent)/80 via-(--accent)/30 to-transparent"
+              : "bg-linear-to-b from-(--accent)/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition",
         ].join(" ")}
       />
       {props.isRenaming ? (
@@ -1908,10 +1908,10 @@ function HistoryItem(props: {
             value={props.renameDraft}
             onChange={(e) => props.onRenameDraftChange(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") props.onCommitRename(); if (e.key === "Escape") props.onOpen(); }}
-            className="form-field-readable flex-1 rounded-lg border border-[var(--stroke)] px-2 py-1 text-xs"
+            className="form-field-readable flex-1 rounded-lg border border-(--stroke) px-2 py-1 text-xs"
           />
-          <button type="button" onClick={props.onCommitRename} aria-label="حفظ الاسم" className="rounded-lg p-1.5 hover:bg-[var(--card-2)]">
-            <Check className="h-3.5 w-3.5 text-[var(--ok)]" aria-hidden="true" />
+          <button type="button" onClick={props.onCommitRename} aria-label="حفظ الاسم" className="rounded-lg p-1.5 hover:bg-(--card-2)">
+            <Check className="h-3.5 w-3.5 text-(--ok)" aria-hidden="true" />
           </button>
         </div>
       ) : (
@@ -1922,10 +1922,10 @@ function HistoryItem(props: {
               <div className="flex items-center gap-1.5">
                 <span className={[
                   "truncate text-[14px] font-extrabold leading-tight tracking-tight",
-                  variant === "pinned" ? "text-amber-50" : "text-[var(--fg)]",
+                  variant === "pinned" ? "text-amber-50" : "text-(--fg)",
                 ].join(" ")}>{props.conv.title}</span>
                 {props.isCurrent ? (
-                  <span className="shrink-0 rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-extrabold text-black shadow-sm">
+                  <span className="shrink-0 rounded-full bg-(--accent) px-1.5 py-0.5 text-[9px] font-extrabold text-black shadow-xs">
                     جارية
                   </span>
                 ) : null}
@@ -1933,12 +1933,12 @@ function HistoryItem(props: {
               {preview ? (
                 <div className={[
                   "mt-1.5 line-clamp-2 text-[11.5px] leading-5",
-                  variant === "pinned" ? "text-amber-100/75" : "text-[var(--muted)]",
+                  variant === "pinned" ? "text-amber-100/75" : "text-(--muted)",
                 ].join(" ")}>{preview}</div>
               ) : null}
               <div className={[
                 "mt-2 flex items-center gap-1.5 text-[10px] font-medium",
-                variant === "pinned" ? "text-amber-200/70" : "text-[var(--muted-2)]",
+                variant === "pinned" ? "text-amber-200/70" : "text-(--muted-2)",
               ].join(" ")}>
                 <span>{relativeTime(props.conv.updatedAt)}</span>
                 <span className="opacity-40">·</span>
@@ -1949,14 +1949,14 @@ function HistoryItem(props: {
         </button>
       )}
       {!props.isRenaming ? (
-        <div className="flex items-center gap-0.5 border-t border-[var(--stroke)]/60 bg-[var(--bg)]/30 px-1.5 py-0.5 backdrop-blur-sm">
+        <div className="flex items-center gap-0.5 border-t border-(--stroke)/60 bg-(--bg)/30 px-1.5 py-0.5 backdrop-blur-xs">
           <button type="button"
             onClick={props.onTogglePin}
             className={[
               "flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] transition",
               variant === "pinned"
                 ? "text-amber-200 hover:text-amber-100"
-                : "text-[var(--muted)] hover:text-amber-300 hover:bg-amber-500/10",
+                : "text-(--muted) hover:text-amber-300 hover:bg-amber-500/10",
             ].join(" ")}
             aria-label={variant === "pinned" ? "إلغاء التثبيت" : "تثبيت"}>
             <Star className={["h-3 w-3", variant === "pinned" ? "fill-amber-300 text-amber-300" : ""].join(" ")} aria-hidden="true" />
@@ -1964,12 +1964,12 @@ function HistoryItem(props: {
           </button>
           <button type="button"
             onClick={props.onStartRename}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--card-2)] transition">
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-(--muted) hover:text-(--fg) hover:bg-(--card-2) transition">
             <Pencil className="h-3 w-3" aria-hidden="true" /> تسمية
           </button>
           <button type="button"
             onClick={props.onExport}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--card-2)] transition">
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-(--muted) hover:text-(--fg) hover:bg-(--card-2) transition">
             <Download className="h-3 w-3" aria-hidden="true" /> تصدير
           </button>
           <span className="flex-1" />
@@ -1977,7 +1977,7 @@ function HistoryItem(props: {
             onClick={props.onConfirmDelete}
             className={[
               "flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] transition",
-              props.confirmDelete ? "bg-[var(--danger)]/15 text-[var(--danger)]" : "text-[var(--muted)] hover:text-[var(--danger)] hover:bg-[var(--card-2)]",
+              props.confirmDelete ? "bg-(--danger)/15 text-(--danger)" : "text-(--muted) hover:text-(--danger) hover:bg-(--card-2)",
             ].join(" ")}>
             {props.confirmDelete ? "تأكيد الحذف؟" : "حذف"}
           </button>
@@ -2006,21 +2006,21 @@ function PinnedReplyCard({ pin, onDelete }: { pin: PinnedReply; onDelete: () => 
     } catch { /* user cancelled */ }
   };
   return (
-    <div className="rounded-2xl border border-amber-300/30 bg-gradient-to-br from-amber-500/[0.1] via-[var(--card)]/40 to-[var(--card)]/40 backdrop-blur-xl p-3">
-      <p className="whitespace-pre-wrap text-[12.5px] leading-6 text-[var(--fg)] line-clamp-6">{pin.text}</p>
-      <div className="mt-2 flex items-center gap-1 text-[11px] text-[var(--muted-2)]">
-        <button type="button" onClick={copy} className="flex items-center gap-1 hover:text-[var(--fg)] transition" aria-label="نسخ">
-          {copied ? <Check className="h-3 w-3 text-[var(--ok)]" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
+    <div className="rounded-2xl border border-amber-300/30 bg-linear-to-br from-amber-500/10 via-(--card)/40 to-(--card)/40 backdrop-blur-xl p-3">
+      <p className="whitespace-pre-wrap text-[12.5px] leading-6 text-(--fg) line-clamp-6">{pin.text}</p>
+      <div className="mt-2 flex items-center gap-1 text-[11px] text-(--muted-2)">
+        <button type="button" onClick={copy} className="flex items-center gap-1 hover:text-(--fg) transition" aria-label="نسخ">
+          {copied ? <Check className="h-3 w-3 text-(--ok)" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
           {copied ? "نُسخ" : "نسخ"}
         </button>
         <span className="opacity-30">·</span>
-        <button type="button" onClick={share} className="flex items-center gap-1 hover:text-[var(--fg)] transition" aria-label="مشاركة">
+        <button type="button" onClick={share} className="flex items-center gap-1 hover:text-(--fg) transition" aria-label="مشاركة">
           <Share2 className="h-3 w-3" aria-hidden="true" /> مشاركة
         </button>
         <span className="flex-1" />
         <span className="text-[10px]">{relativeTime(pin.savedAt)}</span>
         <span className="opacity-30">·</span>
-        <button type="button" onClick={onDelete} className="flex items-center gap-1 hover:text-[var(--danger)] transition" aria-label="حذف المثبَّت">
+        <button type="button" onClick={onDelete} className="flex items-center gap-1 hover:text-(--danger) transition" aria-label="حذف المثبَّت">
           <XIcon className="h-3 w-3" aria-hidden="true" /> حذف
         </button>
       </div>

@@ -70,7 +70,7 @@ export function Modal(props: {
               if (restoreTarget?.isConnected) restoreTarget.focus({ preventScroll: true });
             }}
             className={[
-              "absolute inset-x-0 bottom-0 flex w-full max-w-none flex-col overflow-hidden rounded-t-3xl border border-[var(--stroke)] isolate bg-[color-mix(in_srgb,var(--bg)_55%,transparent)] backdrop-blur-[10px] shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.45)]",
+              "absolute inset-x-0 bottom-0 flex w-full max-w-none flex-col overflow-hidden rounded-t-3xl border border-(--stroke) isolate bg-[color-mix(in_srgb,var(--bg)_55%,transparent)] backdrop-blur-[10px] shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.45)]",
               "max-h-[88vh] animate-athar-modal-sheet",
               "sm:relative sm:inset-auto sm:mx-auto sm:my-auto sm:max-h-[85vh] sm:w-full sm:max-w-xl sm:rounded-3xl sm:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.45)]",
               props.className ?? "",
@@ -84,7 +84,7 @@ export function Modal(props: {
             <Dialog.Title className="sr-only">{props.ariaLabel}</Dialog.Title>
             {/* Drag handle on mobile for affordance */}
             <div className="flex justify-center pt-2 pb-1 sm:hidden">
-              <div className="h-1 w-10 rounded-full bg-[var(--muted-2)]/40" />
+              <div className="h-1 w-10 rounded-full bg-(--muted-2)/40" />
             </div>
             {props.children}
           </Dialog.Content>
@@ -107,7 +107,7 @@ export function Modal(props: {
 
 export const ModalCloseButton = (props: { onClose: () => void; label?: string }) => (
   <button type="button" onClick={props.onClose} aria-label={props.label ?? "إغلاق"}
-    className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--stroke)] bg-[var(--card)] transition hover:bg-[var(--card-2)]">
+    className="grid h-9 w-9 place-items-center rounded-xl border border-(--stroke) bg-(--card) transition hover:bg-(--card-2)">
     <XIcon className="h-4 w-4" aria-hidden="true" />
   </button>
 );

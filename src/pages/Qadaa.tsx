@@ -123,7 +123,7 @@ export function QadaaPage() {
         type="button"
         onClick={() => navigate(-1)}
         aria-label="رجوع"
-        className="w-10 h-10 rounded-2xl bg-[var(--card)] flex items-center justify-center"
+        className="w-10 h-10 rounded-2xl bg-(--card) flex items-center justify-center"
       >
         <ChevronRight size={20} />
       </button>
@@ -133,12 +133,12 @@ export function QadaaPage() {
 
   if (!q.configured || editing) {
     return (
-      <div dir="rtl" className="space-y-4 pb-24 page-enter px-1">
+      <div dir="rtl" className="stack-y-4 pb-24 page-enter px-1">
         {header}
         {!q.configured && (
-          <Card className="p-5 text-center space-y-2">
+          <Card className="p-5 text-center stack-y-2">
             <div className="text-lg font-semibold">احسب ما فاتك وابدأ قضاءه</div>
-            <p className="text-sm text-[var(--muted)] leading-7">
+            <p className="text-sm text-(--muted) leading-7">
               أدخل ما فاتك من صلوات وصيام، وسنوزّعه عليك على الأيام ونوضّح لك متى ستنتهي. ونتابع معك أيام الصيام وكم بقي على رمضان.
             </p>
           </Card>
@@ -171,7 +171,7 @@ export function QadaaPage() {
   ];
 
   return (
-    <div dir="rtl" className="space-y-4 pb-24 page-enter px-1">
+    <div dir="rtl" className="stack-y-4 pb-24 page-enter px-1">
       {header}
 
       {/* Hero */}
@@ -179,33 +179,33 @@ export function QadaaPage() {
         <Ring percent={q.percent}>
           {finished ? (
             <>
-              <Check size={28} className="text-[var(--accent)]" />
+              <Check size={28} className="text-(--accent)" />
               <div className="text-sm font-semibold mt-1">أتممتَ القضاء</div>
             </>
           ) : (
             <>
               <div className="text-3xl font-bold leading-none" data-testid="qadaa-remaining">{arNum(q.remainingTotal)}</div>
-              <div className="text-[11px] text-[var(--muted)] mt-1">صلاة متبقية</div>
-              <div className="text-[11px] text-[var(--muted)]">{arNum(q.percent)}٪ من {arNum(q.owedTotal)}</div>
+              <div className="text-[11px] text-(--muted) mt-1">صلاة متبقية</div>
+              <div className="text-[11px] text-(--muted)">{arNum(q.percent)}٪ من {arNum(q.owedTotal)}</div>
             </>
           )}
         </Ring>
         <div className="grid grid-cols-3 gap-2 mt-4 text-center">
-          <div className="rounded-2xl bg-[var(--card)] py-2.5">
+          <div className="rounded-2xl bg-(--card) py-2.5">
             <div className="text-base font-semibold">{arNum(q.streak)}</div>
-            <div className="text-[10px] text-[var(--muted)]">أيام متتالية</div>
+            <div className="text-[10px] text-(--muted)">أيام متتالية</div>
           </div>
-          <div className="rounded-2xl bg-[var(--card)] py-2.5">
+          <div className="rounded-2xl bg-(--card) py-2.5">
             <div className="text-base font-semibold">{arNum(Math.round(q.pace * 10) / 10)}</div>
-            <div className="text-[10px] text-[var(--muted)]">معدلك اليومي</div>
+            <div className="text-[10px] text-(--muted)">معدلك اليومي</div>
           </div>
-          <div className="rounded-2xl bg-[var(--card)] py-2.5">
+          <div className="rounded-2xl bg-(--card) py-2.5">
             <div className="text-base font-semibold">{q.planDays !== null && !finished ? arDuration(q.planDays) : "—"}</div>
-            <div className="text-[10px] text-[var(--muted)]">حسب خطتك</div>
+            <div className="text-[10px] text-(--muted)">حسب خطتك</div>
           </div>
         </div>
         {!finished && q.planFinish && (
-          <p className="text-xs text-[var(--muted)] leading-6 mt-3 text-center">
+          <p className="text-xs text-(--muted) leading-6 mt-3 text-center">
             لو التزمت بالخطة ستنتهي تقريبًا في {arDate(q.planFinish)}
             {q.paceFinish && q.pace > 0 ? `، وبمعدلك الحالي تقريبًا في ${arDate(q.paceFinish)}` : ""}.
           </p>
@@ -214,14 +214,14 @@ export function QadaaPage() {
 
       {/* Today */}
       {!finished && (
-        <Card className="p-5 space-y-3">
+        <Card className="p-5 stack-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold">اليوم</h2>
-            <span className="text-xs text-[var(--muted)]" data-testid="qadaa-today-status">
+            <span className="text-xs text-(--muted)" data-testid="qadaa-today-status">
               {q.todayComplete ? "خلّصتَ حصة اليوم" : `بقي ${arNum(q.quotaLeftTotal)} من ${arNum(q.quotaTotal)}`}
             </span>
           </div>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {open.map((k) => {
               const left = q.quotaLeft[k];
               const doneToday = q.todayDone[k];
@@ -230,11 +230,11 @@ export function QadaaPage() {
                 <div
                   key={k}
                   data-testid={`qadaa-row-${k}`}
-                  className="flex items-center justify-between rounded-2xl bg-[var(--card)] px-4 py-3"
+                  className="flex items-center justify-between rounded-2xl bg-(--card) px-4 py-3"
                 >
                   <div>
                     <div className="text-sm font-medium">{PRAYER_LABELS[k]}</div>
-                    <div className="text-[11px] text-[var(--muted)]">
+                    <div className="text-[11px] text-(--muted)">
                       متبقٍ {arNum(q.remaining[k])}
                       {q.quota[k] > 0 ? ` · اليوم ${arNum(Math.min(doneToday, q.quota[k]))}/${arNum(q.quota[k])}` : ""}
                       {prayedNow ? " · صلّيتَ هذه الصلاة اليوم" : ""}
@@ -246,7 +246,7 @@ export function QadaaPage() {
                       aria-label={`تراجع عن ${PRAYER_LABELS[k]}`}
                       disabled={doneToday <= 0}
                       onClick={() => undoQadaa(prayerKey(k))}
-                      className="w-10 h-10 rounded-2xl border border-[var(--stroke)] flex items-center justify-center disabled:opacity-30"
+                      className="w-10 h-10 rounded-2xl border border-(--stroke) flex items-center justify-center disabled:opacity-30"
                     >
                       <Minus size={16} />
                     </button>
@@ -256,8 +256,8 @@ export function QadaaPage() {
                       disabled={q.remaining[k] <= 0}
                       onClick={() => bump(k)}
                       className={
-                        "w-12 h-10 rounded-2xl flex items-center justify-center bg-[var(--accent)] text-[var(--on-accent)] disabled:opacity-30 " +
-                        (prayedNow ? "ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-transparent" : "")
+                        "w-12 h-10 rounded-2xl flex items-center justify-center bg-(--accent) text-(--on-accent) disabled:opacity-30 " +
+                        (prayedNow ? "ring-2 ring-(--accent) ring-offset-2 ring-offset-transparent" : "")
                       }
                     >
                       <Plus size={18} />
@@ -280,7 +280,7 @@ export function QadaaPage() {
             </Button>
           )}
           {q.order && (
-            <p className="text-xs text-[var(--muted)] leading-6">
+            <p className="text-xs text-(--muted) leading-6">
               الأفضل أن تقضيها مرتبة: {q.order.map((k) => PRAYER_LABELS[k]).join(" ثم ")}.
             </p>
           )}
@@ -289,7 +289,7 @@ export function QadaaPage() {
 
       {/* Plan */}
       {!finished && (
-        <Card className="p-5 space-y-3">
+        <Card className="p-5 stack-y-3">
           <h2 className="text-base font-semibold">خطتك</h2>
           <div className="flex gap-2 flex-wrap">
             {planModes.map((m) => (
@@ -301,8 +301,8 @@ export function QadaaPage() {
                 className={
                   "px-3 py-2 rounded-2xl text-sm border min-h-[40px] " +
                   (q.plan.mode === m.id
-                    ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent"
-                    : "bg-[var(--card)] border-[var(--stroke)]")
+                    ? "bg-(--accent) text-(--on-accent) border-transparent"
+                    : "bg-(--card) border-(--stroke)")
                 }
               >
                 {m.label}
@@ -310,7 +310,7 @@ export function QadaaPage() {
             ))}
           </div>
           {q.plan.mode === "perFard" && (
-            <p className="text-xs text-[var(--muted)] leading-6">
+            <p className="text-xs text-(--muted) leading-6">
               مع كل صلاة تصليها في وقتها، صلِّ معها صلاة فائتة من نوعها. هذه أسهل طريقة، وما زاد عن المطلوب يكون نافلة.
             </p>
           )}
@@ -324,7 +324,7 @@ export function QadaaPage() {
                 max={100}
                 value={settings.planPerDay ?? 1}
                 onChange={(e) => setQadaaSettings({ planPerDay: Number(e.target.value) || 1 })}
-                className="w-20 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm"
+                className="w-20 rounded-2xl bg-(--card) border border-(--stroke) px-3 py-2 text-sm"
               />
             </div>
           )}
@@ -335,7 +335,7 @@ export function QadaaPage() {
                 value={settings.planFinishBy ?? ""}
                 min={q.today}
                 onChange={(e) => setQadaaSettings({ planFinishBy: e.target.value || null })}
-                className="flex-1 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm"
+                className="flex-1 rounded-2xl bg-(--card) border border-(--stroke) px-3 py-2 text-sm"
               />
             </div>
           )}
@@ -344,7 +344,7 @@ export function QadaaPage() {
               <div
                 key={d.iso}
                 title={`${d.iso}: ${d.count}`}
-                className="flex-1 rounded-t-md bg-[var(--accent)]"
+                className="flex-1 rounded-t-md bg-(--accent)"
                 style={{ height: `${Math.max(d.count ? 12 : 3, (d.count / maxBar) * 100)}%`, opacity: d.count ? 1 : 0.25 }}
               />
             ))}
@@ -353,12 +353,12 @@ export function QadaaPage() {
       )}
 
       {/* Prayers detail */}
-      <Card className="p-5 space-y-2">
+      <Card className="p-5 stack-y-2">
         <h2 className="text-base font-semibold">الصلوات</h2>
         {open.map((k) => (
-          <div key={k} className="flex items-center justify-between text-sm rounded-2xl bg-[var(--card)] px-4 py-2.5">
+          <div key={k} className="flex items-center justify-between text-sm rounded-2xl bg-(--card) px-4 py-2.5">
             <span>{PRAYER_LABELS[k]}</span>
-            <span className="text-[var(--muted)] text-xs">
+            <span className="text-(--muted) text-xs">
               عليّ {arNum(q.owed[k])} · قضيتُ {arNum(Math.min(q.owed[k], q.owed[k] - q.remaining[k]))}
               {q.surplus[k] > 0 ? ` · زيادة نافلة ${arNum(q.surplus[k])}` : ""}
             </span>
@@ -367,14 +367,14 @@ export function QadaaPage() {
       </Card>
 
       {/* Fasting */}
-      <Card className="p-5 space-y-3" data-testid="qadaa-fasting">
+      <Card className="p-5 stack-y-3" data-testid="qadaa-fasting">
         <h2 className="text-base font-semibold">الصيام</h2>
-        <div className="rounded-2xl bg-[var(--card)] p-4 text-center">
-          <div className="text-xs text-[var(--muted)]">
+        <div className="rounded-2xl bg-(--card) p-4 text-center">
+          <div className="text-xs text-(--muted)">
             {q.nextRamadan.inRamadan ? "أنت في رمضان الآن" : "رمضان القادم بعد نحو"}
           </div>
           <div className="text-2xl font-bold mt-1">{arDuration(q.nextRamadan.daysUntil)}</div>
-          <div className="text-[10px] text-[var(--muted)] mt-1">الموعد تقريبي وقد يختلف يومًا أو أكثر</div>
+          <div className="text-[10px] text-(--muted) mt-1">الموعد تقريبي وقد يختلف يومًا أو أكثر</div>
         </div>
         {q.fastOwedTotal > 0 ? (
           <>
@@ -387,17 +387,17 @@ export function QadaaPage() {
               {q.fastAdvice.level === "none" && "لا صيام عليك."}
             </p>
             {q.fastAdvice.level === "cannot" && q.fastAdvice.fidyaIfDelayed && (
-              <p className="text-xs text-[var(--muted)] leading-6">
+              <p className="text-xs text-(--muted) leading-6">
                 من أخّر القضاء حتى دخل رمضان بلا عذر: يقضي ويُطعم مسكينًا عن كل يوم عند المالكية والشافعية والحنابلة،
                 وعند الحنفية يقضي فقط.
               </p>
             )}
-            <div className="space-y-2">
+            <div className="stack-y-2">
               {q.fasts.map((f) => (
-                <div key={f.year} className="flex items-center justify-between rounded-2xl bg-[var(--card)] px-4 py-2.5">
+                <div key={f.year} className="flex items-center justify-between rounded-2xl bg-(--card) px-4 py-2.5">
                   <div>
                     <div className="text-sm">رمضان {arYear(f.year)} هـ</div>
-                    <div className="text-[11px] text-[var(--muted)]">
+                    <div className="text-[11px] text-(--muted)">
                       عليّ {arNum(f.owed)} · متبقٍ {arNum(f.remaining)}
                     </div>
                   </div>
@@ -407,7 +407,7 @@ export function QadaaPage() {
                       aria-label={`تراجع صيام ${arYear(f.year)}`}
                       disabled={f.done <= 0}
                       onClick={() => undoQadaa(fastKey(f.year))}
-                      className="w-10 h-10 rounded-2xl border border-[var(--stroke)] flex items-center justify-center disabled:opacity-30"
+                      className="w-10 h-10 rounded-2xl border border-(--stroke) flex items-center justify-center disabled:opacity-30"
                     >
                       <Minus size={16} />
                     </button>
@@ -416,7 +416,7 @@ export function QadaaPage() {
                       aria-label={`صمتُ يومًا من ${arYear(f.year)}`}
                       disabled={f.remaining <= 0}
                       onClick={() => logQadaa(fastKey(f.year), 1)}
-                      className="w-12 h-10 rounded-2xl flex items-center justify-center bg-[var(--accent)] text-[var(--on-accent)] disabled:opacity-30"
+                      className="w-12 h-10 rounded-2xl flex items-center justify-center bg-(--accent) text-(--on-accent) disabled:opacity-30"
                     >
                       <Plus size={18} />
                     </button>
@@ -425,7 +425,7 @@ export function QadaaPage() {
               ))}
             </div>
             {q.fastAdvice.fidyaIfDelayed && (
-              <div className="flex items-center gap-3 text-xs text-[var(--muted)]">
+              <div className="flex items-center gap-3 text-xs text-(--muted)">
                 <span>تكلفة وجبة مسكين</span>
                 <input
                   type="number"
@@ -433,7 +433,7 @@ export function QadaaPage() {
                   min={0}
                   value={settings.mealCost ?? ""}
                   onChange={(e) => setQadaaSettings({ mealCost: Number(e.target.value) || 0 })}
-                  className="w-24 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm"
+                  className="w-24 rounded-2xl bg-(--card) border border-(--stroke) px-3 py-2 text-sm"
                 />
                 {(settings.mealCost ?? 0) > 0 && (
                   <span>إجمالي الفدية إن لزمت: {arNum(fidyaTotal(q.fastRemaining, settings.mealCost ?? 0))}</span>
@@ -442,7 +442,7 @@ export function QadaaPage() {
             )}
           </>
         ) : (
-          <p className="text-xs text-[var(--muted)] leading-6">
+          <p className="text-xs text-(--muted) leading-6">
             لم تسجّل أيام صيام عليك. يمكنك إضافتها من «تعديل الأرقام» في الأسفل.
           </p>
         )}
@@ -472,7 +472,7 @@ export function QadaaPage() {
         )}
       </div>
       {q.madhhab && (
-        <p className="text-[11px] text-center text-[var(--muted)]">
+        <p className="text-[11px] text-center text-(--muted)">
           المذهب: {MADHHAB_LABELS[q.madhhab as Madhhab]} · الأداة تنظّم لك الحساب فقط وليست فتوى. اسأل أهل العلم عن حالتك.
         </p>
       )}

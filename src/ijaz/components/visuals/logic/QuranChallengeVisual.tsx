@@ -22,7 +22,7 @@ export default function QuranChallengeVisual({ className }: MiracleVisualProps) 
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-start pt-8 gap-3 px-5 pb-6 select-none overflow-hidden ${className || ''}`}>
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0a0f1a] via-[#0d1117] to-[#0f0a15] pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-br from-[#0a0f1a] via-deep-navy to-[#0f0a15] pointer-events-none" />
 
       {/* Pulsing decorative Arabic calligraphy background */}
       <motion.div
@@ -39,7 +39,7 @@ export default function QuranChallengeVisual({ className }: MiracleVisualProps) 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2, duration: 0.55 }}
-        className="relative z-10 rounded-xl px-4 py-3 text-center w-full max-w-sm backdrop-blur-sm"
+        className="relative z-10 rounded-xl px-4 py-3 text-center w-full max-w-sm backdrop-blur-xs"
         style={{ background: 'rgba(212,168,83,0.08)', border: '1px solid rgba(212,168,83,0.3)' }}
       >
         <p className="text-gold-primary font-arabic text-base leading-relaxed" dir="rtl">

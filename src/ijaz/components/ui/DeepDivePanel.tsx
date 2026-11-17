@@ -76,7 +76,7 @@ export default function DeepDivePanel({
           <motion.span
             animate={{ rotate: isOpen ? 15 : 0, scale: isOpen ? 1.2 : 1 }}
             transition={{ duration: 0.3 }}
-            className="text-base leading-none flex-shrink-0"
+            className="text-base leading-none shrink-0"
             style={{ color: accentColor }}
           >
             ✦
@@ -98,7 +98,7 @@ export default function DeepDivePanel({
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-          className="flex-shrink-0"
+          className="shrink-0"
           style={{ color: accentColor }}
         >
           <svg
@@ -156,7 +156,7 @@ export default function DeepDivePanel({
               </div>
 
               {/* Content sections */}
-              <div className="space-y-1">
+              <div className="stack-y-1">
                 {sections.map((section, i) =>
                   section.type === 'heading' ? (
                     <motion.h4
@@ -168,7 +168,7 @@ export default function DeepDivePanel({
                       style={{ color: accentColor }}
                     >
                       <span
-                        className="flex-shrink-0 rounded-full"
+                        className="shrink-0 rounded-full"
                         style={{
                           width: '20px',
                           height: '2px',
@@ -183,7 +183,7 @@ export default function DeepDivePanel({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: i * 0.03 }}
-                      className="text-text-secondary font-tajawal text-sm leading-[2] whitespace-pre-line"
+                      className="text-text-secondary font-tajawal text-sm leading-loose whitespace-pre-line"
                       dir={dir}
                     >
                       {section.text}

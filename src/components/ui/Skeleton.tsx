@@ -8,15 +8,15 @@ export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 /** Full-card skeleton for home page */
 export function HomeCardSkeleton() {
   return (
-    <div className="glass-strong rounded-3xl p-5 space-y-4">
+    <div className="glass-strong rounded-3xl p-5 stack-y-4">
       <div className="flex items-center gap-3">
         <Skeleton className="w-10 h-10 rounded-2xl" />
-        <div className="space-y-2 flex-1">
+        <div className="stack-y-2 flex-1">
           <Skeleton className="h-5 w-3/4 rounded-xl" />
           <Skeleton className="h-3 w-1/2 rounded-lg" />
         </div>
       </div>
-      <div className="space-y-2">
+      <div className="stack-y-2">
         <Skeleton className="h-3 w-full rounded-lg" />
         <Skeleton className="h-3 w-5/6 rounded-lg" />
         <Skeleton className="h-3 w-4/6 rounded-lg" />
@@ -32,13 +32,13 @@ export function HomeCardSkeleton() {
 /** Dhikr card skeleton */
 export function DhikrCardSkeleton() {
   return (
-    <div className="glass-strong rounded-3xl p-5 space-y-4">
+    <div className="glass-strong rounded-3xl p-5 stack-y-4">
       <div className="flex items-center gap-2">
         <Skeleton className="w-9 h-9 rounded-2xl" />
         <Skeleton className="w-9 h-9 rounded-2xl" />
         <Skeleton className="w-9 h-9 rounded-2xl" />
       </div>
-      <div className="space-y-3">
+      <div className="stack-y-3">
         <Skeleton className="h-4 w-full rounded-lg" />
         <Skeleton className="h-4 w-5/6 rounded-lg" />
         <Skeleton className="h-4 w-3/4 rounded-lg" />
@@ -47,7 +47,7 @@ export function DhikrCardSkeleton() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Skeleton className="w-12 h-12 rounded-full" />
-          <div className="space-y-1.5">
+          <div className="stack-y-1.5">
             <Skeleton className="h-3 w-14 rounded-lg" />
             <Skeleton className="h-4 w-10 rounded-lg" />
           </div>
@@ -63,7 +63,7 @@ export function DhikrCardSkeleton() {
 /** Quick stat skeleton */
 export function StatSkeleton() {
   return (
-    <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+    <div className="glass rounded-3xl p-4 border border-(--stroke)">
       <Skeleton className="h-3 w-16 rounded-lg" />
       <Skeleton className="h-7 w-12 rounded-xl mt-2" />
     </div>
@@ -73,7 +73,7 @@ export function StatSkeleton() {
 /** Full-page loading skeleton */
 export function PageSkeleton() {
   return (
-    <div className="space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
+    <div className="stack-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
       <span className="sr-only">جارٍ التحميل…</span>
       <HomeCardSkeleton />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -89,12 +89,12 @@ export function PageSkeleton() {
 /** Prayer times page skeleton */
 export function PrayerTimesPageSkeleton() {
   return (
-    <div className="space-y-4" role="status" aria-label="جارٍ تحميل مواقيت الصلاة…">
+    <div className="stack-y-4" role="status" aria-label="جارٍ تحميل مواقيت الصلاة…">
       <span className="sr-only">جارٍ تحميل مواقيت الصلاة…</span>
       {/* Title */}
       <Skeleton className="h-7 w-44 rounded-xl" />
       {/* Next prayer card */}
-      <div className="glass-strong rounded-3xl p-5 space-y-3">
+      <div className="glass-strong rounded-3xl p-5 stack-y-3">
         <div className="flex items-center justify-between">
           <Skeleton className="h-5 w-24 rounded-xl" />
           <Skeleton className="h-10 w-10 rounded-2xl" />

@@ -271,9 +271,9 @@ export default function JourneyPage() {
           </motion.div>
         </AnimatePresence>
         {/* Solid dark scrim — keeps text readable */}
-        <div className="absolute inset-0 z-[2]" style={{ background: 'rgba(2,6,23,0.52)' }} />
+        <div className="absolute inset-0 z-2" style={{ background: 'rgba(2,6,23,0.52)' }} />
         {/* Edge vignette for depth */}
-        <div className="absolute inset-0 z-[3] bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(2,6,23,0.80)_100%)]" />
+        <div className="absolute inset-0 z-3 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(2,6,23,0.80)_100%)]" />
       </div>
 
       {/* ===== FLOATING PROGRESS BAR ===== */}
@@ -314,7 +314,7 @@ export default function JourneyPage() {
               disabled={!isUnlocked}
             >
               {/* Label on hover */}
-              <span className="absolute left-10 bg-vanta/90 backdrop-blur-sm text-text-primary text-xs font-tajawal px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap border border-border-subtle/30">
+              <span className="absolute left-10 bg-vanta/90 backdrop-blur-xs text-text-primary text-xs font-tajawal px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap border border-border-subtle/30">
                 {s.titleAr}
               </span>
               {/* Dot */}
@@ -411,7 +411,7 @@ export default function JourneyPage() {
               </motion.div>
 
               {/* Evidence Points */}
-              <div className="space-y-2.5 mb-7">
+              <div className="stack-y-2.5 mb-7">
                 <p className="text-text-muted text-xs font-tajawal tracking-widest uppercase mb-4">
                   {'\u0627\u0644\u0623\u062F\u0644\u0629'}
                 </p>
@@ -424,7 +424,7 @@ export default function JourneyPage() {
                     className="flex items-start gap-3 p-3.5 sm:p-5 rounded-xl glass-premium group hover:scale-[1.01] transition-transform"
                   >
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-xs"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs"
                       style={{ background: step.gradientFrom + '18', color: step.gradientFrom }}
                     >
                       {i + 1}
@@ -545,9 +545,9 @@ export default function JourneyPage() {
                       {'\u0648\u0623\u0634\u0647\u062F \u0623\u0646 \u0645\u062D\u0645\u062F\u064B\u0627 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647'}
                     </p>
                     <div className="flex items-center justify-center gap-4 mb-8">
-                      <div className="h-px w-20 bg-gradient-to-r from-transparent to-gold-primary/30" />
+                      <div className="h-px w-20 bg-linear-to-r from-transparent to-gold-primary/30" />
                       <span className="text-gold-primary/30 text-2xl">{'\uFDFD'}</span>
-                      <div className="h-px w-20 bg-gradient-to-l from-transparent to-gold-primary/30" />
+                      <div className="h-px w-20 bg-linear-to-l from-transparent to-gold-primary/30" />
                     </div>
                     <p className="text-text-secondary font-tajawal text-sm leading-relaxed max-w-md mx-auto mb-10">
                       {'\u0647\u0630\u0647 \u0627\u0644\u0634\u0647\u0627\u062F\u0629 \u0647\u064A \u0627\u0644\u0628\u0627\u0628. \u0625\u0630\u0627 \u0622\u0645\u0646\u062A \u0628\u0645\u0627 \u0631\u0623\u064A\u062A\u060C \u0641\u0627\u0646\u0637\u0642\u0647\u0627 \u0628\u0642\u0644\u0628\u0643 \u0623\u0648\u0644\u064B\u0627. \u0627\u0644\u0644\u0647 \u064A\u0633\u0645\u0639 \u062D\u062A\u0649 \u0645\u0627 \u0644\u0645 \u062A\u0646\u0637\u0642 \u0628\u0647.'}

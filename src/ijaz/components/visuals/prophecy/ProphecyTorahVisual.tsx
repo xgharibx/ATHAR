@@ -22,7 +22,7 @@ export default function ProphecyTorahVisual({ className }: MiracleVisualProps) {
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-center gap-3 px-5 py-6 select-none overflow-hidden ${className || ''}`}>
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#140d08] via-[#0d1117] to-[#0a1010] pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-br from-[#140d08] via-deep-navy to-[#0a1010] pointer-events-none" />
       {/* Soft candle-light glow behind scroll */}
       <motion.div
         className="absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
@@ -85,7 +85,7 @@ export default function ProphecyTorahVisual({ className }: MiracleVisualProps) {
             style={{ background: m.color + '12', border: `1px solid ${m.color}30` }}
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0" style={{ background: m.color + '25', color: m.color }}>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-sm shrink-0" style={{ background: m.color + '25', color: m.color }}>
                 {m.ref}
               </span>
               <span className="text-gray-300 text-[11px] italic truncate">{m.text}</span>

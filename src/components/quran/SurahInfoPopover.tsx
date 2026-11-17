@@ -167,7 +167,7 @@ export function SurahInfoPopover(props: {
       role="dialog"
       aria-modal="true"
       dir="rtl"
-      className="fixed z-[60] animate-athar-popover-in"
+      className="fixed z-60 animate-athar-popover-in"
       style={{
         top: `${pos.top}px`,
         left: `${pos.left}px`,
@@ -234,23 +234,23 @@ function PopoverContent(props: {
         }}
       />
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] px-3 py-2.5">
+      <div className="flex items-center justify-between gap-2 border-b border-(--stroke) px-3 py-2.5">
         <div className="flex items-center gap-2 min-w-0">
           <div className="surah-num-badge shrink-0" style={{ width: 36, height: 36 }}>
             {toArabicNumeral(surah.id)}
           </div>
           <div className="min-w-0">
             <div className="truncate text-[15px] font-extrabold leading-tight">{surah.name}</div>
-            {surah.englishName ? <div className="truncate text-[10.5px] text-[var(--muted-2)]">{surah.englishName}</div> : null}
+            {surah.englishName ? <div className="truncate text-[10.5px] text-(--muted-2)">{surah.englishName}</div> : null}
           </div>
         </div>
         <button type="button" onClick={onClose} aria-label="إغلاق"
-          className="grid h-8 w-8 place-items-center rounded-xl border border-[var(--stroke)] bg-[var(--bg)] transition hover:bg-[var(--card-2)]">
+          className="grid h-8 w-8 place-items-center rounded-xl border border-(--stroke) bg-(--bg) transition hover:bg-(--card-2)">
           <XIcon className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
       </div>
 
-      <div className="max-h-[60vh] overflow-y-auto p-3 space-y-2.5">
+      <div className="max-h-[60vh] overflow-y-auto p-3 stack-y-2.5">
         {/* Meta row */}
         <div className="flex flex-wrap items-center gap-1">
           <Badge className={`surah-type-${isMedinan ? "madani" : "maki"}`}>
@@ -269,12 +269,12 @@ function PopoverContent(props: {
 
         {/* Topic + context */}
         {info ? (
-          <div className="rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] p-2.5 space-y-1">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--accent)]">
+          <div className="rounded-xl border border-(--stroke) bg-(--card-2) p-2.5 stack-y-1">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-(--accent)">
               <Sparkles className="h-3 w-3" aria-hidden="true" />
               المحور — {info.topic}
             </div>
-            <p className="text-[12px] leading-6 text-[var(--fg)]">{info.context}</p>
+            <p className="text-[12px] leading-6 text-(--fg)">{info.context}</p>
           </div>
         ) : null}
 
@@ -293,17 +293,17 @@ function PopoverContent(props: {
 
         {/* First ayah */}
         {firstAyahText ? (
-          <div className="rounded-xl border border-[var(--stroke)] bg-[var(--bg)] p-2.5">
-            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--muted-2)] mb-1">
+          <div className="rounded-xl border border-(--stroke) bg-(--bg) p-2.5">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-(--muted-2) mb-1">
               <span>الآية الأولى ﴿١﴾</span>
               <button type="button" onClick={copyAyah}
-                className="flex items-center gap-1 text-[var(--muted)] hover:text-[var(--fg)] transition" aria-label="نسخ الآية">
+                className="flex items-center gap-1 text-(--muted) hover:text-(--fg) transition" aria-label="نسخ الآية">
                 <Copy className="h-3 w-3" aria-hidden="true" /> نسخ
               </button>
             </div>
-            <p className="arabic-text text-[15px] leading-7 text-[var(--fg)]" dir="rtl">{firstAyahText}</p>
+            <p className="arabic-text text-[15px] leading-7 text-(--fg)" dir="rtl">{firstAyahText}</p>
             {firstEnglish ? (
-              <p className="mt-1.5 border-t border-[var(--stroke)]/40 pt-1.5 text-[11.5px] leading-5 text-[var(--muted)] italic" lang="en">
+              <p className="mt-1.5 border-t border-(--stroke)/40 pt-1.5 text-[11.5px] leading-5 text-(--muted) italic" lang="en">
                 {firstEnglish}
               </p>
             ) : null}
@@ -316,7 +316,7 @@ function PopoverContent(props: {
             <div className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-sky-200">
               <span>📖</span><span>تفسير الميسر</span>
             </div>
-            <p className="text-[12px] leading-6 text-[var(--fg)]">{tafsir}</p>
+            <p className="text-[12px] leading-6 text-(--fg)">{tafsir}</p>
           </div>
         ) : null}
 
@@ -330,7 +330,7 @@ function PopoverContent(props: {
           </Link>
           <Link to={`/companion?ask=${encodeURIComponent(`حدّثني عن سورة «${surah.name}» — موضوعها، وقصتها، وفضلها، وكيف أعيشها اليوم.`)}`} onClick={onClose}
             aria-disabled="false"
-            className="flex items-center justify-center gap-1 rounded-lg border border-accent-35 bg-accent-15 px-2 py-1.5 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-accent-15/80 active:scale-95">
+            className="flex items-center justify-center gap-1 rounded-lg border border-accent-35 bg-accent-15 px-2 py-1.5 text-[11px] font-semibold text-(--accent) transition hover:bg-accent-15/80 active:scale-95">
             <Sparkles className="h-3 w-3" aria-hidden="true" />
             اسأل أثر
           </Link>
@@ -341,7 +341,7 @@ function PopoverContent(props: {
               else { await navigator.clipboard.writeText(text); toast.success("نُسخت معلومة السورة"); }
             } catch { /* ignore */ }
           }}
-            className="flex items-center justify-center gap-1 rounded-lg border border-[var(--stroke)] bg-[var(--card)] px-2 py-1.5 text-[11px] font-semibold text-[var(--fg)] transition hover:bg-[var(--card-2)] active:scale-95">
+            className="flex items-center justify-center gap-1 rounded-lg border border-(--stroke) bg-(--card) px-2 py-1.5 text-[11px] font-semibold text-(--fg) transition hover:bg-(--card-2) active:scale-95">
             <Share2 className="h-3 w-3" aria-hidden="true" />
             مشاركة
           </button>

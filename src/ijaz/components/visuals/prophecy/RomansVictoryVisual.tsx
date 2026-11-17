@@ -210,7 +210,7 @@ export default function RomansVictoryVisual({ className }: MiracleVisualProps) {
         className="absolute bottom-[15%] left-0 right-0 text-center z-10 pointer-events-none px-4"
       >
         <span
-          className="inline-block rounded-full px-4 py-1.5 backdrop-blur-sm border"
+          className="inline-block rounded-full px-4 py-1.5 backdrop-blur-xs border"
           style={{ borderColor: p.color + '55', background: p.color + '15' }}
         >
           <span className="font-mono text-xs ml-2" style={{ color: p.color }}>{p.year}</span>

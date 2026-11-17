@@ -487,7 +487,7 @@ export function CompanionModal(props: {
   // the sheet. From <body> it is a true top-level overlay.
   return createPortal(
     <>
-    <div className="fixed inset-0 z-[10000] flex items-end justify-center p-2 sm:p-4 pb-[max(env(safe-area-inset-bottom,0px),0px)]" dir="rtl">
+    <div className="fixed inset-0 z-10000 flex items-end justify-center p-2 sm:p-4 pb-[max(env(safe-area-inset-bottom,0px),0px)]" dir="rtl">
       <div
         aria-hidden="true"
         onClick={props.onClose}
@@ -535,19 +535,19 @@ export function CompanionModal(props: {
         {/* Decorative glow — accent-derived so it follows the theme. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-24 -start-24 h-64 w-64 rounded-full blur-3xl"
+          className="pointer-events-none absolute -top-24 -inset-s-24 h-64 w-64 rounded-full blur-3xl"
           style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)" }}
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-24 -end-24 h-64 w-64 rounded-full blur-3xl"
+          className="pointer-events-none absolute -bottom-24 -inset-e-24 h-64 w-64 rounded-full blur-3xl"
           style={{ background: "color-mix(in srgb, var(--accent-2, var(--accent)) 10%, transparent)" }}
         />
 
         {/* Header */}
-        <div className="relative flex items-center justify-between gap-2 border-b border-[color-mix(in_srgb,var(--accent)_16%,transparent)] px-4 py-3">
+        <div className="relative flex items-center justify-between gap-2 border-b border-accent-16 px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-2,var(--accent))] shadow-md">
+            <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-linear-to-br from-(--accent) to-(--accent-2,var(--accent)) shadow-md">
               <Sparkles className="h-4 w-4 text-emerald-950" aria-hidden="true" />
             </span>
             <div>
@@ -573,7 +573,7 @@ export function CompanionModal(props: {
 
         {/* Context chip */}
         {props.context?.title ? (
-          <div className="relative border-b border-[color-mix(in_srgb,var(--accent)_10%,transparent)] bg-emerald-500/5 px-4 py-2">
+          <div className="relative border-b border-accent-10 bg-emerald-500/5 px-4 py-2">
             <div className="flex items-center gap-2 text-[11px]">
               <span aria-hidden="true">{props.context.icon ?? "📍"}</span>
               <span className="font-semibold text-emerald-100">{props.context.title}</span>
@@ -584,7 +584,7 @@ export function CompanionModal(props: {
 
         {/* History panel */}
         {showHistory ? (
-          <div className="relative border-b border-[color-mix(in_srgb,var(--accent)_10%,transparent)] bg-emerald-950/40 px-3 py-2 max-h-56 overflow-y-auto">
+          <div className="relative border-b border-accent-10 bg-emerald-950/40 px-3 py-2 max-h-56 overflow-y-auto">
             {history.length === 0 ? (
               <p className="px-2 py-4 text-center text-[11px] text-emerald-200/60">لا توجد محادثات سابقة هنا</p>
             ) : (
@@ -602,14 +602,14 @@ export function CompanionModal(props: {
         {/* Conversation */}
         <div
           ref={(el) => { scrollerRef.current = el; }}
-          className="relative flex-1 overflow-y-auto overscroll-contain px-3 py-3 space-y-3"
+          className="relative flex-1 overflow-y-auto overscroll-contain px-3 py-3 stack-y-3"
           style={{ WebkitOverflowScrolling: "touch" }}
           aria-live="polite"
         >
           {messages.length === 0 && !streamingText ? (
             <div className="grid h-full place-items-center text-center">
               <div>
-                <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400/20 to-teal-500/20 border border-emerald-400/30 mb-3 shadow-[0_0_30px_-6px_rgba(16,185,129,0.5)]">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-emerald-400/20 to-teal-500/20 border border-emerald-400/30 mb-3 shadow-[0_0_30px_-6px_rgba(16,185,129,0.5)]">
                   <Sparkles className="h-7 w-7 text-emerald-200" aria-hidden="true" />
                 </div>
                 <p className="text-sm font-semibold text-emerald-100">اسأل «أثر» عن هذه الصفحة</p>
@@ -660,14 +660,14 @@ export function CompanionModal(props: {
           <button type="button"
             onClick={() => scrollToBottom("smooth")}
             aria-label="انتقل لأحدث رسالة"
-            className="absolute inset-x-0 bottom-[76px] z-[1] mx-auto grid h-9 w-9 place-items-center rounded-full border border-emerald-400/30 bg-emerald-900/70 text-emerald-100 shadow-lg backdrop-blur-md transition active:scale-90"
+            className="absolute inset-x-0 bottom-[76px] z-1 mx-auto grid h-9 w-9 place-items-center rounded-full border border-emerald-400/30 bg-emerald-900/70 text-emerald-100 shadow-lg backdrop-blur-md transition active:scale-90"
             style={{ width: "36px" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7" /></svg>
           </button>
         ) : null}
 
         {/* Composer */}
-        <div className="relative border-t border-[color-mix(in_srgb,var(--accent)_16%,transparent)] p-2 bg-[color-mix(in_srgb,var(--bg-deep,var(--bg))_55%,transparent)] backdrop-blur-sm">
+        <div className="relative border-t border-accent-16 p-2 bg-[color-mix(in_srgb,var(--bg-deep,var(--bg))_55%,transparent)] backdrop-blur-xs">
           <div className="flex items-end gap-1.5">
             <textarea
               value={input}
@@ -675,7 +675,7 @@ export function CompanionModal(props: {
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(input); } }}
               rows={1}
               placeholder={props.context?.title ? `اسأل أثر عن «${props.context.title}»…` : "اسأل أثر…"}
-              className="form-field-readable max-h-28 flex-1 resize-none rounded-xl border border-emerald-400/20 bg-white/5 px-3 py-2 text-sm text-emerald-50 placeholder:text-emerald-200/40 focus:outline-none focus:border-emerald-400/60"
+              className="form-field-readable max-h-28 flex-1 resize-none rounded-xl border border-emerald-400/20 bg-white/5 px-3 py-2 text-sm text-emerald-50 placeholder:text-emerald-200/40 focus:outline-hidden focus:border-emerald-400/60"
             />
             {isBusy ? (
               <button type="button" onClick={stop} aria-label="إيقاف"
@@ -684,7 +684,7 @@ export function CompanionModal(props: {
               </button>
             ) : (
               <button type="button" onClick={() => void send(input)} disabled={!input.trim()} aria-label="إرسال"
-                className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-emerald-950 shadow-md shadow-emerald-500/30 disabled:opacity-40 active:scale-95 transition">
+                className="grid h-10 w-10 place-items-center rounded-xl bg-linear-to-br from-emerald-400 to-teal-500 text-emerald-950 shadow-md shadow-emerald-500/30 disabled:opacity-40 active:scale-95 transition">
                 <Send className="h-4 w-4 -scale-x-100" aria-hidden="true" />
               </button>
             )}
@@ -721,7 +721,7 @@ function ModalActionButton({ route, children, onNavigate }: { route: string; chi
   const label = ROUTE_LABELS[route] ?? route;
   return (
     <button type="button" onClick={() => onNavigate(route)}
-      className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 px-3 py-2 text-start text-[12.5px] font-semibold text-emerald-50 transition hover:from-emerald-500/30 hover:to-teal-500/20 active:scale-[0.99]">
+      className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-xl border border-emerald-400/30 bg-linear-to-br from-emerald-500/20 to-teal-500/10 px-3 py-2 text-start text-[12.5px] font-semibold text-emerald-50 transition hover:from-emerald-500/30 hover:to-teal-500/20 active:scale-[0.99]">
       <span className="flex items-center gap-2">
         <Sparkles className="h-3 w-3 text-emerald-200" aria-hidden="true" />
         <span>{children}</span>
@@ -806,7 +806,7 @@ function ReminderChips({
               className="flex min-w-0 flex-1 items-center gap-1.5 border-0 bg-transparent p-0 text-start text-inherit"
             >
               <span aria-hidden="true">{inactive ? "!" : "✓"}</span>
-              <span className="min-w-0 whitespace-normal break-words font-semibold">{inactive
+              <span className="min-w-0 whitespace-normal wrap-break-word font-semibold">{inactive
                 ? `حُفظ التذكير، لكنه غير مفعّل: ${r.title} — افتح التذكيرات لتفعيله`
                 : `أُضيفت التذكير: ${r.title} — ${when}`}</span>
               {r.deeplink ? <span className="shrink-0 text-[10px] text-emerald-200/60">↗</span> : null}
@@ -844,7 +844,7 @@ function ModalBubble(props: { role: "user" | "assistant"; text: string; streamin
         "max-w-[92%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
         isUser
           ? "bg-emerald-500/15 border border-emerald-400/30 text-emerald-50"
-          : "bg-white/[0.04] border border-white/10 text-emerald-50/95 backdrop-blur-sm",
+          : "bg-white/4 border border-white/10 text-emerald-50/95 backdrop-blur-xs",
       ].join(" ")}>
         {isUser
           ? <span style={{ whiteSpace: "pre-wrap" }}>{props.text}</span>

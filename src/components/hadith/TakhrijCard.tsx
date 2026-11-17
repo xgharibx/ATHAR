@@ -96,7 +96,7 @@ export function TakhrijCard({
               <ChevronDown size={15} aria-hidden="true" style={{ transform: showOtherOpinions ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
             </button>
             {showOtherOpinions && (
-              <div className="space-y-2 mt-1">
+              <div className="stack-y-2 mt-1">
                 {takhrij.others.map((o, i) => (
                   <div key={i} className="rounded-2xl p-3 text-xs" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}>
                     <div className="flex items-center gap-2 flex-wrap mb-1.5">
@@ -116,7 +116,7 @@ export function TakhrijCard({
         )}
 
         {(sharhId !== undefined) && (
-          <div className="mt-3 pt-3 border-t border-[var(--stroke)] flex items-center justify-between gap-2 flex-wrap">
+          <div className="mt-3 pt-3 border-t border-(--stroke) flex items-center justify-between gap-2 flex-wrap">
             {sharhId ? (
               <button type="button"
                 onClick={() => onOpenSharh?.(sharhId)}

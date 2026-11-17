@@ -37,18 +37,18 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
       className={cn(
         "rounded-3xl border p-4 transition-all",
         done
-          ? "border-[color-mix(in_srgb,var(--ok)_30%,transparent)] bg-ok-5"
-          : "border-[var(--stroke)] glass"
+          ? "border-ok-30 bg-ok-5"
+          : "border-(--stroke) glass"
       )}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs px-2.5 py-1 rounded-full bg-accent-12 border border-accent-20 font-semibold text-[var(--accent)]">
+          <span className="text-xs px-2.5 py-1 rounded-full bg-accent-12 border border-accent-20 font-semibold text-(--accent)">
             {idx + 1}
           </span>
           <span className="text-xs opacity-55">{item.source}</span>
           {item.count > 1 && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--card)] border border-[var(--stroke)] opacity-70">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-(--card) border border-(--stroke) opacity-70">
               × {item.count}
               {item.countNote ? ` — ${item.countNote}` : ""}
             </span>
@@ -81,7 +81,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
       </div>
 
       {item.notes && (
-        <div className="text-xs opacity-55 leading-5 border-t border-[var(--stroke)] pt-2 mb-3">
+        <div className="text-xs opacity-55 leading-5 border-t border-(--stroke) pt-2 mb-3">
           {item.notes}
         </div>
       )}
@@ -98,8 +98,8 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
               className={cn(
                 "w-7 h-7 rounded-full border transition-all text-xs font-bold",
                 i < count
-                  ? "bg-ok-20 border-ok-40 text-[var(--ok)]"
-                  : "bg-[var(--card)] border-[var(--stroke)] opacity-50"
+                  ? "bg-ok-20 border-ok-40 text-(--ok)"
+                  : "bg-(--card) border-(--stroke) opacity-50"
               )}
             >
               {i < count ? "✓" : i + 1}
@@ -107,7 +107,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
           ))}
         </div>
         {done && (
-          <span className="text-xs font-semibold text-[var(--ok)]">✓ مكتمل</span>
+          <span className="text-xs font-semibold text-(--ok)">✓ مكتمل</span>
         )}
         {!done && count > 0 && (
           <button type="button"
@@ -134,7 +134,7 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
         onClick={() => setExpanded((v) => !v)}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <Shield size={16} aria-hidden="true" className="text-[var(--accent)] shrink-0 opacity-70" />
+          <Shield size={16} aria-hidden="true" className="text-(--accent) shrink-0 opacity-70" />
           <div className="min-w-0">
             <div className="font-semibold text-sm arabic-text">{section.title}</div>
             {section.description && (
@@ -150,7 +150,7 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
         </div>
       </button>
 
-      <div id={`ruqyah-panel-${section.id}`} hidden={!expanded} className="px-4 pb-4 space-y-3 border-t border-[var(--stroke)] pt-3" role="list">
+      <div id={`ruqyah-panel-${section.id}`} hidden={!expanded} className="px-4 pb-4 stack-y-3 border-t border-(--stroke) pt-3" role="list">
         {section.items.map((item, idx) => (
           <RuqyahItemCard key={item.id} item={item} idx={idx} />
         ))}
@@ -164,7 +164,7 @@ export function RuqyahPage() {
   useScrollRestoration();
 
   return (
-    <div className="space-y-4 page-enter" dir="rtl">
+    <div className="stack-y-4 page-enter" dir="rtl">
       {/* Header */}
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-3">
@@ -172,11 +172,11 @@ export function RuqyahPage() {
             <ArrowRight size={18} aria-hidden="true" />
           </IconButton>
           <div className="flex items-center gap-2">
-            <Shield size={20} aria-hidden="true" className="text-[var(--accent)]" />
+            <Shield size={20} aria-hidden="true" className="text-(--accent)" />
             <h1 className="font-bold text-lg arabic-text">أذكار الرقية الشرعية</h1>
           </div>
         </div>
-        <div className="text-sm opacity-70 leading-7 arabic-text p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)]">
+        <div className="text-sm opacity-70 leading-7 arabic-text p-3 rounded-2xl bg-(--card) border border-(--stroke)">
           الرقية الشرعية هي القراءة من القرآن الكريم والأدعية النبوية الثابتة للاستشفاء والحماية بإذن الله.
           اقرأ كل ذكر بتركيز وحضور قلب، ويُستحب النفث على موضع الألم.
         </div>

@@ -81,7 +81,7 @@ function WeekStrip({ doneMap }: { doneMap: Record<string, boolean> }) {
           <div key={iso} className="flex flex-col items-center gap-1 flex-1">
             <div className={`text-[9px] opacity-50 ${isToday ? "opacity-90 font-bold" : ""}`}>{label}</div>
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all
-              ${done ? "bg-[var(--accent)] text-[var(--bg)]" : isToday ? "border-2 border-[var(--accent)] text-[var(--accent)]" : "bg-[var(--card)] opacity-40"}`}>
+              ${done ? "bg-(--accent) text-(--bg)" : isToday ? "border-2 border-(--accent) text-(--accent)" : "bg-(--card) opacity-40"}`}>
               {done ? "✓" : toArabicNumeral(new Date(iso + "T00:00:00").getDate())}
             </div>
           </div>
@@ -235,12 +235,12 @@ export function QuranPlansPage() {
   }
 
   return (
-    <div dir="rtl" className="space-y-4 pb-24 page-enter px-1">
+    <div dir="rtl" className="stack-y-4 pb-24 page-enter px-1">
       {/* Header */}
       <div className="flex items-center gap-3 pt-1">
         <button type="button" onClick={() => navigate(-1)}
           aria-label="رجوع"
-          className="w-9 h-9 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] flex items-center justify-center transition-colors">
+          className="w-9 h-9 rounded-full bg-(--card) hover:bg-(--card-2) flex items-center justify-center transition-colors">
           <ChevronRight className="w-5 h-5" />
         </button>
         <div>
@@ -251,7 +251,7 @@ export function QuranPlansPage() {
 
       {/* ── Active plan card ── */}
       {activePlan ? (
-        <Card className="p-5 space-y-4">
+        <Card className="p-5 stack-y-4">
           {/* Plan name + finish date */}
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -271,15 +271,15 @@ export function QuranPlansPage() {
 
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-2xl bg-[var(--card)] p-2">
-              <div className="text-base font-bold text-[var(--accent)]">{toArabicNumeral(activePlan.doneCount)}</div>
+            <div className="rounded-2xl bg-(--card) p-2">
+              <div className="text-base font-bold text-(--accent)">{toArabicNumeral(activePlan.doneCount)}</div>
               <div className="text-[10px] opacity-50">يوم مكتمل</div>
             </div>
-            <div className="rounded-2xl bg-[var(--card)] p-2">
+            <div className="rounded-2xl bg-(--card) p-2">
               <div className="text-base font-bold">{toArabicNumeral(Math.max(0, activePlan.days - activePlan.elapsed))}</div>
               <div className="text-[10px] opacity-50">يوم متبقٍ</div>
             </div>
-            <div className="rounded-2xl bg-[var(--card)] p-2">
+            <div className="rounded-2xl bg-(--card) p-2">
               <div className="text-base font-bold">{toArabicNumeral(activePlan.dailyAyahs)}</div>
               <div className="text-[10px] opacity-50">آية يومياً</div>
             </div>
@@ -314,14 +314,14 @@ export function QuranPlansPage() {
               </span>
             </div>
             <div
-              className="h-2 rounded-full bg-[var(--card)] overflow-hidden"
+              className="h-2 rounded-full bg-(--card) overflow-hidden"
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={todayReadPct}
               aria-label={`ورد اليوم: ${toArabicNumeral(activePlan.todayAyahs)} من ${toArabicNumeral(activePlan.dailyAyahs)} آية`}
             >
-              <div className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
+              <div className="h-full rounded-full bg-(--accent) transition-all duration-500"
                 style={{ width: `${todayReadPct}%` }} />
             </div>
           </div>}
@@ -335,7 +335,7 @@ export function QuranPlansPage() {
           {/* Mark today done / CTA */}
           {activePlan.isCompleted ? (
             <div
-              className="rounded-2xl p-4 text-center space-y-2"
+              className="rounded-2xl p-4 text-center stack-y-2"
               style={{ background: "color-mix(in srgb, var(--ok) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--ok) 30%, transparent)" }}
             >
               <div className="text-2xl" aria-hidden="true">🏆</div>
@@ -347,7 +347,7 @@ export function QuranPlansPage() {
             </div>
           ) : activePlan.isExpired ? (
             <div
-              className="rounded-2xl p-4 text-center space-y-2"
+              className="rounded-2xl p-4 text-center stack-y-2"
               style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >
               <div className="text-sm font-bold">انتهت مدة الخطة قبل إكمال جميع أيامها</div>
@@ -358,7 +358,7 @@ export function QuranPlansPage() {
             </div>
           ) : activePlan.isUpcoming ? (
             <div
-              className="rounded-2xl p-4 text-center space-y-1.5"
+              className="rounded-2xl p-4 text-center stack-y-1.5"
               style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >
               <div className="text-sm font-bold">خطة التلاوة مجدولة</div>
@@ -408,7 +408,7 @@ export function QuranPlansPage() {
         </Card>
       ) : (
         /* ── No active plan ── */
-        <Card className="p-6 text-center space-y-3">
+        <Card className="p-6 text-center stack-y-3">
           <div className="text-3xl" aria-hidden="true">📖</div>
           <div className="font-semibold">لا توجد خطة نشطة</div>
           <div className="text-xs opacity-50">ابدأ خطة تلاوة وتابع وردك اليومي</div>
@@ -431,7 +431,7 @@ export function QuranPlansPage() {
         </Card>
         <Card className="p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-accent-15 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-[var(--accent)]" />
+            <TrendingUp className="w-5 h-5 text-(--accent)" />
           </div>
           <div>
             <div className="text-xl font-bold">
@@ -444,7 +444,7 @@ export function QuranPlansPage() {
 
       {/* ── Plan presets (toggle) ── */}
       {(showPresets || !activePlan) && (
-        <Card className="p-4 space-y-3">
+        <Card className="p-4 stack-y-3">
           <div className="flex items-center justify-between">
             <div className="text-sm font-bold flex items-center gap-2">
               <Target className="w-4 h-4 opacity-60" aria-hidden="true" />
@@ -458,7 +458,7 @@ export function QuranPlansPage() {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {PLAN_PRESETS.map((preset) => {
               const daily = Math.ceil(TOTAL_QURAN_AYAHS / preset.days);
               const isActive = activePlan && khatmaDays === preset.days;
@@ -470,7 +470,7 @@ export function QuranPlansPage() {
                   className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all text-right
                     ${isActive
                       ? "bg-accent-15 border border-accent-40"
-                      : "bg-[var(--card)] hover:bg-[var(--card-2)] border border-transparent"}`}
+                      : "bg-(--card) hover:bg-(--card-2) border border-transparent"}`}
                 >
                   <span className="text-xl w-8 text-center">{preset.emoji}</span>
                   <div className="flex-1">
@@ -478,7 +478,7 @@ export function QuranPlansPage() {
                     <div className="text-[10px] opacity-50">{preset.subtitle} · حتى {toArabicNumeral(daily)} آية يومياً</div>
                   </div>
                   {isActive && (
-                    <span className="text-[10px] bg-[var(--accent)] text-[var(--bg)] rounded-full px-2 py-0.5 font-bold shrink-0">
+                    <span className="text-[10px] bg-(--accent) text-(--bg) rounded-full px-2 py-0.5 font-bold shrink-0">
                       نشطة
                     </span>
                   )}
@@ -488,7 +488,7 @@ export function QuranPlansPage() {
           </div>
 
           {/* Custom */}
-          <div className="border-t border-[var(--stroke)] pt-3">
+          <div className="border-t border-(--stroke) pt-3">
             <div className="text-xs opacity-50 mb-2 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               خطة مخصصة
@@ -501,7 +501,7 @@ export function QuranPlansPage() {
                 max={730}
                 onChange={(e) => setCustomDays(e.target.value)}
                 inputMode="numeric"
-                className="flex-1 bg-[var(--card)] border border-[var(--stroke)] rounded-2xl px-3 py-2 text-sm text-right focus:outline-none focus:border-accent-60"
+                className="flex-1 bg-(--card) border border-(--stroke) rounded-2xl px-3 py-2 text-sm text-right focus:outline-hidden focus:border-accent-60"
                 placeholder="عدد الأيام"
                 aria-label="عدد أيام الخطة المخصصة"
                 aria-describedby="custom-days-hint"
@@ -524,7 +524,7 @@ export function QuranPlansPage() {
         <div className="flex gap-2">
           <button type="button"
             onClick={() => setShowPresets(true)}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] text-sm transition-colors border border-[var(--stroke)]">
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-(--card) hover:bg-(--card-2) text-sm transition-colors border border-(--stroke)">
             <Target className="w-4 h-4 opacity-60" aria-hidden="true" />
             تغيير الخطة
           </button>
@@ -540,8 +540,8 @@ export function QuranPlansPage() {
       {/* Confirm reset dialog */}
       {confirmReset && (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4" onClick={() => setConfirmReset(false)} onKeyDown={(e) => { if (e.key === "Escape") setConfirmReset(false); }}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
-          <Card className="relative w-full max-w-sm p-5 space-y-4 mb-4" role="dialog" aria-modal="true" aria-label="إعادة تعيين الخطة" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" aria-hidden="true" />
+          <Card className="relative w-full max-w-sm p-5 stack-y-4 mb-4" role="dialog" aria-modal="true" aria-label="إعادة تعيين الخطة" onClick={(e) => e.stopPropagation()}>
             <div className="text-base font-bold">إعادة تعيين الخطة؟</div>
             <div className="text-sm opacity-60">سيتم حذف جميع بيانات التقدم الحالية.</div>
             <div className="flex gap-2">

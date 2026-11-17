@@ -142,7 +142,7 @@ export default function OriginOfLifeVisual({ className }: MiracleVisualProps) {
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-start pt-8 gap-4 px-5 pb-6 select-none overflow-hidden ${className || ''}`}>
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a18] via-[#0d1117] to-[#101025] pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-br from-[#0a0a18] via-deep-navy to-[#101025] pointer-events-none" />
       {/* Collapsing protein-assembly particles */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-70 pointer-events-none" />
 
@@ -151,7 +151,7 @@ export default function OriginOfLifeVisual({ className }: MiracleVisualProps) {
         initial={{ opacity: 0, scale: 0.85 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="relative z-10 rounded-2xl px-5 py-4 text-center backdrop-blur-sm"
+        className="relative z-10 rounded-2xl px-5 py-4 text-center backdrop-blur-xs"
         style={{ background: 'rgba(244,114,182,0.08)', border: '1px solid rgba(244,114,182,0.3)' }}
       >
         <p className="text-gray-400 text-[11px] mb-1 font-tajawal">احتمال تكوّن بروتين وظيفي واحد بالصدفة</p>
@@ -169,7 +169,7 @@ export default function OriginOfLifeVisual({ className }: MiracleVisualProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 + i * 0.1, duration: 0.45 }}
-            className="flex items-start gap-2.5 rounded-lg px-3 py-2 backdrop-blur-sm"
+            className="flex items-start gap-2.5 rounded-lg px-3 py-2 backdrop-blur-xs"
             style={{ background: layer.color + '14', border: `1px solid ${layer.color}38` }}
             dir="rtl"
           >

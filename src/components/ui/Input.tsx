@@ -8,7 +8,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className
   // Dates and times open the app's own sheet instead of the system dialog.
   if (props.type === "date" || props.type === "time") {
     const field = cn(
-      "form-field-readable w-full rounded-2xl border border-[var(--stroke)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition",
+      "form-field-readable w-full rounded-2xl border border-(--stroke) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition",
       className,
     );
     const onChange = props.onChange as unknown as ((e: { target: { value: string } }) => void) | undefined;
@@ -36,7 +36,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className
     <input
       ref={ref}
       className={cn(
-        "form-field-readable w-full rounded-2xl border border-[var(--stroke)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition",
+        "form-field-readable w-full rounded-2xl border border-(--stroke) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition",
         className
       )}
       {...props}

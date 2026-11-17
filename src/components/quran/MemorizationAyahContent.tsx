@@ -29,7 +29,7 @@ export function MemorizationAyahContent({
       {enabled ? (
         <button
           type="button"
-          className="sr-only focus:not-sr-only focus:absolute focus:z-20 focus:rounded-lg focus:border focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:px-3 focus:py-2 focus:text-sm focus:shadow-lg"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-20 focus:rounded-lg focus:border focus:border-(--accent) focus:bg-(--surface) focus:px-3 focus:py-2 focus:text-sm focus:shadow-lg"
           aria-label={label}
           aria-pressed={!hidden}
           onPointerDown={(event) => event.stopPropagation()}

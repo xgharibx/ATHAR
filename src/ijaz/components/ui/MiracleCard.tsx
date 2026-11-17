@@ -48,7 +48,7 @@ export default function MiracleCard({ miracle, index }: MiracleCardProps) {
           </div>
 
           {/* Title */}
-          <div className="space-y-1">
+          <div className="stack-y-1">
             <h3 className="text-gold-primary font-amiri text-xl font-bold leading-tight group-hover:text-gold-light transition-colors">
               {miracle.titleAr}
             </h3>

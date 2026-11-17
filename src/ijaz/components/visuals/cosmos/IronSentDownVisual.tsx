@@ -267,7 +267,7 @@ export default function IronSentDownVisual({ className }: MiracleVisualProps) {
         ].map((p, i) => (
           <div
             key={i}
-            className="rounded-full border border-[#ff7a30]/25 bg-[#1a0e08]/70 px-3 py-1 text-center backdrop-blur-sm"
+            className="rounded-full border border-[#ff7a30]/25 bg-[#1a0e08]/70 px-3 py-1 text-center backdrop-blur-xs"
           >
             <p className="font-amiri text-xs text-[#ffb070]">{p.label}</p>
             <p className="text-[8px] text-text-muted font-tajawal">{p.sub}</p>

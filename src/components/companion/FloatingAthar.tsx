@@ -51,11 +51,11 @@ export function FloatingAthar(props: {
         title="اسأل أثر"
         className={[
           "group fixed z-30 grid h-14 w-14 place-items-center rounded-full",
-          "bg-gradient-to-br from-emerald-300 via-emerald-400 to-teal-500 text-emerald-950",
+          "bg-linear-to-br from-emerald-300 via-emerald-400 to-teal-500 text-emerald-950",
           "shadow-[0_8px_30px_-4px_rgba(16,185,129,0.55)] ring-[3px] ring-emerald-300/40",
           "active:scale-95 transition-all duration-300",
-          "end-4 bottom-[calc(var(--sab,env(safe-area-inset-bottom,0px))_+_5rem)]",
-          "sm:end-5 sm:bottom-[calc(var(--mobile-nav-height,0px)_+_5rem)]",
+          "inset-e-4 bottom-[calc(var(--sab,env(safe-area-inset-bottom,0px))+5rem)]",
+          "sm:inset-e-5 sm:bottom-[calc(var(--mobile-nav-height,0px)+5rem)]",
           props.className ?? "",
         ].join(" ")}>
         {/* Pulsing halo */}
@@ -75,7 +75,7 @@ export function FloatingAthar(props: {
             WebkitMask: "radial-gradient(circle, transparent 60%, black 65%, transparent 100%)",
           }}
         />
-        <Sparkles className="relative h-6 w-6 drop-shadow-sm" aria-hidden="true" />
+        <Sparkles className="relative h-6 w-6 drop-shadow-xs" aria-hidden="true" />
         <style>{`@keyframes athar-fab-halo { 0%, 100% { opacity: 0.3; transform: scale(1) } 50% { opacity: 0.7; transform: scale(1.15) } } @keyframes athar-fab-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
       </button>
       {props.modalMode ? (

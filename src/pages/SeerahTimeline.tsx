@@ -99,7 +99,7 @@ function BookCard({
           </div>
         </div>
         <div
-          className="w-11 h-11 rounded-full flex items-center justify-center text-xl flex-shrink-0"
+          className="w-11 h-11 rounded-full flex items-center justify-center text-xl shrink-0"
           style={{
             background: `color-mix(in srgb, ${color} 18%, var(--card))`,
             border: `1.5px solid color-mix(in srgb, ${color} 35%, transparent)`,
@@ -116,7 +116,7 @@ function BookCard({
         aria-hidden={!open}
         className={open ? "block" : "hidden"}
       >
-        <div className="px-4 pb-4 space-y-4">
+        <div className="px-4 pb-4 stack-y-4">
           <div className="h-px" style={{ background: "var(--stroke)" }} />
 
           {/* Summary */}
@@ -126,7 +126,7 @@ function BookCard({
 
           {/* Chapters */}
           {book.chapters.length > 0 && (
-            <div className="space-y-2">
+            <div className="stack-y-2">
               {book.chapters.map((chapter, idx) => {
                 const chOpen = openChapter === idx;
                 return (
@@ -144,12 +144,12 @@ function BookCard({
                       className="w-full flex items-center justify-between px-3 py-3 text-right"
                       style={{ color: "var(--fg)" }}
                     >
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {chOpen
                           ? <ChevronUp size={14} aria-hidden="true" style={{ color }} />
                           : <ChevronDown size={14} aria-hidden="true" style={{ color }} />}
                         <span
-                          className="text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                          className="text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0"
                           style={{ background: `color-mix(in srgb, ${color} 20%, transparent)`, color }}
                         >
                           {idx + 1}
@@ -166,7 +166,7 @@ function BookCard({
                       className={chOpen ? "block" : "hidden"}
                       aria-hidden={!chOpen}
                     >
-                      <div className="px-3 pb-4 space-y-3">
+                      <div className="px-3 pb-4 stack-y-3">
                         <div className="h-px" style={{ background: "var(--stroke)" }} />
                         {chapter.content.split("\n\n").map((para, i) => (
                           <p
@@ -192,10 +192,10 @@ function BookCard({
               style={{ background: `color-mix(in srgb, ${color} 8%, var(--card))`, border: `1px solid color-mix(in srgb, ${color} 20%, transparent)` }}
             >
               <p className="text-xs font-bold mb-2" style={{ color }}>💡 الدروس المستفادة</p>
-              <ul role="list" className="space-y-1.5">
+              <ul role="list" className="stack-y-1.5">
                 {book.lessons.map((lesson) => (
                   <li key={lesson} className="flex items-start gap-2 text-sm text-right" style={{ color: "var(--fg)" }}>
-                    <span style={{ color }} className="mt-0.5 flex-shrink-0">•</span>
+                    <span style={{ color }} className="mt-0.5 shrink-0">•</span>
                     <span className="opacity-80">{lesson}</span>
                   </li>
                 ))}
@@ -351,7 +351,7 @@ export default function SeerahTimeline() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="mt-1 p-2 rounded-xl shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -439,7 +439,7 @@ export default function SeerahTimeline() {
                 spellCheck={false}
                 autoComplete="off"
                 autoCapitalize="none"
-                className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none"
+                className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-hidden"
                 style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
               />
               {query && (
@@ -463,7 +463,7 @@ export default function SeerahTimeline() {
       </div>
 
       {/* Book list */}
-      <div className="px-4 pt-4 space-y-3" role="list" aria-label="كتب السيرة النبوية">
+      <div className="px-4 pt-4 stack-y-3" role="list" aria-label="كتب السيرة النبوية">
         {filtered.length === 0 ? (
           <div className="text-center py-16 opacity-50 text-sm" style={{ color: "var(--fg)" }}>
             لا توجد نتائج

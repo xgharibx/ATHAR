@@ -91,12 +91,12 @@ export function SharhSection({
         )}
 
         {data && expanded && (
-          <div className="mt-3 space-y-4">
+          <div className="mt-3 stack-y-4">
             {/* غريب الألفاظ */}
             {data.words_meanings && data.words_meanings.length > 0 && (
               <div>
                 <h3 className="mb-1.5 text-xs font-bold" style={{ color: accentColor }}>غريب الألفاظ</h3>
-                <dl className="space-y-1 text-[13px] leading-7">
+                <dl className="stack-y-1 text-[13px] leading-7">
                   {data.words_meanings.map((w, i) => (
                     <div key={i} className="flex gap-2">
                       <dt className="shrink-0 font-bold">{w.word}:</dt>
@@ -119,7 +119,7 @@ export function SharhSection({
             {data.hints && data.hints.length > 0 && (
               <div>
                 <h3 className="mb-1.5 text-xs font-bold" style={{ color: accentColor }}>من فوائد الحديث</h3>
-                <ul className="list-inside list-disc space-y-1 text-[13px] leading-8 opacity-85">
+                <ul className="list-inside list-disc stack-y-1 text-[13px] leading-8 opacity-85">
                   {data.hints.map((h, i) => <li key={i}>{h}</li>)}
                 </ul>
               </div>
@@ -134,7 +134,7 @@ export function SharhSection({
             )}
 
             {/* Actions: tadabbur with companion + open full encyclopedia entry */}
-            <div className="flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-[var(--stroke)]">
+            <div className="flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-(--stroke)">
               <button
                 type="button"
                 onClick={() => navigate(`/companion?ask=${encodeURIComponent(

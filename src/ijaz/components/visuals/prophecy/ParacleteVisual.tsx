@@ -14,7 +14,7 @@ export default function ParacleteVisual({ className }: MiracleVisualProps) {
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-center gap-4 px-6 py-6 select-none overflow-hidden ${className || ''}`}>
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0a1020] via-[#0d1117] to-[#0a0a1a] pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-br from-[#0a1020] via-deep-navy to-[#0a0a1a] pointer-events-none" />
 
       {/* Two scrolls + animated linking beam */}
       <div className="relative z-10 w-full max-w-sm">

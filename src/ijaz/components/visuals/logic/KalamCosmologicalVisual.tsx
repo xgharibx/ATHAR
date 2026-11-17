@@ -130,7 +130,7 @@ export default function KalamCosmologicalVisual({ className }: MiracleVisualProp
             initial={{ opacity: 0, x: i === 2 ? 0 : (i % 2 ? 40 : -40), scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ delay: 0.5 + i * 0.5, duration: 0.6 }}
-            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 backdrop-blur-sm border ${
+            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 backdrop-blur-xs border ${
               i === 2
                 ? 'bg-verse-green/15 border-verse-green/40'
                 : 'bg-black/35 border-gold-primary/25'

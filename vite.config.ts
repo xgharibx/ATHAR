@@ -67,10 +67,9 @@ export default defineConfig(({ mode }) => {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
   build: {
-    // Keep the browser support the app shipped with under Vite 6 ("modules":
-    // Safari 14, Chrome 87). The app supports iOS 13+ and Android 7+, and
-    // Vite 8's default would raise the floor to Safari 16.4 and Chrome 111.
-    target: ["es2020", "edge88", "firefox78", "chrome87", "safari14"],
+    // The browsers Tailwind CSS 4 supports, which set the app's floor:
+    // iOS 16.4 and Android System WebView / Chrome 111.
+    target: ["es2022", "chrome111", "edge111", "firefox128", "safari16.4"],
     // Never publish source maps: they would expose the original source tree.
     sourcemap: false,
     chunkSizeWarningLimit: 900,

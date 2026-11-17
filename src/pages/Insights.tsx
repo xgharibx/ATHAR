@@ -799,7 +799,7 @@ export function InsightsPage() {
   const streakFireClass =
     streak >= 30 ? "text-orange-400" :
     streak >= 7  ? "text-yellow-400" :
-    streak >= 1  ? "text-[var(--accent)]" : "opacity-40";
+    streak >= 1  ? "text-(--accent)" : "opacity-40";
 
   const streakLabel =
     streak >= 30 ? "ماشاء الله! 🔥" :
@@ -843,7 +843,7 @@ export function InsightsPage() {
   }
 
   return (
-    <div className="space-y-4 page-enter">
+    <div className="stack-y-4 page-enter">
       <h1 className="sr-only">رؤيتي</h1>
       <WeeklyReviewCard />
       {/* I6: XP Level badge */}
@@ -851,7 +851,7 @@ export function InsightsPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border border-[var(--stroke)]"
+              className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border border-(--stroke)"
               style={{ background: `${xpLevel.color}22` }}
             >
               {xpLevel.emoji}
@@ -864,7 +864,7 @@ export function InsightsPage() {
               </div>
               <div className="mt-1.5 flex items-center gap-2">
                 <div
-                  className="w-32 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+                  className="w-32 h-1.5 rounded-full bg-(--card) overflow-hidden"
                   role="progressbar"
                   aria-valuenow={xpLevel.xpInLevel}
                   aria-valuemin={0}
@@ -896,7 +896,7 @@ export function InsightsPage() {
       <div ref={ibadatCardRef}>
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={14} aria-hidden="true" className="text-[var(--accent)]" />
+            <Sparkles size={14} aria-hidden="true" className="text-(--accent)" />
             <div className="text-xs font-semibold opacity-65">بطاقة العبادة</div>
             <div className="text-[10px] opacity-35 mr-auto">
               {new Date().toLocaleDateString("ar-SA", { weekday: "short", day: "numeric", month: "short" })}
@@ -937,19 +937,19 @@ export function InsightsPage() {
                 })}
               </div>
             </div>
-            <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-2.5 text-center">
+            <div className="rounded-2xl bg-(--card) border border-(--stroke) px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">ذكر</div>
               <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayCount > 0 ? "var(--accent)" : undefined }}>{arNum(todayCount)}</div>
             </div>
-            <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-2.5 text-center">
+            <div className="rounded-2xl bg-(--card) border border-(--stroke) px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">آية</div>
               <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayQuranAyahs > 0 ? "var(--accent)" : undefined }}>{arNum(todayQuranAyahs)}</div>
             </div>
-            <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-2.5 text-center">
+            <div className="rounded-2xl bg-(--card) border border-(--stroke) px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">هدف</div>
               <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: quranGoalPct >= 100 ? "var(--ok)" : undefined }}>{arNum(quranGoalPct)}٪</div>
             </div>
-            <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-2.5 text-center">
+            <div className="rounded-2xl bg-(--card) border border-(--stroke) px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">مستوى</div>
               <div className="text-sm font-bold mt-0.5" style={{ color: xpLevel.color }}>{xpLevel.emoji}</div>
             </div>
@@ -1011,7 +1011,7 @@ export function InsightsPage() {
       {/* ── يومك اليوم — Daily Snapshot ─────────────── */}
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={14} aria-hidden="true" className="text-[var(--accent)]" />
+          <Sparkles size={14} aria-hidden="true" className="text-(--accent)" />
           <div className="text-xs font-semibold opacity-65">يومك اليوم</div>
           <div className="text-[10px] opacity-35 mr-auto">
             {new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long" })}
@@ -1022,7 +1022,7 @@ export function InsightsPage() {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="flex flex-col items-center rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-3 gap-0.5 transition hover:bg-[var(--card-2)] active:scale-[.97]"
+            className="flex flex-col items-center rounded-2xl bg-(--card) border border-(--stroke) px-2 py-3 gap-0.5 transition hover:bg-(--card-2) active:scale-[.97]"
           >
             <span className="text-lg leading-none mb-0.5" aria-hidden="true">📿</span>
             <span
@@ -1043,7 +1043,7 @@ export function InsightsPage() {
           <button
             type="button"
             onClick={() => navigate(quranLastRead ? `/mushaf?surah=${quranLastRead.surahId}&ayah=${quranLastRead.ayahIndex}` : "/quran")}
-            className="flex flex-col items-center rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-3 gap-0.5 transition hover:bg-[var(--card-2)] active:scale-[.97]"
+            className="flex flex-col items-center rounded-2xl bg-(--card) border border-(--stroke) px-2 py-3 gap-0.5 transition hover:bg-(--card-2) active:scale-[.97]"
           >
             <span className="text-lg leading-none mb-0.5" aria-hidden="true">📖</span>
             <span
@@ -1052,7 +1052,7 @@ export function InsightsPage() {
             >{arNum(todayQuranAyahs)}</span>
             <span className="text-[10px] opacity-50 mt-0.5">/ {arNum(quranGoal)} آية</span>
             <div
-              className="w-full h-1 rounded-full bg-[var(--card)] overflow-hidden mt-1.5"
+              className="w-full h-1 rounded-full bg-(--card) overflow-hidden mt-1.5"
               role="progressbar"
               aria-valuenow={Math.min(quranGoalPct, 100)}
               aria-valuemin={0}
@@ -1069,7 +1069,7 @@ export function InsightsPage() {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="flex flex-col items-center rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-3 gap-0.5 transition hover:bg-[var(--card-2)] active:scale-[.97]"
+            className="flex flex-col items-center rounded-2xl bg-(--card) border border-(--stroke) px-2 py-3 gap-0.5 transition hover:bg-(--card-2) active:scale-[.97]"
           >
             <span className="text-lg leading-none mb-0.5">✅</span>
             <span
@@ -1078,7 +1078,7 @@ export function InsightsPage() {
             >{arNum(checklistDoneCount)}<span className="text-sm opacity-40 font-normal">/{arNum(checklistTotal)}</span></span>
             <span className="text-[10px] opacity-50 mt-0.5">من القائمة</span>
             <div
-              className="w-full h-1 rounded-full bg-[var(--card)] overflow-hidden mt-1.5"
+              className="w-full h-1 rounded-full bg-(--card) overflow-hidden mt-1.5"
               role="progressbar"
               aria-valuenow={checklistDoneCount}
               aria-valuemin={0}
@@ -1107,15 +1107,15 @@ export function InsightsPage() {
       {/* Hero Streak Card */}
       <Card className="p-5 relative overflow-hidden">
         <div className={`absolute inset-0 opacity-10 pointer-events-none ${
-          streak >= 30 ? "bg-gradient-to-br from-orange-500 to-red-500" :
-          streak >= 7  ? "bg-gradient-to-br from-yellow-400 to-amber-500" :
-          streak >= 1  ? "bg-gradient-to-br from-[var(--accent)] to-blue-400" : ""
+          streak >= 30 ? "bg-linear-to-br from-orange-500 to-red-500" :
+          streak >= 7  ? "bg-linear-to-br from-yellow-400 to-amber-500" :
+          streak >= 1  ? "bg-linear-to-br from-(--accent) to-blue-400" : ""
         }`} />
 
         <div className="relative flex items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp size={16} className="text-[var(--accent)]" aria-hidden="true" />
+              <TrendingUp size={16} className="text-(--accent)" aria-hidden="true" />
               <div className="text-xs opacity-60">الإحصائيات</div>
             </div>
             <div className="text-3xl font-bold tabular-nums leading-none">
@@ -1126,7 +1126,7 @@ export function InsightsPage() {
           </div>
 
           {/* Flame badge */}
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl glass border border-[var(--stroke)] ${streak >= 1 ? "streak-fire" : "opacity-40"}`}>
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl glass border border-(--stroke) ${streak >= 1 ? "streak-fire" : "opacity-40"}`}>
             {streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : streak >= 1 ? "✨" : "🕯️"}
           </div>
         </div>
@@ -1169,7 +1169,7 @@ export function InsightsPage() {
       {/* 28-Day Heatmap — I1: with view toggle */}
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Flame size={16} className="text-[var(--accent)]" aria-hidden="true" />
+          <Flame size={16} className="text-(--accent)" aria-hidden="true" />
           <div className="font-semibold text-sm">نشاط الأذكار</div>
           <div className="mr-auto flex gap-1" role="group" aria-label="عرض بيانات النشاط">
             {([7, 28, 90] as const).map((v) => (
@@ -1180,8 +1180,8 @@ export function InsightsPage() {
                 aria-pressed={heatmapView === v}
                 className={`text-[10px] px-2 py-0.5 rounded-full border transition ${
                   heatmapView === v
-                    ? "border-accent-40 bg-accent-15 text-[var(--accent)]"
-                    : "border-[var(--stroke)] opacity-50"
+                    ? "border-accent-40 bg-accent-15 text-(--accent)"
+                    : "border-(--stroke) opacity-50"
                 }`}
               >
                 {v === 7 ? "٧ أيام" : v === 28 ? "٢٨ يومًا" : "٩٠ يومًا"}
@@ -1200,7 +1200,7 @@ export function InsightsPage() {
         )}
 
         {/* Weeks */}
-        <div className="space-y-1.5">
+        <div className="stack-y-1.5">
           {heatmap.map((week, wi) => (
             <div key={wi} className="grid grid-cols-7 gap-1.5">
               {week.map((cell) => {
@@ -1211,18 +1211,18 @@ export function InsightsPage() {
                 const q3 = Math.max(3, Math.ceil(maxCount * 0.75));
                 const heat = count === 0 ? 0 : count < q1 ? 1 : count < q2 ? 2 : count < q3 ? 3 : 4;
                 const bg =
-                  isFuture ? "bg-[var(--card)] opacity-30" :
-                  heat === 0 ? "bg-[var(--card)]" :
+                  isFuture ? "bg-(--card) opacity-30" :
+                  heat === 0 ? "bg-(--card)" :
                   heat === 1 ? "bg-accent-25" :
                   heat === 2 ? "bg-accent-50" :
                   heat === 3 ? "bg-accent-75" :
-                               "bg-[var(--accent)]";
+                               "bg-(--accent)";
                 return (
                   <div
                     key={cell.key}
                     title={`${cell.key}: ${count}`}
                     aria-label={isFuture ? cell.key : `${cell.key}: ${count} ${count === 1 ? "ذكر" : "أذكار"}`}
-                    className={`aspect-square rounded-md transition-colors ${bg} ${cell.isToday ? "ring-2 ring-[var(--accent)] ring-offset-1 ring-offset-transparent" : ""}`}
+                    className={`aspect-square rounded-md transition-colors ${bg} ${cell.isToday ? "ring-2 ring-(--accent) ring-offset-1 ring-offset-transparent" : ""}`}
                   />
                 );
               })}
@@ -1234,12 +1234,12 @@ export function InsightsPage() {
         <div className="mt-3 flex items-center gap-1.5 justify-end">
           <span className="text-[11px] opacity-55">أقل</span>
           {[0,1,2,3,4].map((h) => (
-            <div key={h} className={`w-3 h-3 rounded-sm ${
-              h === 0 ? "bg-[var(--card)]" :
+            <div key={h} className={`w-3 h-3 rounded-xs ${
+              h === 0 ? "bg-(--card)" :
               h === 1 ? "bg-accent-25" :
               h === 2 ? "bg-accent-50" :
               h === 3 ? "bg-accent-75" :
-                         "bg-[var(--accent)]"
+                         "bg-(--accent)"
             }`} />
           ))}
           <span className="text-[11px] opacity-55">أكثر</span>
@@ -1249,7 +1249,7 @@ export function InsightsPage() {
       {/* 7-day activity bar chart */}
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={16} className="text-[var(--accent)]" aria-hidden="true" />
+          <TrendingUp size={16} className="text-(--accent)" aria-hidden="true" />
           <div className="font-semibold text-sm">نشاط الأسبوع</div>
           <span className="text-[11px] opacity-50 mr-auto tabular-nums">{arNum(weekTotal)} إجمالي</span>
           {lastWeekTotal > 0 && (
@@ -1302,13 +1302,13 @@ export function InsightsPage() {
         <Card className="p-5">
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
-              <BookOpen size={16} className="text-[var(--accent)]" aria-hidden="true" />
+              <BookOpen size={16} className="text-(--accent)" aria-hidden="true" />
               <div className="font-semibold text-sm">إحصاءات القرآن</div>
             </div>
             <div className="flex items-center gap-1.5">
               {quranStreak > 0 && (
                 <div className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-xl bg-accent-10 border border-accent-20">
-                  <Flame size={11} className="text-[var(--accent)]" aria-hidden="true" />
+                  <Flame size={11} className="text-(--accent)" aria-hidden="true" />
                   <span className="tabular-nums">{arNum(quranStreak)} يوم</span>
                 </div>
               )}
@@ -1430,12 +1430,12 @@ export function InsightsPage() {
                 <Target size={11} aria-hidden="true" />
                 <span>هدف اليوم: {arNum(todayQuranAyahs)}/{arNum(quranGoal)} آية</span>
               </div>
-              <span className={`tabular-nums font-medium ${quranGoalPct >= 100 ? "text-[var(--ok)]" : ""}`}>
+              <span className={`tabular-nums font-medium ${quranGoalPct >= 100 ? "text-(--ok)" : ""}`}>
                 {arNum(quranGoalPct)}٪
               </span>
             </div>
             <div
-              className="h-2 rounded-full bg-[var(--card)] overflow-hidden"
+              className="h-2 rounded-full bg-(--card) overflow-hidden"
               role="progressbar"
               aria-valuenow={Math.min(quranGoalPct, 100)}
               aria-valuemin={0}
@@ -1610,7 +1610,7 @@ export function InsightsPage() {
                     return (
                       <div
                         key={d.key}
-                        className={`aspect-square rounded-sm ${d.isToday ? "ring-1 ring-[var(--accent)]" : ""}`}
+                        className={`aspect-square rounded-xs ${d.isToday ? "ring-1 ring-(--accent)" : ""}`}
                         style={{
                           background: d.count === 0 ? "var(--card)" : `color-mix(in srgb, var(--ok) ${Math.round(alpha * 100)}%, transparent)`,
                         }}
@@ -1622,7 +1622,7 @@ export function InsightsPage() {
                 <div className="flex items-center justify-end gap-1.5 mt-1.5 text-[9px] opacity-45">
                   <span>قليل</span>
                   {([0.15, 0.4, 0.65, 0.9] as number[]).map((a, i) => (
-                    <div key={i} className="w-3 h-3 rounded-sm" style={{ background: `color-mix(in srgb, var(--ok) ${Math.round(a * 100)}%, transparent)` }} />
+                    <div key={i} className="w-3 h-3 rounded-xs" style={{ background: `color-mix(in srgb, var(--ok) ${Math.round(a * 100)}%, transparent)` }} />
                   ))}
                   <span>كثير</span>
                 </div>
@@ -1636,10 +1636,10 @@ export function InsightsPage() {
       {topReadSurahs.length > 0 && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Trophy size={14} className="text-[var(--accent)]" aria-hidden="true" />
+            <Trophy size={14} className="text-(--accent)" aria-hidden="true" />
             <div className="font-semibold text-sm">أكثر سور قراءة</div>
           </div>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {topReadSurahs.map((s, i) => (
               <div key={s.id} className="flex items-center gap-2">
                 <span className="text-[11px] font-bold opacity-40 w-4 text-center tabular-nums">{arNum((i + 1))}</span>
@@ -1706,7 +1706,7 @@ export function InsightsPage() {
       {/* I2: Prayer consistency chart (28 days) */}
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Target size={14} className="text-[var(--accent)]" aria-hidden="true" />
+          <Target size={14} className="text-(--accent)" aria-hidden="true" />
           <div className="font-semibold text-sm">ثبات الصلاة</div>
           <span className="text-[11px] opacity-50 mr-auto tabular-nums">
             متوسط {arNum(parseFloat(prayerConsistencyAvg.toFixed(1)))} / ٥
@@ -1726,7 +1726,7 @@ export function InsightsPage() {
             <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
               {prayerConsistency.map((d) => {
                 const c =
-                  d.done === 0 ? "bg-[var(--card)]" :
+                  d.done === 0 ? "bg-(--card)" :
                   d.done <= 2 ? "bg-yellow-400/40" :
                   d.done <= 4 ? "bg-orange-400/60" :
                                 "bg-ok-70";
@@ -1734,16 +1734,16 @@ export function InsightsPage() {
                   <div
                     key={d.key}
                     title={`${d.key}: ${d.done}/5 صلوات`}
-                    className={`aspect-square rounded-sm ${c} ${d.isToday ? "ring-2 ring-[var(--accent)]" : ""}`}
+                    className={`aspect-square rounded-xs ${c} ${d.isToday ? "ring-2 ring-(--accent)" : ""}`}
                   />
                 );
               })}
             </div>
             <div className="mt-2 flex items-center gap-2 justify-end text-[10px] opacity-55 flex-wrap">
-              <div className="w-3 h-3 rounded-sm bg-[var(--card)]" /><span>٠</span>
-              <div className="w-3 h-3 rounded-sm bg-yellow-400/40" /><span>١-٢</span>
-              <div className="w-3 h-3 rounded-sm bg-orange-400/60" /><span>٣-٤</span>
-              <div className="w-3 h-3 rounded-sm bg-ok-70" /><span>٥ كاملة</span>
+              <div className="w-3 h-3 rounded-xs bg-(--card)" /><span>٠</span>
+              <div className="w-3 h-3 rounded-xs bg-yellow-400/40" /><span>١-٢</span>
+              <div className="w-3 h-3 rounded-xs bg-orange-400/60" /><span>٣-٤</span>
+              <div className="w-3 h-3 rounded-xs bg-ok-70" /><span>٥ كاملة</span>
             </div>
           </>
         )}
@@ -1753,7 +1753,7 @@ export function InsightsPage() {
       {quranPageLast7Days.some((d) => d.pages > 0) && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <BookOpen size={14} className="text-[var(--accent)]" aria-hidden="true" />
+            <BookOpen size={14} className="text-(--accent)" aria-hidden="true" />
             <div className="font-semibold text-sm">صفحات القرآن (7 أيام)</div>
             <span className="text-[11px] opacity-50 mr-auto tabular-nums">
               {arNum(parseFloat(quranPageLast7Days.reduce((s, d) => s + d.pages, 0).toFixed(1)))} صفحة
@@ -1791,12 +1791,12 @@ export function InsightsPage() {
       {radarValues.length >= 3 && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <BarChart2 size={14} className="text-[var(--accent)]" aria-hidden="true" />
+            <BarChart2 size={14} className="text-(--accent)" aria-hidden="true" />
             <div className="font-semibold text-sm">مخطط الأقسام</div>
           </div>
           <div className="flex items-center justify-center gap-6 flex-wrap">
             <RadarChart values={radarValues} size={180} />
-            <div className="space-y-1.5">
+            <div className="stack-y-1.5">
               {radarValues.map((v) => (
                 <div key={v.label} className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: v.color }} />
@@ -1816,8 +1816,8 @@ export function InsightsPage() {
         <Card className="p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] flex items-center justify-center">
-                <FileDown size={16} aria-hidden="true" className="text-[var(--accent)]" />
+              <div className="w-9 h-9 rounded-2xl border border-(--stroke) bg-(--card) flex items-center justify-center">
+                <FileDown size={16} aria-hidden="true" className="text-(--accent)" />
               </div>
               <div>
                 <div className="text-sm font-semibold">تصدير الإحصاءات</div>
@@ -1837,9 +1837,9 @@ export function InsightsPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className={`w-9 h-9 rounded-2xl border flex items-center justify-center ${
-              notifPermission === "granted" ? "border-ok-30 bg-ok-10" : "border-[var(--stroke)] bg-[var(--card)]"
+              notifPermission === "granted" ? "border-ok-30 bg-ok-10" : "border-(--stroke) bg-(--card)"
             }`}>
-              {notifPermission === "granted" ? <Bell size={15} aria-hidden="true" className="text-[var(--ok)]" /> : <BellOff size={15} aria-hidden="true" className="opacity-50" />}
+              {notifPermission === "granted" ? <Bell size={15} aria-hidden="true" className="text-(--ok)" /> : <BellOff size={15} aria-hidden="true" className="opacity-50" />}
             </div>
             <div>
               <div className="text-sm font-semibold">التقرير الأسبوعي</div>
@@ -1877,12 +1877,12 @@ export function InsightsPage() {
           </span>
         </div>
         {nextMilestone ? (
-          <div className="mb-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 flex items-center justify-between gap-3">
+          <div className="mb-4 rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="text-[11px] opacity-55">الشارة القادمة</div>
               <div className="mt-1 text-sm font-semibold truncate">{nextMilestone.label}</div>
             </div>
-            <span className="shrink-0 rounded-2xl border border-accent-20 bg-accent-10 px-3 py-1.5 text-xs font-semibold tabular-nums text-[var(--accent)]">
+            <span className="shrink-0 rounded-2xl border border-accent-20 bg-accent-10 px-3 py-1.5 text-xs font-semibold tabular-nums text-(--accent)">
               {arNum(Math.max(0, nextMilestone.req - (nextMilestone.type === "total" ? total : streak)))}
               {nextMilestone.type === "total" ? " ذكر" : " يوم"}
             </span>
@@ -1897,7 +1897,7 @@ export function InsightsPage() {
                 "flex flex-col items-center gap-1 py-3 rounded-2xl border transition-all",
                 m.unlocked
                   ? "border-accent-35 bg-accent-10"
-                  : "border-[var(--stroke)] bg-[var(--card)] opacity-40 grayscale",
+                  : "border-(--stroke) bg-(--card) opacity-40 grayscale",
               ].join(" ")}
               aria-label={m.unlocked ? `${m.label} — مفتوح — ${m.type === "total" ? `${arNum(m.req)} ذكر` : `${arNum(m.req)} يوم سلسلة`}` : `${m.label} — يتطلب ${m.type === "total" ? `${arNum(m.req)} ذكر` : `${arNum(m.req)} يوم متواصل`}`}
             >
@@ -1915,7 +1915,7 @@ export function InsightsPage() {
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-lg border ${isWirdDone ? "border-ok-30 bg-ok-10" : "border-[var(--stroke)] bg-[var(--card)]"}`}>
+            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-lg border ${isWirdDone ? "border-ok-30 bg-ok-10" : "border-(--stroke) bg-(--card)"}`}>
               {isWirdDone ? "✅" : "📖"}
             </div>
             <div>
@@ -1975,7 +1975,7 @@ export function InsightsPage() {
       {quranStats.started > 0 && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <BookOpen size={16} className="text-[var(--accent)]" aria-hidden="true" />
+            <BookOpen size={16} className="text-(--accent)" aria-hidden="true" />
             <div className="font-semibold text-sm">تقدّم الأجزاء (30 جزءًا)</div>
           </div>
           <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(6, 1fr)" }}>
@@ -2017,9 +2017,9 @@ export function InsightsPage() {
             })}
           </div>
           <div className="mt-3 flex items-center gap-2 justify-end text-[11px] opacity-55 flex-wrap">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "var(--card)" }} /><span>لم يبدأ</span>
-            <div className="w-3 h-3 rounded-sm" style={{ background: 'color-mix(in srgb, var(--accent) 50%, transparent)' }} /><span>جزئي</span>
-            <div className="w-3 h-3 rounded-sm" style={{ background: 'var(--ok)' }} /><span>مكتمل</span>
+            <div className="w-3 h-3 rounded-xs" style={{ background: "var(--card)" }} /><span>لم يبدأ</span>
+            <div className="w-3 h-3 rounded-xs" style={{ background: 'color-mix(in srgb, var(--accent) 50%, transparent)' }} /><span>جزئي</span>
+            <div className="w-3 h-3 rounded-xs" style={{ background: 'var(--ok)' }} /><span>مكتمل</span>
           </div>
         </Card>
       )}
@@ -2030,7 +2030,7 @@ export function InsightsPage() {
         <Card className="p-5">
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
-              <BookOpen size={16} className="text-[var(--accent)]" aria-hidden="true" />
+              <BookOpen size={16} className="text-(--accent)" aria-hidden="true" />
               <div className="font-semibold text-sm">خريطة ختمة القرآن</div>
             </div>
             <Button variant="secondary" onClick={shareQuranProgress} disabled={quranSharing}>
@@ -2053,7 +2053,7 @@ export function InsightsPage() {
                 <div
                   key={sId}
                   title={`سورة ${arNum(sId)}: ${arNum(cpct)}٪`}
-                  className="aspect-square rounded-sm transition-colors"
+                  className="aspect-square rounded-xs transition-colors"
                   style={{
                     background:
                       cpct === 0
@@ -2068,11 +2068,11 @@ export function InsightsPage() {
           </div>
 
           <div className="mt-3 flex items-center gap-2 justify-end text-[11px] opacity-60 flex-wrap">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "var(--card)" }} />
+            <div className="w-3 h-3 rounded-xs" style={{ background: "var(--card)" }} />
             <span>لم يُقرأ</span>
-            <div className="w-3 h-3 rounded-sm" style={{ background: "color-mix(in srgb, var(--accent) 50%, transparent)" }} />
+            <div className="w-3 h-3 rounded-xs" style={{ background: "color-mix(in srgb, var(--accent) 50%, transparent)" }} />
             <span>جزئي</span>
-            <div className="w-3 h-3 rounded-sm" style={{ background: "var(--ok)" }} />
+            <div className="w-3 h-3 rounded-xs" style={{ background: "var(--ok)" }} />
             <span>مكتمل</span>
           </div>
           <div className="mt-2 flex items-center gap-4 text-xs opacity-55 flex-wrap">
@@ -2091,10 +2091,10 @@ export function InsightsPage() {
       {sectionProgress.length > 0 && (
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-3">
-            <BarChart2 size={14} className="text-[var(--accent)]" aria-hidden="true" />
+            <BarChart2 size={14} className="text-(--accent)" aria-hidden="true" />
             <div className="text-xs font-semibold opacity-65">تقدم الأقسام</div>
           </div>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {sectionProgress.map((s) => (
               <div key={s.id} className="flex items-center gap-2">
                 <span className="text-sm w-5 text-center shrink-0">{s.icon}</span>
@@ -2104,7 +2104,7 @@ export function InsightsPage() {
                     <span className="text-[10px] tabular-nums opacity-50 shrink-0">{arNum(s.pctVal)}٪</span>
                   </div>
                   <div
-                    className="h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+                    className="h-1.5 rounded-full bg-(--card) overflow-hidden"
                     role="progressbar"
                     aria-valuenow={s.pctVal}
                     aria-valuemin={0}
@@ -2129,12 +2129,12 @@ export function InsightsPage() {
 
 function MiniStatSmall(props: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`glass rounded-2xl p-2.5 border text-center ${props.accent ? "border-accent-30 bg-accent-8" : "border-[var(--stroke)]"}`}>
+    <div className={`glass rounded-2xl p-2.5 border text-center ${props.accent ? "border-accent-30 bg-accent-8" : "border-(--stroke)"}`}>
       {/* Two-line wrap, not truncate: "أفضل يوم" vs "أفضل سلسلة" both clip to
           the identical "أفضل…" when cut off, making adjacent stat cards
           indistinguishable at a glance. */}
-      <div className="text-[10px] leading-tight opacity-55 break-words">{props.label}</div>
-      <div className={`text-sm font-bold mt-0.5 tabular-nums ${props.accent ? "text-[var(--accent)]" : ""}`}>{props.value}</div>
+      <div className="text-[10px] leading-tight opacity-55 wrap-break-word">{props.label}</div>
+      <div className={`text-sm font-bold mt-0.5 tabular-nums ${props.accent ? "text-(--accent)" : ""}`}>{props.value}</div>
     </div>
   );
 }

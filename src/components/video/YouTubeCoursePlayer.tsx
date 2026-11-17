@@ -287,7 +287,7 @@ export function YouTubeCoursePlayer({
                         countdownRef.current = null;
                         setNextCountdown(null);
                       }}
-                      className="flex-1 rounded-2xl py-2 text-sm font-bold bg-[var(--card)] press-effect"
+                      className="flex-1 rounded-2xl py-2 text-sm font-bold bg-(--card) press-effect"
                     >
                       إلغاء
                     </button>
@@ -330,7 +330,7 @@ export function YouTubeCoursePlayer({
                 </div>
               )}
               {course && (
-                <div className="h-5 px-2 rounded-lg text-[10px] bg-[var(--card)] border border-[var(--stroke)] flex items-center shrink-0 truncate max-w-[130px]">
+                <div className="h-5 px-2 rounded-lg text-[10px] bg-(--card) border border-(--stroke) flex items-center shrink-0 truncate max-w-[130px]">
                   {course.title}
                 </div>
               )}
@@ -346,7 +346,7 @@ export function YouTubeCoursePlayer({
               type="button"
               onClick={onClose}
               aria-label="إغلاق مشغل الفيديو"
-              className="w-7 h-7 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center shrink-0 press-effect hover:bg-[var(--card-2)] transition-colors"
+              className="w-7 h-7 rounded-xl bg-(--card) border border-(--stroke) flex items-center justify-center shrink-0 press-effect hover:bg-(--card-2) transition-colors"
             >
               <ArrowRight size={13} aria-hidden="true" />
             </button>
@@ -360,7 +360,7 @@ export function YouTubeCoursePlayer({
           {/* Progress timeline */}
           <div className="mb-3" dir="ltr">
             <div
-              className="relative h-2 rounded-full bg-[var(--card)] overflow-hidden mb-1.5"
+              className="relative h-2 rounded-full bg-(--card) overflow-hidden mb-1.5"
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={100}
@@ -416,7 +416,7 @@ export function YouTubeCoursePlayer({
             <button
               type="button"
               onClick={shareVideo}
-              className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[var(--card)] border border-[var(--stroke)] press-effect hover:bg-[var(--card-2)] transition-colors"
+              className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-(--card) border border-(--stroke) press-effect hover:bg-(--card-2) transition-colors"
             >
               <Share2 size={14} />
               <span>مشاركة</span>
@@ -426,7 +426,7 @@ export function YouTubeCoursePlayer({
               <button
                 type="button"
                 onClick={onPrev}
-                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[var(--card)] border border-[var(--stroke)] press-effect hover:bg-[var(--card-2)] transition-colors"
+                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-(--card) border border-(--stroke) press-effect hover:bg-(--card-2) transition-colors"
               >
                 <SkipBack size={14} aria-hidden="true" />
                 <span>السابق</span>
@@ -447,7 +447,7 @@ export function YouTubeCoursePlayer({
                 href={video.youtubeUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[var(--card)] border border-[var(--stroke)] press-effect hover:bg-[var(--card-2)] transition-colors"
+                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-(--card) border border-(--stroke) press-effect hover:bg-(--card-2) transition-colors"
               >
                 <ExternalLink size={13} aria-hidden="true" />
                 <span>يوتيوب</span>

@@ -590,7 +590,7 @@ export function DhikrList(props: Readonly<{
       {createPortal(
         <div
           className={[
-            "fixed left-3 right-3 z-[100] flex items-center gap-3",
+            "fixed left-3 right-3 z-100 flex items-center gap-3",
             "rounded-2xl px-4 py-2.5",
             "dhikr-progress-pill",
             "transition-all duration-300 ease-out",
@@ -626,13 +626,13 @@ export function DhikrList(props: Readonly<{
         document.body
       )}
 
-      <div className="relative z-[1] space-y-4">
+      <div className="relative z-1 stack-y-4">
       <div ref={headerCardRef}>
       <Card className="p-5 overflow-hidden relative">
         <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
         {/* Color identity gradient overlay */}
         <div
-          className={`absolute inset-0 bg-gradient-to-bl ${identity.grad} pointer-events-none opacity-55`}
+          className={`absolute inset-0 bg-linear-to-bl ${identity.grad} pointer-events-none opacity-55`}
           style={{ borderRadius: "inherit" }}
         />
         <div className="relative">
@@ -655,7 +655,7 @@ export function DhikrList(props: Readonly<{
                     {weeklyStats.bars.map((v, i) => (
                       <div
                         key={i}
-                        className="w-[5px] rounded-sm transition-all"
+                        className="w-[5px] rounded-xs transition-all"
                         style={{
                           height: v ? "12px" : "5px",
                           background: v ? identity.accent : "var(--card-2)",
@@ -700,7 +700,7 @@ export function DhikrList(props: Readonly<{
                   <>
                     <Button
                       variant="outline"
-                      className="border-danger-40 text-[var(--danger)] hover:bg-danger-10 shrink-0"
+                      className="border-danger-40 text-(--danger) hover:bg-danger-10 shrink-0"
                       onClick={() => { resetSection(props.sectionId); setConfirmReset(false); }}
                     >
                       <RotateCcw size={16} aria-hidden="true" />
@@ -725,7 +725,7 @@ export function DhikrList(props: Readonly<{
                   <>
                     <Button
                       variant="outline"
-                      className="border-ok-40 text-[var(--ok)] hover:bg-ok-10 shrink-0"
+                      className="border-ok-40 text-(--ok) hover:bg-ok-10 shrink-0"
                       onClick={markAllDone}
                     >
                       <CheckCheck size={16} aria-hidden="true" />
@@ -806,7 +806,7 @@ export function DhikrList(props: Readonly<{
                     <Select
                       value={autoReadSpeed}
                       onChange={(e) => setAutoReadSpeed(Number(e.target.value))}
-                      className="shrink-0 h-9 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-2 text-xs outline-none"
+                      className="shrink-0 h-9 rounded-xl border border-(--stroke) bg-(--card) px-2 text-xs outline-hidden"
                       aria-label="سرعة القراءة التلقائية"
                     >
                       <option value={3}>٣ ثانية</option>
@@ -834,7 +834,7 @@ export function DhikrList(props: Readonly<{
                     <>
                       <Button
                         variant="outline"
-                        className="border-danger-40 text-[var(--danger)] hover:bg-danger-10 shrink-0"
+                        className="border-danger-40 text-(--danger) hover:bg-danger-10 shrink-0"
                         onClick={() => { props.onDeleteCategory!(); }}
                       >
                         <Trash2 size={14} />
@@ -847,7 +847,7 @@ export function DhikrList(props: Readonly<{
                   ) : (
                     <Button
                       variant="outline"
-                      className="border-danger-40 text-[var(--danger)] hover:bg-danger-10 shrink-0"
+                      className="border-danger-40 text-(--danger) hover:bg-danger-10 shrink-0"
                       onClick={() => setConfirmDeleteCategory(true)}
                     >
                       <Trash2 size={14} />
@@ -871,7 +871,7 @@ export function DhikrList(props: Readonly<{
 
       <div className={["dhikr-scroll-area", compact ? "dhikr-compact" : ""].join(" ")}>
         {stats.percent >= 100 && (
-          <div className="mb-3 space-y-2">
+          <div className="mb-3 stack-y-2">
             <div className="rounded-3xl border border-ok-30 bg-ok-10 px-5 py-4 flex items-center gap-3">
               <span className="text-2xl">✅</span>
               <div>
@@ -891,7 +891,7 @@ export function DhikrList(props: Readonly<{
                     <button type="button"
                       key={s.id}
                       onClick={() => navigate(`/c/${s.id}`)}
-                      className="flex-none flex items-center gap-2 px-3 py-2 rounded-2xl glass border border-[var(--stroke)] text-right press-effect min-h-[44px] min-w-max"
+                      className="flex-none flex items-center gap-2 px-3 py-2 rounded-2xl glass border border-(--stroke) text-right press-effect min-h-[44px] min-w-max"
                     >
                       <span className="text-lg leading-none">{sid.icon}</span>
                       <div>
@@ -906,7 +906,7 @@ export function DhikrList(props: Readonly<{
           </div>
         )}
         {props.items.length === 0 && isMyAdhkarSection ? (
-          <div className="min-h-[40dvh] rounded-3xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center p-6 text-center">
+          <div className="min-h-[40dvh] rounded-3xl border border-(--stroke) bg-(--card) grid place-items-center p-6 text-center">
             <div>
               <div className="text-3xl mb-3">✦</div>
               <div className="font-semibold">أذكاري</div>
@@ -925,13 +925,13 @@ export function DhikrList(props: Readonly<{
                 className="pb-4"
               >
                 {reorderMode ? (
-                  <div className="mb-2 flex items-center justify-between gap-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2">
+                  <div className="mb-2 flex items-center justify-between gap-2 rounded-2xl border border-(--stroke) bg-(--card) px-3 py-2">
                     <div className="text-xs tabular-nums opacity-65">{displayIndex + 1}</div>
                     <div className="flex items-center gap-1.5">
                       <button type="button"
                         onClick={() => moveSectionItem(props.sectionId, displayIndex, displayIndex - 1, props.items.length)}
                         disabled={displayIndex === 0}
-                        className="h-9 w-9 rounded-xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center disabled:opacity-30"
+                        className="h-9 w-9 rounded-xl border border-(--stroke) bg-(--card) grid place-items-center disabled:opacity-30"
                         aria-label="رفع الذكر"
                 
                       >
@@ -940,7 +940,7 @@ export function DhikrList(props: Readonly<{
                       <button type="button"
                         onClick={() => moveSectionItem(props.sectionId, displayIndex, displayIndex + 1, props.items.length)}
                         disabled={displayIndex >= orderedEntries.length - 1}
-                        className="h-9 w-9 rounded-xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center disabled:opacity-30"
+                        className="h-9 w-9 rounded-xl border border-(--stroke) bg-(--card) grid place-items-center disabled:opacity-30"
                         aria-label="خفض الذكر"
                 
                       >
@@ -955,13 +955,13 @@ export function DhikrList(props: Readonly<{
                       <>
                         <button type="button"
                           onClick={() => setDeletingItemIdx(null)}
-                          className="h-9 px-3 rounded-xl text-xs bg-[var(--card)] border border-[var(--stroke)] opacity-70 hover:opacity-100 active:opacity-100 transition"
+                          className="h-9 px-3 rounded-xl text-xs bg-(--card) border border-(--stroke) opacity-70 hover:opacity-100 active:opacity-100 transition"
                         >
                           إلغاء
                         </button>
                         <button type="button"
                           onClick={() => { handleDeleteItem(entry.originalIndex); setDeletingItemIdx(null); }}
-                          className="h-9 px-3 rounded-xl text-xs bg-danger-15 text-[var(--danger)] border border-danger-30 hover:bg-danger-20 active:bg-danger-20 transition font-medium"
+                          className="h-9 px-3 rounded-xl text-xs bg-danger-15 text-(--danger) border border-danger-30 hover:bg-danger-20 active:bg-danger-20 transition font-medium"
                         >
                           تأكيد الحذف
                         </button>
@@ -983,7 +983,7 @@ export function DhikrList(props: Readonly<{
                         </button>
                         <button type="button"
                           onClick={() => setDeletingItemIdx(entry.originalIndex)}
-                          className="h-9 px-3 rounded-xl text-xs flex items-center gap-1.5 bg-danger-8 text-[var(--danger)] border border-danger-20 hover:bg-danger-15 active:bg-danger-15 transition"
+                          className="h-9 px-3 rounded-xl text-xs flex items-center gap-1.5 bg-danger-8 text-(--danger) border border-danger-20 hover:bg-danger-15 active:bg-danger-15 transition"
                           aria-label="حذف الذكر"
                         >
                           <Trash2 size={12} />
@@ -1025,7 +1025,7 @@ export function DhikrList(props: Readonly<{
             <button type="button"
               onClick={() => { setEditingItemIdx(null); setCustomText(""); setCustomCount("1"); setCustomBenefit(""); setAddOpen(true); }}
               aria-label="إضافة ذكر"
-              className="fixed right-4 z-[9991] h-14 w-14 rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] shadow-2xl grid place-items-center active:scale-95 transition"
+              className="fixed right-4 z-9991 h-14 w-14 rounded-2xl bg-(--accent) text-(--on-accent) shadow-2xl grid place-items-center active:scale-95 transition"
               style={{ bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--mobile-fab-size) + var(--mobile-fab-gap) + var(--sab))" }}
             >
               <Plus size={22} aria-hidden="true" />
@@ -1033,11 +1033,11 @@ export function DhikrList(props: Readonly<{
           )
         ) : null}
         {addOpen ? (
-          <div className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-10000 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
             <button type="button" className="absolute inset-0" aria-label="إغلاق" onClick={() => { setAddOpen(false); setEditingItemIdx(null); }} />
-            <div ref={editSheetRef} className="relative z-10 glass-strong w-full max-w-lg max-h-[86dvh] rounded-3xl border border-[var(--stroke)] overflow-auto shadow-2xl" dir="rtl" role="dialog" aria-modal="true" aria-label={editingItemIdx !== null ? "تعديل ذكر" : "إضافة ذكر"}>
+            <div ref={editSheetRef} className="relative z-10 glass-strong w-full max-w-lg max-h-[86dvh] rounded-3xl border border-(--stroke) overflow-auto shadow-2xl" dir="rtl" role="dialog" aria-modal="true" aria-label={editingItemIdx !== null ? "تعديل ذكر" : "إضافة ذكر"}>
               {/* Drag handle */}
-              <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 rounded-full bg-[var(--stroke)]" /></div>
+              <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 rounded-full bg-(--stroke)" /></div>
               <div className="px-5 pb-5 pb-safe">
                 {/* Header */}
                 <div className="flex items-center justify-between gap-3 mb-4">
@@ -1050,7 +1050,7 @@ export function DhikrList(props: Readonly<{
                   </div>
                   <button type="button"
                     onClick={() => { setAddOpen(false); setEditingItemIdx(null); }}
-                    className="h-9 w-9 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center hover:bg-[var(--card-2)] transition"
+                    className="h-9 w-9 rounded-2xl bg-(--card) border border-(--stroke) grid place-items-center hover:bg-(--card-2) transition"
                     aria-label="إغلاق"
                   >
                     <X size={15} aria-hidden="true" />
@@ -1063,7 +1063,7 @@ export function DhikrList(props: Readonly<{
                   <div className="flex items-center gap-2">
                     <button type="button"
                       onClick={() => setCustomCount((v) => String(Math.max(1, parseInt(v, 10) - 1 || 1)))}
-                      className="h-8 w-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center hover:bg-[var(--card-2)] transition text-sm"
+                      className="h-8 w-8 rounded-xl bg-(--card) border border-(--stroke) grid place-items-center hover:bg-(--card-2) transition text-sm"
                       aria-label="تقليل العدد"
                     >−</button>
                     <input
@@ -1073,12 +1073,12 @@ export function DhikrList(props: Readonly<{
                       value={customCount}
                       onChange={(e) => setCustomCount(e.target.value)}
                       inputMode="numeric"
-                      className="w-16 h-8 px-2 rounded-xl bg-[var(--card)] border border-[var(--stroke)] text-center text-sm outline-none focus:border-[var(--accent)]"
+                      className="w-16 h-8 px-2 rounded-xl bg-(--card) border border-(--stroke) text-center text-sm outline-hidden focus:border-(--accent)"
                       aria-label="عدد التكرار"
                     />
                     <button type="button"
                       onClick={() => setCustomCount((v) => String(Math.min(9999, parseInt(v, 10) + 1 || 1)))}
-                      className="h-8 w-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center hover:bg-[var(--card-2)] transition text-sm"
+                      className="h-8 w-8 rounded-xl bg-(--card) border border-(--stroke) grid place-items-center hover:bg-(--card-2) transition text-sm"
                       aria-label="زيادة العدد"
                     >+</button>
                   </div>
@@ -1094,7 +1094,7 @@ export function DhikrList(props: Readonly<{
                   dir="rtl"
                   spellCheck={false}
                   rows={4}
-                  className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm leading-7 outline-none focus:border-[var(--accent)] resize-none transition"
+                  className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm leading-7 outline-hidden focus:border-(--accent) resize-none transition"
                 />
                 <div className="flex justify-end mt-0.5 mb-3">
                   <span className="text-[10px] opacity-35 tabular-nums">{customText.length} حرف</span>
@@ -1130,7 +1130,7 @@ export function DhikrList(props: Readonly<{
             style={{ bottom: "calc(var(--dhikr-fixed-bottom, 26px) + 48px + 8px)" }}
             className={[
               "fixed left-4 z-40",
-              "w-11 h-11 rounded-2xl glass-strong border border-[var(--stroke)] shadow-xl",
+              "w-11 h-11 rounded-2xl glass-strong border border-(--stroke) shadow-xl",
               "flex items-center justify-center transition-all duration-200",
               "hover:scale-105 active:scale-95",
             ].join(" ")}
@@ -1145,7 +1145,7 @@ export function DhikrList(props: Readonly<{
             style={{ bottom: "var(--dhikr-fixed-bottom, 26px)" }}
             className={[
               "fixed left-1/2 -translate-x-1/2 z-50",
-              "px-5 py-2.5 rounded-2xl glass-strong border border-[var(--stroke)] shadow-2xl",
+              "px-5 py-2.5 rounded-2xl glass-strong border border-(--stroke) shadow-2xl",
               "flex items-center gap-2 text-sm font-medium transition-all duration-200",
               "hover:scale-105 active:scale-95 focus-mode-exit",
             ].join(" ")}
@@ -1162,18 +1162,18 @@ export function DhikrList(props: Readonly<{
           {nextSection ? (
             <button type="button"
               onClick={() => navigate(`/c/${nextSection.id}`)}
-              className="flex items-start gap-2 px-3 py-2.5 rounded-2xl glass border border-[var(--stroke)] press-effect text-sm min-h-[44px] flex-1 justify-start text-right"
+              className="flex items-start gap-2 px-3 py-2.5 rounded-2xl glass border border-(--stroke) press-effect text-sm min-h-[44px] flex-1 justify-start text-right"
             >
               <ChevronRight size={16} aria-hidden="true" className="opacity-60 shrink-0" />
-              <span className="min-w-0 text-xs opacity-65 leading-snug whitespace-normal break-words">{nextSection.title}</span>
+              <span className="min-w-0 text-xs opacity-65 leading-snug whitespace-normal wrap-break-word">{nextSection.title}</span>
             </button>
           ) : <div className="flex-1" />}
           {prevSection ? (
             <button type="button"
               onClick={() => navigate(`/c/${prevSection.id}`)}
-              className="flex items-start gap-2 px-3 py-2.5 rounded-2xl glass border border-[var(--stroke)] press-effect text-sm min-h-[44px] flex-1 justify-end text-right"
+              className="flex items-start gap-2 px-3 py-2.5 rounded-2xl glass border border-(--stroke) press-effect text-sm min-h-[44px] flex-1 justify-end text-right"
             >
-              <span className="min-w-0 text-xs opacity-65 leading-snug whitespace-normal break-words">{prevSection.title}</span>
+              <span className="min-w-0 text-xs opacity-65 leading-snug whitespace-normal wrap-break-word">{prevSection.title}</span>
               <ChevronLeft size={16} aria-hidden="true" className="opacity-60 shrink-0" />
             </button>
           ) : <div className="flex-1" />}

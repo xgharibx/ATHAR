@@ -168,7 +168,7 @@ export function OnboardingFlow() {
 
           <button type="button"
             autoFocus
-            className="w-full mt-5 py-3.5 px-4 rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] font-semibold text-sm leading-snug whitespace-normal arabic-text disabled:opacity-60 transition"
+            className="w-full mt-5 py-3.5 px-4 rounded-2xl bg-(--accent) text-(--on-accent) font-semibold text-sm leading-snug whitespace-normal arabic-text disabled:opacity-60 transition"
             onClick={handleAction}
             disabled={loading}
           >

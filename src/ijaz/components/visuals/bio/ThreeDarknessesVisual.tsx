@@ -16,7 +16,7 @@ export default function ThreeDarknessesVisual({ className }: MiracleVisualProps)
   ];
 
   return (
-    <div className={`relative w-full h-full overflow-hidden bg-gradient-to-b from-[#030305] to-[#080812] flex items-center justify-center ${className || ''}`}>
+    <div className={`relative w-full h-full overflow-hidden bg-linear-to-b from-[#030305] to-[#080812] flex items-center justify-center ${className || ''}`}>
       {/* Radiating subtle light from center */}
       <motion.div
         animate={{ opacity: [0.05, 0.12, 0.05] }}

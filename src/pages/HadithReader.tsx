@@ -291,10 +291,10 @@ export function HadithReaderPage() {
           <div className="relative flex items-start gap-3 pr-2">
             <button type="button"
               onClick={() => navigate(-1)}
-              className="h-11 w-11 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] shrink-0"
+              className="h-11 w-11 rounded-2xl border border-(--stroke) bg-(--card) grid place-items-center transition hover:bg-(--card-2) shrink-0"
               aria-label="رجوع"
             >
-              <ArrowRight size={19} aria-hidden="true" className="text-[var(--fg)]" />
+              <ArrowRight size={19} aria-hidden="true" className="text-(--fg)" />
             </button>
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2 flex-wrap">
@@ -304,12 +304,12 @@ export function HadithReaderPage() {
                   ح {Number.isFinite(n) ? arNum(n) : "—"}
                 </span>
               </div>
-              <h1 className="font-bold text-base text-[var(--fg)] font-arabic truncate">
+              <h1 className="font-bold text-base text-(--fg) font-arabic truncate">
                 {meta?.title ?? bookKey}
               </h1>
-              {sectionTitle && <p className="mt-1 text-[11px] text-[var(--muted)] truncate">{sectionTitle}</p>}
+              {sectionTitle && <p className="mt-1 text-[11px] text-(--muted) truncate">{sectionTitle}</p>}
             </div>
-            {isLoading && <Loader2 size={16} aria-hidden="true" className="animate-spin text-[var(--muted)] shrink-0" />}
+            {isLoading && <Loader2 size={16} aria-hidden="true" className="animate-spin text-(--muted) shrink-0" />}
           </div>
 
           {/* Action buttons */}
@@ -327,8 +327,8 @@ export function HadithReaderPage() {
             <IconButton aria-label="حفظ" aria-pressed={isBookmarked} onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}>
               <Bookmark size={18} aria-hidden="true" className={isBookmarked ? "fill-current" : ""} style={{ color: isBookmarked ? accentColor : "var(--muted)" }} />
             </IconButton>
-            <IconButton aria-label="نسخ" onClick={copyText}><Copy size={16} aria-hidden="true" className="text-[var(--muted)]" /></IconButton>
-            <IconButton aria-label="مشاركة" onClick={shareText}><Share2 size={16} aria-hidden="true" className="text-[var(--muted)]" /></IconButton>
+            <IconButton aria-label="نسخ" onClick={copyText}><Copy size={16} aria-hidden="true" className="text-(--muted)" /></IconButton>
+            <IconButton aria-label="مشاركة" onClick={shareText}><Share2 size={16} aria-hidden="true" className="text-(--muted)" /></IconButton>
             <IconButton aria-label="ملاحظة" aria-pressed={showNoteEditor} onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}>
               <StickyNote size={16} aria-hidden="true" className={existingNote ? "fill-current" : ""} style={{ color: existingNote ? accentColor : "var(--muted)" }} />
             </IconButton>
@@ -336,11 +336,11 @@ export function HadithReaderPage() {
         </Card>
       </div>
 
-      <main className="mx-auto w-full max-w-3xl px-3 py-4 space-y-4">
+      <main className="mx-auto w-full max-w-3xl px-3 py-4 stack-y-4">
         {/* Loading */}
         {isLoading && (
           <Card className="p-6" role="status" aria-live="polite" aria-atomic="true">
-            <div className="flex items-center justify-center gap-3 py-10 text-[var(--muted)]">
+            <div className="flex items-center justify-center gap-3 py-10 text-(--muted)">
               <Loader2 aria-hidden="true" className="animate-spin" />
               <span className="font-arabic text-sm">جاري التحميل…</span>
             </div>
@@ -350,14 +350,14 @@ export function HadithReaderPage() {
         {/* Not found */}
         {!isLoading && !hadith && (
           <Card className="p-6 text-center">
-            <p className="text-[var(--muted)] font-arabic py-6">
+            <p className="text-(--muted) font-arabic py-6">
               {isError ? "تعذّر تحميل كتاب الأحاديث" : "الحديث غير موجود"}
             </p>
             {isError && (
               <button
                 type="button"
                 onClick={() => void refetch()}
-                className="rounded-xl border border-[var(--stroke)] px-4 py-2 text-sm font-arabic text-[var(--accent)] transition hover:bg-[var(--card)]"
+                className="rounded-xl border border-(--stroke) px-4 py-2 text-sm font-arabic text-(--accent) transition hover:bg-(--card)"
               >
                 إعادة المحاولة
               </button>
@@ -416,7 +416,7 @@ export function HadithReaderPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm font-arabic text-[var(--fg)] opacity-65 leading-loose">
+                    <p className="text-sm font-arabic text-(--fg) opacity-65 leading-loose">
                       {hadithSplit.isnad}
                     </p>
                   )}
@@ -489,7 +489,7 @@ export function HadithReaderPage() {
                   <p className="text-[11px] font-semibold opacity-55 font-arabic">المتن</p>
                   <span className="h-2 w-16 rounded-full" style={{ background: accentColor }} />
                 </div>
-                <p dir="rtl" className="arabic-text font-bold text-[var(--fg)]"
+                <p dir="rtl" className="arabic-text font-bold text-(--fg)"
                   style={{ fontSize: `${(fontScale * 1.32).toFixed(3)}rem`, lineHeight: Math.max(lineHeight, 2) }}>
                   {hadithSplit.matn}
                 </p>
@@ -514,10 +514,10 @@ export function HadithReaderPage() {
 
         {/* Note editor */}
         {showNoteEditor && (
-          <Card className="p-4 space-y-3">
+          <Card className="p-4 stack-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold opacity-55">ملاحظتي</span>
-              <button type="button" onClick={() => setShowNoteEditor(false)} className="h-9 w-9 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center opacity-70 hover:opacity-100" aria-label="إغلاق">
+              <button type="button" onClick={() => setShowNoteEditor(false)} className="h-9 w-9 rounded-xl bg-(--card) border border-(--stroke) grid place-items-center opacity-70 hover:opacity-100" aria-label="إغلاق">
                 <X size={14} aria-hidden="true" />
               </button>
             </div>
@@ -528,7 +528,7 @@ export function HadithReaderPage() {
               placeholder="أضف ملاحظتك هنا…"
               aria-label="ملاحظة الحديث"
               rows={4}
-              className="w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 resize-none outline-none font-arabic text-sm leading-7 placeholder:opacity-40 focus:border-accent-40"
+              className="w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 resize-none outline-hidden font-arabic text-sm leading-7 placeholder:opacity-40 focus:border-accent-40"
               style={{ color: "var(--fg)" }}
               autoFocus
             />
@@ -536,7 +536,7 @@ export function HadithReaderPage() {
               {existingNote && (
                 <button type="button"
                   onClick={() => { bookKey && setHadithNote(bookKey, n, ""); setShowNoteEditor(false); }}
-                  className="text-xs px-3 py-2 rounded-xl bg-[var(--card)] border border-[var(--stroke)] opacity-70 hover:opacity-100 transition"
+                  className="text-xs px-3 py-2 rounded-xl bg-(--card) border border-(--stroke) opacity-70 hover:opacity-100 transition"
                 >
                   حذف
                 </button>
@@ -572,12 +572,12 @@ export function HadithReaderPage() {
                 disabled={!prevN}
                 aria-label="الحديث السابق"
                 onClick={() => prevN && navigate(`/hadith/${bookKey}/${prevN}`, { replace: true })}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition border border-[var(--stroke)] bg-[var(--card)] press-effect"
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition border border-(--stroke) bg-(--card) press-effect"
               >
                 <ChevronRight size={16} aria-hidden="true" />
                 السابق
               </button>
-              <div className="min-w-12 text-xs text-[var(--muted)] text-center tabular-nums" aria-live="polite" aria-atomic="true">
+              <div className="min-w-12 text-xs text-(--muted) text-center tabular-nums" aria-live="polite" aria-atomic="true">
                 {arNum(n)}
               </div>
               <button type="button"

@@ -213,13 +213,13 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
                 <item.icon size={18} strokeWidth={active ? 2.2 : 1.8} />
                 {item.path === "/quran" && khatmaDueToday && (
                   <span
-                    className="absolute -top-2 -right-2 w-[8px] h-[8px] rounded-full ring-2 ring-[var(--bg)]"
+                    className="absolute -top-2 -right-2 w-[8px] h-[8px] rounded-full ring-2 ring-(--bg)"
                     style={{ background: "var(--accent)" }}
                   />
                 )}
                 {item.path === "/" && todayCount > 0 && (
                   <span
-                    className="absolute -top-2 -right-3 min-w-[16px] h-[16px] rounded-full text-[9px] font-bold flex items-center justify-center px-1 leading-none text-[var(--on-accent)] tabular-nums ring-2 ring-[var(--bg)]"
+                    className="absolute -top-2 -right-3 min-w-[16px] h-[16px] rounded-full text-[9px] font-bold flex items-center justify-center px-1 leading-none text-(--on-accent) tabular-nums ring-2 ring-(--bg)"
                     style={{ background: "var(--accent)" }}
                   >
                     {todayCount > 99 ? "99+" : todayCount}

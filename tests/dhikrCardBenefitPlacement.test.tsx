@@ -54,7 +54,7 @@ describe("DhikrCard virtue and source placement", () => {
     );
 
     const countButton = html.match(/<button[^>]*aria-label="اضغط للعدّ[^>]*>/)?.[0];
-    expect(countButton).toContain("text-[var(--on-accent)]");
+    expect(countButton).toContain("text-(--on-accent)");
     expect(countButton).toContain('style="color:var(--on-accent, #000000)"');
   });
 

@@ -8,9 +8,9 @@ import type { MiracleVisualProps } from '../MiracleVisualRegistry';
 
 export default function BattleBadrVisual({ className }: MiracleVisualProps) {
   return (
-    <div className={`relative w-full h-full overflow-hidden bg-gradient-to-b from-[#0a0815] to-[#050508] flex flex-col items-center justify-center p-4 ${className || ''}`}>
+    <div className={`relative w-full h-full overflow-hidden bg-linear-to-b from-[#0a0815] to-[#050508] flex flex-col items-center justify-center p-4 ${className || ''}`}>
       {/* Desert atmosphere */}
-      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[#1a1008]/30 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-linear-to-t from-[#1a1008]/30 to-transparent" />
 
       {/* Title */}
       <motion.div
@@ -42,7 +42,7 @@ export default function BattleBadrVisual({ className }: MiracleVisualProps) {
             >
               313
             </motion.p>
-            <div className="mt-3 space-y-1 text-[10px] text-text-muted font-tajawal">
+            <div className="mt-3 stack-y-1 text-[10px] text-text-muted font-tajawal">
               <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22V3 M4 3c4-2 8 2 12 0v8c-4 2-8-2-12 0"/></svg><span>فرسان: 2</span></p>
               <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18c2 0 2-6 5-6s3 6 5 6 2-6 5-6 3 4 5 4 M2 18h18"/></svg><span>إبل: 70</span></p>
               <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5 M13 19l6-6 M16 16l4 4 M19 21l2-2"/></svg><span>سيوف قليلة</span></p>
@@ -67,7 +67,7 @@ export default function BattleBadrVisual({ className }: MiracleVisualProps) {
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.7, type: 'spring' }}
-          className="flex-shrink-0"
+          className="shrink-0"
         >
           <div className="w-12 h-12 rounded-full bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-center">
             <span className="font-amiri text-gold-primary text-sm font-bold">ضد</span>
@@ -91,7 +91,7 @@ export default function BattleBadrVisual({ className }: MiracleVisualProps) {
             >
               1000
             </motion.p>
-            <div className="mt-3 space-y-1 text-[10px] text-text-muted font-tajawal">
+            <div className="mt-3 stack-y-1 text-[10px] text-text-muted font-tajawal">
               <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22V3 M4 3c4-2 8 2 12 0v8c-4 2-8-2-12 0"/></svg><span>فرسان: 100</span></p>
               <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18c2 0 2-6 5-6s3 6 5 6 2-6 5-6 3 4 5 4 M2 18h18"/></svg><span>إبل: 700</span></p>
               <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5 M13 19l6-6 M16 16l4 4 M19 21l2-2"/></svg><span>تسليح كامل</span></p>

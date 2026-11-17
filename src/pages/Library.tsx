@@ -267,7 +267,7 @@ function LibraryHubView() {
   const sections = LIBRARY_SECTIONS.filter((section) => !section.featured);
 
   return (
-    <div className="space-y-4 page-enter" dir="rtl">
+    <div className="stack-y-4 page-enter" dir="rtl">
       <Card className="relative overflow-hidden p-5">
         <div className="pointer-events-none absolute inset-0 dhikr-card-stars opacity-45" aria-hidden="true" />
         <div
@@ -281,7 +281,7 @@ function LibraryHubView() {
           <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
-              <BookOpenText size={19} aria-hidden="true" className="text-[var(--accent)]" />
+              <BookOpenText size={19} aria-hidden="true" className="text-(--accent)" />
               <span className="text-xs opacity-60">مكتبة أثر</span>
             </div>
             <h1 className="text-xl font-bold">المكتبة الإسلامية</h1>

@@ -187,19 +187,19 @@ export function TasmeePage() {
         <span className="grid h-11 w-11 place-items-center rounded-2xl bg-accent-15 border border-accent-35 text-xl" aria-hidden="true">🎙️</span>
         <div>
           <h1 className="text-lg font-bold">التسميع</h1>
-          <p className="text-xs text-[var(--muted-2)]">أخفِ الآيات وسمِّع من حفظك — ثم قيّم نفسك بصدق</p>
+          <p className="text-xs text-(--muted-2)">أخفِ الآيات وسمِّع من حفظك — ثم قيّم نفسك بصدق</p>
         </div>
       </div>
 
       {/* Setup */}
       {!started ? (
-        <div className="mt-5 space-y-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4">
+        <div className="mt-5 stack-y-3 rounded-2xl border border-(--stroke) bg-(--card) p-4">
           <label className="block text-sm font-semibold" htmlFor="tasmee-surah">اختر السورة</label>
           <Select
             id="tasmee-surah"
             value={surahId}
             onChange={(e) => setSurahId(Number(e.target.value))}
-            className="form-field-readable w-full rounded-xl border border-[var(--stroke)] px-3 py-2.5 text-sm"
+            className="form-field-readable w-full rounded-xl border border-(--stroke) px-3 py-2.5 text-sm"
           >
             {(db ?? []).map((s) => (
               <option key={s.id} value={s.id}>
@@ -208,20 +208,20 @@ export function TasmeePage() {
             ))}
           </Select>
           {quranLoadFailed ? (
-            <div className="space-y-2" role="alert">
-              <p className="text-sm text-[var(--danger)]">تعذّر تحميل المصحف. أعد المحاولة للبدء.</p>
+            <div className="stack-y-2" role="alert">
+              <p className="text-sm text-(--danger)">تعذّر تحميل المصحف. أعد المحاولة للبدء.</p>
               <button type="button" onClick={() => void loadQuran()}
-                className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-black/80 transition active:scale-[0.99]">
+                className="w-full rounded-xl bg-(--accent) px-4 py-3 text-sm font-bold text-black/80 transition active:scale-[0.99]">
                 إعادة المحاولة
               </button>
             </div>
           ) : (
             <button type="button" onClick={startSession} disabled={!db}
-              className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-black/80 transition active:scale-[0.99] disabled:opacity-50">
+              className="w-full rounded-xl bg-(--accent) px-4 py-3 text-sm font-bold text-black/80 transition active:scale-[0.99] disabled:opacity-50">
               {db ? "ابدأ التسميع" : "جارٍ تحميل المصحف…"}
             </button>
           )}
-          <p className="text-[11px] leading-6 text-[var(--muted-2)]">
+          <p className="text-[11px] leading-6 text-(--muted-2)">
             {voiceSupported
               ? "🎙️ جهازك يدعم المتابعة الصوتية الحية (تجريبي): فعِّل الميكروفون أثناء الجلسة وستنكشف الكلمات كلما تلوتَها. يعتمد التعرف على خدمة المتصفح أو النظام وقد تُعالَج الأصوات خارج الجهاز؛ أثر لا يحفظ تسجيلات صوتية."
               : "المتابعة الصوتية غير متاحة على هذا الجهاز — وضع الكشف اليدوي يعمل بشكل كامل."}
@@ -231,20 +231,20 @@ export function TasmeePage() {
 
       {/* Session */}
       {started && !finished && surah ? (
-        <div className="mt-5 space-y-4">
-          <div className="flex items-center justify-between text-xs text-[var(--muted)]">
+        <div className="mt-5 stack-y-4">
+          <div className="flex items-center justify-between text-xs text-(--muted)">
             <span>سورة {surah.name}</span>
             <span>الآية {arNum((ayahIdx + 1))} من {arNum(surah.ayahs.length)}</span>
           </div>
 
           {/* The hidden ayah */}
-          <div className="min-h-36 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-5">
+          <div className="min-h-36 rounded-2xl border border-(--stroke) bg-(--card) p-5">
             <p className="arabic-text text-lg leading-10" aria-label="الآية المخفية">
               {words.map((w, i) => (
                 <span key={i}
                   className={i < revealed
-                    ? "text-[var(--fg)] transition-colors"
-                    : "select-none rounded-md bg-[var(--card-2)] text-transparent"}
+                    ? "text-(--fg) transition-colors"
+                    : "select-none rounded-md bg-(--card-2) text-transparent"}
                   style={i < revealed ? undefined : { textShadow: "none" }}
                 >
                   {i < revealed ? w : " " + "•".repeat(Math.max(2, Math.min(w.length, 6))) + " "}
@@ -258,12 +258,12 @@ export function TasmeePage() {
           <div className="grid grid-cols-2 gap-2">
             <button type="button"
               onClick={() => { setRevealed((r) => Math.min(words.length, r + 1)); setUsedHint(true); }}
-              className="flex items-center justify-center gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3 text-sm font-semibold transition hover:bg-[var(--card-2)]">
+              className="flex items-center justify-center gap-2 rounded-xl border border-(--stroke) bg-(--card) px-3 py-3 text-sm font-semibold transition hover:bg-(--card-2)">
               <Eye className="h-4 w-4" aria-hidden="true" /> أظهر كلمة
             </button>
             <button type="button"
               onClick={() => { setRevealed(words.length); setUsedHint(true); }}
-              className="flex items-center justify-center gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3 text-sm font-semibold transition hover:bg-[var(--card-2)]">
+              className="flex items-center justify-center gap-2 rounded-xl border border-(--stroke) bg-(--card) px-3 py-3 text-sm font-semibold transition hover:bg-(--card-2)">
               الآية كاملة
             </button>
             <button type="button"
@@ -296,8 +296,8 @@ export function TasmeePage() {
               className={[
                 "flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-bold transition",
                 voiceOn
-                  ? "border-accent-35 bg-accent-15 text-[var(--accent)]"
-                  : "border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)]",
+                  ? "border-accent-35 bg-accent-15 text-(--accent)"
+                  : "border-(--stroke) bg-(--card) hover:bg-(--card-2)",
               ].join(" ")}
             >
               {voiceOn ? <Mic className="h-4 w-4 animate-pulse" aria-hidden="true" /> : <MicOff className="h-4 w-4" aria-hidden="true" />}
@@ -305,7 +305,7 @@ export function TasmeePage() {
             </button>
           ) : null}
 
-          <div className="flex justify-between text-[11px] text-[var(--muted-2)]">
+          <div className="flex justify-between text-[11px] text-(--muted-2)">
             <span>✓ {arNum(perfect)} إتقان</span>
             <span>👁 {arNum(hinted)} بمساعدة</span>
             <span>✗ {arNum(missed)} تحتاج مراجعة</span>
@@ -315,25 +315,25 @@ export function TasmeePage() {
 
       {/* Summary */}
       {finished ? (
-        <div className="mt-5 space-y-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-5 text-center">
+        <div className="mt-5 stack-y-4 rounded-2xl border border-(--stroke) bg-(--card) p-5 text-center">
           <div className="text-3xl" aria-hidden="true">🏅</div>
           <h2 className="text-lg font-bold">أتممت تسميع سورة {surah?.name}</h2>
           <div className="grid grid-cols-3 gap-2 text-sm">
-            <div className="rounded-xl bg-[var(--card-2)] px-2 py-3">
+            <div className="rounded-xl bg-(--card-2) px-2 py-3">
               <div className="text-xl font-bold" style={{ color: "var(--ok)" }}>{arNum(perfect)}</div>
-              <div className="text-[11px] text-[var(--muted)]">إتقان</div>
+              <div className="text-[11px] text-(--muted)">إتقان</div>
             </div>
-            <div className="rounded-xl bg-[var(--card-2)] px-2 py-3">
-              <div className="text-xl font-bold text-[var(--accent)]">{arNum(hinted)}</div>
-              <div className="text-[11px] text-[var(--muted)]">بمساعدة</div>
+            <div className="rounded-xl bg-(--card-2) px-2 py-3">
+              <div className="text-xl font-bold text-(--accent)">{arNum(hinted)}</div>
+              <div className="text-[11px] text-(--muted)">بمساعدة</div>
             </div>
-            <div className="rounded-xl bg-[var(--card-2)] px-2 py-3">
+            <div className="rounded-xl bg-(--card-2) px-2 py-3">
               <div className="text-xl font-bold" style={{ color: "var(--danger)" }}>{arNum(missed)}</div>
-              <div className="text-[11px] text-[var(--muted)]">للمراجعة</div>
+              <div className="text-[11px] text-(--muted)">للمراجعة</div>
             </div>
           </div>
           <button type="button" onClick={startSession}
-            className="mx-auto flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-black/80 transition active:scale-95">
+            className="mx-auto flex items-center gap-2 rounded-xl bg-(--accent) px-5 py-2.5 text-sm font-bold text-black/80 transition active:scale-95">
             <RotateCcw className="h-4 w-4" aria-hidden="true" /> أعد التسميع
           </button>
         </div>
