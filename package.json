@@ -112,7 +112,7 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.11",
     "fake-indexeddb": "^6.2.5",
-    "jsdom": "^29.1.1",
+    "jsdom": "^31.0.1",
     "postcss": "^8.5.33",
     "prettier": "^3.10.1",
     "tailwindcss": "^3.4.10",
