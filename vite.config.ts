@@ -4,9 +4,9 @@ import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { vendorChunk } from "./tools/build/vendorChunks";
-import { hardenHtmlPlugin } from "./tools/build/hardenHtml";
-import { thirdPartyNoticesPlugin } from "./tools/build/thirdPartyNotices";
+import { vendorChunk } from "./tools/build/vendorChunks.ts";
+import { hardenHtmlPlugin } from "./tools/build/hardenHtml.ts";
+import { thirdPartyNoticesPlugin } from "./tools/build/thirdPartyNotices.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,20 +67,28 @@ export default defineConfig(({ mode }) => {
     // version.json at runtime.
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
-  // Production bundles ship without debug statements or verbose logging.
-  // Warnings and errors are kept so real failures remain diagnosable.
-  esbuild: mode === "production"
-    ? { drop: ["debugger"], pure: ["console.log", "console.debug", "console.info", "console.trace"], legalComments: "none" }
-    : undefined,
   build: {
     // Never publish source maps: they would expose the original source tree.
     sourcemap: false,
     chunkSizeWarningLimit: 900,
-    rollupOptions: {
+    rolldownOptions: {
+      // Production bundles ship without verbose logging. Calls whose result is
+      // unused are dropped by the minifier; warnings and errors are kept so real
+      // failures remain diagnosable. debugger statements are dropped by default.
+      treeshake: mode === "production"
+        ? { manualPureFunctions: ["console.log", "console.debug", "console.info", "console.trace"] }
+        : undefined,
       output: {
-        manualChunks: vendorChunk,
-      }
-    }
+        // Keep modules starting in the order they are imported, as they did
+        // under Rollup. Without it, shared chunks can run before the module
+        // that configures them (for example the validation library's settings).
+        strictExecutionOrder: true,
+        comments: { legal: false },
+        codeSplitting: {
+          groups: [{ name: (id: string) => vendorChunk(id) ?? null, debugName: "vendor" }],
+        },
+      },
+    },
   },
   plugins: [
     emitVersionManifest(),
@@ -207,9 +215,14 @@ export default defineConfig(({ mode }) => {
   ],
   server: { port: 5173, strictPort: true },
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: [
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+      // These packages declare a UMD build in "browser" next to an ES module
+      // build. Vite 8 no longer detects that and would import the UMD build,
+      // whose default export arrives wrapped. Use the ES module builds.
+      { find: /^lottie-react$/, replacement: path.resolve(__dirname, "node_modules/lottie-react/build/index.es.js") },
+      { find: /^webgl-constants$/, replacement: path.resolve(__dirname, "node_modules/webgl-constants/dist/webgl-constants.esm.js") },
+    ],
   },
   };
 });

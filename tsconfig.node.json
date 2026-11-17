@@ -9,7 +9,9 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
-    "outDir": "./node_modules/.tsc-node-cache"
+    "outDir": "./node_modules/.tsc-node-cache",
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true
   },
   "include": [
     "vite.config.ts",
