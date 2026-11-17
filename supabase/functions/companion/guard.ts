@@ -45,7 +45,13 @@ const ANY_BLOCK_OPEN = /^[ \t]*:{2,}[ \t]*[a-z]+/i;
 const MAX_BLOCK_LINES = 40;
 const MIN_HADITH_SKELETON = 12;
 const MIN_QUOTED_WORDS = 4;
+const LONG_QUOTE_WORDS = 12;
+const LITURGICAL_OPENING = /^(?:اللهم|اللَّهم|اللّهم|ربنا|ربَّنا|ربِّ|رب\s|سبحان|بسم الله|باسمك|بسمك|أعوذ|استغفر|أستغفر|لا إله إلا|الحمد لله الذي)/;
+/** A tip is practical advice. One that states a virtue, a ruling or a count is a religious claim and is dropped. */
+const TIP_CLAIM = /حرز|فضل|اجر|ثواب|يكفر|يغفر|غفر|مستحب|واجب|يجوز|حرام|مكروه|بدعه|ايات|ايه |ايتين|ركعتين|ركعات|حديث|السنه|سنه |\d|[٠-٩]|ثلاث|اربع|خمس|سبع|عشر|مئه|الف/;
 const MIN_REPEAT_SKELETON = 30;
+/** A reply quotes one piece of evidence; a second is tolerated, no more. */
+const MAX_BLOCKS_PER_KIND = 2;
 /** Three or more consecutive tokens that contain no letters at all. */
 const JUNK_RUN = /(?:(?:^|\s)[^\p{L}\s]{1,8}(?=\s|$)){3,}|\[\]/u;
 // The last alternative is a quotation that was opened and never closed.
@@ -65,6 +71,10 @@ export class ReplyGuard {
   /** Set when the model's output broke down mid-line; the rest of that line is dropped. */
   private droppingLine = false;
   private readonly seenSentences = new Set<string>();
+  /** Citation blocks already shown, so the same text is never shown twice. */
+  private readonly shownBlocks = new Set<string>();
+  private hadithBlocksShown = 0;
+  private verseBlocksShown = 0;
   private readonly hadithSkeletons: string[];
   private readonly trustedSkeletons: string[];
   private readonly userSkeletons: string[];
@@ -177,14 +187,22 @@ export class ReplyGuard {
       const inner = a ?? b ?? c ?? d ?? "";
       if (arabicWordCount(inner) < MIN_QUOTED_WORDS) return match;
       const quoted = skeleton(inner);
-      if (this.matchHadith(quoted, inner) >= 0 || this.inTrustedTexts(quoted)) return match;
+      // In running text the model's own wording stays on screen, so only an
+      // exact quotation of a gathered narration is accepted here. A near
+      // match is a misquotation and is removed.
+      if (this.matchHadithExact(quoted) >= 0 || this.inTrustedTexts(quoted)) return match;
+      if (this.resemblesHadith(inner)) return REMOVED_HADITH_NOTE;
       if (quoted.length >= MIN_HADITH_SKELETON && this.userSkeletons.some((text) => text.includes(quoted))) return match;
       const verse = this.context.quran?.findQuote(inner);
       if (verse) return `﴿${verse.text}﴾`;
       const at = offset;
       const around = contextBefore.slice(-160) + line.slice(Math.max(0, at - 160), at) +
         line.slice(at + match.length, at + match.length + 80);
-      return PROPHETIC_ATTRIBUTION.test(around) ? REMOVED_HADITH_NOTE : match;
+      // A supplication or a long passage in quotation marks is being presented
+      // as someone's exact words. Unverified, it is removed even when the
+      // sentence around it names no source.
+      const presentedAsText = LITURGICAL_OPENING.test(inner.trim()) || arabicWordCount(inner) >= LONG_QUOTE_WORDS;
+      return PROPHETIC_ATTRIBUTION.test(around) || presentedAsText ? REMOVED_HADITH_NOTE : match;
     });
     return cleanMarkers(text);
   }
@@ -197,7 +215,19 @@ export class ReplyGuard {
   private closeBlock(): string {
     const block = this.block!;
     this.block = null;
-    return (block.kind === "verse" ? this.verseBlock(block) : this.hadithBlock(block)) + "\n";
+    const out = block.kind === "verse" ? this.verseBlock(block) : this.hadithBlock(block);
+    // A repeated or surplus citation is dropped without leaving a gap.
+    return out ? `${out}\n` : "";
+  }
+
+  /** Allow a citation block once, and only a few of each kind in one reply. */
+  private admit(kind: "verse" | "hadith", key: string, rendered: string): string {
+    if (this.shownBlocks.has(key)) return "";
+    if (kind === "hadith" ? this.hadithBlocksShown >= MAX_BLOCKS_PER_KIND : this.verseBlocksShown >= MAX_BLOCKS_PER_KIND) return "";
+    this.shownBlocks.add(key);
+    if (kind === "hadith") this.hadithBlocksShown += 1;
+    else this.verseBlocksShown += 1;
+    return rendered;
   }
 
   private verseBlock(block: OpenBlock): string {
@@ -211,7 +241,8 @@ export class ReplyGuard {
       const typed = (marked ? marked[1]! : body.replace(/[—–-]\s*سورة[\s\S]*$/, "")).trim();
       passage = typed ? quran.findQuote(typed) : null;
     }
-    return passage ? `:::verse\n${formatQuranPassage(passage)}\n:::` : REMOVED_VERSE_NOTE;
+    if (!passage) return REMOVED_VERSE_NOTE;
+    return this.admit("verse", `v${passage.surah}:${passage.from}-${passage.to}`, `:::verse\n${formatQuranPassage(passage)}\n:::`);
   }
 
   private hadithBlock(block: OpenBlock): string {
@@ -228,11 +259,27 @@ export class ReplyGuard {
         // Word for word from the app's own library: keep the wording, and drop
         // any grading line the model may have attached to it.
         const kept = block.lines.filter((line) => !/الدرجة\s*:/.test(line)).join("\n").trim();
-        return `:::hadith\n${cleanMarkers(kept)}\n:::`;
+        return this.admit("hadith", `t${quoted.slice(0, 60)}`, `:::hadith\n${cleanMarkers(kept)}\n:::`);
       }
     }
     const item = this.context.hadith[index]!;
-    return `:::hadith\n«${item.text}»\n${formatHadithAttribution(item)}\n:::`;
+    return this.admit("hadith", `h${index}`, `:::hadith\n«${item.text}»\n${formatHadithAttribution(item)}\n:::`);
+  }
+
+  /** Index of the gathered narration that contains this quotation word for word, or -1. */
+  private matchHadithExact(quoted: string): number {
+    if (quoted.length < MIN_HADITH_SKELETON) return -1;
+    return this.hadithSkeletons.findIndex((candidate) => candidate.includes(quoted));
+  }
+
+  /** Whether a quotation shares at least half its words with a gathered narration. */
+  private resemblesHadith(original: string): boolean {
+    const words = original.split(/\s+/).map((word) => skeleton(word)).filter((word) => word.length > 1);
+    if (words.length < MIN_QUOTED_WORDS) return false;
+    return this.context.hadith.some((item) => {
+      const candidate = new Set(item.text.split(/\s+/).map((word) => skeleton(word)).filter((word) => word.length > 1));
+      return words.filter((word) => candidate.has(word)).length / words.length >= 0.5;
+    });
   }
 
   /** Index of the gathered narration this quotation is, or -1. */
@@ -264,6 +311,8 @@ export class ReplyGuard {
 }
 
 const FOREIGN_LETTERS = /[A-Za-z\u00C0-\u024F\u0400-\u04FF\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uAC00-\uD7AF]+/g;
+/** Stands in for a word the model wrote in another script. The clause that holds it is dropped later. */
+export const GARBLED = "\uFFFC";
 
 /** A token whose non-Arabic letters are structural and must be kept. */
 function isStructuralToken(token: string): boolean {
@@ -271,9 +320,9 @@ function isStructuralToken(token: string): boolean {
 }
 
 /**
- * Tidy released prose: drop evidence labels the model may echo, and drop
- * stray words in other scripts, which this model sometimes emits mid-sentence.
- * Block markers, in-app routes and source links are left intact.
+ * Drop evidence labels the model may echo, and mark stray words in other
+ * scripts, which this model sometimes emits mid-sentence. Block markers,
+ * in-app routes and source links are left intact.
  */
 function cleanMarkers(text: string): string {
   const withoutLabels = text.replace(EVIDENCE_ID, (_match, before: string) => (/^[ \t]*$/.test(before) ? "" : before));
@@ -284,14 +333,14 @@ function cleanMarkers(text: string): string {
       // In a markdown link, clean the visible label but never the address.
       const link = part.indexOf("](");
       if (link >= 0 && part.includes("://")) return part.slice(0, link).replace(FOREIGN_LETTERS, "") + part.slice(link);
-      return isStructuralToken(part) ? part : part.replace(FOREIGN_LETTERS, "");
+      return isStructuralToken(part) ? part : part.replace(FOREIGN_LETTERS, GARBLED);
     })
     .join("");
 }
 
 /** Signs that the model's output broke down: stray punctuation runs, or punctuation from another script. */
 const BREAKDOWN = /(?:(?:^|\s)[^\p{L}\s:]{1,8}(?=\s|$)){3,}|\[\]|[\u3000-\u303F\uFF00-\uFFEF]|^[^\p{L}:]{3,}$/u;
-const MIN_ATTEMPT_SKELETON = 40;
+const MIN_ATTEMPT_SKELETON = 20;
 
 /**
  * When this model's output breaks down it usually starts the answer again, so
@@ -332,15 +381,179 @@ export function selectCleanAttempt(text: string): string {
   return (last.size >= longest.size * 0.5 ? last : longest).attempt;
 }
 
-/** Clean and verify a complete reply. */
-export function finalizeReply(text: string, guard: ReplyGuard): string {
-  const checked = guard.push(selectCleanAttempt(text)) + guard.flush();
-  return normalizeSourceLinks(checked, guard.allowedSourceUrls)
-    .replace(/[ \t]{2,}/g, " ")
+const SENTENCE_END = /(?<=[.!؟])(?=\s|$)/;
+const CLAUSE_END = /(?<=[،؛:])/;
+const COLLECTION_ATTRIBUTION =
+  /رواه|اخرجه|متفق عليه|في الصحيحين|صحيح البخاري|صحيح مسلم|عند البخاري|عند مسلم|البخاري ومسلم|الترمذي|ابو داود|ابي داود|النسائي|ابن ماجه|مسند احمد|في الموطا|في السنن/;
+const PROPHET = /النبي|رسول الله|الرسول|المصطفي|نبينا|ﷺ|صلي الله عليه وسلم/;
+/** Ordinary devotional wording that names the Prophet without reporting anything from him. */
+const DEVOTIONAL =
+  /(?:الصلاه|الصلوات|صل|صلوا|فصل|وصل|تصلي|نصلي|صلاتك|الصلاه والسلام)\s+علي\s+(?:النبي|رسول الله|الرسول|نبينا|المصطفي)|(?:اتباع|باتباع|اقتداء|بالاقتداء|اقتد|سنه|بسنه|هدي|بهدي|محبه|حب|طاعه|نصره|شفاعه|مولد|هجره|سيره)\s+(?:النبي|رسول الله|الرسول|نبينا|المصطفي)/;
+const REPORT_VERB = /(?:^|\s)و?(?:قد\s+)?(?:ثبت|ورد|صح|روي|جاء|ذكر)\s+(?:عن|ان|في|عنه|انه)/;
+const REPORT_SUBJECT = /حديث|السنه|الصحاب/;
+export const REMOVAL_FOOTNOTE = "ملاحظة: حُذف من هذا الجواب نصٌّ لم يمكن توثيقه من مصدر معتمد.";
+
+/** Plain letters for matching wording: no vowel marks, one spelling of alif, ya and ta marbuta. */
+function plain(text: string): string {
+  return text
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/ة/g, "ه");
+}
+
+/**
+ * A clause that reports what the Prophet said or did, or cites a hadith
+ * collection. Any mention of the Prophet counts unless it is plainly
+ * devotional (sending blessings on him, following his way): a clause such as
+ * "he used to order ..." is a hadith told in other words, in whatever order
+ * the words come.
+ */
+function isNarrationClause(clause: string): boolean {
+  const text = plain(clause);
+  if (COLLECTION_ATTRIBUTION.test(text) || /في الحديث/.test(text)) return true;
+  if (PROPHET.test(text) && !DEVOTIONAL.test(text)) return true;
+  return REPORT_VERB.test(text) && REPORT_SUBJECT.test(text);
+}
+
+export type FinalReply = {
+  text: string;
+  /** Clauses and sentences dropped because the model's wording was unusable or unverifiable. */
+  damage: number;
+};
+
+/**
+ * Tidy the model's own sentences after citations have been verified.
+ *
+ * A reply is prose plus citation blocks. The blocks are already exact. In the
+ * prose, three things are removed rather than shown:
+ *   - a clause holding a word in another script: the model's wording broke
+ *     there, and a sentence with a hole in it reads as nonsense;
+ *   - a statement that reports the Prophet's words or deeds, or names a hadith
+ *     collection, in the model's own words. Such a report is a hadith in all
+ *     but form, and only verified text may be presented as one;
+ *   - a sentence whose quotation failed verification.
+ */
+function tidyProse(checked: string): { text: string; damage: number; removed: number } {
+  let damage = 0;
+  let removed = 0;
+  const out: string[] = [];
+  const lines = checked.split("\n");
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index]!;
+    if (/^[ \t]*:{2,}[ \t]*[a-z]+/i.test(line)) {
+      // A block: copy it through its closing marker.
+      const kind = /^[ \t]*:{2,}[ \t]*([a-z]+)/i.exec(line)![1]!.toLowerCase();
+      const block = [line];
+      while (index + 1 < lines.length) {
+        index += 1;
+        block.push(lines[index]!);
+        if (BLOCK_CLOSE.test(lines[index]!)) break;
+      }
+      const body = block.slice(1, -1).join("\n");
+      const verified = kind === "verse" || kind === "hadith";
+      // A tip or dua the model garbled, or filled with a report, is dropped whole.
+      if (!verified && (body.includes(GARBLED) || body.includes(REMOVED_HADITH_NOTE) || body.includes(REMOVED_VERSE_NOTE) || !body.trim()
+        || (kind === "tip" && (isNarrationClause(body) || TIP_CLAIM.test(plain(body)))))) {
+        damage += 1;
+        continue;
+      }
+      out.push(...block);
+      continue;
+    }
+    if (line.trim() === REMOVED_HADITH_NOTE || line.trim() === REMOVED_VERSE_NOTE) {
+      removed += 1;
+      continue;
+    }
+    // Blank lines, the sources line, and a line made only of links pass through.
+    if (!line.trim() || /^[ \t*]*المصادر[ \t*]*:/.test(line)
+      || (line.includes("](http") && !/[\u0621-\u064A]/.test(line.replace(/\[[^\]]*\]\([^)]*\)/g, "")))) {
+      out.push(line);
+      continue;
+    }
+    const sentences: string[] = [];
+    for (const sentence of line.split(SENTENCE_END)) {
+      if (!sentence.trim()) continue;
+      if (sentence.includes(REMOVED_HADITH_NOTE) || sentence.includes(REMOVED_VERSE_NOTE)) {
+        removed += 1;
+        continue;
+      }
+      const quoted = /[«﴿]/.test(sentence);
+      const leadIn = /[:：][ \t]*$/.test(sentence);
+      const kept: string[] = [];
+      let cut = false;
+      for (const clause of sentence.split(CLAUSE_END)) {
+        if (clause.includes(GARBLED)) {
+          damage += 1;
+          continue;
+        }
+        // A report in the model's own words: drop it and what depends on it.
+        if (!quoted && !leadIn && isNarrationClause(clause)) {
+          damage += 1;
+          cut = true;
+          break;
+        }
+        kept.push(clause);
+      }
+      let rebuilt = kept.join("").replace(/[ \t]{2,}/g, " ").trimEnd();
+      if (kept.length === 0 || plain(rebuilt).replace(/[^\u0621-\u064A]/g, "").length < 8) continue;
+      if (cut || /[،؛]$/.test(rebuilt)) rebuilt = rebuilt.replace(/[،؛:]+$/, "") + ".";
+      sentences.push(rebuilt);
+    }
+    if (sentences.length > 0) out.push(sentences.join(" ").replace(/^\s+/, ""));
+  }
+
+  // An introduction ("as in the hadith:") with nothing after it says nothing.
+  const cleaned: string[] = [];
+  for (let index = 0; index < out.length; index += 1) {
+    const line = out[index]!;
+    if (/[:：][ \t]*$/.test(line) && !/^[ \t]*:{2,}/.test(line) && !/^[ \t*]*المصادر/.test(line)) {
+      const next = out.slice(index + 1).find((candidate) => candidate.trim());
+      if (!next || !/^[ \t]*:{2,}[ \t]*(verse|hadith|dua)/i.test(next)) {
+        const trimmed = line.replace(/[^.!؟]*[:：][ \t]*$/, "").trimEnd();
+        if (trimmed) cleaned.push(trimmed);
+        continue;
+      }
+    }
+    cleaned.push(line);
+  }
+  return { text: cleaned.join("\n"), damage, removed };
+}
+
+/** Collect every source link into one sources line at the end of the reply. */
+function gatherSources(text: string): string {
+  const links: string[] = [];
+  const body = text.split("\n").filter((line) => {
+    if (!/^[ \t*]*(?:ومن )?المصادر[ \t*]*:/.test(line)) return true;
+    for (const link of line.match(/\[[^\]]+\]\([^)]+\)/g) ?? []) {
+      if (!links.includes(link)) links.push(link);
+    }
+    return false;
+  }).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  return links.length > 0 && body ? `${body}\n\nالمصادر: ${links.join("، ")}` : body;
+}
+
+/** Clean and verify a complete reply, and report how much of it had to be dropped. */
+export function finalizeReplyDetailed(text: string, guard: ReplyGuard): FinalReply {
+  // A closing marker glued to the next paragraph is a marker followed by a paragraph.
+  const separated = text.replace(/^([ \t]*:{3,})(?=[^\s:a-zA-Z(])/gm, "$1\n");
+  const checked = guard.push(selectCleanAttempt(separated)) + guard.flush();
+  const tidy = tidyProse(checked);
+  let result = normalizeSourceLinks(tidy.text, guard.allowedSourceUrls)
     // A "sources" line whose links were all removed has nothing left to say.
     .replace(/^[ \t*]*المصادر[ \t*]*:[ \t*،,]*$/gm, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/[ \t]+([،.؛؟!])/g, "$1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+  result = gatherSources(result);
+  if (tidy.removed > 0 && result) result += `\n\n${REMOVAL_FOOTNOTE}`;
+  return { text: result, damage: tidy.damage + tidy.removed };
+}
+
+/** Clean and verify a complete reply. */
+export function finalizeReply(text: string, guard: ReplyGuard): string {
+  return finalizeReplyDetailed(text, guard).text;
 }
 
 export const UNAVAILABLE_REPLY = "تعذَّر إعداد جوابٍ موثوقٍ لهذا السؤال الآن. أعد المحاولة بعد قليل، أو صُغ سؤالك بطريقة أخرى.";

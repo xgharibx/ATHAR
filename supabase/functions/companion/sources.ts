@@ -38,8 +38,9 @@ export function isTrustedSourceUrl(value: unknown): boolean {
 
 export type TrustedSearchResult = { title: string; url: string; excerpt: string };
 
-const MAX_RESULTS = 4;
-const MAX_EXCERPT_CHARS = 900;
+// Two short excerpts confirm a ruling; more of them invite a patchwork answer.
+const MAX_RESULTS = 2;
+const MAX_EXCERPT_CHARS = 700;
 const MAX_TITLE_CHARS = 160;
 
 /**
@@ -85,8 +86,8 @@ export function buildTrustedResultsBlock(results: TrustedSearchResult[]): string
   const lines = results.map((result, index) =>
     `${index + 1}. ${result.title || "بلا عنوان"}\nالرابط: ${result.url}\nالمقتطف: ${result.excerpt}`);
   return `### نتائج بحث من مصادر موثوقة
-هذه مقتطفات جُلبت الآن من مواقع علمية موثوقة لأن موسوعة التطبيق لم تكفِ. قواعد ملزمة:
-- قدِّم دائمًا المقاطع المرفقة من موسوعة التطبيق إن وُجدت، واستعن بهذه النتائج فيما لم تغطِّه.
+هذه مقتطفات جُلبت الآن من مواقع علمية موثوقة لتتأكد بها من الحكم. قواعد ملزمة:
+- خذ منها ما يجيب السؤال نفسه فقط، وصُغه بعبارتك في جملة أو جملتين. لا تلخِّص المقتطفات ولا تنقل ما فيها من مسائل أخرى.
 - انقل مضمون المصدر بأمانة: لا تنسب إليه ما لم يقله، ولا تجزم بدرجة حديث أو حكم لم يذكره.
 - إذا اعتمدت على نتيجة فاختم الجواب بسطر «المصادر:» تذكر فيه اسم كل موقع بالعربية رابطًا بصيغة [اسم الموقع](الرابط). انسخ الرابط كما ورد هنا دون تعديل، ولا تذكر أي رابط آخر.
 - إن لم تكن النتائج متصلة بالسؤال فتجاهلها وقل بوضوح إنك لا تملك مصدرًا موثوقًا، وأحِل إلى أهل العلم.
@@ -124,11 +125,20 @@ export function sourceNameFor(url: string): string | null {
  * name, and a link to anywhere else is reduced to plain text or removed.
  */
 export function normalizeSourceLinks(text: string, allowedUrls: ReadonlySet<string> | null): string {
-  return text.replace(/\[([^\]\n]*)\]\((https?:\/\/[^)\s]+)\)/g, (_match, label: string, url: string) => {
+  const shown = new Set<string>();
+  const linked = text.replace(/\[([^\]\n]*)\]\((https?:\/\/[^)\s]+)\)/g, (_match, _label: string, url: string) => {
     const name = sourceNameFor(url);
     // Only addresses that were actually returned by the search are kept, so
-    // the model cannot invent a page on a trusted site.
-    if (!name || (allowedUrls && !allowedUrls.has(url))) return "";
+    // the model cannot invent a page on a trusted site. One link per site.
+    if (!name || (allowedUrls && !allowedUrls.has(url)) || shown.has(name)) return "";
+    shown.add(name);
     return `[${name}](${url})`;
+  });
+  // A line that holds nothing but source links is the sources line.
+  const labelled = linked.replace(/^[ \t]*(?:[-*•][ \t]+)?((?:\[[^\]]+\]\([^)]+\)[ \t،,و]*)+)$/gm, (_line: string, links: string) => `المصادر: ${links.trim()}`);
+  // Tidy the separators left on a sources line when a link was removed.
+  return labelled.replace(/^([ \t*]*(?:ومن )?المصادر[ \t*]*:)(.*)$/gm, (_line, head: string, rest: string) => {
+    const links = rest.match(/\[[^\]]+\]\([^)]+\)/g) ?? [];
+    return links.length > 0 ? `${head} ${links.join("، ")}` : head;
   });
 }

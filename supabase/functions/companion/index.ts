@@ -18,13 +18,15 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { companionCorsHeaders } from "./cors.ts";
 import { EVIDENCE_STEP_SYSTEM, EVIDENCE_TOOL, buildEvidenceBlock, gatherHadith, gatherVerses, loadQuran, readEvidencePlan } from "./evidence.ts";
-import { ReplyGuard, UNAVAILABLE_REPLY, finalizeReply, isUsableReply } from "./guard.ts";
-import { CLIENT_BASE_PROMPT_OPENING, SERVER_SYSTEM_PROMPT } from "./prompt.ts";
+import { ReplyGuard, UNAVAILABLE_REPLY, finalizeReplyDetailed, isUsableReply } from "./guard.ts";
+import { CLIENT_BASE_PROMPT_OPENING, SERVER_SYSTEM_PROMPT, focusClientContext } from "./prompt.ts";
 import { SEARCH_STEP_SYSTEM, buildTrustedResultsBlock, selectTrustedResults } from "./sources.ts";
 import { guardMessage, guardSseStream } from "./stream.ts";
 
 const COMPANION_TOOL_NAMES = new Set(["next_step", "cite", "search_library", "create_reminder"]);
-const MAX_SYSTEM_CHARS = 20_000;
+// What is kept of a client's context after it has been focused. The request
+// body as a whole is bounded separately.
+const MAX_CLIENT_CONTEXT_CHARS = 4_000;
 const MAX_MESSAGES = 16;
 const MAX_HISTORY_CHARS = 48_000;
 const MAX_LATEST_USER_MESSAGE_CHARS = 8_000;
@@ -56,7 +58,9 @@ const EVIDENCE_MAX_TOKENS = 1024;
 const EVIDENCE_CONTEXT_MESSAGES = 3;
 const EVIDENCE_CONTEXT_CHARS = 600;
 const RETRY_TIMEOUT_MS = 40_000;
-const RETRY_INSTRUCTION = "تنبيه أخير: اكتب الجواب كله بالعربية الفصحى، بحروف عربية فقط، في فقرات قصيرة واضحة. لا تكتب بأي لغة أخرى ولا بحروف لاتينية.";
+// Dropped clauses and sentences beyond which a reply is worth writing again.
+const RETRY_DAMAGE_THRESHOLD = 3;
+const RETRY_INSTRUCTION = "تنبيه أخير: اكتب الجواب كله بالعربية الفصحى، بحروف عربية فقط، في جمل قصيرة تامة المعنى. لا تكتب بأي لغة أخرى ولا بحروف لاتينية، ولا تروِ عن النبي ﷺ قولًا أو فعلًا بعبارتك؛ الدليل يظهر في كتلته فقط.";
 const MAX_BODY_BYTES = 256 * 1024;
 const UPSTREAM_TIMEOUT_MS = 60_000;
 const WINDOW_MS = 60_000;
@@ -76,7 +80,7 @@ function reasoningSettings(effort: string): Record<string, unknown> {
 const RULING_QUESTION =
   /حكم|يجوز|حلال|حرام|مكروه|واجب|فرض|سنة|سنّة|مستحب|بدعة|يبطل|يفسد|كفار|قضاء|فدية|زكاة|صيام|صوم|صلاة|طهار|وضوء|غسل|تيمم|نجاس|حج|عمرة|نكاح|طلاق|ميراث|ربا|فتوى|تفسير|معنى|صحة حديث|صحّة حديث|درجة حديث|الدليل|دليل/;
 
-const NO_PLAN = { hadithQueries: [] as string[], quranReferences: [] as string[], needsSources: false };
+const NO_PLAN = { hadithQueries: [] as string[], quranReferences: [] as string[], needsSources: false, wantsWording: false };
 
 type CompanionTextMessage = { role: "user" | "assistant"; content: string };
 type BoundedMessagesResult =
@@ -246,7 +250,6 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     ? body.system.map((b) => (b && typeof b === "object" && "text" in b ? String((b as { text?: unknown }).text ?? "") : "")).join("")
     : typeof body.system === "string" ? body.system : "";
   if (!systemText) return jsonError(req, "missing system prompt", 400);
-  if (systemText.length > MAX_SYSTEM_CHARS) return jsonError(req, "system prompt too large", 413);
 
   const boundedMessages = boundCompanionMessages(body.messages);
   if (!boundedMessages.ok) {
@@ -272,7 +275,9 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
       if (typeof name !== "string" || !COMPANION_TOOL_NAMES.has(name)) {
         return jsonError(req, "unrecognized tool definition", 400);
       }
-      clientTools.push(tool);
+      // Library excerpts are no longer given to the model, so there is nothing
+      // for the citation tool to point at.
+      if (name !== "cite") clientTools.push(tool);
     }
   }
 
@@ -289,11 +294,13 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   // search tool is never handed to the answering call: its results are
   // unfiltered, so the search runs as a separate step below.
   const buildUpstreamBody = (serverBlocks: string[]): Record<string, unknown> => {
-    // The base instructions are the server's. What a client sends after its
-    // own base instructions (date, page context, library excerpts) is kept.
+    // The base instructions are the server's. Of what a client sends after
+    // its own base instructions, the description of the moment is kept.
     const clientBlocks: Array<{ type: string; text: string }> = (Array.isArray(body.system) ? body.system : [body.system])
       .map((block) => (typeof block === "string" ? block : String((block as { text?: unknown } | null)?.text ?? "")))
       .filter((text) => text && !text.trimStart().startsWith(CLIENT_BASE_PROMPT_OPENING))
+      .map((text) => focusClientContext(text).slice(0, MAX_CLIENT_CONTEXT_CHARS))
+      .filter(Boolean)
       .map((text) => ({ type: "text", text }));
     const system = [
       { type: "text", text: SERVER_SYSTEM_PROMPT },
@@ -424,7 +431,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     loadQuran(denoRuntime.env.get("QURAN_DATA_URL")),
   ]);
   const [hadith, webResults] = await Promise.all([
-    gatherHadith(plan.hadithQueries),
+    gatherHadith(plan.hadithQueries, plan.wantsWording),
     searchEarly ? earlySearch : searchTrustedSources(plan.needsSources).catch(() => []),
   ]);
   const verses = gatherVerses(quran, plan.quranReferences);
@@ -444,10 +451,14 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   ];
 
   // Every reply is cleaned and verified before it reaches the reader. A reply
-  // that is not usable Arabic is regenerated once; if that fails too, the
-  // reader gets a plain message instead of fragments.
+  // that is not usable Arabic, or that lost much of its content in cleaning,
+  // is regenerated once and the better of the two is kept. If neither is
+  // usable the reader gets a plain message instead of fragments.
   const finalize = async (rawText: string): Promise<string> => {
-    if (isUsableReply(rawText)) return finalizeReply(rawText, new ReplyGuard(guardContext));
+    if (!rawText.trim()) return "";
+    const first = isUsableReply(rawText) ? finalizeReplyDetailed(rawText, new ReplyGuard(guardContext)) : null;
+    if (first && first.text && first.damage < RETRY_DAMAGE_THRESHOLD) return first.text;
+    let second: { text: string; damage: number } | null = null;
     try {
       const retry = await fetch(MINIMAX_UPSTREAM, {
         method: "POST",
@@ -458,16 +469,18 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
       if (retry.ok) {
         const content = (await retry.json() as { content?: unknown }).content;
         const text = Array.isArray(content)
-          ? content.map((block) => ((block as { type?: unknown })?.type === "text" ? String((block as { text?: unknown }).text ?? "") : "")).join("")
+          ? content.map((block) => ((block as { type?: unknown })?.type === "text" ? String((block as { text?: unknown }).text ?? "") : "")).filter((part) => part.trim()).join("\n\u3000\n")
           : "";
-        if (text.trim() && isUsableReply(text)) return finalizeReply(text, new ReplyGuard(guardContext));
+        if (text.trim() && isUsableReply(text)) second = finalizeReplyDetailed(text, new ReplyGuard(guardContext));
       } else {
         await retry.body?.cancel().catch(() => undefined);
       }
     } catch {
-      // fall through to the plain message
+      second = null;
     }
-    return UNAVAILABLE_REPLY;
+    const candidates = [first, second].filter((reply): reply is { text: string; damage: number } => Boolean(reply && reply.text));
+    if (candidates.length === 0) return UNAVAILABLE_REPLY;
+    return candidates.reduce((best, reply) => (reply.damage < best.damage ? reply : best)).text;
   };
 
   const upstreamSignal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
