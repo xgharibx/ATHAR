@@ -248,7 +248,7 @@ function syncCustomRemindersNative(
     // Background sync must never open a permission prompt. Reminder activation
     // is an explicit user action on the Reminders screen; Companion-created
     // reminders are saved inactive until permission is already granted.
-    let granted = false;
+    let granted: boolean;
     try {
       const { LocalNotifications } = await import("@capacitor/local-notifications");
       const current = await LocalNotifications.checkPermissions();

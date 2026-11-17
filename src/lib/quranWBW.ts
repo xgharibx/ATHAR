@@ -191,7 +191,7 @@ export async function loadWbwSurah(surahId: number): Promise<WbwSurah> {
   } catch (error) {
     const stale = await idbGetStale(surahId);
     if (stale) return stale;
-    if (timedOut) throw new Error("Quran.com word-by-word request timed out");
+    if (timedOut) throw new Error("Quran.com word-by-word request timed out", { cause: error });
     throw error;
   } finally {
     globalThis.clearTimeout(timeoutId);

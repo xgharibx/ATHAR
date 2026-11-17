@@ -142,7 +142,7 @@ async function requestPrayerJSON<T>(url: string, parse: (payload: unknown) => T,
     if (!response.ok) throw new Error(`تعذر جلب مواقيت الصلاة (${response.status})`);
     return parse(await response.json());
   } catch (error) {
-    if (timedOut) throw new Error("انتهت مهلة طلب مواقيت الصلاة؛ أعد المحاولة.");
+    if (timedOut) throw new Error("انتهت مهلة طلب مواقيت الصلاة؛ أعد المحاولة.", { cause: error });
     throw error;
   } finally {
     globalThis.clearTimeout(timeoutId);

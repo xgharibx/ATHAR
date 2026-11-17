@@ -43,7 +43,7 @@ export default function UniverseFateVisual({ className }: MiracleVisualProps) {
 
       // Phase determination
       let phase: 'expand' | 'hold' | 'fold' | 'rebirth';
-      let phaseT = 0;
+      let phaseT: number;
       if (cyclePos < 0.25) { phase = 'expand'; phaseT = cyclePos / 0.25; }
       else if (cyclePos < 0.4) { phase = 'hold'; phaseT = (cyclePos - 0.25) / 0.15; }
       else if (cyclePos < 0.78) { phase = 'fold'; phaseT = (cyclePos - 0.4) / 0.38; }

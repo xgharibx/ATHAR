@@ -312,10 +312,9 @@ export function estimateFastDebt(input: FastCalcInput): FastEstimate {
 
   const bulughAge = clamp(Number(input.bulughAge) || 15, 8, 20);
   const bulughDate = toISO(birth + Math.round(bulughAge * HIJRI_YEAR_DAYS) * DAY_MS);
-  let startDate = input.startedFastingDate;
-  if (daysBetween(startDate, today) < 0) {
+  // A future start date is already capped at today by the year range below.
+  if (daysBetween(input.startedFastingDate, today) < 0) {
     warnings.push("تاريخ البدء بعد اليوم، فحُسب إلى اليوم");
-    startDate = today;
   }
 
   const slackDays = CERTAINTY[input.certainty ?? "exact"].uncertaintyMonths * 30.44;

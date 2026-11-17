@@ -73,7 +73,6 @@ export function SharePosterModal({ text, sectionTitle, count, onClose }: SharePo
     try {
       // clipboardItem is widely supported but TS-strict complains
       await navigator.clipboard.write([
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new (window as any).ClipboardItem({ "image/png": blob }),
       ]);
       setCopied(true);

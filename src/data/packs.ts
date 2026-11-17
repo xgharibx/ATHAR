@@ -218,7 +218,7 @@ export function updateCustomDhikrItem(
 
 export function addPackFromJson(json: Record<string, unknown>, name?: string): NoorPack {
   // Accept either {sections:[...]} (DB) OR {id,title,items:[...]} (section export)
-  let sections: Section[] = [];
+  let sections: Section[];
   
   // Helper to normalize
   const normalizeValues = (rawSecs: z.infer<typeof SectionSchema>[]) => rawSecs.map((s) => ({

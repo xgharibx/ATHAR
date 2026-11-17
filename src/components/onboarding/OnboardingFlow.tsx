@@ -99,14 +99,13 @@ export function OnboardingFlow() {
     }
 
     setLoading(true);
-    let remindersAllowed = true;
     try {
       if ("onAction" in current && current.onAction) {
         await current.onAction();
       }
       if (!mountedRef.current) return;
       if ("prayerReminders" in current && current.prayerReminders) {
-        remindersAllowed = (await requestReminderPermission()) === "granted";
+        const remindersAllowed = (await requestReminderPermission()) === "granted";
         if (!mountedRef.current) return;
         if (!remindersAllowed) {
           setReminders({ enabled: false, prayerAlertsEnabled: false });

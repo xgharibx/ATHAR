@@ -1938,12 +1938,10 @@ export const useNoorStore = create<NoorState>()(
             if (legacyKey in progress) {
               progress[stableKey] = Math.max(toSafeInt(progress[stableKey]), toSafeInt(progress[legacyKey]));
               delete progress[legacyKey];
-              changed = true;
             }
             if (legacyKey in favorites) {
               favorites[stableKey] = Boolean(favorites[stableKey]) || Boolean(favorites[legacyKey]);
               delete favorites[legacyKey];
-              changed = true;
             }
             migratedDhikrStateKeys[legacyKey] = true;
             changed = true;
@@ -2703,7 +2701,6 @@ export const useNoorStore = create<NoorState>()(
       //      This prevents 5 MB quota overflow with 36k hadiths worth of notes/cards.
       //      Also exclude customReminders (IDB-backed — see reminderStorage).
       partialize: (state) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {
           hadithBookmarks,
           hadithProgress,

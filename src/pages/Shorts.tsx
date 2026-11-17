@@ -228,7 +228,6 @@ function ShortCard({
     };
     // `muted` deliberately omitted: handled below without a rebuild, because
     // re-creating the player would restart the clip from zero.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wantsPlayer, short.youtubeId]);
 
   // Report how much of it was watched on the way out. Doing this when the card

@@ -171,10 +171,8 @@ export function CommandPalette(props: Props) {
     catch { return [] as NonNullable<typeof quranData>; }
   }, [surahFuse, query]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (!props.open) setQuery("");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.open]);
 
   React.useEffect(() => {

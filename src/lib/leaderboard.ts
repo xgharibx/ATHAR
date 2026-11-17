@@ -411,7 +411,7 @@ export function getLocalRowsFromHistory(opts: {
     return [] as LeaderboardEntry[];
   }
 
-  let score = 0;
+  let score: number;
   if (board === "global") {
     score = history.reduce((acc, h) => acc + normalizeScore(h.scores.global), 0);
   } else if (board === "dhikr") {

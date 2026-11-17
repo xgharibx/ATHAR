@@ -189,7 +189,7 @@ async function getJson<T>(path: string, cacheKey: string, parse: JsonParser<T>, 
     // Expired content is still more useful than an offline error. Cover both
     // HTTP failures and rejected fetch/body parsing, not just non-2xx status.
     if (stale) return stale;
-    if (timedOut) throw new Error("Hadith encyclopedia request timed out");
+    if (timedOut) throw new Error("Hadith encyclopedia request timed out", { cause: error });
     throw error;
   } finally {
     globalThis.clearTimeout(timeoutId);

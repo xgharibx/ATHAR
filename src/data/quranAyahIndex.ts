@@ -147,7 +147,7 @@ function skeleton(s: string): string {
     return partial;
   };
 
-  let candidate: Posting[] | null = null;
+  let candidate: Posting[] | null;
   if (queryTokens.length === 1) {
     candidate = lookup(queryTokens[0]!);
   } else {
@@ -162,15 +162,14 @@ function skeleton(s: string): string {
       const smallest = lists[0]!;
       const set = new Map<string, Posting>();
       for (const p of smallest) set.set(`${p.surahId}:${p.ayahIndex}`, p);
-      let alive = true;
-      for (let i = 1; i < lists.length && alive; i++) {
+      for (let i = 1; i < lists.length; i++) {
         const next = lists[i]!;
         const nextKeys = new Set<string>();
         for (const p of next) {
           const key = `${p.surahId}:${p.ayahIndex}`;
           if (set.has(key)) nextKeys.add(key);
         }
-        if (nextKeys.size === 0) { set.clear(); alive = false; break; }
+        if (nextKeys.size === 0) { set.clear(); break; }
         for (const k of Array.from(set.keys())) if (!nextKeys.has(k)) set.delete(k);
       }
       candidate = Array.from(set.values());
