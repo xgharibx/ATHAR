@@ -47,7 +47,7 @@ Names only. Values live in the service that uses them and are never committed.
 **Supabase**
 
 - Two-factor authentication on every member account.
-- Auth: leaked-password protection on (available on paid plans); add a CAPTCHA provider before opening password sign-up.
+- Auth: the app signs in with Google or a one-time email code, never a password. Passwords set through the API directly need 12 characters with upper-case, lower-case and digits. Turn on leaked-password protection when the project moves to a paid plan, and add a CAPTCHA provider before offering password sign-up.
 - Database: restrict direct connections to known addresses if the plan allows; keep SSL enforcement on.
 - Review the Security Advisor after every migration.
 
