@@ -1,4 +1,5 @@
 import * as React from "react";
+import { claimMediaSession, currentMediaOwner, releaseMediaSession, setMediaPlaybackState, updateNowPlaying, type MediaHandlers } from "@/lib/mediaSession";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowRight, Bookmark, MoreVertical, Play, Pause,
@@ -1461,28 +1462,22 @@ export function MushafPage() {
     }
   }, [playableItems]);
 
-  // A3: MediaSession API — lock-screen controls
+  // A3: Lock-screen, notification and headphone controls for the recitation.
+  // On Android and iOS this is a native media session, which also keeps the
+  // recitation playing with the screen off.
+  const reciterLabel = QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "تلاوة";
+  const recitationControlsRef = React.useRef<MediaHandlers>({});
+  // Keep the control actions pointing at the latest page and playlist.
   React.useEffect(() => {
-    if (!("mediaSession" in navigator)) return;
-    if (playingKey) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: `${pageSurahName} · آية ${playingKey.split(":")[1] ?? ""}`,
-        artist: QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "تلاوة",
-        album: "القرآن الكريم · أثر",
-        artwork: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
-      });
-      navigator.mediaSession.playbackState = "playing";
-    } else {
-      navigator.mediaSession.playbackState = "paused";
-    }
-    navigator.mediaSession.setActionHandler("pause", () => {
-      audioPlayRef.current.active = false;
-      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-      setPlayingKey(null);
-    });
-    navigator.mediaSession.setActionHandler("play", () => {
-      const fp = playableItems[0];
-      if (fp) {
+    recitationControlsRef.current = {
+      pause: () => {
+        audioPlayRef.current.active = false;
+        if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+        setPlayingKey(null);
+      },
+      play: () => {
+        const fp = playableItems[0];
+        if (!fp) return;
         audioPlayRef.current.active = true;
         audioPlayRef.current.speed = 1;
         audioPlayRef.current.loop = false;
@@ -1492,12 +1487,37 @@ export function MushafPage() {
         audioPlayRef.current.currentIdx = 0;
         audioPlayRef.current.useRange = false;
         playItemCoreRef.current?.(fp.surahId, fp.originalAyah, fp.displayAyah);
+      },
+      nexttrack: () => goPage(currentPage + 1),
+      previoustrack: () => goPage(currentPage - 1),
+    };
+  });
+  React.useEffect(() => {
+    const info = {
+      title: `${pageSurahName} · آية ${playingKey?.split(":")[1] ?? ""}`,
+      artist: reciterLabel,
+      album: "القرآن الكريم · أثر",
+    };
+    if (playingKey) {
+      if (currentMediaOwner() !== "quran") {
+        const controls = recitationControlsRef;
+        void claimMediaSession("quran", info, {
+          pause: () => controls.current.pause?.(),
+          play: () => controls.current.play?.(),
+          stop: () => { controls.current.pause?.(); void releaseMediaSession("quran"); },
+          nexttrack: () => controls.current.nexttrack?.(),
+          previoustrack: () => controls.current.previoustrack?.(),
+        }).then(() => setMediaPlaybackState("quran", "playing"));
+      } else {
+        void updateNowPlaying("quran", info);
+        void setMediaPlaybackState("quran", "playing");
       }
-    });
-    navigator.mediaSession.setActionHandler("nexttrack", () => goPage(currentPage + 1));
-    navigator.mediaSession.setActionHandler("previoustrack", () => goPage(currentPage - 1));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playingKey, pageSurahName, prefs.quranReciter, currentPage, playableItems]);
+    } else {
+      void setMediaPlaybackState("quran", "paused");
+    }
+  }, [playingKey, pageSurahName, reciterLabel]);
+  // Leaving the Mushaf ends the recitation, so remove its controls.
+  React.useEffect(() => () => { void releaseMediaSession("quran"); }, []);
 
   // A4: Radio control functions
   const handleRadioToggle = React.useCallback(() => {

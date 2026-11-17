@@ -9,8 +9,11 @@ const PERMISSIVE = /^(MIT|ISC|0BSD|BSD-2-Clause|BSD-3-Clause|Apache-2\.0|Zlib|Un
  * Packages whose licence is not a standard identifier, reviewed by hand:
  * - gsap: free for commercial use under its standard "no charge" licence.
  * - webgl-constants: MIT in its repository; the published manifest omits the field.
+ * - @capgo/capacitor-media-session: MPL-2.0, a file-level licence. It allows use in a
+ *   proprietary app; its obligations cover only the plugin's own files, which ship
+ *   unmodified, with their source public and their licence text in the notices.
  */
-const REVIEWED = new Set(["gsap", "webgl-constants"]);
+const REVIEWED = new Set(["gsap", "webgl-constants", "@capgo/capacitor-media-session"]);
 
 describe("third-party notices", () => {
   it("covers the packages the app ships", () => {
