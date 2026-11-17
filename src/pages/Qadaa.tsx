@@ -1,4 +1,5 @@
 import * as React from "react";
+import { vibrate } from "@/lib/haptics";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, Minus, Plus, Check } from "lucide-react";
 import toast from "react-hot-toast";
@@ -161,7 +162,7 @@ export function QadaaPage() {
 
   const bump = (k: PrayerKey) => {
     logQadaa(prayerKey(k), 1);
-    if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(8);
+    vibrate(8);
   };
 
   const planModes: Array<{ id: PlanMode; label: string }> = [

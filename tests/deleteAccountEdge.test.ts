@@ -39,7 +39,7 @@ function createDeleteAccountEdge(options: DeleteOptions = {}) {
   }));
   const source = fs.readFileSync(path.resolve("supabase/functions/delete-account/index.ts"), "utf8")
     .replace(
-      'import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";',
+      /^import \{ createClient \} from "[^"]*@supabase\/supabase-js@[^"]+";$/m,
       "const { createClient } = mocks;",
     );
   const js = ts.transpileModule(source, {

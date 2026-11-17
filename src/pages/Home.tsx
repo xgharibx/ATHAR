@@ -1,4 +1,5 @@
 import * as React from "react";
+import { vibrate } from "@/lib/haptics";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -386,7 +387,7 @@ export function HomePage() {
       setDraggingStripId(id);
       setLiveStripIds((prev) => prev ?? [...defaultStripIds]);
       stripDragWasActive.current = true;
-      if (prefs.enableHaptics && "vibrate" in navigator) navigator.vibrate(20);
+      if (prefs.enableHaptics) vibrate(20);
     };
     const onEarlyMove = (me: PointerEvent) => {
       const absDx = Math.abs(me.clientX - startX);

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { vibrate } from "@/lib/haptics";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon, Clock, BookMarked, Clapperboard, Trophy, Sparkles, Atom } from "lucide-react";
@@ -586,7 +587,7 @@ export function AppShell() {
               <div className="xl:hidden shrink-0" hidden={!SHOW_HEADER_MENU}>
                 <Dialog.Root open={drawerOpen} onOpenChange={(open) => {
                   setDrawerOpen(open);
-                  if (open && navigator.vibrate) navigator.vibrate(10);
+                  if (open) vibrate(10);
                 }}>
                   <Dialog.Trigger asChild>
                     <IconButton aria-label="القائمة">
