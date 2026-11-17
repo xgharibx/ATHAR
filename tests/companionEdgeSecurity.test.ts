@@ -580,19 +580,19 @@ describe("Companion Edge Function access controls", () => {
     expect(text).toContain("— سورة البينة: ٥");
     expect(text).not.toContain("سبعين شهيدًا");
     expect(text).not.toContain("بغير حساب");
-    expect(text).toContain("حُذف نصٌّ منسوب إلى السنة");
-    expect(text).toContain("حُذف نصٌّ لم يطابق المصحف");
+    expect(text).toContain("حُذف من هذا الجواب نصٌّ لم يمكن توثيقه");
   });
 
   it("removes every hadith and verse when no evidence could be gathered", async () => {
-    const answer = "قال النبي ﷺ: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى»\n:::verse(98:5)\n:::";
+    const answer = "النية أساس كل عمل صالح.\nقال النبي ﷺ: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى»\n:::verse(98:5)\n:::";
     const app = edge({ quranUnavailable: true, answer });
     const response = await app.sendRaw(JSON.stringify(longQuestion), "Bearer synthetic-user-token");
     const text = (await response.json() as { content: Array<{ text: string }> }).content[0]?.text ?? "";
 
     expect(text).not.toContain("الأعمال بالنيات");
-    expect(text).toContain("حُذف نصٌّ منسوب إلى السنة");
-    expect(text).toContain("حُذف نصٌّ لم يطابق المصحف");
+    expect(text).not.toContain(":::verse");
+    expect(text).toContain("النية أساس كل عمل صالح.");
+    expect(text).toContain("حُذف من هذا الجواب نصٌّ لم يمكن توثيقه");
   });
 
   it("skips evidence gathering for a greeting", async () => {
@@ -615,5 +615,23 @@ describe("Companion Edge Function access controls", () => {
     const response = await app.sendRaw(JSON.stringify(longQuestion), "Bearer synthetic-user-token");
     const text = (await response.json() as { content: Array<{ text: string }> }).content[0]?.text ?? "";
     expect(text).toContain("تعذَّر إعداد جوابٍ موثوقٍ");
+  });
+  it("accepts a large client context and keeps only the focused part of it", async () => {
+    const passages = Array.from({ length: 5 }, (_unused, index) =>
+      `${index + 1}. [معرّف المصدر: sharh:${index}] [مصدر: كتاب] ${"نص طويل غير متصل بالسؤال ".repeat(260)}`).join("\n");
+    const context = `اليوم: يوم الثلاثاء (2026-11-17)\n\nالمسارات الصالحة في التطبيق (استخدم هذه بالضبط):\n- /quran → القرآن\n\nمقاطع من الموسوعة الداخلية للتطبيق قد تفيدك في الاستشهاد:\n${passages}`;
+    expect(context.length).toBeGreaterThan(25_000);
+    const app = edge();
+    const response = await app.sendRaw(JSON.stringify({
+      system: [{ type: "text", text: "أنت «أثر»، رفيق إيماني." }, { type: "text", text: context }],
+      messages: [{ role: "user", content: "hello" }],
+    }), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    const system = JSON.stringify(upstreamBodies(app)[0]?.system);
+    expect(system).toContain("يوم الثلاثاء");
+    expect(system).not.toContain("معرّف المصدر");
+    expect(system).not.toContain("المسارات الصالحة في التطبيق (استخدم");
+    expect(system).not.toContain("نص طويل غير متصل");
   });
 });

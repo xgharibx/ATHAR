@@ -64,14 +64,15 @@ describe("Companion first-turn retrieval", () => {
     mocks.request = undefined;
   });
 
-  it("waits for a cold local index and includes its passage in the first request", async () => {
+  it("sends no library excerpts or route list: the server gathers the evidence", async () => {
     await streamCompanionReply([{ role: "user", content: "ما معنى آية الكرسي؟" }], { onText: vi.fn() });
 
-    expect(mocks.retrievePassagesAsync).toHaveBeenCalledWith("ما معنى آية الكرسي؟", 5);
+    expect(mocks.retrievePassagesAsync).not.toHaveBeenCalled();
     const systemText = mocks.request?.system?.map((block) => block.text).join("\n") ?? "";
-    expect(systemText).toContain("نص مرجعي يجب أن يصل إلى أول إجابة للمستخدم");
-    expect(systemText).toContain("tafsir:2:255");
+    expect(systemText).not.toContain("معرّف المصدر");
+    expect(systemText).not.toContain("المسارات الصالحة");
     expect(systemText.startsWith("أنت «أثر»")).toBe(true);
+    expect(systemText.length).toBeLessThan(1_500);
   });
 
   it.each([
@@ -91,18 +92,12 @@ describe("Companion first-turn retrieval", () => {
     expect(verification).toMatchObject({ flagged: true, notes: [expect.stringContaining("المقتطف")] });
   });
 
-  it("renders an exact excerpt only under its retrieved source ID", async () => {
-    const excerpt = "يجب أن يصل إلى أول إجابة";
-    mocks.finalContent = [{ type: "tool_use", name: "cite", input: { source: "tafsir:2:255", excerpt } }];
+  it("never renders a library citation, because no library excerpts are sent", async () => {
+    mocks.finalContent = [{ type: "tool_use", name: "cite", input: { source: "tafsir:2:255", excerpt: "يجب أن يصل إلى أول إجابة" } }];
     const output: string[] = [];
-    let verification: { flagged: boolean; notes: string[] } | undefined;
 
-    await streamCompanionReply([{ role: "user", content: "ما معنى الآية؟" }], {
-      onText: (chunk) => output.push(chunk),
-      onDone: (_text, report) => { verification = report; },
-    });
+    await streamCompanionReply([{ role: "user", content: "ما معنى الآية؟" }], { onText: (chunk) => output.push(chunk) });
 
-    expect(output.join(" ")).toContain(`:::cite(tafsir:2:255)\n${excerpt}\n:::`);
-    expect(verification).toMatchObject({ flagged: false, notes: [] });
+    expect(output.join(" ")).not.toContain(":::cite(");
   });
 });

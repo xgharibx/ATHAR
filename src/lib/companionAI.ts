@@ -36,7 +36,6 @@ import {
 import { createCompanionStreamSanitizer } from "@/lib/companionSanitize";
 import {
   detectMood,
-  retrievePassagesAsync,
   retrieveUserRemindersAsPassages,
   verifyAnswerAsync,
 } from "@/lib/companionKnowledge";
@@ -521,11 +520,6 @@ export const ROUTE_LABELS: Record<string, string> = {
   "/companion": "اسأل أثر",
 };
 
-function buildRouteLabelsBlock(): string {
-  const lines = Object.entries(ROUTE_LABELS).map(([route, label]) => `- ${route} → ${label}`);
-  return "المسارات الصالحة في التطبيق (استخدم هذه بالضبط في أداة next_step وفي كتل :::action(/route)):\n" + lines.join("\n");
-}
-
 /* ─── Tool schema exposed to the model ─────────────────────────────────── */
 
 /** Naming the search tool opts this request in to web search. The server
@@ -550,24 +544,6 @@ const COMPANION_TOOLS: Anthropic.Tool[] = [
         },
       },
       required: ["route", "description"],
-    },
-  },
-  {
-    name: "cite",
-    description: "استشهد بآية أو حديث من مقتطفات الموسوعة الداخلية. استخدم هذا بدل كتابة «رواه البخاري» أو نسب الآيات دون التحقق.",
-    input_schema: {
-      type: "object",
-      properties: {
-        source: {
-          type: "string",
-          description: "مفتاح المصدر من كتلة السياق (مثال: sharh:1، أو searchidx:Bukhari:1:0).",
-        },
-        excerpt: {
-          type: "string",
-          description: "المقتطف المقصود من المصدر (انسخه حرفيًا من كتلة سياق الاسترجاع).",
-        },
-      },
-      required: ["source", "excerpt"],
     },
   },
   {
@@ -888,21 +864,14 @@ type RetrievedPassage = { source: string; sourceLabel: string; text: string };
 type RetrievalBlock = { text: string; passages: RetrievedPassage[] };
 
 async function buildRetrievalBlock(lastUserText: string): Promise<RetrievalBlock> {
-  const passages = await retrievePassagesAsync(lastUserText, 5);
+  // The server gathers and verifies the evidence for each question, so no
+  // library excerpts are sent. Only the user's own saved reminders are, and
+  // only when the question is about them.
   const userReminders = retrieveUserRemindersAsPassages(lastUserText);
-  if (passages.length === 0 && userReminders.length === 0) return { text: "", passages: [] };
-  const lines: string[] = [];
-  if (userReminders.length > 0) {
-    lines.push("تذكيراتك المحفوظة في التطبيق (استعن بها في إجابتك):");
-    userReminders.forEach((p, i) => lines.push(`${i + 1}. ${p.text}`));
-  }
-  if (passages.length > 0) {
-    passages.forEach((p, i) => lines.push(`${i + 1}. [معرّف المصدر: ${p.source}] [مصدر: ${p.sourceLabel}] ${p.text}`));
-  }
-  return {
-    text: "مقاطع من الموسوعة الداخلية للتطبيق قد تفيدك في الاستشهاد (لا تقتبس نصًّا خارجها دون التحقق):\n" + lines.join("\n"),
-    passages,
-  };
+  if (userReminders.length === 0) return { text: "", passages: [] };
+  const lines = ["تذكيراتك المحفوظة في التطبيق (استعن بها في إجابتك):"];
+  userReminders.forEach((p, i) => lines.push(`${i + 1}. ${p.text}`));
+  return { text: lines.join("\n"), passages: [] };
 }
 
 function normalizeCitationExcerpt(value: string): string {
@@ -947,7 +916,6 @@ export async function streamCompanionReply(
       profile.includePersonalContext && mood ? `حالة المستخدم الآن: ${mood} (اضبط نبرتك وفقًا لها — لا تبالغ).` : "",
       profile.includePersonalContext ? buildCompanionProfileContext(profile) : "",
       profile.includePersonalContext ? buildMemoryBlock() : "",
-      buildRouteLabelsBlock(),
       retrieval.text,
     ].filter(Boolean).join("\n\n");
 

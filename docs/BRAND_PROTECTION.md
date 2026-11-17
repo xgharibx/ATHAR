@@ -2,7 +2,7 @@
 
 The licence and trademark policy in this repository state Athar's rights. Registration is what makes them straightforward to enforce: it gives the owner a certificate to show an app store, a host or a court. This guide lists what to register and where. It is a working checklist, not legal advice; confirm current procedure and fees with the office or with an Egyptian IP attorney before filing.
 
-**Owner of record for every filing:** Amr Abdel-Aziz Gharib (or a company he later assigns the rights to; assignments must then be recorded with each office).
+**Owner of record for every filing:** Amr Abdel-Aziz Gharib — عمرو عبدالعزيز غريب (or a company he later assigns the rights to; assignments must then be recorded with each office).
 
 ## 1. Trademarks
 

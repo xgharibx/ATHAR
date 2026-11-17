@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildEvidenceBlock, readEvidencePlan } from "../supabase/functions/companion/evidence";
-import { REMOVED_HADITH_NOTE, REMOVED_VERSE_NOTE, ReplyGuard, finalizeReply, isUsableReply, selectCleanAttempt } from "../supabase/functions/companion/guard";
+import { GARBLED, REMOVAL_FOOTNOTE, REMOVED_HADITH_NOTE, REMOVED_VERSE_NOTE, ReplyGuard, finalizeReply, finalizeReplyDetailed, isUsableReply, selectCleanAttempt } from "../supabase/functions/companion/guard";
 import { isAuthenticGrade, parseDorarResults, selectAuthentic } from "../supabase/functions/companion/hadith";
 import { QuranCorpus } from "../supabase/functions/companion/quran";
-import { guardMessage, guardSseEvent } from "../supabase/functions/companion/stream";
+import { guardMessage, guardSseEvent, newStreamState } from "../supabase/functions/companion/stream";
 import { skeleton } from "../supabase/functions/companion/text";
 
 const quran = new QuranCorpus(JSON.parse(readFileSync("public/data/quran.json", "utf8")));
@@ -90,7 +90,7 @@ describe("hadith evidence", () => {
       name: "find_evidence",
       input: { hadith_queries: ["صيام يوم عرفة", "x<script>", 5], quran_refs: ["2:183", 9] },
     }]);
-    expect(plan).toEqual({ hadithQueries: ["صيام يوم عرفة"], quranReferences: ["2:183"], needsSources: false });
+    expect(plan).toEqual({ hadithQueries: ["صيام يوم عرفة"], quranReferences: ["2:183"], needsSources: false, wantsWording: false });
   });
 
   it("tells the model plainly when no hadith was found", () => {
@@ -189,9 +189,9 @@ describe("reply guard", () => {
     expect(guarded(`${sentence} وهذا من فضل الله.\n${sentence} فاحرص عليه.`)).toBe(`${sentence} وهذا من فضل الله.\n فاحرص عليه.`);
   });
 
-  it("removes stray foreign words but keeps link addresses", () => {
+  it("marks stray foreign words for removal but keeps link addresses", () => {
     expect(guarded("راجع [موقع ابن baz](https://binbaz.org.sa/fatwas/1) وهو additionally نافع.")).toBe(
-      "راجع [موقع ابن ](https://binbaz.org.sa/fatwas/1) وهو  نافع.",
+      `راجع [موقع ابن ](https://binbaz.org.sa/fatwas/1) وهو ${GARBLED} نافع.`,
     );
   });
 });
@@ -199,29 +199,119 @@ describe("reply guard", () => {
 describe("stream filter", () => {
   const finalizeWith = (guard: ReplyGuard) => async (text: string) => finalizeReply(text, guard);
 
-  it("holds a reply until it is complete, then sends the verified text", async () => {
+  const sse = (type: string, data: Record<string, unknown>) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}`;
+  const delta = (index: number, text: string) => sse("content_block_delta", { index, delta: { type: "text_delta", text } });
+  const textOf = (events: string) => events.split("\n\n").filter((event) => event.includes("text_delta"))
+    .map((event) => JSON.parse(event.split("data: ")[1]!).delta.text).join("");
+
+  it("holds a reply until the message is complete, then sends the verified text", async () => {
     const finalize = finalizeWith(new ReplyGuard({ quran, hadith, trustedTexts: [] }));
-    const blocks = new Map<number, string>();
-    const start = 'event: content_block_start\ndata: {"type":"content_block_start","index":1,"content_block":{"type":"text","text":""}}';
-    expect(await guardSseEvent(start, finalize, blocks)).toBe(`${start}\n\n`);
-    const thinking = 'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"x"}}';
-    expect(await guardSseEvent(thinking, finalize, blocks)).toBe(`${thinking}\n\n`);
-    const delta = (text: string) => `event: content_block_delta\ndata: ${JSON.stringify({ type: "content_block_delta", index: 1, delta: { type: "text_delta", text } })}`;
-    expect(await guardSseEvent(delta("النية أساس العمل.\n:::hadith(H1)\n"), finalize, blocks)).toBe("");
-    expect(await guardSseEvent(delta(":::\n"), finalize, blocks)).toBe("");
-    const stop = 'event: content_block_stop\ndata: {"type":"content_block_stop","index":1}';
-    const released = await guardSseEvent(stop, finalize, blocks);
-    expect(released.endsWith(`${stop}\n\n`)).toBe(true);
-    const text = released.split("\n\n").filter((event) => event.includes("text_delta"))
-      .map((event) => JSON.parse(event.split("data: ")[1]!).delta.text).join("");
-    expect(text).toContain("النية أساس العمل.");
-    expect(text).toContain("صحيح البخاري");
+    const state = newStreamState();
+    const start = sse("content_block_start", { index: 1, content_block: { type: "text", text: "" } });
+    expect(await guardSseEvent(start, finalize, state)).toBe(`${start}\n\n`);
+    const thinking = sse("content_block_delta", { index: 0, delta: { type: "thinking_delta", thinking: "x" } });
+    expect(await guardSseEvent(thinking, finalize, state)).toBe(`${thinking}\n\n`);
+    expect(await guardSseEvent(delta(1, "النية أساس العمل.\n:::hadith(H1)\n"), finalize, state)).toBe("");
+    expect(await guardSseEvent(delta(1, ":::\n"), finalize, state)).toBe("");
+    const stop = sse("content_block_stop", { index: 1 });
+    expect(await guardSseEvent(stop, finalize, state)).toBe("");
+    const end = sse("message_delta", { delta: { stop_reason: "end_turn" } });
+    const released = await guardSseEvent(end, finalize, state);
+    expect(released.endsWith(`${stop}\n\n${end}\n\n`)).toBe(true);
+    expect(textOf(released)).toContain("النية أساس العمل.");
+    expect(textOf(released)).toContain("صحيح البخاري");
+  });
+
+  it("treats two text blocks as one reply: a restart is not shown twice", async () => {
+    const finalize = finalizeWith(new ReplyGuard({ quran, hadith, trustedTexts: [] }));
+    const state = newStreamState();
+    const answer = "النية أساس كل عمل صالح، وبها يتفاضل الناس عند الله.\n:::hadith(H1)\n:::\n";
+    for (const index of [0, 2]) {
+      await guardSseEvent(sse("content_block_start", { index, content_block: { type: "text", text: "" } }), finalize, state);
+      await guardSseEvent(delta(index, answer), finalize, state);
+      await guardSseEvent(sse("content_block_stop", { index }), finalize, state);
+    }
+    const released = await guardSseEvent(sse("message_stop", {}), finalize, state);
+    const text = textOf(released);
+    expect(text.match(/:::hadith/g)).toHaveLength(1);
+    expect(text.match(/النية أساس كل عمل صالح/g)).toHaveLength(1);
+    expect(released.match(/event: content_block_stop/g)).toHaveLength(2);
   });
 
   it("guards a complete message", async () => {
     const finalize = finalizeWith(new ReplyGuard({ quran, hadith, trustedTexts: [] }));
-    const message = await guardMessage({ content: [{ type: "text", text: "قال ﷺ: «من استعمل التطبيق كل يوم غفر له ما تقدم»" }] }, finalize) as { content: Array<{ text: string }> };
-    expect(message.content[0]?.text).toBe(`قال ﷺ: ${REMOVED_HADITH_NOTE}`);
+    const message = await guardMessage({
+      content: [{ type: "text", text: "الإخلاص شرط قبول العمل. قال ﷺ: «من استعمل التطبيق كل يوم غفر له ما تقدم»" }],
+    }, finalize) as { content: Array<{ text: string }> };
+    expect(message.content[0]?.text).toBe(`الإخلاص شرط قبول العمل.\n\n${REMOVAL_FOOTNOTE}`);
+  });
+});
+
+describe("the model's own sentences", () => {
+  const finalize = (text: string, userTexts: string[] = []) =>
+    finalizeReplyDetailed(text, new ReplyGuard({ quran, hadith, trustedTexts: [], userTexts }));
+
+  it("drops a clause that holds a word in another script, and keeps the rest", () => {
+    const reply = finalize("نعم، يجوز المسح على الجوربين في الوضوء، وقد practiced الصحابة ذلك، وهو قول جمهور أهل العلم.");
+    expect(reply.text).toBe("نعم، يجوز المسح على الجوربين في الوضوء، وهو قول جمهور أهل العلم.");
+    expect(reply.damage).toBe(1);
+  });
+
+  it("drops a report of the Prophet's practice written in the model's own words", () => {
+    const reply = finalize("قراءة سورة الكهف يوم الجمعة مستحبة. وقد ورد في صحيح مسلم أن النبي ﷺ كان يقرأ في فجر الجمعة سورة الكهف. فاحرص عليها كل أسبوع.");
+    expect(reply.text).toBe("قراءة سورة الكهف يوم الجمعة مستحبة. فاحرص عليها كل أسبوع.");
+  });
+
+  it("drops a report whatever the word order", () => {
+    expect(finalize("ومن فوائدها أنها وقاية من الفتن. فقد كان النبي ﷺ يأمر بفواتحها من يخاف الفتنة. فاحفظ أولها.").text)
+      .toBe("ومن فوائدها أنها وقاية من الفتن. فاحفظ أولها.");
+  });
+
+  it("keeps the answer and cuts only the unverified report that follows it", () => {
+    expect(finalize("نعم، يجوز الجمع بين الصلاتين للمسافر، وقد ثبت عن النبي ﷺ أنه جمع في أسفاره كلها دائمًا.").text)
+      .toBe("نعم، يجوز الجمع بين الصلاتين للمسافر.");
+  });
+
+  it("keeps an introduction that is followed by a verified hadith, and drops one that is not", () => {
+    expect(finalize("النية أساس العمل، كما في الحديث:\n:::hadith(H1)\n:::").text).toContain("كما في الحديث:\n:::hadith");
+    expect(finalize("النية أساس العمل. كما في حديث عائشة رضي الله عنها:\n:::hadith(H9)\n:::\nفأخلص نيتك لله.").text)
+      .toBe(`النية أساس العمل.\nفأخلص نيتك لله.\n\n${REMOVAL_FOOTNOTE}`);
+  });
+
+  it("drops a tip the model garbled, and a sentence whose quotation failed verification", () => {
+    const reply = finalize("الخشوع ثمرة حضور القلب.\n:::tip\nاجعل لصلاتك وقتًا مع الت commitment\n:::\nقال النبي ﷺ: «من خشع في تطبيقه دخل الجنة بلا حساب» فتأمل.");
+    expect(reply.text).toBe(`الخشوع ثمرة حضور القلب.\n\n${REMOVAL_FOOTNOTE}`);
+  });
+
+  it("does not treat ordinary religious wording as a report", () => {
+    const text = "الصلاة على النبي ﷺ من أفضل الأذكار، فأكثر منها يوم الجمعة. وجاء في القرآن الأمر بالصبر والصلاة. واحرص على اتباع سنة النبي ﷺ في يومك.";
+    expect(finalize(text).text).toBe(text);
+  });
+
+  it("removes a supplication typed out in quotation marks, even with no source named", () => {
+    const reply = finalize("دعاء الاستخارة معروف.\n«اللهم إني أستخيرك بعلمك وأستقدرك بقدرتك فاطرد عني الشر بقدرتك وأمانتك».\nفاحرص عليه.");
+    expect(reply.text).toBe(`دعاء الاستخارة معروف.\nفاحرص عليه.\n\n${REMOVAL_FOOTNOTE}`);
+  });
+
+  it("removes a misquotation of a gathered hadith from running text", () => {
+    const reply = finalize("النية أصل العمل. وقل دائمًا «إنما الأعمال بالنيات والله يغفر لكل امرئ ما نوى» قبل كل عمل. فأخلص نيتك لله وحده.");
+    expect(reply.text).toBe(`النية أصل العمل. فأخلص نيتك لله وحده.\n\n${REMOVAL_FOOTNOTE}`);
+  });
+
+  it("drops a tip that states a virtue, a ruling or a count, and keeps a practical one", () => {
+    expect(finalize("اقرأ قبل نومك.\n:::tip\nلا تنم قبل قراءة ثلاث آيات من آخر سورة البقرة فهي حرز لك.\n:::").text).toBe("اقرأ قبل نومك.");
+    const practical = "اقرأ قبل نومك.\n:::tip\nضع المصحف قرب سريرك وأبعد الهاتف قبل النوم.\n:::";
+    expect(finalize(practical).text).toBe(practical);
+  });
+
+  it("keeps a short everyday quotation", () => {
+    const text = "قل لنفسك كل صباح «سأبدأ بذكر الله ثم أمضي» ثم امضِ في يومك.";
+    expect(finalize(text).text).toBe(text);
+  });
+
+  it("lets the reply repeat a narration the user asked about", () => {
+    const reply = "حديث «اطلبوا العلم ولو في الصين» لا يصح عن النبي ﷺ.";
+    expect(finalize(reply, ["هل حديث اطلبوا العلم ولو في الصين صحيح؟"]).text).toBe(reply);
   });
 });
 
@@ -292,7 +382,8 @@ describe("a narration the user asked about", () => {
 
   it("is still never shown as a verified hadith block", () => {
     const guard = new ReplyGuard({ quran, hadith, trustedTexts: [], userTexts: [asked] });
-    expect(finalizeReply(":::hadith\n«اطلبوا العلم ولو في الصين» — رواه البخاري\n:::", guard)).toBe(REMOVED_HADITH_NOTE);
+    expect(finalizeReply("هذا الحديث لا يصح.\n:::hadith\n«اطلبوا العلم ولو في الصين» — رواه البخاري\n:::", guard))
+      .toBe(`هذا الحديث لا يصح.\n\n${REMOVAL_FOOTNOTE}`);
   });
 });
 
@@ -303,12 +394,37 @@ describe("source links", () => {
 
   it("names a trusted site correctly, whatever the model called it", () => {
     expect(finalize(`الجواب كذا.\nالمصادر: [محمد بن إبراهيم](${fatwa})`, [fatwa])).toBe(
-      `الجواب كذا.\nالمصادر: [موقع الشيخ ابن باز](${fatwa})`,
+      `الجواب كذا.\n\nالمصادر: [موقع الشيخ ابن باز](${fatwa})`,
+    );
+  });
+
+  it("labels a bare line of links as the sources line, and shows one link per site", () => {
+    const second = "https://binbaz.org.sa/fatwas/7562/y";
+    expect(finalize(`الجواب كذا.\n- [أ](${fatwa}) [ب](${second})`, [fatwa, second])).toBe(
+      `الجواب كذا.\n\nالمصادر: [موقع الشيخ ابن باز](${fatwa})`,
+    );
+  });
+
+  it("gathers links from several lines into one sources line at the end", () => {
+    const second = "https://www.islamweb.net/ar/fatwa/1/x";
+    expect(finalize(`الجواب كذا.\n[أ](${fatwa})\n[ب](${second})\nوالله أعلم.`, [fatwa, second])).toBe(
+      `الجواب كذا.\nوالله أعلم.\n\nالمصادر: [موقع الشيخ ابن باز](${fatwa})، [إسلام ويب](${second})`,
     );
   });
 
   it("removes links to other sites and to pages the search did not return", () => {
     const text = `الجواب كذا.\nالمصادر: [موقع](https://example.com/a) [ابن باز](https://binbaz.org.sa/fatwas/9999/invented)`;
     expect(finalize(text, [fatwa])).toBe("الجواب كذا.");
+  });
+});
+
+describe("choosing among versions of one hadith", () => {
+  const short = "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى";
+  const long = "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله ومن كانت هجرته لدنيا يصيبها أو امرأة ينكحها فهجرته إلى ما هاجر إليه";
+  const results = [short, long].map((text) => ({ text, narrator: "عمر", grader: "الألباني", source: "صحيح الجامع", number: "1", grade: "صحيح" }));
+
+  it("prefers the shortest by default and the fullest when the wording was asked for", () => {
+    expect(selectAuthentic(results, 3).map((item) => item.text)).toEqual([short]);
+    expect(selectAuthentic(results, 3, true).map((item) => item.text)).toEqual([long]);
   });
 });
