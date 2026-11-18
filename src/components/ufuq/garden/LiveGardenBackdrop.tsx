@@ -124,6 +124,7 @@ export function LiveGardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } =
     <>
       <canvas ref={bgRef} className="u-garden" aria-hidden="true" />
       <canvas ref={canvasRef} className="u-garden" aria-hidden="true" />
+      <div className="u-garden-grade" aria-hidden="true" />
       <div className={`u-garden-veil ${location.pathname === "/" ? "is-light" : ""}`} aria-hidden="true" />
     </>
   );

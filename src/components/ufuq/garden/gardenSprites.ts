@@ -92,10 +92,16 @@ export const FOLIAGE: Record<SpriteMode, Foliage> = {
 // ───────────────────────── Date palm ─────────────────────────
 
 /** One frond, drawn from its base at (0, h·0.25) out to the right, drooping. */
-export function paintFrond(len: number, mode: SpriteMode, dpr: number, seed: number, shade = 0): Sprite | null {
+/** An old frond, dried to straw and hanging under the crown. */
+const DRY: Record<SpriteMode, Foliage> = {
+  day: { dark: "#5a4426", mid: "#9a7a48", light: "#c9a86a", rim: "#f0dca8" },
+  night: { dark: "#141210", mid: "#2a2620", light: "#3e3a32", rim: "#7f8aa0" },
+};
+
+export function paintFrond(len: number, mode: SpriteMode, dpr: number, seed: number, shade = 0, dry = false): Sprite | null {
   const h = len * 0.62;
   const rnd = seededRandom(seed);
-  const f = FOLIAGE[mode];
+  const f = (dry ? DRY : FOLIAGE)[mode];
   const dark = mix(f.dark, "#000000", shade * 0.5);
   const mid = mix(f.mid, f.dark, shade);
   const tip = mix(f.light, f.mid, shade * 0.8);
@@ -310,7 +316,7 @@ export function paintCypress(width: number, height: number, mode: SpriteMode, dp
     }
     g.fill();
     // Foliage tufts, more of them toward the lit side and the edge.
-    const tufts = Math.round(height * 3.2);
+    const tufts = Math.round(height * 7);
     for (let i = 0; i < tufts; i++) {
       const t = Math.pow(rnd(), 0.9);
       const half = profile(t);
@@ -318,9 +324,10 @@ export function paintCypress(width: number, height: number, mode: SpriteMode, dp
       const x = cx + u * half * (0.95 + rnd() * 0.15);
       const y = height + 4 - t * height + (rnd() - 0.5) * 4;
       const light = Math.max(0, Math.min(1, 0.55 - u * 0.45 + (rnd() - 0.5) * 0.35)) * (0.6 + t * 0.4);
-      g.fillStyle = mix(f.dark, light > 0.75 ? f.light : f.mid, light);
-      const rx = 1.6 + rnd() * 2.4;
-      const ry = rx * (1.8 + rnd());
+      g.fillStyle = mix(f.dark, light > 0.8 ? mix(f.mid, f.light, 0.5) : f.mid, light);
+      // Small upright sprays, like the scale-leaf twigs of a real cypress.
+      const rx = 0.9 + rnd() * 1.4;
+      const ry = rx * (1.8 + rnd() * 1.2);
       g.beginPath();
       g.ellipse(x, y, rx, ry, (rnd() - 0.5) * 0.7, 0, Math.PI * 2);
       g.fill();
@@ -352,15 +359,11 @@ export function paintPomegranate(height: number, mode: SpriteMode, dpr: number, 
   const baseY = H - 4;
   type Seg = { x1: number; y1: number; x2: number; y2: number; w: number; depth: number };
   const segs: Seg[] = [];
-  const tips: Array<[number, number]> = [];
   const grow = (x: number, y: number, ang: number, len: number, w: number, depth: number) => {
     const x2 = x + Math.sin(ang) * len;
     const y2 = y - Math.cos(ang) * len;
     segs.push({ x1: x, y1: y, x2, y2, w, depth });
-    if (depth >= 6) {
-      tips.push([x2, y2]);
-      return;
-    }
+    if (depth >= 6) return;
     const n = depth < 2 ? 2 : rnd() > 0.4 ? 2 : 3;
     for (let i = 0; i < n; i++) {
       const spread = (i - (n - 1) / 2) * (0.5 + rnd() * 0.22) + (rnd() - 0.5) * 0.28;
@@ -370,14 +373,6 @@ export function paintPomegranate(height: number, mode: SpriteMode, dpr: number, 
     }
   };
   grow(baseX, baseY, -0.04, height * 0.24, height * 0.06, 0);
-  const ends = tips.length;
-  // Leaves grow along the outer branches too, not only at their ends, so the
-  // crown is full and round.
-  for (const sg of segs) {
-    if (sg.depth < 3) continue;
-    tips.push([(sg.x1 + sg.x2) / 2 + (rnd() - 0.5) * height * 0.04, (sg.y1 + sg.y2) / 2 + (rnd() - 0.5) * height * 0.04]);
-  }
-
   const wood = sprite(W, H, dpr, baseX, baseY, (g) => {
     const bend = seededRandom(seed + 1);
     for (const s of segs) {
@@ -416,45 +411,51 @@ export function paintPomegranate(height: number, mode: SpriteMode, dpr: number, 
     g.restore();
   };
 
+  // The crown is a heap of clumps, one where each outer limb ends; each clump
+  // is lit on its upper left and in shade beneath, which gives it volume.
+  const clumps = segs
+    .filter((sg) => sg.depth === 4 || (sg.depth === 5 && rnd() > 0.55))
+    .map((sg) => ({ x: sg.x2, y: sg.y2 - height * 0.02, r: height * (0.075 + rnd() * 0.04) }));
   const leaves = sprite(W, H, dpr, baseX, baseY, (g) => {
-    // The shade inside the crown, so it reads as a mass and not a sieve.
-    for (const [tx, ty] of tips) {
-      const r = height * 0.06;
-      const sg = g.createRadialGradient(tx + r * 0.2, ty + r * 0.25, 1, tx, ty, r);
-      const core = mix(f.dark, "#000000", 0.3);
-      sg.addColorStop(0, core);
-      sg.addColorStop(0.7, `${core}aa`);
-      sg.addColorStop(1, `${core}00`);
-      g.fillStyle = sg;
-      g.fillRect(tx - r, ty - r, r * 2, r * 2);
-    }
-    // Leaves: the deep ones first, the sunlit outer ones last.
-    const all: Array<[number, number, number]> = [];
-    for (const [tx, ty] of tips) {
-      for (let k = 0; k < 22; k++) {
-        const r = height * 0.1 * Math.sqrt(rnd());
+    // Back to front: higher clumps behind, lower ones in front.
+    clumps.sort((a, b) => a.y - b.y);
+    for (const c of clumps) {
+      // The clump's shaded body.
+      const body = g.createRadialGradient(c.x - c.r * 0.3, c.y - c.r * 0.35, c.r * 0.1, c.x, c.y, c.r);
+      body.addColorStop(0, f.mid);
+      body.addColorStop(0.7, mix(f.dark, f.mid, 0.4));
+      body.addColorStop(1, mix(f.dark, "#000000", 0.25));
+      g.fillStyle = body;
+      g.beginPath();
+      g.ellipse(c.x, c.y, c.r * 0.8, c.r * 0.66, 0, 0, Math.PI * 2);
+      g.fill();
+      // Leaves over it, reaching past its edge, the lit ones last.
+      const ls: Array<[number, number, number]> = [];
+      for (let k = 0; k < 90; k++) {
         const a = rnd() * Math.PI * 2;
-        const x = tx + Math.cos(a) * r;
-        const y = ty + Math.sin(a) * r * 0.8;
-        const light = Math.max(0, Math.min(1, 0.5 - (x - baseX) / W * 0.9 + (baseY - y) / H * 0.45 + (rnd() - 0.5) * 0.45));
-        all.push([x, y, light]);
+        const rr = Math.pow(rnd(), 0.5) * c.r * 1.08;
+        const dx = Math.cos(a) * rr;
+        const dy = Math.sin(a) * rr * 0.82;
+        const light = Math.max(0, Math.min(1, 0.5 + (-dx * 0.6 - dy) / (c.r * 1.6) + (rnd() - 0.5) * 0.35));
+        ls.push([c.x + dx, c.y + dy, light]);
       }
-    }
-    all.sort((a, b) => a[2] - b[2]);
-    for (const [x, y, light] of all) {
-      // Glossy, deep leaves: only the very top of the crown turns light.
-      const top = light > 0.85 ? mix(f.mid, f.light, 0.55) : f.mid;
-      g.fillStyle = mix(mix(f.dark, "#000000", 0.2), top, Math.pow(light, 0.8));
-      leafShape(g, x, y, rnd() * Math.PI * 2, height * (0.03 + rnd() * 0.018));
+      ls.sort((a, b) => a[2] - b[2]);
+      for (const [x, y, light] of ls) {
+        const top = light > 0.82 ? mix(f.mid, f.light, 0.6) : f.mid;
+        g.fillStyle = mix(mix(f.dark, "#000000", 0.25), top, Math.pow(light, 0.9));
+        leafShape(g, x, y, rnd() * Math.PI * 2, height * (0.026 + rnd() * 0.016));
+      }
     }
   });
 
   const blossom = sprite(W, H, dpr, baseX, baseY, (g) => {
-    tips.forEach(([tx, ty], i) => {
-      if (i % 5) return;
-      for (let k = 0; k < 1; k++) {
-        const x = tx + (rnd() - 0.5) * height * 0.14;
-        const y = ty + (rnd() - 0.5) * height * 0.1;
+    clumps.forEach((c) => {
+      for (let k = 0; k < 2; k++) {
+        // Mostly on the lit, outer face of the clump.
+        const a = -Math.PI * (0.15 + rnd() * 0.85);
+        const rr = c.r * (0.45 + rnd() * 0.5);
+        const x = c.x + Math.cos(a) * rr;
+        const y = c.y + Math.sin(a) * rr * 0.8;
         const r = height * (0.008 + rnd() * 0.004);
         // Pomegranate blossom: scarlet, five crumpled petals around a calyx.
         for (let p = 0; p < 5; p++) {
@@ -473,10 +474,10 @@ export function paintPomegranate(height: number, mode: SpriteMode, dpr: number, 
   });
 
   const fruit = sprite(W, H, dpr, baseX, baseY, (g) => {
-    tips.slice(0, ends).forEach(([tx, ty], i) => {
-      if (i % 7) return;
-      const x = tx + (rnd() - 0.5) * height * 0.06;
-      const y = ty + height * 0.05;
+    clumps.forEach((c, i) => {
+      if (i % 4) return;
+      const x = c.x + (rnd() - 0.5) * c.r;
+      const y = c.y + c.r * (0.3 + rnd() * 0.35);
       const r = height * (0.019 + rnd() * 0.006);
       const grad = g.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r * 1.05);
       if (night) {
