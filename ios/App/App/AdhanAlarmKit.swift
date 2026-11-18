@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 #if canImport(AlarmKit)
+import ActivityKit
 import AlarmKit
 #endif
 
@@ -60,7 +61,9 @@ enum AdhanAlarmKit {
     static func test(title: String) async -> Bool {
         #if canImport(AlarmKit)
         if #available(iOS 26.0, *) {
-            guard authorized || (await requestAuthorization()) else { return false }
+            var allowed = authorized
+            if !allowed { allowed = await requestAuthorization() }
+            guard allowed else { return false }
             do {
                 try await AdhanAlarms.schedule(id: UUID(), at: Date().addingTimeInterval(5), title: title, prayer: "test", sound: AdhanAlarms.defaultSound)
                 return true
