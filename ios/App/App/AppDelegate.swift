@@ -33,6 +33,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Keep the Adhan queued past the app's own week, also while it stays closed.
+        // Downloads iOS carried on while the app was closed.
+        RecitationBackgroundDownloads.shared.reconnect()
         PrayerTopUp.registerBackgroundTask()
         PrayerTopUp.run()
         // Control Center, Lock Screen and Action button controls open a screen here.
@@ -63,6 +65,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
               route.range(of: "^/[A-Za-z0-9/_-]*$", options: .regularExpression) != nil else { return false }
         deliverRoute(route)
         return true
+    }
+
+    /// iOS finished recitation downloads while Athar was closed (RecitationBackgroundDownloads).
+    func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void) {
+        guard identifier == RecitationBackgroundDownloads.identifier else {
+            completionHandler()
+            return
+        }
+        RecitationBackgroundDownloads.shared.backgroundCompletion = completionHandler
+        RecitationBackgroundDownloads.shared.reconnect()
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

@@ -23,8 +23,10 @@ export function canSaveRecitationsOffline(): boolean {
 export async function saveRecitationsOffline(
   urls: string[],
   onProgress: (done: number, total: number) => void,
+  /** Shown in the "download finished" notification when the app is closed. */
+  title?: string,
 ): Promise<{ saved: number; evicted: number }> {
-  const native = await downloadNativeRecitations(urls, onProgress);
+  const native = await downloadNativeRecitations(urls, onProgress, title);
   if (native) return { saved: native.saved, evicted: native.evicted };
   if (typeof window === "undefined" || !("caches" in window)) throw new Error("Offline storage is unavailable");
   const cache = await caches.open(MUSHAF_AUDIO_CACHE_NAME);

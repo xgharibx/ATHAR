@@ -90,6 +90,7 @@ public class AtharActivity extends BridgeActivity {
     @Override
     public void onResume() {
         super.onResume();
+        RecitationDownloadWorker.appVisible = true;
         injectPendingRoute();
         deliverPendingAuthUrl();
         if (hasResumed) dispatchReminderScheduleResume();
@@ -199,6 +200,7 @@ public class AtharActivity extends BridgeActivity {
         super.onPause();
         // The user is likely heading to the home screen — make sure every
         // widget repaints with the freshest data the web app just synced.
+        RecitationDownloadWorker.appVisible = false;
         WidgetUpdater.updateAll(this);
         // And Athar on a Wear OS watch.
         WearSync.sendPrayer(this);

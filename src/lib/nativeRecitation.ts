@@ -37,7 +37,8 @@ type QuranAudioPlugin = {
   previous(): Promise<void>;
   setRate(options: { rate: number }): Promise<void>;
   setVolume(options: { volume: number }): Promise<void>;
-  download(options: { urls: string[]; maxBytes: number }): Promise<{ saved: number; failed: number; evicted: number }>;
+  /** Downloads in the background: it carries on after the app is left (Android WorkManager, iOS background session). */
+  download(options: { urls: string[]; maxBytes: number; title?: string }): Promise<{ saved: number; failed: number; evicted: number }>;
   downloadedBytes(): Promise<{ bytes: number }>;
   clearDownloads(): Promise<void>;
   addListener(event: "itemChange", listener: (event: { index: number; id: string }) => void): Promise<PluginListenerHandle>;
@@ -168,13 +169,14 @@ export async function startNativeRecitation(
 export async function downloadNativeRecitations(
   urls: string[],
   onProgress: (done: number, total: number) => void,
+  title?: string,
 ): Promise<{ saved: number; failed: number; evicted: number } | null> {
   const native = nativePlugin();
   if (!native) return null;
   let handle: PluginListenerHandle | null = null;
   try {
     handle = await native.addListener("downloadProgress", ({ done, total }) => onProgress(done, total));
-    return await native.download({ urls, maxBytes: NATIVE_RECITATION_MAX_BYTES });
+    return await native.download({ urls, maxBytes: NATIVE_RECITATION_MAX_BYTES, title });
   } catch {
     return null;
   } finally {

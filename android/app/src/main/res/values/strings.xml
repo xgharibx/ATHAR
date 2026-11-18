@@ -58,4 +58,9 @@
     <string name="travel_channel">Travel</string>
     <string name="travel_title">New time zone</string>
     <string name="travel_text">Open Athar to update the prayer times for where you are now.</string>
+    <!-- Background recitation downloads (RecitationDownloadWorker). -->
+    <string name="downloads_channel">Downloads</string>
+    <string name="downloads_title">Recitation saved</string>
+    <string name="downloads_done_all">Saved %1$d verses for listening offline</string>
+    <string name="downloads_done_some">Saved %1$d of %2$d verses for listening offline</string>
 </resources>

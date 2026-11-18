@@ -1554,10 +1554,16 @@ export function MushafPage() {
       if (!canSaveRecitationsOffline()) { toast.error("التخزين غير متاح في هذا المتصفح"); return; }
       if (items.length === 0) return;
       setBulkDownloadProgress({ done: 0, total: items.length, label });
+      // In the apps the download carries on after leaving (background download).
+      if (hasNativeRecitation()) toast("يستمر التنزيل حتى لو خرجت من التطبيق", { icon: "⬇️", id: "bg-download" });
       try {
         const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
         const urls = items.map((item) => everyAyahUrl(reciter, item.surahId, item.originalAyah));
-        const { saved, evicted } = await saveRecitationsOffline(urls, (done, total) => setBulkDownloadProgress({ done, total, label }));
+        const { saved, evicted } = await saveRecitationsOffline(
+          urls,
+          (done, total) => setBulkDownloadProgress({ done, total, label }),
+          `اكتمل تنزيل ${successLabel}`,
+        );
         const reclaimed = evicted > 0 ? " · أُزيل " + evicted + " ملفًا صوتيًا أقدم لإفساح مساحة" : "";
         if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
         else if (saved === items.length) toast.success("✓ تم تخزين " + successLabel + " كاملة (" + saved + " آية) للاستماع دون إنترنت" + reclaimed);

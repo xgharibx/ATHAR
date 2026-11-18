@@ -378,24 +378,29 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    /// Calls waiting for their batch, while the app is open.
+    private var waitingDownloads: [String: CAPPluginCall] = [:]
+
+    /// Saves verses in a background download session (RecitationBackgroundDownloads):
+    /// the download carries on after the app is left, and resolves here if it is still open.
     @objc func download(_ call: CAPPluginCall) {
         let urls = (call.getArray("urls", String.self) ?? []).compactMap { URL(string: $0) }
         let maxBytes = Int64(call.getDouble("maxBytes") ?? Double(1024 * 1024 * 1024))
-        Task {
-            var saved = 0
-            var failed = 0
-            var batch = Set<String>()
-            for (offset, url) in urls.enumerated() {
-                if await RecitationFiles.save(url) {
-                    saved += 1
-                    if let file = RecitationFiles.file(for: url) { batch.insert(file.path) }
-                } else {
-                    failed += 1
-                }
-                self.notifyListeners("downloadProgress", data: ["done": offset + 1, "total": urls.count])
+        let title = call.getString("title") ?? ""
+        DispatchQueue.main.async {
+            let downloads = RecitationBackgroundDownloads.shared
+            downloads.onProgress = { [weak self] batch, done, total in
+                guard let self, self.waitingDownloads[batch] != nil else { return }
+                self.notifyListeners("downloadProgress", data: ["done": done, "total": total])
             }
-            let evicted = RecitationFiles.enforceBudget(maxBytes: max(1, maxBytes), keeping: batch)
-            call.resolve(["saved": saved, "failed": failed, "evicted": evicted])
+            downloads.onFinished = { [weak self] batch, result in
+                guard let self, let waiting = self.waitingDownloads.removeValue(forKey: batch) else { return }
+                waiting.resolve(["saved": result.saved, "failed": result.failed, "evicted": result.evicted])
+            }
+            // Waiting before the batch starts, in case it is already complete.
+            downloads.start(urls: urls, maxBytes: max(1, maxBytes), title: title) { batch in
+                self.waitingDownloads[batch] = call
+            }
         }
     }
 
