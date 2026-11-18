@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { AdhanAlarmCard } from "@/components/settings/AdhanAlarmCard";
+import { PrayerSilenceCard } from "@/components/settings/PrayerSilenceCard";
 import { Slider } from "@/components/ui/Slider";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -1369,6 +1370,28 @@ export function SettingsPage() {
 
             {isNative && (Capacitor.getPlatform() === "ios" || Capacitor.getPlatform() === "android") ? (
               <AdhanAlarmCard
+                reminders={reminders}
+                setReminders={setReminders}
+                platform={Capacitor.getPlatform() as "ios" | "android"}
+              />
+            ) : null}
+            {isNative ? (
+              <div className="mt-4 rounded-2xl border border-(--stroke) bg-(--card) p-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold">حدّث الموقع عند السفر</div>
+                  <p className="mt-0.5 text-[11px] leading-5 opacity-65">
+                    إذا كنت تستخدم موقعك، يحدّث أثر المواقيت والتنبيهات عند فتحه في مدينة جديدة — دون تتبّع في الخلفية.
+                  </p>
+                </div>
+                <Switch
+                  aria-label="حدّث الموقع عند السفر"
+                  checked={prefs.prayerLocationFollow !== false}
+                  onCheckedChange={(v) => setPrefs({ prayerLocationFollow: v })}
+                />
+              </div>
+            ) : null}
+            {isNative && (Capacitor.getPlatform() === "ios" || Capacitor.getPlatform() === "android") ? (
+              <PrayerSilenceCard
                 reminders={reminders}
                 setReminders={setReminders}
                 platform={Capacitor.getPlatform() as "ios" | "android"}

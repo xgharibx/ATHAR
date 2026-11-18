@@ -47,6 +47,7 @@
 		B43902F1E77575362AAC9862 /* VoiceTasbeehPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98930BB8755D497D125B1E5 /* VoiceTasbeehPlugin.swift */; };
 		C1440BA516FF93C7FC2DC2FB /* SurahNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1828D97C2DF926F77BD8CB63 /* SurahNames.swift */; };
 		C3A8C972A619C4FD7C74D5F7 /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */; };
+		CE10BDD10470BB4BF73FC2D5 /* LocationAccessPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4A2A1DDF5BAE7681FF0F2B /* LocationAccessPlugin.swift */; };
 		F404E6873083F61F275D7063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 20C3FCB675C0844437B74CB3 /* PrivacyInfo.xcprivacy */; };
 		F4A7B13E0D804E928F0C1001 /* adhan_ahmad_al_nafees.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2001 /* adhan_ahmad_al_nafees.caf */; };
 		F4A7B13E0D804E928F0C1002 /* birds.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2002 /* birds.caf */; };
@@ -123,6 +124,7 @@
 		F4A7B13E0D804E928F0C2001 /* adhan_ahmad_al_nafees.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = adhan_ahmad_al_nafees.caf; sourceTree = "<group>"; };
 		F4A7B13E0D804E928F0C2002 /* birds.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = birds.caf; sourceTree = "<group>"; };
 		F7238335C463F957088B1646 /* AtharWidgets.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = AtharWidgets.entitlements; sourceTree = "<group>"; };
+		FD4A2A1DDF5BAE7681FF0F2B /* LocationAccessPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocationAccessPlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -218,6 +220,7 @@
 				4D1C5E3F220E5AA1FE715AF0 /* SpotlightPlugin.swift */,
 				1B1A2751F9E4F9DA86AC4C58 /* AdhanAlarmKit.swift */,
 				D7104E0C1268ABBB2F0C6B8D /* AdhanAlarmPlugin.swift */,
+				FD4A2A1DDF5BAE7681FF0F2B /* LocationAccessPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -391,6 +394,7 @@
 				5ADBF07D638E8D9638E8DCB2 /* OpenAtharScreenIntent.swift in Sources */,
 				42B93C56AF0A437B1C8CCAEF /* AdhanAlarmKit.swift in Sources */,
 				17FE68421D1C0A0BE443A679 /* AdhanAlarmPlugin.swift in Sources */,
+				CE10BDD10470BB4BF73FC2D5 /* LocationAccessPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

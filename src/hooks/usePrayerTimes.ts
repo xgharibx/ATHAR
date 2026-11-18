@@ -242,7 +242,8 @@ function browserReportsOffline(): boolean {
   return typeof navigator !== "undefined" && navigator.onLine === false;
 }
 
-function writeCachedCoords(lat: number, lng: number) {
+/** Save the prayer location and tell the prayer views to refresh. */
+export function writeCachedCoords(lat: number, lng: number) {
   try {
     accountScopedLocalStorage.setItem(
       PRAYER_COORDS_KEY,

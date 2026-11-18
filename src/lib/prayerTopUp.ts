@@ -46,6 +46,17 @@ export type PrayerTopUpPlan = {
   days: Array<{ d: string; s: number; t: Record<TopUpPrayer, string> }>;
   /** The Adhan as an alarm (src/lib/adhanAlarm.ts), or null when off. */
   alarm?: PrayerAlarmPlan | null;
+  /** The time zone the times were worked out for; the phone stops queuing in another one. */
+  tz: string;
+  /** Android: silence the phone from each Adhan (src/lib/prayerSilence.ts), or null when off. */
+  silence?: PrayerSilencePlan | null;
+};
+
+export type PrayerSilencePlan = {
+  minutes: number;
+  prayers: TopUpPrayer[];
+  /** The app's own times for the days it queued. */
+  appDays: Array<{ d: string; t: Partial<Record<TopUpPrayer, string>> }>;
 };
 
 export type PrayerAlarmPlan = {
@@ -69,7 +80,17 @@ export type PrayerTopUpInput = {
   slotForDate: (dateISO: string) => number;
   planDays?: number;
   alarm?: PrayerAlarmPlan | null;
+  silence?: PrayerSilencePlan | null;
+  timeZone?: string;
 };
+
+function deviceTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+  } catch {
+    return "";
+  }
+}
 
 export function buildPrayerTopUpPlan(input: PrayerTopUpInput): PrayerTopUpPlan {
   const days: PrayerTopUpPlan["days"] = [];
@@ -102,6 +123,8 @@ export function buildPrayerTopUpPlan(input: PrayerTopUpInput): PrayerTopUpPlan {
     templates: input.templates,
     days,
     alarm: input.alarm ?? null,
+    silence: input.silence ?? null,
+    tz: input.timeZone ?? deviceTimeZone(),
   };
 }
 

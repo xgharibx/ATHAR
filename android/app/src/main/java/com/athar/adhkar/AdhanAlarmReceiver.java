@@ -22,7 +22,13 @@ public class AdhanAlarmReceiver extends BroadcastReceiver {
                 // Android refused (no exact-alarm permission): nothing can ring now.
             }
         }
-        // The next prayer's alarm, also after boot, clock or time-zone changes.
+        // The next prayer's alarm, also after boot, clock or time-zone changes;
+        // the prayer silence re-arms on the same events.
         AdhanAlarm.sync(context);
+        if (!AdhanAlarm.ACTION_RING.equals(intent.getAction())) {
+            PrayerSilence.sync(context);
+            // A new time zone: check the plan now (TravelNotice).
+            PrayerTopUp.runSoon(context);
+        }
     }
 }

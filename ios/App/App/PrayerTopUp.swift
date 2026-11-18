@@ -40,7 +40,30 @@ enum PrayerTopUp {
         }
     }
 
-    private static func loadPlan() -> [String: Any]? {
+    /// Whether the plan's times belong to the phone's time zone. After travel to
+    /// another one they are another city's times: nothing more is queued from
+    /// them, and the person is asked to open Athar.
+    static func timeZoneMatches(_ plan: [String: Any]?) -> Bool {
+        let tz = plan?["tz"] as? String ?? ""
+        return tz.isEmpty || tz == TimeZone.current.identifier
+    }
+
+    private static let travelNoticeKey = "athar_travel_notice_v1"
+
+    private static func showTravelNotice(planTimeZone: String) {
+        let key = planTimeZone + ">" + TimeZone.current.identifier
+        guard UserDefaults.standard.string(forKey: travelNoticeKey) != key else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "منطقة زمنية جديدة"
+        content.body = "افتح أثر لتحديث مواقيت الصلاة لمكانك الحالي."
+        content.userInfo = ["cap_extra": ["route": "/prayer-times"]]
+        let request = UNNotificationRequest(identifier: "athar-travel", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request) { error in
+            if error == nil { UserDefaults.standard.set(key, forKey: travelNoticeKey) }
+        }
+    }
+
+    static func loadPlan() -> [String: Any]? {
         guard let data = UserDefaults.standard.data(forKey: planKey) else { return nil }
         return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
     }
@@ -83,6 +106,11 @@ enum PrayerTopUp {
         let alarmPlan = loadPlan()
         Task { await AdhanAlarmKit.sync(plan: alarmPlan) }
         guard let plan = loadPlan() else {
+            completion?(0)
+            return
+        }
+        guard timeZoneMatches(plan) else {
+            showTravelNotice(planTimeZone: plan["tz"] as? String ?? "")
             completion?(0)
             return
         }

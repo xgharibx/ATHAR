@@ -363,6 +363,10 @@
             android:turnScreenOn="true"
             android:taskAffinity=""
             android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
+        <!-- Silence during prayer: Do Not Disturb from each Adhan (PrayerSilence). -->
+        <receiver
+            android:name=".PrayerSilence"
+            android:exported="false" />
         <!-- Quick Settings tiles: the next prayer, and the tasbeeh counter. -->
         <service
             android:name=".PrayerTileService"
@@ -406,6 +410,8 @@
     <!-- Sebha voice counting -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- «صامت أثناء الصلاة»: switch Do Not Disturb, once the person allows it. -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <!-- The Adhan alarm's Stop screen over the lock screen. -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 

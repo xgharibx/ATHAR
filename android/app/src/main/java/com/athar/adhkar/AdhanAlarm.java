@@ -112,7 +112,9 @@ final class AdhanAlarm {
     static void sync(Context context) {
         AlarmManager alarms = context.getSystemService(AlarmManager.class);
         if (alarms == null) return;
-        Object[] next = next(PrayerTopUp.loadPlan(context), System.currentTimeMillis());
+        JSONObject plan = PrayerTopUp.loadPlan(context);
+        // In another time zone the plan's times are another city's: no alarm until the app updates them.
+        Object[] next = PrayerTopUp.timeZoneMatches(plan) ? next(plan, System.currentTimeMillis()) : null;
         if (next == null) {
             alarms.cancel(ringIntent(context, "", ""));
             return;

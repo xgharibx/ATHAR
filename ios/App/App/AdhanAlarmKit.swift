@@ -92,7 +92,9 @@ enum AdhanAlarms {
 
     static func sync(plan: [String: Any]?) async {
         cancelScheduled()
+        // In another time zone the plan's times are another city's: no alarms until the app updates them.
         guard AdhanAlarmKit.authorized,
+              PrayerTopUp.timeZoneMatches(plan),
               let plan,
               let alarm = plan["alarm"] as? [String: Any],
               let chosen = alarm["prayers"] as? [String], !chosen.isEmpty else { return }
