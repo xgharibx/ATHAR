@@ -44,4 +44,9 @@
     <string name="shortcut_sebha_long">Tasbeeh counter</string>
     <string name="shortcut_mushaf_short">Mushaf</string>
     <string name="shortcut_mushaf_long">Continue reading the Mushaf</string>
+    <!-- Quick Settings tiles (PrayerTileService, SebhaTileService). -->
+    <string name="tile_prayer_label">Next prayer</string>
+    <string name="tile_prayer_open">Open prayer times</string>
+    <string name="tile_sebha_label">Tasbeeh</string>
+    <string name="tile_sebha_subtitle">Open the counter</string>
 </resources>

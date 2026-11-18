@@ -32,6 +32,8 @@ import { StartupReady } from "@/components/StartupReady";
 import { useStartupReady } from "@/hooks/useStartupReady";
 import { warmBundledAdhkar } from "@/data/load";
 import { afterStartupReady } from "@/lib/startup";
+import { indexAppForSpotlight } from "@/lib/spotlight";
+import { startContinueReadingShortcut } from "@/lib/continueReading";
 import { resetScrollForRouteChange } from "@/hooks/useScrollRestoration";
 import { FeedbackPage } from "@/pages/Feedback";
 
@@ -393,6 +395,21 @@ function AppContent() {
       active = false;
       cancelWaiting();
       cancelScheduled?.();
+    };
+  }, []);
+
+  // The phone's own shortcuts into the app: iPhone search (Spotlight) and
+  // Android's «تابع القراءة» long-press shortcut.
+  React.useEffect(() => {
+    const stopContinueReading = startContinueReadingShortcut();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const cancelWaiting = afterStartupReady(() => {
+      timer = globalThis.setTimeout(() => { void indexAppForSpotlight(); }, 4000);
+    });
+    return () => {
+      stopContinueReading();
+      cancelWaiting();
+      if (timer !== undefined) globalThis.clearTimeout(timer);
     };
   }, []);
 
