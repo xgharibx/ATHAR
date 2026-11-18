@@ -119,7 +119,8 @@ final class AdhanAlarm {
         }
         long at = (Long) next[0];
         PendingIntent ring = ringIntent(context, (String) next[1], (String) next[2]);
-        if (canRingExactly(context)) {
+        boolean exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarms.canScheduleExactAlarms();
+        if (exact) {
             Intent open = new Intent(context, AtharActivity.class)
                 .putExtra(AtharWidgetProvider.EXTRA_ROUTE, "/prayer-times");
             PendingIntent show = PendingIntent.getActivity(context, REQUEST_CODE, open,
