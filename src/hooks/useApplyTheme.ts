@@ -256,11 +256,11 @@ export function useApplyTheme() {
   const clearReading = useNoorStore((s) => s.prefs.clearReading);
   const designMode: DesignMode = useNoorStore((s) => s.prefs.designMode) ?? "classic";
   const ufuqPalette = useNoorStore((s) => s.prefs.ufuqPalette);
-  const ufuqLook: UfuqLook = useNoorStore((s) => s.prefs.ufuqLook) ?? "garden";
+  const ufuqLook: UfuqLook = useNoorStore((s) => s.prefs.ufuqLook) ?? "live";
 
   useEffect(() => {
     if (useNoorStore.persist.hasHydrated() && !isAccountStorageOwnerTransitionInProgress()) {
-      rememberDesignForFirstPaint(designMode, ufuqPalette ?? "auto", ufuqLook);
+      rememberDesignForFirstPaint(designMode, ufuqPalette ?? "night", ufuqLook);
     }
     if (designMode !== "ufuq") return;
     // «أفق» replaces the classic theme while it is on; the classic choice is

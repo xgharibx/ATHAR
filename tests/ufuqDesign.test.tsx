@@ -36,7 +36,8 @@ describe("choosing a design", () => {
     expect(normalizeDesignMode("something")).toBe("classic");
     expect(normalizeDesignMode("ufuq")).toBe("ufuq");
     expect(normalizeUfuqPalette("night")).toBe("night");
-    expect(normalizeUfuqPalette("blue")).toBe("auto");
+    expect(normalizeUfuqPalette("blue")).toBe("night");
+    expect(normalizeUfuqPalette("auto")).toBe("auto");
   });
 
   it("follows the phone only when asked to", () => {

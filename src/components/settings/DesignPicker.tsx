@@ -36,7 +36,8 @@ export function UfuqPreview() {
 function useSetDesign() {
   const setPrefs = useNoorStore((s) => s.setPrefs);
   return React.useCallback((mode: DesignMode) => {
-    setPrefs({ designMode: mode });
+    // «أفق» opens at night, its most beautiful hour; the palette can be changed after.
+    setPrefs(mode === "ufuq" ? { designMode: mode, ufuqPalette: "night" } : { designMode: mode });
     vibrate(12);
     toast.success(mode === "ufuq" ? "أهلًا بك في «أُفُق»" : "عدتَ إلى التصميم الكلاسيكي", { duration: 1800 });
   }, [setPrefs]);
@@ -99,9 +100,9 @@ function GardenPreview({ night, bed = false }: { night: boolean; bed?: boolean }
   );
 }
 
-/** Inside «أفق»: the living garden, or plain paper. */
+/** Inside «أفق»: the garden that grows with your dhikr, or plain paper. */
 export function UfuqLookPicker() {
-  const look: UfuqLook = useNoorStore((s) => s.prefs.ufuqLook) ?? "garden";
+  const look: UfuqLook = useNoorStore((s) => s.prefs.ufuqLook) ?? "live";
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const night = typeof document !== "undefined" && document.documentElement.dataset.ufuqPalette === "night";
   return (
@@ -121,7 +122,7 @@ export function UfuqLookPicker() {
             }}
             className={cn("design-choice", active && "is-active")}
           >
-            {option.id === "plain" ? <UfuqPreview /> : <GardenPreview night={night} bed={option.id === "live"} />}
+            {option.id === "plain" ? <UfuqPreview /> : <GardenPreview night={night} bed />}
             <span className="design-choice-label">
               <span className="design-choice-check" aria-hidden="true">{active ? <Check size={12} strokeWidth={3} /> : null}</span>
               {option.label}

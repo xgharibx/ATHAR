@@ -402,11 +402,7 @@ function ShortCard({
         // poster only starts loading once it is already on screen, which is
         // exactly when it is too late and the swipe shows black.
         loading={mounted ? "eager" : "lazy"}
-        // React 18 doesn't recognize the camel-case prop yet; use the native
-        // attribute name while keeping the browser's fetch-priority hint.
-        {...({ fetchpriority: posterPriority } as React.HTMLAttributes<HTMLImageElement> & {
-          fetchpriority: "high" | "auto" | "low";
-        })}
+        fetchPriority={posterPriority}
       />
       <div className="shorts-scrim" aria-hidden="true" />
 

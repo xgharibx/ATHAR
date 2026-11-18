@@ -23,10 +23,10 @@ export type DesignMode = "classic" | "ufuq";
 export type UfuqPalette = "auto" | "time" | "day" | "night";
 
 /**
- * The look inside «أفق»: the filmed garden («الحديقة»), the drawn garden that
- * grows a flower with every tasbeeh («الحديقة الحيّة»), or quiet paper.
+ * The look inside «أفق»: the drawn garden that grows a flower with every
+ * tasbeeh («الحديقة الحيّة»), or quiet paper.
  */
-export type UfuqLook = "plain" | "garden" | "live";
+export type UfuqLook = "plain" | "live";
 
 export type UfuqResolvedPalette = "day" | "night";
 
@@ -43,7 +43,6 @@ export const UFUQ_PALETTES: ReadonlyArray<{ id: UfuqPalette; label: string }> = 
 ];
 
 export const UFUQ_LOOKS: ReadonlyArray<{ id: UfuqLook; label: string; hint: string }> = [
-  { id: "garden", label: "الحديقة", hint: "حديقة حقيقية مصوَّرة وقمر الليلة بطَوره، تُضيئها يراعاتُ ذكرك" },
   { id: "live", label: "الحديقة الحيّة", hint: "حديقة تنمو بتسبيحك: كل ذكرٍ تتفتّح له زهرة، ونخلُك يُثمر بمواظبتك" },
   { id: "plain", label: "بسيط", hint: "ورق هادئ بلا حركة، أخفّ على البطارية" },
 ];
@@ -67,13 +66,16 @@ export function normalizeDesignMode(value: unknown): DesignMode {
   return value === "ufuq" ? "ufuq" : "classic";
 }
 
+/** «أفق» opens at night unless the person chose otherwise. */
+export const DEFAULT_UFUQ_PALETTE: UfuqPalette = "night";
+
 export function normalizeUfuqPalette(value: unknown): UfuqPalette {
-  return value === "day" || value === "night" || value === "time" ? value : "auto";
+  return value === "day" || value === "night" || value === "time" || value === "auto" ? value : DEFAULT_UFUQ_PALETTE;
 }
 
+/** The filmed garden was retired: anyone who had it gets the drawn one. */
 export function normalizeUfuqLook(value: unknown): UfuqLook {
-  if (value === "plain" || value === "live") return value;
-  return "garden";
+  return value === "plain" ? "plain" : "live";
 }
 
 /** Both garden looks share the garden's palettes and frame. */
@@ -92,7 +94,7 @@ export function resolveUfuqPalette(
   return systemPrefersDark ? "night" : "day";
 }
 
-export function rememberDesignForFirstPaint(design: DesignMode, palette: UfuqPalette, look: UfuqLook = "garden"): void {
+export function rememberDesignForFirstPaint(design: DesignMode, palette: UfuqPalette, look: UfuqLook = "live"): void {
   try {
     globalThis.localStorage?.setItem(DESIGN_BOOTSTRAP_STORAGE_KEY, JSON.stringify({ design, palette, look }));
   } catch {

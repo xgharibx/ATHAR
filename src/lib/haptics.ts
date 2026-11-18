@@ -62,6 +62,9 @@ let androidPluginMissing = false;
 
 function playWebPattern(pattern: VibrationPattern): void {
   if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+  // Browsers refuse (and warn about) vibration before the first tap.
+  const activation = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation;
+  if (activation && !activation.hasBeenActive) return;
   try {
     navigator.vibrate(typeof pattern === "number" ? pattern : [...pattern]);
   } catch {

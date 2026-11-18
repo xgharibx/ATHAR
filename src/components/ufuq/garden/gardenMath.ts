@@ -70,12 +70,6 @@ export function easeOutBack(x: number): number {
   return 1 + c3 * Math.pow(v - 1, 3) + c1 * Math.pow(v - 1, 2);
 }
 
-/** Fireflies for the day's growth: a few always, more with every remembrance. */
-export function lightsFor(blooms: number): number {
-  return Math.round(6 + (Math.max(14, blooms) - 14) * 0.7);
-}
-
-
 /** Night in the garden: after Maghrib (or Isha) until Fajr. */
 export function isNightByNextPrayer(nextPrayerAr: string | null | undefined, hour: number): boolean {
   const name = nextPrayerAr ?? "";

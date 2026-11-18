@@ -1281,45 +1281,6 @@ html[data-ufuq-palette="night"] .u-garden-grade {
   );
 }
 
-/* The filmed scene: a still photograph first, the film over it once playing. */
-.u-garden-scene {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-  background: var(--bg);
-  transform: scale(1.06);
-  transform-origin: 50% 0;
-  will-change: transform;
-}
-
-.u-garden-still,
-.u-garden-film {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 0;
-}
-
-.u-garden-moon {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-}
-
-.u-garden-film {
-  opacity: 0;
-  transition: opacity 900ms ease;
-}
-
-.u-garden-film.is-ready {
-  opacity: 1;
-}
-
 .u-garden {
   position: fixed;
   top: 0;

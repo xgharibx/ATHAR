@@ -82,16 +82,16 @@ export function AppearanceGroup() {
             >
               <Segmented
                 label="النهار والليل"
-                value={prefs.ufuqPalette ?? "auto"}
+                value={prefs.ufuqPalette ?? "night"}
                 options={UFUQ_PALETTES.map((p) => ({ value: p.id, label: p.label }))}
                 onChange={(value) => setPrefs({ ufuqPalette: value })}
               />
             </SettingsRow>
-            {(prefs.ufuqLook ?? "garden") !== "plain" ? (
+            {(prefs.ufuqLook ?? "live") !== "plain" ? (
               <ToggleRow
                 id="garden-live"
                 title="حركة المشهد"
-                hint="مشهد مصوَّر حيّ: نخيل وعشب وزهر يتمايل، ويراعات ليلًا. أطفئه ليبقى صورة ثابتة توفّر البطارية"
+                hint="نخيل وعشب وزهر يتمايل مع الريح، ويراعات ليلًا. أطفئه ليبقى المشهد ثابتًا ويوفّر البطارية"
                 checked={prefs.gardenLive !== false}
                 onChange={(on) => setPrefs({ gardenLive: on })}
               />

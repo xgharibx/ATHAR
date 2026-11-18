@@ -21,10 +21,6 @@ const LiveGardenBackdrop = React.lazy(() =>
   import("@/components/ufuq/garden/LiveGardenBackdrop").then((m) => ({ default: m.LiveGardenBackdrop })),
 );
 
-const GardenBackdrop = React.lazy(() =>
-  import("@/components/ufuq/garden/GardenBackdrop").then((m) => ({ default: m.GardenBackdrop })),
-);
-
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
@@ -241,7 +237,7 @@ function UfuqTabBar() {
 export function UfuqShell() {
   const location = useLocation();
   const [paletteOpen, setPaletteOpen] = React.useState(false);
-  const look = useNoorStore((s) => s.prefs.ufuqLook ?? "garden");
+  const look = useNoorStore((s) => s.prefs.ufuqLook ?? "live");
   const garden = look !== "plain";
 
   React.useEffect(() => {
@@ -270,7 +266,7 @@ export function UfuqShell() {
       </a>
       {garden ? (
         <React.Suspense fallback={null}>
-          {look === "live" ? <LiveGardenBackdrop /> : <GardenBackdrop />}
+          <LiveGardenBackdrop />
         </React.Suspense>
       ) : (
         <div className="u-horizon" aria-hidden="true" />
