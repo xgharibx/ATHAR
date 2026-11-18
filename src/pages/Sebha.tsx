@@ -20,6 +20,7 @@ import {
   MoveDown,
   Timer,
   Focus,
+  Mic,
   X,
 } from "lucide-react";
 import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
@@ -44,6 +45,7 @@ import { SOUND_PROFILES, mascotForPhrase } from "@/lib/dhikrCatalog";
 import type { MascotKey } from "@/lib/dhikrCatalog";
 import { CUSTOM_DHIKR_COLORS, suggestColorForPhrase, isValidHexColor } from "@/lib/dhikrCustom";
 import { arNum } from "@/lib/formatNumber";
+import { normalizeArabic, startVoiceTasbeeh, VOICE_TASBEEH_PHRASES, voiceTasbeehAvailable, type VoicePhrase } from "@/lib/voiceTasbeeh";
 
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -503,96 +505,76 @@ function TodayLine({ tasbeehDailyLog }: { tasbeehDailyLog: Record<string, Record
 // Silence unused import warning — SebhaSession is used via the store
 type _UseSession = SebhaSession;
 
-// ─── 6B: Voice recognition hook ─────────────────────────────────────────────
+// ─── 6B: Voice tasbeeh ──────────────────────────────────────────────────────
 
-const VOICE_PHRASE_MAP: Array<{ patterns: string[]; key: string }> = [
-  { patterns: ['سبحان الله', 'سبحانالله'], key: 'subhanallah' },
-  { patterns: ['الحمد لله', 'الحمدلله'], key: 'alhamdulillah' },
-  { patterns: ['لا إله إلا الله', 'لا اله الا الله', 'لاإلهإلاالله'], key: 'la_ilaha_illallah' },
-  { patterns: ['الله أكبر', 'الله اكبر', 'اللهأكبر'], key: 'allahu_akbar' },
-];
+/** The last few words heard, for the line under the button. */
+function lastWords(text: string, count = 4): string {
+  return text.trim().split(/\s+/).slice(-count).join(" ");
+}
 
-function useSpeechCount(onRecognize: (matchedKey: string | null) => void) {
+function useVoiceTasbeeh(phrases: VoicePhrase[], onCount: (key: string) => void) {
+  const [supported, setSupported] = React.useState(false);
   const [listening, setListening] = React.useState(false);
   const [starting, setStarting] = React.useState(false);
-  const recogRef = React.useRef<SpeechRecognition | null>(null);
-  const cbRef = React.useRef(onRecognize);
-  React.useEffect(() => { cbRef.current = onRecognize; });
+  const [heard, setHeard] = React.useState("");
+  const stopRef = React.useRef<(() => void) | null>(null);
+  const countRef = React.useRef(onCount);
+  const phrasesRef = React.useRef(phrases);
+  React.useEffect(() => {
+    countRef.current = onCount;
+    phrasesRef.current = phrases;
+  });
 
-  const supported = typeof window !== 'undefined' &&
-    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+  React.useEffect(() => {
+    let alive = true;
+    void voiceTasbeehAvailable().then((ok) => { if (alive) setSupported(ok); });
+    return () => { alive = false; };
+  }, []);
 
-  const requestMicrophoneAccess = React.useCallback(async () => {
-    if (!navigator.mediaDevices?.getUserMedia) return true;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach((track) => track.stop());
-      return true;
-    } catch {
-      toast.error('اسمح بالميكروفون لتفعيل العدّ بالصوت');
-      return false;
-    }
+  const stop = React.useCallback(() => {
+    const stopListening = stopRef.current;
+    stopRef.current = null;
+    stopListening?.();
+    setListening(false);
+    setHeard("");
   }, []);
 
   const toggle = React.useCallback(async () => {
-    if (recogRef.current) {
-      recogRef.current.stop();
-      recogRef.current = null;
-      setListening(false);
-      return;
-    }
+    if (stopRef.current) { stop(); return; }
     if (starting) return;
-    const SR: (new () => SpeechRecognition) | undefined =
-      window.SpeechRecognition ?? window.webkitSpeechRecognition;
-    if (!SR) { toast.error('التعرف على الصوت غير مدعوم في هذا المتصفح'); return; }
     setStarting(true);
-    const micAllowed = await requestMicrophoneAccess();
-    if (!micAllowed) { setStarting(false); return; }
-
-    const recog = new SR();
-    recog.lang = 'ar-SA';
-    recog.continuous = true;
-    recog.interimResults = false;
-    recog.maxAlternatives = 1;
-    recog.onresult = (e: SpeechRecognitionEvent) => {
-      const transcript = Array.from(e.results)
-        .slice(e.resultIndex)
-        .map((r) => r[0].transcript)
-        .join(' ');
-      let matched: string | null = null;
-      for (const { patterns, key } of VOICE_PHRASE_MAP) {
-        if (patterns.some(p => transcript.includes(p))) { matched = key; break; }
-      }
-      cbRef.current(matched); // null = unrecognized phrase → count current
-    };
-    recog.onerror = (e: SpeechRecognitionErrorEvent) => {
-      if (e.error !== 'no-speech') toast.error('خطأ الميكروفون: ' + e.error);
-      recogRef.current = null;
-      setListening(false);
-      setStarting(false);
-    };
-    recog.onend = () => {
-      // auto-restart for continuous listening
-      if (recogRef.current) {
-        try { recogRef.current.start(); } catch { /* already started */ }
-      }
-    };
+    let explained = false;
     try {
-      recog.start();
-      recogRef.current = recog;
+      stopRef.current = await startVoiceTasbeeh({
+        phrases: phrasesRef.current,
+        onCount: (key) => countRef.current(key),
+        onHeard: setHeard,
+        onState: (state) => {
+          if (state === "denied") {
+            explained = true;
+            toast.error("اسمح بالميكروفون والتعرّف على الكلام لتفعيل العدّ بالصوت");
+            stop();
+          } else if (state === "error" || state === "unavailable") {
+            explained = true;
+            toast.error("توقف العدّ بالصوت، حاول مرة أخرى");
+            stop();
+          }
+        },
+      });
       setListening(true);
     } catch {
-      recogRef.current = null;
-      setListening(false);
-      toast.error('تعذر تشغيل الميكروفون');
+      if (!explained) toast.error("تعذر تشغيل العدّ بالصوت");
     } finally {
       setStarting(false);
     }
-  }, [requestMicrophoneAccess, starting]);
+  }, [starting, stop]);
 
-  React.useEffect(() => () => { recogRef.current?.stop(); recogRef.current = null; }, []);
+  React.useEffect(() => () => {
+    stopRef.current?.();
+    stopRef.current = null;
+  }, []);
 
-  return { listening, starting, toggle, supported };
+  return { supported, listening, starting, heard, toggle };
 }
 
 // ─── 6C: Weekly stats bar chart ──────────────────────────────────────────────
@@ -818,7 +800,8 @@ export function SebhaPage() {
       // small pulse (not the long completion / 100 / 33 special patterns,
       // which only make sense with a target).
       const nextCount = tallyCount + 1;
-      setTallyCount(nextCount);
+      // Functional update: voice counting can add several in one go.
+      setTallyCount((value) => value + 1);
       doHaptic(nextCount, null, prefs.enableHaptics, prefs.hapticStrength);
       if (prefs.enableHaptics) {
         // Tiny extra buzz every 33 in free mode since the user is
@@ -949,19 +932,26 @@ export function SebhaPage() {
     } catch { /* ignore */ }
   }, [tasbeehStreak]);
 
-  // 6B: Voice recognition — when a phrase matches, switch + count; null = count current.
-  // Pass the matched key directly to increment() so the correct dhikr is counted
-  // even before React re-renders with the new selected state.
-  useSpeechCount(
-    React.useCallback((matchedKey: string | null) => {
-      if (matchedKey && TASBEEHAT.some(t => t.key === matchedKey)) {
-        const mk = matchedKey as TasbeehKey;
-        if (mk !== selected) setSelected(mk);
-        increment(mk); // count the matched key explicitly — avoids stale-closure bug
-      } else {
-        increment(); // unrecognized phrase → count current selected
-      }
-    }, [selected, increment, setSelected])
+  // 6B: Voice tasbeeh — each phrase heard counts once, on its own counter.
+  // The matched key is passed straight to increment() so it lands on the
+  // right dhikr even before React re-renders with the new selection.
+  const customVoicePhrase = sebhaCustom?.phrase?.trim() ?? "";
+  const voicePhrases = React.useMemo<VoicePhrase[]>(() => {
+    const builtIn = VOICE_TASBEEH_PHRASES.map((phrase) => normalizeArabic(phrase.text));
+    const custom = normalizeArabic(customVoicePhrase);
+    return custom.length >= 3 && !builtIn.includes(custom)
+      ? [...VOICE_TASBEEH_PHRASES, { key: "custom", text: customVoicePhrase }]
+      : VOICE_TASBEEH_PHRASES;
+  }, [customVoicePhrase]);
+  const voice = useVoiceTasbeeh(
+    voicePhrases,
+    React.useCallback((key: string) => {
+      if (tallyMode) { increment(); return; }
+      const matched = key === "custom" ? "custom" : TASBEEHAT.find((t) => t.key === key)?.key;
+      if (!matched) return;
+      if (matched !== selected) setSelected(matched);
+      increment(matched);
+    }, [tallyMode, selected, increment, setSelected]),
   );
 
   const totalDone = TASBEEHAT.reduce(
@@ -1328,6 +1318,40 @@ export function SebhaPage() {
             <><Target size={17} aria-hidden="true" className="text-(--accent)" />{remaining} متبقي</>
           )}
         </div>
+
+        {/* Voice tasbeeh */}
+        {voice.supported && (
+          <div className="mt-3 flex flex-col items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => void voice.toggle()}
+              aria-pressed={voice.listening}
+              disabled={voice.starting}
+              className={cn(
+                "flex items-center gap-1.5 rounded-2xl border px-3 py-1.5 text-xs font-semibold transition active:scale-95",
+                voice.listening
+                  ? "border-accent-35 bg-accent-15 text-(--accent)"
+                  : "border-(--stroke) text-(--muted) hover:bg-(--card-2)",
+                voice.starting && "opacity-60",
+              )}
+            >
+              {voice.listening ? (
+                <span className="relative flex h-3.5 w-3.5 items-center justify-center" aria-hidden="true">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-(--accent) opacity-40 motion-reduce:animate-none" />
+                  <Mic size={13} className="relative" />
+                </span>
+              ) : (
+                <Mic size={14} aria-hidden="true" />
+              )}
+              {voice.starting ? "جارٍ التحضير…" : voice.listening ? "أسمعك… اضغط للإيقاف" : "سبّح بصوتك"}
+            </button>
+            {voice.listening && (
+              <div className="max-w-64 truncate text-[11px] opacity-60" aria-live="polite">
+                {voice.heard ? `«${lastWords(voice.heard)}»` : "قل: سبحان الله، الحمد لله، الله أكبر…"}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Share-on-completion */}
         {completed && (
