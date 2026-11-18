@@ -1,7 +1,8 @@
 /**
- * Mounts the living garden (GardenEngine) behind every page of «أفق» while
- * the «الحديقة» look is on, and keeps it in step with the palette, today's
- * growth, the scroll position and the person's finger.
+ * Mounts the living garden (GardenEngine) behind every page — of «أفق» while
+ * the «الحديقة» look is on, or of the classic design with its «حديقة الليل»
+ * theme — and keeps it in step with the palette, today's growth, the scroll
+ * position and the person's finger.
  */
 import * as React from "react";
 import { useLocation } from "react-router-dom";
@@ -17,7 +18,7 @@ function prefersReducedMotion(): boolean {
   return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
 }
 
-export function GardenBackdrop() {
+export function GardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {}) {
   const location = useLocation();
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const bgRef = React.useRef<HTMLCanvasElement>(null);
@@ -25,7 +26,8 @@ export function GardenBackdrop() {
   const growth = useGardenGrowth();
   const livePref = useNoorStore((s) => s.prefs.gardenLive !== false && !s.prefs.reduceMotion);
   const [systemReduced, setSystemReduced] = React.useState(prefersReducedMotion);
-  const [mode, setMode] = React.useState<GardenMode>(currentMode);
+  const [paletteMode, setMode] = React.useState<GardenMode>(currentMode);
+  const mode = forcedMode ?? paletteMode;
   const live = livePref && !systemReduced;
 
   // The palette lives on <html>; follow it, including «الوقت» turning at Maghrib.

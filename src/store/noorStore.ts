@@ -133,7 +133,9 @@ export type NoorTheme =
   | "mushaf"
   | "sama"
   | "diwan"
-  | "faham";
+  | "faham"
+  /** حديقة الليل — the living night garden behind the classic design. */
+  | "hadiqa";
 
 export type ReminderSoundProfile = "birds";
 export type PrayerSoundProfile = "adhan_ahmad_al_nafees";
