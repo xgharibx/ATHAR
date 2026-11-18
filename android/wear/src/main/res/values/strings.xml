@@ -4,4 +4,6 @@
     <string name="next_phrase">Next</string>
     <string name="reset_done">Counter reset</string>
     <string name="of_target">of %1$d</string>
+    <string name="tile_label">Next prayer</string>
+    <string name="complication_label">Next prayer</string>
 </resources>
