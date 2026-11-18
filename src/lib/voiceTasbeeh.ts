@@ -90,7 +90,7 @@ export type VoiceTasbeehHandlers = {
   onState?: (state: VoiceTasbeehState) => void;
 };
 
-type TranscriptEvent = { text: string; segment: string; final?: boolean };
+export type TranscriptEvent = { text: string; segment: string; final?: boolean };
 
 type VoiceTasbeehPlugin = {
   available(): Promise<{ available: boolean; onDevice?: boolean }>;
@@ -115,8 +115,8 @@ function webRecognition(): WebRecognitionCtor | null {
   return (window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null) as WebRecognitionCtor | null;
 }
 
-/** Whether this phone or browser can count by voice. */
-export async function voiceTasbeehAvailable(): Promise<boolean> {
+/** Whether this phone or browser can listen in Arabic. */
+export async function speechAvailable(): Promise<boolean> {
   const plugin = native();
   if (plugin) {
     try {
@@ -128,15 +128,25 @@ export async function voiceTasbeehAvailable(): Promise<boolean> {
   return webRecognition() !== null;
 }
 
+/** Whether this phone or browser can count by voice. */
+export const voiceTasbeehAvailable = speechAvailable;
+
 const LOCALE = "ar-SA";
 
-/** Start listening; resolves to a stop function. */
-export async function startVoiceTasbeeh(handlers: VoiceTasbeehHandlers): Promise<() => void> {
-  const counter = createVoiceCounter(handlers.phrases);
-  const handle = (event: TranscriptEvent) => {
-    handlers.onHeard?.(event.text);
-    for (const key of counter.push(event.segment, event.text)) handlers.onCount(key);
-  };
+export type SpeechStreamHandlers = {
+  /** Words the recogniser should expect (iPhone uses them as hints). */
+  hints: string[];
+  onTranscript: (event: TranscriptEvent) => void;
+  onState?: (state: VoiceTasbeehState) => void;
+};
+
+/**
+ * Listen in Arabic until stopped, sending each segment's growing transcript.
+ * Used by voice tasbeeh and by the recitation check (Tasmee'). Resolves to a
+ * stop function.
+ */
+export async function startSpeechStream(handlers: SpeechStreamHandlers): Promise<() => void> {
+  const handle = handlers.onTranscript;
 
   const plugin = native();
   if (plugin) {
@@ -145,7 +155,7 @@ export async function startVoiceTasbeeh(handlers: VoiceTasbeehHandlers): Promise
       plugin.addListener("state", ({ state }) => handlers.onState?.(state)),
     ]);
     try {
-      await plugin.start({ locale: LOCALE, hints: handlers.phrases.map((phrase) => phrase.text) });
+      await plugin.start({ locale: LOCALE, hints: handlers.hints });
     } catch (error) {
       for (const listener of listeners) void listener.remove();
       throw error;
@@ -209,4 +219,17 @@ export async function startVoiceTasbeeh(handlers: VoiceTasbeehHandlers): Promise
     recognition?.stop();
     handlers.onState?.("stopped");
   };
+}
+
+/** Start counting by voice; resolves to a stop function. */
+export async function startVoiceTasbeeh(handlers: VoiceTasbeehHandlers): Promise<() => void> {
+  const counter = createVoiceCounter(handlers.phrases);
+  return startSpeechStream({
+    hints: handlers.phrases.map((phrase) => phrase.text),
+    onState: handlers.onState,
+    onTranscript: (event) => {
+      handlers.onHeard?.(event.text);
+      for (const key of counter.push(event.segment, event.text)) handlers.onCount(key);
+    },
+  });
 }
