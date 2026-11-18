@@ -26,7 +26,7 @@ public class MainActivityWidgetRouteTest {
 
     @Test
     public void coldStartWidgetRouteIsDeliveredAfterWebAppMounts() throws Exception {
-        MainActivity activity = launchWithRoute(ROUTE);
+        AtharActivity activity = launchWithRoute(ROUTE);
         try {
             waitForPath(activity, ROUTE);
         } finally {
@@ -36,7 +36,7 @@ public class MainActivityWidgetRouteTest {
 
     @Test
     public void warmWidgetRouteIsDeliveredWithoutAnotherResume() throws Exception {
-        MainActivity activity = launchWithRoute(null);
+        AtharActivity activity = launchWithRoute(null);
         try {
             waitForReady(activity);
             assertEquals("\"/\"", evaluate(activity, "location.pathname"));
@@ -50,13 +50,13 @@ public class MainActivityWidgetRouteTest {
                 }));
             int resumesBeforeWidgetTap = resumeCount.get();
 
-            // Exercise the actual callback while MainActivity stays resumed.
+            // Exercise the actual callback while AtharActivity stays resumed.
             Intent widgetIntent = widgetIntent(activity, ROUTE);
             InstrumentationRegistry.getInstrumentation().runOnMainSync(
                 () -> activity.onNewIntent(widgetIntent));
 
             waitForPath(activity, ROUTE);
-            assertEquals("Widget intent unexpectedly resumed MainActivity",
+            assertEquals("Widget intent unexpectedly resumed AtharActivity",
                 resumesBeforeWidgetTap, resumeCount.get());
         } finally {
             finish(activity);
@@ -65,7 +65,7 @@ public class MainActivityWidgetRouteTest {
 
     @Test
     public void newestWarmWidgetRouteWinsWhileWebAppIsMounting() throws Exception {
-        MainActivity activity = launchWithRoute(null);
+        AtharActivity activity = launchWithRoute(null);
         try {
             Intent olderIntent = widgetIntent(activity, OLDER_ROUTE);
             Intent newerIntent = widgetIntent(activity, ROUTE);
@@ -85,7 +85,7 @@ public class MainActivityWidgetRouteTest {
 
     @Test
     public void androidWidgetIntentUpdatesTheExistingSingleTaskActivity() throws Exception {
-        MainActivity activity = launchWithRoute(null);
+        AtharActivity activity = launchWithRoute(null);
         try {
             waitForReady(activity);
             Intent intent = widgetIntent(activity, ROUTE)
@@ -102,33 +102,33 @@ public class MainActivityWidgetRouteTest {
         }
     }
 
-    private static Intent widgetIntent(MainActivity activity, String route) {
-        return new Intent(activity, MainActivity.class)
+    private static Intent widgetIntent(AtharActivity activity, String route) {
+        return new Intent(activity, AtharActivity.class)
             .putExtra(AtharWidgetProvider.EXTRA_ROUTE, route);
     }
 
-    private static MainActivity launchWithRoute(String route) throws Exception {
+    private static AtharActivity launchWithRoute(String route) throws Exception {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        Intent intent = new Intent(context, MainActivity.class)
+        Intent intent = new Intent(context, AtharActivity.class)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         if (route != null) intent.putExtra(AtharWidgetProvider.EXTRA_ROUTE, route);
         Activity activity = InstrumentationRegistry.getInstrumentation().startActivitySync(intent);
-        assertTrue("MainActivity did not launch", activity instanceof MainActivity);
-        return (MainActivity) activity;
+        assertTrue("AtharActivity did not launch", activity instanceof AtharActivity);
+        return (AtharActivity) activity;
     }
 
-    private static void waitForReady(MainActivity activity) throws Exception {
+    private static void waitForReady(AtharActivity activity) throws Exception {
         waitForJavaScriptResult(activity,
             "(function(){var r=document.querySelector('#root');return r&&r.firstChild?'ready':'wait';})()",
             "\"ready\"");
     }
 
-    private static void waitForPath(MainActivity activity, String expectedPath) throws Exception {
+    private static void waitForPath(AtharActivity activity, String expectedPath) throws Exception {
         waitForJavaScriptResult(activity, "location.pathname", "\"" + expectedPath + "\"");
     }
 
     private static void waitForJavaScriptResult(
-            MainActivity activity, String expression, String expected) throws Exception {
+            AtharActivity activity, String expression, String expected) throws Exception {
         long deadline = SystemClock.uptimeMillis() + TimeUnit.SECONDS.toMillis(12);
         String result = null;
         do {
@@ -139,7 +139,7 @@ public class MainActivityWidgetRouteTest {
         assertEquals("Timed out waiting for WebView JavaScript result", expected, result);
     }
 
-    private static String evaluate(MainActivity activity, String expression) throws Exception {
+    private static String evaluate(AtharActivity activity, String expression) throws Exception {
         CountDownLatch evaluated = new CountDownLatch(1);
         AtomicReference<String> result = new AtomicReference<>();
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
@@ -154,7 +154,7 @@ public class MainActivityWidgetRouteTest {
         return result.get();
     }
 
-    private static void finish(MainActivity activity) {
+    private static void finish(AtharActivity activity) {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(activity::finishAndRemoveTask);
     }
 }

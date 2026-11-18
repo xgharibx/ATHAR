@@ -38,12 +38,12 @@ public class ReleaseScreenshotCaptureTest {
         boolean waitForMainContent = args.getBoolean("screenshotWaitForMainContent", false);
         assertTrue("Invalid route", route.matches("/[a-zA-Z0-9/_-]*"));
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        Intent intent = new Intent(context, MainActivity.class)
+        Intent intent = new Intent(context, AtharActivity.class)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP)
             .putExtra(AtharWidgetProvider.EXTRA_ROUTE, route);
         Activity launched = InstrumentationRegistry.getInstrumentation().startActivitySync(intent);
-        assertTrue(launched instanceof MainActivity);
-        MainActivity activity = (MainActivity) launched;
+        assertTrue(launched instanceof AtharActivity);
+        AtharActivity activity = (AtharActivity) launched;
         try {
             long deadline = SystemClock.uptimeMillis() + TimeUnit.SECONDS.toMillis(90);
             String ready = "";
@@ -221,7 +221,7 @@ public class ReleaseScreenshotCaptureTest {
         }
     }
 
-    private static String evaluate(MainActivity activity, String expression) throws Exception {
+    private static String evaluate(AtharActivity activity, String expression) throws Exception {
         CountDownLatch evaluated = new CountDownLatch(1);
         AtomicReference<String> result = new AtomicReference<>();
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {

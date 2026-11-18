@@ -1,0 +1,4 @@
+/* Siri phrases in Arabic for NextPrayerIntent (NextPrayerIntent.swift). */
+"When is the next prayer in ${applicationName}" = "متى الصلاة القادمة في ${applicationName}";
+"Next prayer in ${applicationName}" = "الصلاة القادمة في ${applicationName}";
+"${applicationName} next prayer" = "موعد الصلاة في ${applicationName}";

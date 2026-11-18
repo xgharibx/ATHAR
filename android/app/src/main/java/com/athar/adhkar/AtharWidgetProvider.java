@@ -15,7 +15,7 @@ import java.util.Locale;
 public abstract class AtharWidgetProvider extends AppWidgetProvider {
     protected abstract AtharWidgetSpec getSpec();
 
-    /** Intent extra read by MainActivity to deep-link into a route. */
+    /** Intent extra read by AtharActivity to deep-link into a route. */
     public static final String EXTRA_ROUTE = "athar_route";
 
     @Override
@@ -52,7 +52,7 @@ public abstract class AtharWidgetProvider extends AppWidgetProvider {
 
     /** PendingIntent that opens the app on a specific in-app route (null → home). */
     public static PendingIntent openApp(Context context, int requestCode, String route) {
-        Intent intent = new Intent(context, MainActivity.class)
+        Intent intent = new Intent(context, AtharActivity.class)
             .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         if (route != null && !route.isEmpty()) {
             intent.putExtra(EXTRA_ROUTE, route);

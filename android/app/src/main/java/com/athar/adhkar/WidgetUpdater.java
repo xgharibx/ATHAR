@@ -11,7 +11,7 @@ import android.content.Intent;
  *
  * Called from:
  *  • WidgetRefreshPlugin — right after the web app syncs fresh data
- *  • MainActivity.onPause — the moment the user returns to the home screen
+ *  • AtharActivity.onPause — the moment the user returns to the home screen
  */
 public final class WidgetUpdater {
 

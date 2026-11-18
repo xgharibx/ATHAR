@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#2F4F37</color>
+    <!-- Alternate icons (tools/scripts/generate_app_icon_variants.py). -->
+    <color name="ic_launcher_light_background">#F1E9DA</color>
+    <color name="ic_launcher_dark_background">#0F1312</color>
+    <color name="ic_launcher_ramadan_background">#1B1E4A</color>
+    <color name="ic_launcher_gold_background">#B98F3C</color>
 </resources>
