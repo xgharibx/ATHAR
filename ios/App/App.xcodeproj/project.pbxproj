@@ -48,6 +48,7 @@
 		C1440BA516FF93C7FC2DC2FB /* SurahNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1828D97C2DF926F77BD8CB63 /* SurahNames.swift */; };
 		C3A8C972A619C4FD7C74D5F7 /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */; };
 		CE10BDD10470BB4BF73FC2D5 /* LocationAccessPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4A2A1DDF5BAE7681FF0F2B /* LocationAccessPlugin.swift */; };
+		D5257D01E8E0FD4C0DACA652 /* MindfulHealthPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A74ED43392A70614103F986D /* MindfulHealthPlugin.swift */; };
 		F404E6873083F61F275D7063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 20C3FCB675C0844437B74CB3 /* PrivacyInfo.xcprivacy */; };
 		F4A7B13E0D804E928F0C1001 /* adhan_ahmad_al_nafees.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2001 /* adhan_ahmad_al_nafees.caf */; };
 		F4A7B13E0D804E928F0C1002 /* birds.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2002 /* birds.caf */; };
@@ -105,6 +106,7 @@
 		6CB96746C8E03216F364AA49 /* AppLockPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLockPlugin.swift; sourceTree = "<group>"; };
 		8CFE3AE8D41290C1677A7A7F /* AtharControls.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharControls.swift; sourceTree = "<group>"; };
 		8D4381F53D309A5375F972D7 /* ar */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		A74ED43392A70614103F986D /* MindfulHealthPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MindfulHealthPlugin.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthBridgePlugin.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareBridgePlugin.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12003 /* AtharBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtharBridgeViewController.swift; sourceTree = "<group>"; };
@@ -221,6 +223,7 @@
 				1B1A2751F9E4F9DA86AC4C58 /* AdhanAlarmKit.swift */,
 				D7104E0C1268ABBB2F0C6B8D /* AdhanAlarmPlugin.swift */,
 				FD4A2A1DDF5BAE7681FF0F2B /* LocationAccessPlugin.swift */,
+				A74ED43392A70614103F986D /* MindfulHealthPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -395,6 +398,7 @@
 				42B93C56AF0A437B1C8CCAEF /* AdhanAlarmKit.swift in Sources */,
 				17FE68421D1C0A0BE443A679 /* AdhanAlarmPlugin.swift in Sources */,
 				CE10BDD10470BB4BF73FC2D5 /* LocationAccessPlugin.swift in Sources */,
+				D5257D01E8E0FD4C0DACA652 /* MindfulHealthPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

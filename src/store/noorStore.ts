@@ -193,6 +193,7 @@ export type Preferences = {
   bgVibrancyBoost?: boolean; // boost background vibrancy
   tasbeehStreakEnabled?: boolean; // track daily tasbih streak
   tasbeehDailyGoal?: number; // target per day (0 = off)
+  healthMindful?: boolean; // iPhone: tasbeeh sessions as mindful minutes in Apple Health (src/lib/mindfulMinutes.ts)
   tasbeehVolumeKeysEnabled?: boolean; // volume up/down counts (Android)
   tasbeehSoundProfile?: "chime_bell" | "soft_ping" | "rising_3" | "single_tap";
   tasbeehMascotEnabled?: boolean; // show decorative per-dhikr icon

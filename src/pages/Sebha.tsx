@@ -45,6 +45,7 @@ import { SOUND_PROFILES, mascotForPhrase } from "@/lib/dhikrCatalog";
 import type { MascotKey } from "@/lib/dhikrCatalog";
 import { CUSTOM_DHIKR_COLORS, suggestColorForPhrase, isValidHexColor } from "@/lib/dhikrCustom";
 import { arNum } from "@/lib/formatNumber";
+import { createMindfulSession, logMindfulSession } from "@/lib/mindfulMinutes";
 import { normalizeArabic, startVoiceTasbeeh, VOICE_TASBEEH_PHRASES, voiceTasbeehAvailable, type VoicePhrase } from "@/lib/voiceTasbeeh";
 
 
@@ -736,6 +737,21 @@ export function SebhaPage() {
   const resetQuickTasbeeh = useNoorStore((s) => s.resetQuickTasbeeh);
   const resetAllQuickTasbeeh = useNoorStore((s) => s.resetAllQuickTasbeeh);
   const prefs = useNoorStore((s) => s.prefs);
+  // Tasbeeh sessions as mindful minutes in Apple Health, when chosen.
+  const mindfulRef = React.useRef<ReturnType<typeof createMindfulSession> | null>(null);
+  const healthMindful = prefs.healthMindful === true;
+  React.useEffect(() => {
+    if (!healthMindful) return;
+    const session = createMindfulSession((start, end) => void logMindfulSession(start, end));
+    mindfulRef.current = session;
+    const onHide = () => { if (document.visibilityState === "hidden") session.flush(); };
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      session.flush();
+      mindfulRef.current = null;
+    };
+  }, [healthMindful]);
   const sebhaSessions = useNoorStore((s) => s.sebhaSessions);
   const addSebhaSession = useNoorStore((s) => s.addSebhaSession);
   const clearSebhaSessions = useNoorStore((s) => s.clearSebhaSessions);
@@ -803,6 +819,7 @@ export function SebhaPage() {
       // Functional update: voice counting can add several in one go.
       setTallyCount((value) => value + 1);
       doHaptic(nextCount, null, prefs.enableHaptics, prefs.hapticStrength);
+      mindfulRef.current?.count();
       if (prefs.enableHaptics) {
         // Tiny extra buzz every 33 in free mode since the user is
         // explicitly counting without a target — feels rewarding
@@ -826,6 +843,7 @@ export function SebhaPage() {
       return;
     }
     doHaptic(next, activeEffTarget, prefs.enableHaptics, prefs.hapticStrength);
+    mindfulRef.current?.count();
     const reachedTarget = next === activeEffTarget;
     // Streak + activity
     recordTasbeehActivity(getLocalDateKey());

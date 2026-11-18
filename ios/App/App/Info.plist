@@ -89,6 +89,10 @@
 	<string>Athar uses your location to calculate prayer times, find Qibla direction, and search for nearby mosques.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Athar uses the microphone for optional voice-counted tasbeeh and Quran recitation practice. Audio may be sent to Apple for speech recognition.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Athar can save your tasbeeh sessions as mindful minutes in Apple Health, if you turn it on.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Athar does not read your Health data; it only saves tasbeeh sessions as mindful minutes when you turn it on.</string>
 	<key>NSAlarmKitUsageDescription</key>
 	<string>Athar can ring the Adhan as an alarm, even on silent, for the prayers you choose.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
