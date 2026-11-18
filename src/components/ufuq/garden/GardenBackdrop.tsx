@@ -3,7 +3,7 @@
  * is on, or of the classic design with its «حديقة الليل» theme.
  *
  *   still   a photograph of the scene, painted at once and kept when motion
- *           is reduced, «حديقة حيّة» is off, or the phone will not autoplay;
+ *           is reduced, «حركة المشهد» is off, or the phone will not autoplay;
  *   film    the scene itself, a seamless 10-second loop composed from real
  *           clips (tools/garden-footage), played silently by the phone's
  *           video decoder;
@@ -11,8 +11,6 @@
  *           behind the palm fronds that sweep across it;
  *   lights  fireflies (or sunlit motes) that grow in number with the day's
  *           remembrance;
- *   bed     with «بستان الذِّكر»: real flowers in the foreground, each one
- *           planted by a remembrance and opening on screen (bustanBed.ts);
  *   veil    a soft band across the middle, where the page is read.
  */
 import * as React from "react";
@@ -20,7 +18,6 @@ import { useLocation } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
 import { GardenOverlay, type OverlayMode } from "@/components/ufuq/garden/gardenOverlay";
 import { MoonLayer } from "@/components/ufuq/garden/gardenMoon";
-import { BustanBed } from "@/components/ufuq/garden/bustanBed";
 import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
 import { lightsFor } from "@/components/ufuq/garden/gardenMath";
 
@@ -46,10 +43,7 @@ function subscribeMotion(onChange: () => void) {
   return () => mq?.removeEventListener?.("change", onChange);
 }
 
-/** Share of the screen's height the flower bed occupies, from the bottom. */
-const BED_BAND = 0.3;
-
-export function GardenBackdrop({ forcedMode, bed = false }: { forcedMode?: GardenMode; bed?: boolean } = {}) {
+export function GardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {}) {
   const location = useLocation();
   const base = import.meta.env.BASE_URL ?? "/";
   const growth = useGardenGrowth();
@@ -64,8 +58,6 @@ export function GardenBackdrop({ forcedMode, bed = false }: { forcedMode?: Garde
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const stillRef = React.useRef<HTMLImageElement>(null);
   const moonCanvasRef = React.useRef<HTMLCanvasElement>(null);
-  const bedCanvasRef = React.useRef<HTMLCanvasElement>(null);
-  const bedRef = React.useRef<BustanBed | null>(null);
   const moonRef = React.useRef<MoonLayer | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const overlayRef = React.useRef<GardenOverlay | null>(null);
@@ -210,50 +202,6 @@ export function GardenBackdrop({ forcedMode, bed = false }: { forcedMode?: Garde
     else overlay.stop();
   }, [mode, live, growth.blooms]);
 
-  // «بستان الذِّكر»: the flower bed in the foreground.
-  const bedLive = React.useRef(live);
-  React.useEffect(() => {
-    if (!bed) return;
-    const canvas = bedCanvasRef.current;
-    if (!canvas) return;
-    const engine = BustanBed.create(canvas, base);
-    if (!engine) return;
-    bedRef.current = engine;
-    let size = { w: 0, h: 0 };
-    const resize = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      if (w === size.w && h < size.h && h > size.h * 0.55) return;
-      size = { w, h };
-      engine.resize(w, Math.round(h * BED_BAND));
-    };
-    resize();
-    const onDown = (e: PointerEvent) => {
-      if (e.clientY > window.innerHeight * (1 - BED_BAND - 0.05)) engine.touch(e.clientX);
-    };
-    const onVisible = () => (document.hidden ? engine.stop() : bedLive.current && engine.start());
-    window.addEventListener("resize", resize);
-    window.addEventListener("pointerdown", onDown, { passive: true });
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("pointerdown", onDown);
-      document.removeEventListener("visibilitychange", onVisible);
-      engine.destroy();
-      bedRef.current = null;
-    };
-  }, [bed, base]);
-
-  React.useEffect(() => {
-    bedLive.current = live;
-    const engine = bedRef.current;
-    if (!engine) return;
-    engine.setNight(mode === "night");
-    engine.setState({ planted: Math.max(0, growth.planted), streak: growth.streak, wirdDone: growth.treeFruit });
-    if (live && !document.hidden) engine.start();
-    else engine.stop();
-  }, [bed, mode, live, growth.planted, growth.streak, growth.treeFruit]);
-
   // A little depth: the scene drifts up a few pixels as the page scrolls.
   React.useEffect(() => {
     const layer = layerRef.current;
@@ -299,7 +247,6 @@ export function GardenBackdrop({ forcedMode, bed = false }: { forcedMode?: Garde
         />
         <canvas ref={moonCanvasRef} className="u-garden-moon" />
       </div>
-      {bed ? <canvas ref={bedCanvasRef} className="u-garden-bed" aria-hidden="true" /> : null}
       <canvas ref={canvasRef} className="u-garden" aria-hidden="true" />
       <div className={`u-garden-veil ${location.pathname === "/" ? "is-light" : ""}`} aria-hidden="true" />
     </>

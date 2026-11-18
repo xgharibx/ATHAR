@@ -1302,16 +1302,6 @@ body.quran-focus-mode .u-topbar {
   opacity: 1;
 }
 
-/* «بستان الذِّكر»: the flower bed, along the bottom of the screen. */
-.u-garden-bed {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  z-index: 0;
-  pointer-events: none;
-  display: block;
-}
-
 .u-garden {
   position: fixed;
   top: 0;

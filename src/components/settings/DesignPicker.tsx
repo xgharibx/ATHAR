@@ -121,7 +121,7 @@ export function UfuqLookPicker() {
             }}
             className={cn("design-choice", active && "is-active")}
           >
-            {option.id === "plain" ? <UfuqPreview /> : <GardenPreview night={night} bed={option.id === "bustan"} />}
+            {option.id === "plain" ? <UfuqPreview /> : <GardenPreview night={night} bed={option.id === "live"} />}
             <span className="design-choice-label">
               <span className="design-choice-check" aria-hidden="true">{active ? <Check size={12} strokeWidth={3} /> : null}</span>
               {option.label}

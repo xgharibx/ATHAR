@@ -17,6 +17,10 @@ import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 import { IconExplore, IconPrayer, IconQuran, IconTasbeeh, IconToday } from "@/components/ufuq/UfuqIcons";
 import { isUfuqTabRoot, ufuqTabFor, ufuqTitleFor, UFUQ_TABS, type UfuqTabId } from "@/components/ufuq/ufuqNav";
 
+const LiveGardenBackdrop = React.lazy(() =>
+  import("@/components/ufuq/garden/LiveGardenBackdrop").then((m) => ({ default: m.LiveGardenBackdrop })),
+);
+
 const GardenBackdrop = React.lazy(() =>
   import("@/components/ufuq/garden/GardenBackdrop").then((m) => ({ default: m.GardenBackdrop })),
 );
@@ -266,7 +270,7 @@ export function UfuqShell() {
       </a>
       {garden ? (
         <React.Suspense fallback={null}>
-          <GardenBackdrop bed={look === "bustan"} />
+          {look === "live" ? <LiveGardenBackdrop /> : <GardenBackdrop />}
         </React.Suspense>
       ) : (
         <div className="u-horizon" aria-hidden="true" />

@@ -190,12 +190,12 @@ describe("garden settings", () => {
         </MemoryRouter>,
       );
     });
-    expect(container.textContent).toContain("حديقة حيّة");
+    expect(container.textContent).toContain("حركة المشهد");
     expect(container.textContent).toContain("الوقت");
     const plain = Array.from(container.querySelectorAll<HTMLButtonElement>('[role="radio"]')).find((b) => b.textContent?.includes("بسيط"))!;
     await act(async () => plain.click());
     expect(useNoorStore.getState().prefs.ufuqLook).toBe("plain");
-    expect(container.textContent).not.toContain("حديقة حيّة");
+    expect(container.textContent).not.toContain("حركة المشهد");
     await act(async () => root.unmount());
   });
 });
