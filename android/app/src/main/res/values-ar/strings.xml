@@ -9,4 +9,18 @@
     <string name="shortcut_sebha_long">عدّاد التسبيح</string>
     <string name="shortcut_mushaf_short">المصحف</string>
     <string name="shortcut_mushaf_long">متابعة القراءة في المصحف</string>
+    <!-- Widget names in Android's widget picker on Arabic-language phones. -->
+    <string name="widget_compact_label">أثر · العدّ السريع</string>
+    <string name="widget_prayer_label">أثر · الصلاة القادمة</string>
+    <string name="widget_prayer_full_label">أثر · مواقيت الصلاة</string>
+    <string name="widget_adhkar_label">أثر · الأذكار</string>
+    <string name="widget_wird_label">أثر · الورد اليومي</string>
+    <string name="widget_dashboard_label">أثر · لوحة اليوم</string>
+    <string name="widget_tasbeeh_label">أثر · السبحة</string>
+    <string name="widget_sunnah_label">أثر · حديث اليوم</string>
+    <string name="widget_asma_label">أثر · الأسماء الحسنى</string>
+    <string name="widget_qibla_label">أثر · القبلة</string>
+    <string name="widget_wirdtable_label">أثر · جدول الأوراد</string>
+    <string name="widget_qadaa_label">أثر · القضاء</string>
+    <string name="widget_qadaa_board_label">أثر · لوحة القضاء</string>
 </resources>

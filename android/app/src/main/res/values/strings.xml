@@ -1,9 +1,9 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Athar</string>
-    <string name="title_activity_main">Athar</string>
-    <string name="package_name">com.athar.adhkar</string>
-    <string name="custom_url_scheme">com.athar.adhkar</string>
+    <string name="app_name" translatable="false">Athar</string>
+    <string name="title_activity_main" translatable="false">Athar</string>
+    <string name="package_name" translatable="false">com.athar.adhkar</string>
+    <string name="custom_url_scheme" translatable="false">com.athar.adhkar</string>
     <string name="widget_compact_label">Athar Compact Widget</string>
     <string name="widget_prayer_label">Athar Prayer Widget</string>
     <string name="widget_prayer_full_label">Athar Full Prayer Widget</string>
@@ -17,24 +17,24 @@
     <string name="widget_wirdtable_label">Athar Wird Table</string>
     <string name="widget_qadaa_label">Athar Qadaa Widget</string>
     <string name="widget_qadaa_board_label">Athar Qadaa Board</string>
-    <string name="widget_dashboard_description">الصلاة والأذكار والورد اليومي في نظرة واحدة</string>
-    <string name="widget_compact_description">اضغط لعدّ الأذكار مباشرة من الشاشة الرئيسية</string>
-    <string name="widget_prayer_description">عداد تنازلي حي للصلاة القادمة</string>
-    <string name="widget_prayer_full_description">كل مواقيت الصلاة اليوم مع تنبيه الصلاة القادمة</string>
-    <string name="widget_adhkar_description">تابع تقدّمك في أذكار الصباح والمساء</string>
-    <string name="widget_wird_description">تابع وردك اليومي من القرآن ومكانك الحالي</string>
-    <string name="widget_tasbeeh_description">سبحة تفاعلية، اضغط للعدّ مباشرة من الشاشة الرئيسية</string>
-    <string name="widget_sunnah_description">حديث اليوم الحقيقي من موسوعة الحديث</string>
-    <string name="widget_asma_description">اسم من أسماء الله الحسنى كل يوم مع معناه</string>
-    <string name="widget_qadaa_description">ما بقي عليك من قضاء الصلوات وحصة اليوم منه</string>
-    <string name="widget_qadaa_board_description">سجّل قضاء كل صلاة بزر واحد من الشاشة الرئيسية</string>
-    <string name="widget_wirdtable_description">أورادك اليوم وما أتممتَ منها</string>
-    <string name="widget_qibla_description">اتجاه القبلة والمسافة إلى الكعبة بمجرد نظرة</string>
+    <string name="widget_dashboard_description" translatable="false">الصلاة والأذكار والورد اليومي في نظرة واحدة</string>
+    <string name="widget_compact_description" translatable="false">اضغط لعدّ الأذكار مباشرة من الشاشة الرئيسية</string>
+    <string name="widget_prayer_description" translatable="false">عداد تنازلي حي للصلاة القادمة</string>
+    <string name="widget_prayer_full_description" translatable="false">كل مواقيت الصلاة اليوم مع تنبيه الصلاة القادمة</string>
+    <string name="widget_adhkar_description" translatable="false">تابع تقدّمك في أذكار الصباح والمساء</string>
+    <string name="widget_wird_description" translatable="false">تابع وردك اليومي من القرآن ومكانك الحالي</string>
+    <string name="widget_tasbeeh_description" translatable="false">سبحة تفاعلية، اضغط للعدّ مباشرة من الشاشة الرئيسية</string>
+    <string name="widget_sunnah_description" translatable="false">حديث اليوم الحقيقي من موسوعة الحديث</string>
+    <string name="widget_asma_description" translatable="false">اسم من أسماء الله الحسنى كل يوم مع معناه</string>
+    <string name="widget_qadaa_description" translatable="false">ما بقي عليك من قضاء الصلوات وحصة اليوم منه</string>
+    <string name="widget_qadaa_board_description" translatable="false">سجّل قضاء كل صلاة بزر واحد من الشاشة الرئيسية</string>
+    <string name="widget_wirdtable_description" translatable="false">أورادك اليوم وما أتممتَ منها</string>
+    <string name="widget_qibla_description" translatable="false">اتجاه القبلة والمسافة إلى الكعبة بمجرد نظرة</string>
     <!-- 11C: Notification channel names shown in Android Settings > App Notifications -->
-    <string name="channel_prayer_name">&#x62A;&#x646;&#x628;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
-    <string name="channel_prayer_desc">&#x623;&#x630;&#x627;&#x646; &#x627;&#x644;&#x635;&#x644;&#x648;&#x627;&#x62A; &#x627;&#x644;&#x62E;&#x645;&#x633; &#x648;&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
-    <string name="channel_reminders_name">&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x623;&#x630;&#x643;&#x627;&#x631;</string>
-    <string name="channel_reminders_desc">&#x623;&#x630;&#x643;&#x627;&#x631; &#x627;&#x644;&#x635;&#x628;&#x627;&#x62D; &#x648;&#x627;&#x644;&#x645;&#x633;&#x627;&#x621; &#x648;&#x627;&#x644;&#x648;&#x631;&#x62F; &#x627;&#x644;&#x64A;&#x648;&#x645;&#x64A;</string>
+    <string name="channel_prayer_name" translatable="false">&#x62A;&#x646;&#x628;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
+    <string name="channel_prayer_desc" translatable="false">&#x623;&#x630;&#x627;&#x646; &#x627;&#x644;&#x635;&#x644;&#x648;&#x627;&#x62A; &#x627;&#x644;&#x62E;&#x645;&#x633; &#x648;&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
+    <string name="channel_reminders_name" translatable="false">&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x623;&#x630;&#x643;&#x627;&#x631;</string>
+    <string name="channel_reminders_desc" translatable="false">&#x623;&#x630;&#x643;&#x627;&#x631; &#x627;&#x644;&#x635;&#x628;&#x627;&#x62D; &#x648;&#x627;&#x644;&#x645;&#x633;&#x627;&#x621; &#x648;&#x627;&#x644;&#x648;&#x631;&#x62F; &#x627;&#x644;&#x64A;&#x648;&#x645;&#x64A;</string>
     <!-- App-icon shortcuts (res/xml/shortcuts.xml). -->
     <string name="shortcut_prayer_short">Prayer times</string>
     <string name="shortcut_prayer_long">Prayer times</string>
