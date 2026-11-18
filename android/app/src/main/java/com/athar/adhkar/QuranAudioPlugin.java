@@ -37,6 +37,7 @@ import org.json.JSONObject;
  *
  *   play({ items: [{ id, url, title, artist }], startIndex, rate, volume, repeat })
  *       repeat: "none" | "one" (the current verse) | "all" (the whole list)
+ *       live: true for the Quran radio stations (shown as a radio station)
  *   pause() / resume() / stop() / next() / previous()
  *   setRate({ rate }) / setVolume({ volume })
  *   download({ urls, maxBytes })  saves verses for offline listening,
@@ -156,10 +157,11 @@ public class QuranAudioPlugin extends Plugin {
             return;
         }
         List<MediaItem> items = new ArrayList<>();
+        boolean live = Boolean.TRUE.equals(call.getBoolean("live", false));
         try {
             for (int i = 0; i < raw.length(); i++) {
                 JSONObject item = raw.getJSONObject(i);
-                items.add(mediaItem(item));
+                items.add(live ? radioItem(item) : mediaItem(item));
             }
         } catch (JSONException e) {
             call.reject("invalid items", e);
@@ -192,6 +194,21 @@ public class QuranAudioPlugin extends Plugin {
             .setArtworkUri(Uri.parse(ARTWORK))
             .build();
         return new MediaItem.Builder().setMediaId(item.optString("id", url)).setUri(uri).setMediaMetadata(metadata).build();
+    }
+
+    /** A Quran radio station: streamed live, never from a saved file. */
+    private MediaItem radioItem(JSONObject item) throws JSONException {
+        String url = item.getString("url");
+        MediaMetadata metadata = new MediaMetadata.Builder()
+            .setTitle(item.optString("title", "إذاعة القرآن الكريم"))
+            .setArtist(item.optString("artist", ""))
+            .setAlbumTitle("إذاعة القرآن الكريم · أثر")
+            .setArtworkUri(Uri.parse(ARTWORK))
+            .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
+            .setIsPlayable(true)
+            .setIsBrowsable(false)
+            .build();
+        return new MediaItem.Builder().setMediaId(item.optString("id", url)).setUri(Uri.parse(url)).setMediaMetadata(metadata).build();
     }
 
     private static float clampRate(@Nullable Float rate) {
