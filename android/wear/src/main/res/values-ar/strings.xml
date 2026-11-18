@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="next_phrase">التالي</string>
+    <string name="reset_done">تم التصفير</string>
+    <string name="of_target">من %1$d</string>
+</resources>
