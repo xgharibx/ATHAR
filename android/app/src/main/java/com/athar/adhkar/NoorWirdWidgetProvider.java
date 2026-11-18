@@ -100,7 +100,8 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
             new int[]{ R.id.wird_stars, R.id.wird_stars_2, R.id.wird_stars_3 },
             widgetDark, sz[0], sz[1], System.currentTimeMillis() / 60000);
 
-        PendingIntent pi = openApp(context, appWidgetId * 21, "/quran");
+        // Straight back to the Mushaf page last read.
+        PendingIntent pi = openApp(context, appWidgetId * 21, "/mushaf");
         views.setOnClickPendingIntent(R.id.wird_root, pi);
         views.setOnClickPendingIntent(R.id.wird_open_btn, pi);
 

@@ -91,9 +91,17 @@ public class NoorAdhkarWidgetProvider extends AtharWidgetProvider {
             new int[]{ R.id.adhkar_stars, R.id.adhkar_stars_2, R.id.adhkar_stars_3 },
             widgetDark, sz[0], sz[1], System.currentTimeMillis() / 60000);
 
-        PendingIntent morningPi = openApp(context, appWidgetId * 20, "/c/morning");
-        views.setOnClickPendingIntent(R.id.adhkar_root, morningPi);
-        views.setOnClickPendingIntent(R.id.adhkar_open_btn, morningPi);
+        // The adhkar of the moment of the tap: morning until Asr, evening after
+        // (WidgetRoutes). Each half of the widget also opens its own adhkar.
+        PendingIntent nowPi = openApp(context, appWidgetId * 20, WidgetRoutes.ADHKAR_NOW);
+        views.setOnClickPendingIntent(R.id.adhkar_root, nowPi);
+        views.setOnClickPendingIntent(R.id.adhkar_open_btn, nowPi);
+        PendingIntent morningPi = openApp(context, appWidgetId * 20 + 1, "/c/morning");
+        PendingIntent eveningPi = openApp(context, appWidgetId * 20 + 2, "/c/evening");
+        views.setOnClickPendingIntent(R.id.adhkar_morning_count, morningPi);
+        views.setOnClickPendingIntent(R.id.adhkar_morning_bar, morningPi);
+        views.setOnClickPendingIntent(R.id.adhkar_evening_count, eveningPi);
+        views.setOnClickPendingIntent(R.id.adhkar_evening_bar, eveningPi);
 
         // LIGHT theme needs dark ink (dark themes keep the light XML tokens).
         WidgetInk.applyLight(context, views, theme,
