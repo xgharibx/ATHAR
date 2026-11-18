@@ -79,7 +79,8 @@ export function CommandPalette(props: Props) {
       shafaq: "شفق",
       mushaf: "مصحف",
       diwan: "الديوان",
-      faham: "فحم"
+      faham: "فحم",
+      hadiqa: "حديقة الليل"
     };
     return map[t] ?? "تلقائي";
   };
@@ -193,7 +194,7 @@ export function CommandPalette(props: Props) {
     props.setOpen(false);
   };
 
-  const ALL_THEMES: NoorTheme[] = ["roses", "noor", "sapphire", "violet", "sunset", "forest", "midnight", "bees", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf", "dark", "light", "system"];
+  const ALL_THEMES: NoorTheme[] = ["roses", "noor", "sapphire", "violet", "sunset", "forest", "midnight", "bees", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf", "hadiqa", "dark", "light", "system"];
 
   const cycleTheme = () => {
     const idx = ALL_THEMES.indexOf(theme);

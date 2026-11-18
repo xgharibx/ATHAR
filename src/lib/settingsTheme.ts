@@ -32,6 +32,7 @@ export const THEME_ACCENTS: Partial<Record<NoorTheme, string>> = {
   sama:     "#ffe8a0",
   diwan:    "#1f6b4a",
   faham:    "#e9e9ee",
+  hadiqa:   "#e3cf9c",
 };
 
 /** Every theme the picker offers, with a name of its own. */
@@ -54,6 +55,7 @@ export const THEME_CHOICES: ReadonlyArray<{ id: NoorTheme; label: string }> = [
   { id: "sajjada", label: "سجادة" },
   { id: "mihrab", label: "محراب" },
   { id: "sama", label: "سماء" },
+  { id: "hadiqa", label: "حديقة الليل" },
   { id: "layl", label: "ليل" },
   { id: "teen", label: "طين" },
   { id: "jura", label: "جرأة" },

@@ -24,7 +24,10 @@ const APP_ICON_CHOICES: Array<{ id: AppIconName; label: string; colors: [string,
 function swatchStyle(theme: NoorTheme): React.CSSProperties {
   const background = theme === "system"
     ? `linear-gradient(135deg, ${THEME_META_COLORS.light} 50%, ${THEME_META_COLORS.dark} 50%)`
-    : THEME_META_COLORS[theme];
+    : theme === "hadiqa"
+      // The moon over a dark garden, as the theme itself looks.
+      ? "radial-gradient(circle at 28% 30%, #fff6e0 0 8%, rgba(230,236,255,0.25) 9%, transparent 16%), linear-gradient(180deg, #010207 0%, #0b1630 60%, #174029 61%, #0a1d14 100%)"
+      : THEME_META_COLORS[theme];
   return { background, ["--swatch-accent" as string]: THEME_ACCENTS[theme] ?? "#ffd780" };
 }
 
@@ -211,7 +214,17 @@ export function AppearanceGroup() {
       </SettingsSection>
 
       <SettingsSection title={ufuq ? "الحركة" : "المؤثرات"}>
+        {!ufuq && prefs.theme === "hadiqa" ? (
+          <ToggleRow
+            id="garden-live"
+            title="حديقة حيّة"
+            hint="الريح في العشب والنخل واليراعات. أطفئها لتبقى الحديقة ساكنة وتوفّر البطارية"
+            checked={prefs.gardenLive !== false}
+            onChange={(on) => setPrefs({ gardenLive: on })}
+          />
+        ) : null}
         {!ufuq ? (<>
+        {prefs.theme !== "hadiqa" ? (
         <ToggleRow
           id="effects"
           icon={<Sparkles size={17} />}
@@ -220,6 +233,7 @@ export function AppearanceGroup() {
           checked={prefs.enable3D}
           onChange={(on) => setPrefs({ enable3D: on })}
         />
+        ) : null}
         <ToggleRow
           title="البطاقات الزجاجية"
           hint="خلفية شفافة مضيئة للبطاقات"

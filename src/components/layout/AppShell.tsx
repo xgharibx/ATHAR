@@ -21,6 +21,11 @@ import { UpdatePill } from "@/components/layout/UpdatePill";
 import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { UfuqShell } from "@/components/ufuq/UfuqShell";
 
+/** «حديقة الليل»: the living night garden, loaded only when that theme is on. */
+const GardenBackdrop = React.lazy(() =>
+  import("@/components/ufuq/garden/GardenBackdrop").then((m) => ({ default: m.GardenBackdrop })),
+);
+
 /**
  * The header's hamburger drawer, hidden at the owner's request.
  *
@@ -191,14 +196,15 @@ function themeLabel(theme: string) {
     andalus: "أندلس",
     sakina: "سكينة",
     shafaq: "شفق",
-    mushaf: "مصحف"
+    mushaf: "مصحف",
+    hadiqa: "حديقة الليل"
   };
   return map[theme] ?? "تلقائي";
 }
 
 const ALL_THEMES_CYCLE: import("@/store/noorStore").NoorTheme[] = [
   "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist",
-  "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf",
+  "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf", "hadiqa",
 ];
 
 const MAIN_NAV_LINKS = [
@@ -566,7 +572,15 @@ function ClassicAppShell() {
         انتقل إلى المحتوى الرئيسي
       </a>
 
-      <NoorBackground />
+      {prefs.theme === "hadiqa" ? (
+        <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden="true">
+          <React.Suspense fallback={null}>
+            <GardenBackdrop forcedMode="night" />
+          </React.Suspense>
+        </div>
+      ) : (
+        <NoorBackground />
+      )}
       <GardenOrnaments />
       <OfflineBanner />
 

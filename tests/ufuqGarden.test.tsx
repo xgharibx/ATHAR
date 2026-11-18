@@ -125,9 +125,11 @@ describe("the look and the brand", () => {
     expect(shell).toContain("همسة تطمئن قلبك،");
   });
 
-  it("keeps the classic design out of it", () => {
+  it("reaches the classic design only through its «حديقة الليل» theme", () => {
     expect(read("src/styles/globals.css")).not.toContain("ufuq-look");
-    expect(read("src/components/layout/AppShell.tsx")).not.toContain("GardenBackdrop");
+    const shell = read("src/components/layout/AppShell.tsx");
+    expect(shell).toContain('prefs.theme === "hadiqa"');
+    expect(shell).toContain('<GardenBackdrop forcedMode="night" />');
   });
 });
 
@@ -166,5 +168,31 @@ describe("garden settings", () => {
     expect(useNoorStore.getState().prefs.ufuqLook).toBe("plain");
     expect(container.textContent).not.toContain("حديقة حيّة");
     await act(async () => root.unmount());
+  });
+});
+
+describe("«حديقة الليل» in the classic design", () => {
+  it("is offered among the classic themes as a dark one", async () => {
+    const { THEME_CHOICES, isDarkTheme, themeLabel } = await import("@/lib/settingsTheme");
+    expect(THEME_CHOICES.map((c) => c.id)).toContain("hadiqa");
+    expect(themeLabel("hadiqa")).toBe("حديقة الليل");
+    expect(isDarkTheme("hadiqa")).toBe(true);
+  });
+
+  it("paints the right colours from the first frame", async () => {
+    const { THEME_META_COLORS, applyThemeForTest } = await import("@/hooks/useApplyTheme");
+    expect(THEME_META_COLORS.hadiqa).toBe("#010207");
+    const catalog = JSON.parse(/<script id="theme-bootstrap-colors" type="application\/json">([^<]+)<\/script>/.exec(read("index.html"))![1]!);
+    expect(catalog.themes.hadiqa).toBe(THEME_META_COLORS.hadiqa);
+    delete document.documentElement.dataset.design;
+    applyThemeForTest("hadiqa");
+    expect(document.documentElement.classList.contains("hadiqa")).toBe(true);
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute("content")).toBe("#010207");
+  });
+
+  it("has its own colours and stays readable in the see-through mode", () => {
+    const css = read("src/styles/globals.css");
+    expect(css).toContain(".hadiqa {");
+    expect(css).toContain(".hadiqa body.transparent-mode .glass");
   });
 });

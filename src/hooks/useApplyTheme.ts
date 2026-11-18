@@ -71,6 +71,7 @@ export const THEME_META_COLORS: Record<NoorTheme, string> = {
   sama:     "#0a1f15",
   diwan:    "#f5f1e6",
   faham:    "#000000",
+  hadiqa:   "#010207",
 };
 
 /** Themes that are light at heart — applied together with .light so every
@@ -84,7 +85,7 @@ const ALL_THEME_CLASSES = [
   "violet", "sunset", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab",
   "midad", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf",
   "sama", "sama-fajr", "sama-dhuhr", "sama-asr", "sama-maghrib", "sama-isha",
-  "diwan", "faham",
+  "diwan", "faham", "hadiqa",
 ];
 
 /**
