@@ -41,11 +41,11 @@ jobs:
       - name: Run the Android app on an emulator
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
-          api-level: 35
+          api-level: 34
           arch: x86_64
           target: google_apis
-          profile: pixel_6
-          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu software
+          profile: pixel_2
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader -feature -Vulkan
           emulator-boot-timeout: 480
           disable-animations: true
           script: bash .github/qa/athar-android-audit.sh
@@ -110,6 +110,7 @@ jobs:
           path: ${{ runner.temp }}/ios-qa
           if-no-files-found: warn
           retention-days: 7
+
 
 
 
