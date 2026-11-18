@@ -31,6 +31,8 @@
 		63D2ADCEAC8447FB0DC0AB77 /* AppIconPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2F429EA92187EC97F74964E /* AppIconPlugin.swift */; };
 		6EFED682B60C1D97E4CD99D8 /* AtharWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B340E0473BDAA3AF7C2A77 /* AtharWidgets.swift */; };
 		728DDC6974C21476FAB48BFE /* RecitationBackgroundDownloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92F97D7DD431752CF9EA9D6 /* RecitationBackgroundDownloads.swift */; };
+		750A8CA7E7474B1DBB6AF2A5 /* ScreenAwakePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9304B4C812915D80B649FE0E /* ScreenAwakePlugin.swift */; };
+		80ADB4C8FB06CD83BCECDBC4 /* InAppBrowserPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90B30A9D5F9D702B8AC42299 /* InAppBrowserPlugin.swift */; };
 		86E19F44582074A545E5E539 /* QuranAudioPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCEBF9CF003CBE36CAA7B5C3 /* QuranAudioPlugin.swift */; };
 		89B1CF4A05AC110CF228A7DA /* NextPrayerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D17B7713167EB479302556 /* NextPrayerIntent.swift */; };
 		8D9A09D5738883D857334540 /* AtharDailyWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF0538B9505F0274F3CE067 /* AtharDailyWidgets.swift */; };
@@ -108,6 +110,8 @@
 		6CB96746C8E03216F364AA49 /* AppLockPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLockPlugin.swift; sourceTree = "<group>"; };
 		8CFE3AE8D41290C1677A7A7F /* AtharControls.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharControls.swift; sourceTree = "<group>"; };
 		8D4381F53D309A5375F972D7 /* ar */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		90B30A9D5F9D702B8AC42299 /* InAppBrowserPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InAppBrowserPlugin.swift; sourceTree = "<group>"; };
+		9304B4C812915D80B649FE0E /* ScreenAwakePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenAwakePlugin.swift; sourceTree = "<group>"; };
 		A74ED43392A70614103F986D /* MindfulHealthPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MindfulHealthPlugin.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthBridgePlugin.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareBridgePlugin.swift; sourceTree = "<group>"; };
@@ -229,6 +233,8 @@
 				FD4A2A1DDF5BAE7681FF0F2B /* LocationAccessPlugin.swift */,
 				A74ED43392A70614103F986D /* MindfulHealthPlugin.swift */,
 				F92F97D7DD431752CF9EA9D6 /* RecitationBackgroundDownloads.swift */,
+				9304B4C812915D80B649FE0E /* ScreenAwakePlugin.swift */,
+				90B30A9D5F9D702B8AC42299 /* InAppBrowserPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -406,6 +412,8 @@
 				CE10BDD10470BB4BF73FC2D5 /* LocationAccessPlugin.swift in Sources */,
 				D5257D01E8E0FD4C0DACA652 /* MindfulHealthPlugin.swift in Sources */,
 				728DDC6974C21476FAB48BFE /* RecitationBackgroundDownloads.swift in Sources */,
+				750A8CA7E7474B1DBB6AF2A5 /* ScreenAwakePlugin.swift in Sources */,
+				80ADB4C8FB06CD83BCECDBC4 /* InAppBrowserPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

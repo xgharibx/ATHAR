@@ -293,3 +293,48 @@ export function saveResultMessage(r: SaveResult): { ok: boolean; text: string } 
       return { ok: false, text: "تعذّر حفظ الصورة" };
   }
 }
+
+/**
+ * Give the Android app the Web Share API it lacks.
+ *
+ * Dozens of screens share with `navigator.share(...)` and copy the text when
+ * it is missing, which it always is in the Android app's web view: there,
+ * "share" quietly became "copied". This fills `navigator.share` and
+ * `navigator.canShare` in with the phone's own share menu (ShareBridge), so
+ * every one of those buttons opens it. Where the web view has its own Web
+ * Share (iPhone), nothing changes.
+ */
+export function installNativeWebShare(): void {
+  if (typeof navigator === "undefined" || !Capacitor.isNativePlatform()) return;
+  if (typeof navigator.share === "function") return;
+  const bridge = nativeBridge();
+  if (!bridge) return;
+
+  const share = async (data: ShareData = {}): Promise<void> => {
+    const title = data.title || "أثر";
+    const parts = [data.text, data.url].filter((part): part is string => Boolean(part && part.trim()));
+    // A link already inside the text is not repeated.
+    const text = parts.length === 2 && parts[0].includes(parts[1]) ? parts[0] : parts.join("\n");
+    const file = data.files?.[0];
+    if (file) {
+      const base64 = await blobToBase64(file);
+      if (file.type.startsWith("image/")) {
+        await bridge.shareImage({ base64, filename: file.name || "athar.png", text, title });
+      } else {
+        await bridge.shareFile({ base64, filename: file.name || "athar-file", mimeType: file.type || "application/octet-stream", title });
+      }
+      return;
+    }
+    if (!text) throw new TypeError("Nothing to share");
+    await bridge.shareText({ text, title });
+  };
+  const canShare = (data: ShareData = {}): boolean =>
+    Boolean(data.text || data.url || data.title || (data.files && data.files.length > 0));
+
+  try {
+    Object.defineProperty(navigator, "share", { configurable: true, writable: true, value: share });
+    Object.defineProperty(navigator, "canShare", { configurable: true, writable: true, value: canShare });
+  } catch {
+    // A read-only navigator: the screens keep copying instead.
+  }
+}

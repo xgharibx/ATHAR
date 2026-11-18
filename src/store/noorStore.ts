@@ -177,6 +177,8 @@ export type Preferences = {
   reduceMotion: boolean;
   transparentMode: boolean;
   clearReading: boolean;
+  /** Keep the screen on while reading the Mushaf, counting tasbeeh or reciting. */
+  keepScreenAwake: boolean;
   customAccent?: string; // override --accent, e.g. "#ff5555"
   arabicFont?: "noto_naskh" | "amiri" | "hafs"; // Se1
   uiLanguage?: "ar" | "en"; // Se3
@@ -739,6 +741,7 @@ const DEFAULT_PREFS: Preferences = {
   reduceMotion: false,
   transparentMode: true,
   clearReading: false,
+  keepScreenAwake: true,
   customAccent: undefined,
   arabicFont: "noto_naskh",
   uiLanguage: "ar",
@@ -809,6 +812,7 @@ function normalizePrefs(value: unknown): Preferences {
     ...DEFAULT_PREFS,
     ...source,
     clearReading: typeof source.clearReading === "boolean" ? source.clearReading : DEFAULT_PREFS.clearReading,
+    keepScreenAwake: typeof source.keepScreenAwake === "boolean" ? source.keepScreenAwake : DEFAULT_PREFS.keepScreenAwake,
     hapticStrength: validStrength,
     homeWidgets: normalizeHomeWidgets(source.homeWidgets),
     homeWidgetsOrder: normalizeHomeWidgetsOrder(source.homeWidgetsOrder),
@@ -2345,6 +2349,7 @@ export const useNoorStore = create<NoorState>()(
           reduceMotion: DEFAULT_PREFS.reduceMotion,
           transparentMode: DEFAULT_PREFS.transparentMode,
           clearReading: DEFAULT_PREFS.clearReading,
+          keepScreenAwake: DEFAULT_PREFS.keepScreenAwake,
           bgVibrancyBoost: DEFAULT_PREFS.bgVibrancyBoost,
         },
       })),

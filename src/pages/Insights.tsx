@@ -20,6 +20,7 @@ import { TOTAL_QURAN_AYAHS, SURAH_JUZ, SURAH_REVELATION } from "@/lib/quranMeta"
 import { DAILY_CHECKLIST_ITEMS } from "@/data/dailyGrowth";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
+import { Capacitor } from "@capacitor/core";
 import { shareImageBlob } from "@/lib/shareTargets";
 import { accountScopedLocalStorage, getAccountStorageOwner, isAccountStorageOwnerTransitionInProgress } from "@/lib/accountStorageScope";
 import { showServiceWorkerNotification, WEB_ATHAR_NOTIFICATION_TAG_PREFIX } from "@/lib/customReminderNotifications";
@@ -698,6 +699,13 @@ export function InsightsPage() {
     setExporting(true);
     try {
       const dataUrl = await toPng(insightsExportRef.current, { pixelRatio: 2, cacheBust: true, backgroundColor: "var(--bg)" });
+      // The apps have no print window: the phone's share sheet saves, prints or sends it.
+      if (Capacitor.isNativePlatform()) {
+        const blob = await (await fetch(dataUrl)).blob();
+        const result = await shareImageBlob(blob, { filename: "athar-insights.png", title: "إحصاءات ATHAR" });
+        if (result === "failed") toast.error("تعذر تصدير الإحصاءات");
+        return;
+      }
       const win = window.open("", "_blank");
       if (win) {
         win.opener = null; // prevent tabnapping

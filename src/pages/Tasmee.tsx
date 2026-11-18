@@ -22,6 +22,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
 import { createRecitationFollower } from "@/lib/recitationFollower";
 import { normalizeArabic, speechAvailable, startSpeechStream } from "@/lib/voiceTasbeeh";
+import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
 
 
 type AyahResult = "perfect" | "hinted" | "missed";
@@ -42,6 +43,8 @@ export function TasmeePage() {
   const [voiceOn, setVoiceOn] = React.useState(false);
   const stopListeningRef = React.useRef<(() => void) | null>(null);
   const [voiceStarting, setVoiceStarting] = React.useState(false);
+  // Nobody touches the screen while reciting, so it stays on while listening.
+  useKeepScreenAwake(true, { idleMinutes: voiceOn ? null : undefined });
   const sessionIdRef = React.useRef(0);
   const gradedVerseRef = React.useRef<string | null>(null);
   const quranLoadRequestRef = React.useRef(0);

@@ -582,6 +582,13 @@ export function SettingsPage() {
             }
           />
           <SettingRow
+            title="إبقاء الشاشة مضاءة"
+            desc="لا تنطفئ الشاشة أثناء قراءة المصحف والتسبيح والتسميع"
+            right={
+              <Switch checked={prefs.keepScreenAwake !== false} onCheckedChange={(v) => setPrefs({ keepScreenAwake: v })} />
+            }
+          />
+          <SettingRow
             title="تقليل الحركة"
             desc="لأجهزة أبطأ أو لتقليل الدوخة"
             right={

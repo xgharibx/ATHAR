@@ -47,6 +47,7 @@ import { CUSTOM_DHIKR_COLORS, suggestColorForPhrase, isValidHexColor } from "@/l
 import { arNum } from "@/lib/formatNumber";
 import { createMindfulSession, logMindfulSession } from "@/lib/mindfulMinutes";
 import { normalizeArabic, startVoiceTasbeeh, VOICE_TASBEEH_PHRASES, voiceTasbeehAvailable, type VoicePhrase } from "@/lib/voiceTasbeeh";
+import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
 
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -971,6 +972,8 @@ export function SebhaPage() {
       increment(matched);
     }, [tallyMode, selected, increment, setSelected]),
   );
+  // Counting taps keep the screen on; counting by voice keeps it on throughout.
+  useKeepScreenAwake(true, { idleMinutes: voice.listening ? null : undefined });
 
   const totalDone = TASBEEHAT.reduce(
     (sum, item) => sum + Math.min(Number(quickTasbeeh[item.key] ?? 0), target),
