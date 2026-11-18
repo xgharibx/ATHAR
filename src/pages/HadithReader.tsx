@@ -43,104 +43,14 @@ import { cn } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import toast from "react-hot-toast";
 import { arNum } from "@/lib/formatNumber";
-import { shareImageBlob } from "@/lib/shareTargets";
-import { wrapHadithPosterText } from "@/lib/hadithPosterText";
+import { PremiumShareComposer } from "@/components/share/PremiumShareComposer";
+import type { PosterContent } from "@/lib/premiumPoster";
 
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                               */
 /* ------------------------------------------------------------------ */
 
-
-// Share-as-poster: draw a beautiful canvas card and share or download it
-async function shareHadithPoster(opts: {
-  matn: string;
-  bookTitle: string;
-  hadithNum: number | string;
-  accentColor: string;
-  grade: string;
-}) {
-  const W = 800, H = 560;
-  const canvas = document.createElement("canvas");
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext("2d")!;
-
-  // Background
-  const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#07080b";
-  const fg = getComputedStyle(document.documentElement).getPropertyValue("--fg").trim() || "#f5f7ff";
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-
-  // Subtle radial star dots
-  for (let i = 0; i < 40; i++) {
-    const x = ((i * 97 + 37) % 800);
-    const y = ((i * 53 + 19) % 560);
-    ctx.beginPath();
-    ctx.arc(x, y, 0.8 + (i % 3) * 0.4, 0, Math.PI * 2);
-    ctx.fillStyle = opts.accentColor + "55";
-    ctx.fill();
-  }
-
-  // Card background
-  ctx.fillStyle = opts.accentColor + "11";
-  ctx.roundRect(40, 40, W - 80, H - 80, 24);
-  ctx.fill();
-
-  // Accent border
-  ctx.strokeStyle = opts.accentColor + "44";
-  ctx.lineWidth = 1.5;
-  ctx.roundRect(40, 40, W - 80, H - 80, 24);
-  ctx.stroke();
-
-  // Grade pill
-  const gradeLabel = HADITH_GRADE_LABELS[opts.grade] ?? opts.grade;
-  const gradeColors: Record<string, string> = { sahih: "#10b981", hasan: "#f59e0b", daif: "#ef4444", maudu: "#6b7280" };
-  const gradeColor = gradeColors[opts.grade] ?? opts.accentColor;
-  ctx.fillStyle = gradeColor + "22";
-  ctx.roundRect(64, 64, 80, 26, 13);
-  ctx.fill();
-  ctx.fillStyle = gradeColor;
-  ctx.font = "bold 12px system-ui";
-  ctx.textAlign = "center";
-  ctx.fillText(gradeLabel, 104, 81);
-
-  // Matn text (RTL, multi-line)
-  ctx.fillStyle = fg;
-  ctx.font = "bold 22px 'Noto Naskh Arabic', serif";
-  ctx.textAlign = "right";
-  ctx.direction = "rtl";
-  const maxWidth = W - 130;
-  const lines = wrapHadithPosterText(opts.matn, maxWidth, (text) => ctx.measureText(text).width);
-  let y = 130;
-  const lineH = 38;
-  for (const line of lines) {
-    if (y > H - 120) {
-      ctx.fillText(line + "…", W - 64, y);
-      break;
-    }
-    ctx.fillText(line, W - 64, y);
-    y += lineH;
-  }
-
-  // Footer: book + number
-  ctx.fillStyle = fg + "99";
-  ctx.font = "14px system-ui";
-  ctx.textAlign = "right";
-  ctx.fillText(`${opts.bookTitle} — حديث ${arNum(opts.hadithNum)}`, W - 64, H - 60);
-
-  // App watermark
-  ctx.fillStyle = opts.accentColor;
-  ctx.font = "bold 13px system-ui";
-  ctx.textAlign = "left";
-  ctx.fillText("✦ أثر", 64, H - 60);
-
-  // Share or download
-  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
-  if (!blob) return;
-  // navigator.share does not exist in the app's WebView, so this used to fall
-  // through to an <a download> that had nowhere to put the file.
-  await shareImageBlob(blob, { filename: "hadith.png" });
-}
 
 /* ------------------------------------------------------------------ */
 
@@ -205,7 +115,6 @@ export function HadithReaderPage() {
   const isMemoCard = !!hadithMemoCards[memoCardKey];
 
   const meta = pack ?? HADITH_BOOKS_STATIC.find((b) => b.key === bookKey);
-  const posterAccentColor = meta?.color ?? "#10b981";
   const accentColor = "var(--accent)";
 
   // Find prev / next hadith numbers
@@ -242,16 +151,21 @@ export function HadithReaderPage() {
     }
   };
 
-  const shareText = async () => {
-    if (!hadith) return;
+  const [posterOpen, setPosterOpen] = useState(false);
+  const posterContent = useMemo<PosterContent | null>(() => {
+    if (!hadith) return null;
     const { matn } = splitHadithText(hadith.t);
-    await shareHadithPoster({
-      matn: matn || hadith.t,
-      bookTitle: meta?.title ?? "",
-      hadithNum: hadith.a,
-      accentColor: posterAccentColor,
-      grade: hadith.g[0] ?? "",
-    });
+    const grade = hadith.g[0] ?? "";
+    return {
+      kind: "hadith",
+      text: matn || hadith.t,
+      heading: meta?.title ?? "",
+      reference: `حديث ${arNum(hadith.a)}`,
+      grade: grade ? (HADITH_GRADE_LABELS[grade] ?? grade) : undefined,
+    };
+  }, [hadith, meta?.title]);
+  const shareText = async () => {
+    if (posterContent) setPosterOpen(true);
   };
 
   // Split text for display (7A)
@@ -594,6 +508,15 @@ export function HadithReaderPage() {
           </Card>
         )}
       </main>
+      {posterOpen && posterContent && (
+        <PremiumShareComposer
+          open={posterOpen}
+          onClose={() => setPosterOpen(false)}
+          content={posterContent}
+          title={`${meta?.title ?? "حديث"} · ${arNum(hadith?.a ?? n)}`}
+          filename={`athar-hadith-${bookKey ?? ""}-${hadith?.a ?? n}.png`}
+        />
+      )}
     </div>
   );
 }

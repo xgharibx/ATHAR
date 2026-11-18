@@ -8,7 +8,7 @@ import {
   Eye, EyeOff, CheckCircle2, Languages, Search, WholeWord,
   ArrowUpRight, Settings, Info, Shuffle,
   Radio, Timer, Download,
-  Image as ImageIcon, Sparkles, Loader2,
+  Image as ImageIcon, MessageCircle, Loader2,
 } from "lucide-react";
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -36,8 +36,8 @@ import {
   subscribeRadio,
   toggleRadio as toggleSharedRadio,
 } from "@/lib/radioPlayer";
-import { renderDhikrPosterBlob } from "@/lib/sharePoster";
-import { ShareAyahModal } from "@/components/quran/ShareAyahModal";
+import { PremiumShareComposer } from "@/components/share/PremiumShareComposer";
+import type { PosterContent } from "@/lib/premiumPoster";
 import { MemorizationAyahContent } from "@/components/quran/MemorizationAyahContent";
 import { FocusManagedDialog } from "@/components/ui/FocusManagedDialog";
 import { hasNativeRecitation, planRecitationQueue, startNativeRecitation, type NativeRecitationSession, type RecitationHandle } from "@/lib/nativeRecitation";
@@ -544,7 +544,8 @@ export function MushafPage() {
   const [shareSheetOpen, setShareSheetOpen] = React.useState(false);
   const [shareBusy, setShareBusy] = React.useState(false);
   // Ultimate share composer — full customization modal
-  const [composerOpen, setComposerOpen] = React.useState(false);
+  const [composer, setComposer] = React.useState<{ content: PosterContent; title: string; filename: string } | null>(null);
+  const [shareWithTranslation, setShareWithTranslation] = React.useState(false);
 
   // Phase 2F: Reading timer
   const sessionStartRef = React.useRef(Date.now());
@@ -1411,40 +1412,38 @@ export function MushafPage() {
     } catch { return ""; }
   }, [translationData, quranTranslationId]);
 
-  const shareAyahImage = async (withTranslation: boolean) => {
+  /** The ayah as an image, in the premium composer (its own translation switch starts from the sheet's). */
+  const openAyahImage = async () => {
     if (!selectedItem) return;
     setShareBusy(true);
     try {
-      const verse = `${selectedItem.text} ﴿${toArabicNumeral(selectedItem.displayAyah)}﴾`;
-      const translation = withTranslation
-        ? await getAyahTranslation(selectedItem.surahId, selectedItem.originalAyah)
-        : undefined;
-      const blob = await renderDhikrPosterBlob({
-        text: verse,
-        sectionTitle: `${selectedItem.surahName} • ${selectedItem.surahId}:${selectedItem.displayAyah}`,
-        footerUrl: "www.athark.org",
-        translation: translation || undefined,
-        translationAttribution: translation ? (translationAttribution || undefined) : undefined,
-        translationDirection: translationSource?.lang === "ur" ? "rtl" : "ltr",
+      const translation = await getAyahTranslation(selectedItem.surahId, selectedItem.originalAyah).catch(() => "");
+      const surah = selectedItem.surahName.startsWith("سورة") ? selectedItem.surahName : `سورة ${selectedItem.surahName}`;
+      setComposer({
+        content: {
+          kind: "ayah",
+          text: selectedItem.text,
+          heading: surah,
+          ayahNumber: selectedItem.displayAyah,
+          translation: translation || undefined,
+          translationAttribution: translation ? (translationAttribution || undefined) : undefined,
+          translationDirection: translationSource?.lang === "ur" ? "rtl" : "ltr",
+        },
+        title: `${surah} · آية ${toArabicNumeral(selectedItem.displayAyah)}`,
+        filename: `athar-${selectedItem.surahId}-${selectedItem.displayAyah}.png`,
       });
-      const file = new File([blob], `athar-${selectedItem.surahId}-${selectedItem.displayAyah}.png`, { type: "image/png" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); }
-      else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a"); a.href = url; a.download = file.name; a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-      }
       setShareSheetOpen(false);
-    } catch { toast.error("تعذر المشاركة"); }
-    finally { setShareBusy(false); }
+    } finally {
+      setShareBusy(false);
+    }
   };
 
   const shareAyahText = async (withTranslation: boolean) => {
     if (!selectedItem) return;
     setShareBusy(true);
     try {
-      const ref = `(${selectedItem.surahName} ${selectedItem.surahId}:${selectedItem.displayAyah})`;
-      let body = `${selectedItem.text} ﴿${toArabicNumeral(selectedItem.displayAyah)}﴾\n${ref}`;
+      const surah = selectedItem.surahName.replace(/^سورة\s+/, "");
+      let body = `﴿${selectedItem.text}﴾\n[${surah}: ${toArabicNumeral(selectedItem.displayAyah)}]`;
       if (withTranslation) {
         const tr = await getAyahTranslation(selectedItem.surahId, selectedItem.originalAyah);
         if (tr) body += `\n\n${tr}${translationAttribution ? `\n\n${translationAttribution}` : ""}`;
@@ -1452,7 +1451,9 @@ export function MushafPage() {
       if (navigator.share) { await navigator.share({ text: body }); }
       else { await navigator.clipboard.writeText(body); toast.success("تم النسخ"); }
       setShareSheetOpen(false);
-    } catch { toast.error("تعذر المشاركة"); }
+    } catch (error) {
+      if (!(error instanceof Error && error.name === "AbortError")) toast.error("تعذر المشاركة");
+    }
     finally { setShareBusy(false); }
   };
 
@@ -2250,13 +2251,9 @@ export function MushafPage() {
             <Pencil size={18} aria-hidden="true" />
             <span>تدبّر</span>
           </button>
-          <button type="button" className="mushaf-action-btn" onClick={() => setComposerOpen(true)} aria-label="مشاركة فنية">
-            <Sparkles size={18} />
-            <span>صورة فنية</span>
-          </button>
           <button type="button" className="mushaf-action-btn" onClick={() => setShareSheetOpen(true)} aria-label="مشاركة">
-            <Share2 size={18} />
-            <span>إرسال</span>
+            <Share2 size={18} aria-hidden="true" />
+            <span>مشاركة</span>
           </button>
           {/* Inline tadabbur handoff — opens the companion modal preloaded with the verse */}
           <button type="button"
@@ -2269,7 +2266,7 @@ export function MushafPage() {
               setSelectedItem(null);
             }}
           >
-            <Sparkles size={18} aria-hidden="true" />
+            <MessageCircle size={18} aria-hidden="true" />
             <span>أثر</span>
           </button>
           {/* Q11: Inline tafsir */}
@@ -2491,30 +2488,24 @@ export function MushafPage() {
               </button>
             </div>
             <div className="mushaf-tadabbur-quote" dir="rtl">{selectedItem.text}</div>
-            <div className="mushaf-share-grid" aria-busy={shareBusy}>
-              <button type="button" className="mushaf-share-opt mushaf-share-primary" disabled={shareBusy} onClick={() => { setShareSheetOpen(false); setComposerOpen(true); }}>
-                <ImageIcon size={20} aria-hidden="true" />
-                <span>صورة مميّزة</span>
+            <label className="mushaf-share-translation">
+              <Languages size={16} aria-hidden="true" />
+              <span>مع الترجمة</span>
+              <input type="checkbox" checked={shareWithTranslation} onChange={(e) => setShareWithTranslation(e.target.checked)} />
+              <span className="mushaf-share-switch" aria-hidden="true" />
+            </label>
+            <div className="mushaf-share-grid is-three" aria-busy={shareBusy}>
+              <button type="button" className="mushaf-share-opt mushaf-share-primary" disabled={shareBusy} onClick={() => { void openAyahImage(); }}>
+                <ImageIcon size={22} aria-hidden="true" />
+                <span>صورة</span>
               </button>
-              <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahImage(false)}>
-                <ImageIcon size={20} aria-hidden="true" />
-                <span>صورة سريعة</span>
-              </button>
-              <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahImage(true)}>
-                <ImageIcon size={20} aria-hidden="true" />
-                <span>صورة مع الترجمة</span>
-              </button>
-              <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahText(false)}>
-                <Share2 size={20} aria-hidden="true" />
-                <span>نص الآية</span>
-              </button>
-              <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahText(true)}>
-                <Languages size={20} aria-hidden="true" />
-                <span>النص مع الترجمة</span>
+              <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahText(shareWithTranslation)}>
+                <Share2 size={22} aria-hidden="true" />
+                <span>نص</span>
               </button>
               <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => { doCopy(); setShareSheetOpen(false); }}>
-                <Copy size={20} aria-hidden="true" />
-                <span>نسخ النص</span>
+                <Copy size={22} aria-hidden="true" />
+                <span>نسخ</span>
               </button>
             </div>
             {shareBusy && <div className="text-center text-[11px] opacity-50 mt-2">جارٍ التحضير…</div>}
@@ -2575,25 +2566,24 @@ export function MushafPage() {
               <button type="button"
                 className="mushaf-btn-secondary"
                 aria-label="مشاركة التدبّر"
-                onClick={async () => {
+                onClick={() => {
                   const reflection = noteDraft.trim();
                   if (!reflection) { toast.error("اكتب تدبّرك أولاً"); return; }
-                  try {
-                    const blob = await renderDhikrPosterBlob({
-                      text: reflection,
-                      sectionTitle: `${selectedItem.surahName} · آية ${toArabicNumeral(selectedItem.displayAyah)}`,
-                      footerUrl: "athar.app",
-                    });
-                    const fname = `tadabbur-${selectedItem.surahId}-${selectedItem.displayAyah}.png`;
-                    const file = new File([blob], fname, { type: "image/png" });
-                    if (navigator.share && navigator.canShare?.({ files: [file] })) {
-                      await navigator.share({ files: [file] });
-                    } else {
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a"); a.href = url; a.download = fname; a.click();
-                      setTimeout(() => URL.revokeObjectURL(url), 5000);
-                    }
-                  } catch { toast.error("تعذرت المشاركة"); }
+                  const surah = selectedItem.surahName.replace(/^سورة\s+/, "");
+                  // The reflection without the verse heading it starts with.
+                  const words = reflection.replace(/^[^\n]*﴿[^﴾]*﴾\s*/, "").trim() || reflection;
+                  setComposer({
+                    content: {
+                      kind: "reflection",
+                      text: words,
+                      quote: selectedItem.text,
+                      heading: "تدبّر",
+                      reference: `${surah} · ${toArabicNumeral(selectedItem.displayAyah)}`,
+                    },
+                    title: `تدبّر · ${surah} ${toArabicNumeral(selectedItem.displayAyah)}`,
+                    filename: `tadabbur-${selectedItem.surahId}-${selectedItem.displayAyah}.png`,
+                  });
+                  setNoteSheetOpen(false);
                 }}
               >
                 <Share2 size={15} />
@@ -3352,15 +3342,14 @@ export function MushafPage() {
       {/* Floating Athar entry point removed on request (2026-08-24).
           The component and the Companion page are untouched — only the
           floating button is gone. Restore by re-adding <FloatingAthar/>. */}
-      {composerOpen && selectedItem && (
-        <ShareAyahModal
-          open={composerOpen}
-          onClose={() => setComposerOpen(false)}
-          text={selectedItem.text}
-          ayahNumber={selectedItem.displayAyah}
-          surahName={selectedItem.surahName}
-          surahNumber={selectedItem.surahId}
-          transliteration={undefined}
+      {composer && (
+        <PremiumShareComposer
+          open
+          onClose={() => setComposer(null)}
+          content={composer.content}
+          title={composer.title}
+          filename={composer.filename}
+          initialShowTranslation={shareWithTranslation}
         />
       )}
     </div>

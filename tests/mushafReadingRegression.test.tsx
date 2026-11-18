@@ -72,8 +72,7 @@ vi.mock("@/lib/radioPlayer", () => ({
   subscribeRadio: () => () => {},
   toggleRadio: vi.fn(),
 }));
-vi.mock("@/lib/sharePoster", () => ({ renderDhikrPosterBlob: vi.fn(async () => new Blob()) }));
-vi.mock("@/components/quran/ShareAyahModal", () => ({ ShareAyahModal: () => null }));
+vi.mock("@/components/share/PremiumShareComposer", () => ({ PremiumShareComposer: () => null }));
 vi.mock("@/components/companion/CompanionModal", () => ({ CompanionModal: () => null }));
 vi.mock("@/components/quran/TranslationPicker", () => ({ TranslationPicker: () => null }));
 vi.mock("react-hot-toast", () => ({ default: { error: vi.fn(), success: vi.fn() } }));
