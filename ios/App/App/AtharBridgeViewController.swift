@@ -14,6 +14,7 @@ final class AtharBridgeViewController: CAPBridgeViewController {
         bridge.registerPluginInstance(PrayerActivityPlugin())
         bridge.registerPluginInstance(CompassPlugin())
         bridge.registerPluginInstance(QuranAudioPlugin())
+        bridge.registerPluginInstance(StoreReviewPlugin())
         AppDelegate.flushPendingNativeAuthURL()
     }
 }

@@ -22,6 +22,7 @@
 		50D0FF26EC625D95099D470B /* AtharWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 381C3C0056E75304760BD959 /* AtharWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6EFED682B60C1D97E4CD99D8 /* AtharWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B340E0473BDAA3AF7C2A77 /* AtharWidgets.swift */; };
 		86E19F44582074A545E5E539 /* QuranAudioPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCEBF9CF003CBE36CAA7B5C3 /* QuranAudioPlugin.swift */; };
+		96D08E045BF778DEA8707BAB /* StoreReviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38645E93D64FA1A0A51C79E1 /* StoreReviewPlugin.swift */; };
 		A62F5D8330BB8E6F49B43C6A /* WidgetRefreshPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */; };
 		A7D84291C0A24D96A7A11001 /* AuthBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */; };
 		A7D84291C0A24D96A7A11002 /* ShareBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */; };
@@ -68,6 +69,7 @@
 		30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerActivityAttributes.swift; sourceTree = "<group>"; };
 		35281742DA46EB40310EDCB8 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		381C3C0056E75304760BD959 /* AtharWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AtharWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		38645E93D64FA1A0A51C79E1 /* StoreReviewPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreReviewPlugin.swift; sourceTree = "<group>"; };
 		46B340E0473BDAA3AF7C2A77 /* AtharWidgets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharWidgets.swift; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -170,6 +172,7 @@
 				C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */,
 				21BD0F60D9CBF1755C249433 /* CompassPlugin.swift */,
 				DCEBF9CF003CBE36CAA7B5C3 /* QuranAudioPlugin.swift */,
+				38645E93D64FA1A0A51C79E1 /* StoreReviewPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -326,6 +329,7 @@
 				A62F5D8330BB8E6F49B43C6A /* WidgetRefreshPlugin.swift in Sources */,
 				3A3E5D9FE31030D4CF420644 /* CompassPlugin.swift in Sources */,
 				86E19F44582074A545E5E539 /* QuranAudioPlugin.swift in Sources */,
+				96D08E045BF778DEA8707BAB /* StoreReviewPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

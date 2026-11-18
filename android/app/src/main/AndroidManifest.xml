@@ -21,6 +21,10 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Long-press the app icon: Prayer times, Qibla, Tasbeeh, Mushaf. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
 
             <!-- OAuth return leg. Google will not render its consent screen
                  inside a WebView, so sign-in opens the system browser; this

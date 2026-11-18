@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Long-press the app icon: straight to the screens people open most.
+  Each opens MainActivity with the in-app route in the same extra the
+  widgets use (AtharWidgetProvider.EXTRA_ROUTE), so it lands the same way.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="prayer_times"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_prayer"
+        android:shortcutShortLabel="@string/shortcut_prayer_short"
+        android:shortcutLongLabel="@string/shortcut_prayer_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.athar.adhkar"
+            android:targetClass="com.athar.adhkar.MainActivity">
+            <extra android:name="athar_route" android:value="/prayer-times" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="qibla"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_qibla"
+        android:shortcutShortLabel="@string/shortcut_qibla_short"
+        android:shortcutLongLabel="@string/shortcut_qibla_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.athar.adhkar"
+            android:targetClass="com.athar.adhkar.MainActivity">
+            <extra android:name="athar_route" android:value="/qibla" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="sebha"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_sebha"
+        android:shortcutShortLabel="@string/shortcut_sebha_short"
+        android:shortcutLongLabel="@string/shortcut_sebha_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.athar.adhkar"
+            android:targetClass="com.athar.adhkar.MainActivity">
+            <extra android:name="athar_route" android:value="/sebha" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="mushaf"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_mushaf"
+        android:shortcutShortLabel="@string/shortcut_mushaf_short"
+        android:shortcutLongLabel="@string/shortcut_mushaf_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.athar.adhkar"
+            android:targetClass="com.athar.adhkar.MainActivity">
+            <extra android:name="athar_route" android:value="/mushaf" />
+        </intent>
+    </shortcut>
+</shortcuts>
