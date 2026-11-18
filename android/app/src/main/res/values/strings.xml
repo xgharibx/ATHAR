@@ -35,4 +35,13 @@
     <string name="channel_prayer_desc">&#x623;&#x630;&#x627;&#x646; &#x627;&#x644;&#x635;&#x644;&#x648;&#x627;&#x62A; &#x627;&#x644;&#x62E;&#x645;&#x633; &#x648;&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
     <string name="channel_reminders_name">&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x623;&#x630;&#x643;&#x627;&#x631;</string>
     <string name="channel_reminders_desc">&#x623;&#x630;&#x643;&#x627;&#x631; &#x627;&#x644;&#x635;&#x628;&#x627;&#x62D; &#x648;&#x627;&#x644;&#x645;&#x633;&#x627;&#x621; &#x648;&#x627;&#x644;&#x648;&#x631;&#x62F; &#x627;&#x644;&#x64A;&#x648;&#x645;&#x64A;</string>
+    <!-- App-icon shortcuts (res/xml/shortcuts.xml). -->
+    <string name="shortcut_prayer_short">Prayer times</string>
+    <string name="shortcut_prayer_long">Prayer times</string>
+    <string name="shortcut_qibla_short">Qibla</string>
+    <string name="shortcut_qibla_long">Qibla compass</string>
+    <string name="shortcut_sebha_short">Tasbeeh</string>
+    <string name="shortcut_sebha_long">Tasbeeh counter</string>
+    <string name="shortcut_mushaf_short">Mushaf</string>
+    <string name="shortcut_mushaf_long">Continue reading the Mushaf</string>
 </resources>

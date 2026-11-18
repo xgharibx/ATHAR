@@ -29,7 +29,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private var nativeAuthDeliveryAttempts = 0
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Opened from a Home Screen quick action (long-press on the app icon).
+        if let shortcut = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
+            Self.openShortcut(shortcut)
+            // Handled here, so iOS does not also call performActionFor.
+            return false
+        }
+        return true
+    }
+
+    func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+        completionHandler(Self.openShortcut(shortcutItem))
+    }
+
+    /// Quick actions carry an in-app route (Info.plist, UIApplicationShortcutItems).
+    @discardableResult
+    static func openShortcut(_ item: UIApplicationShortcutItem) -> Bool {
+        guard let route = item.userInfo?["route"] as? String,
+              route.range(of: "^/[A-Za-z0-9/_-]*$", options: .regularExpression) != nil else { return false }
+        deliverRoute(route)
         return true
     }
 

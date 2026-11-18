@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App-icon shortcuts on Arabic-language phones. -->
+    <string name="shortcut_prayer_short">مواقيت الصلاة</string>
+    <string name="shortcut_prayer_long">مواقيت الصلاة</string>
+    <string name="shortcut_qibla_short">القبلة</string>
+    <string name="shortcut_qibla_long">بوصلة القبلة</string>
+    <string name="shortcut_sebha_short">السبحة</string>
+    <string name="shortcut_sebha_long">عدّاد التسبيح</string>
+    <string name="shortcut_mushaf_short">المصحف</string>
+    <string name="shortcut_mushaf_long">متابعة القراءة في المصحف</string>
+</resources>

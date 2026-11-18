@@ -91,6 +91,61 @@
 	<string>Athar uses Apple's speech-recognition service to transcribe optional dhikr counting and Quran recitation. Audio may be sent to Apple for processing.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>com.athar.adhkar.open.prayer-times</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Prayer times</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>clock</string>
+			<key>UIApplicationShortcutItemUserInfo</key>
+			<dict>
+				<key>route</key>
+				<string>/prayer-times</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>com.athar.adhkar.open.qibla</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Qibla</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>safari</string>
+			<key>UIApplicationShortcutItemUserInfo</key>
+			<dict>
+				<key>route</key>
+				<string>/qibla</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>com.athar.adhkar.open.sebha</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Tasbeeh</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>smallcircle.filled.circle</string>
+			<key>UIApplicationShortcutItemUserInfo</key>
+			<dict>
+				<key>route</key>
+				<string>/sebha</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>com.athar.adhkar.open.mushaf</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Mushaf</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>book</string>
+			<key>UIApplicationShortcutItemUserInfo</key>
+			<dict>
+				<key>route</key>
+				<string>/mushaf</string>
+			</dict>
+		</dict>
+	</array>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>UIBackgroundModes</key>

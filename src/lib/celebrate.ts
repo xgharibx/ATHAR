@@ -100,6 +100,8 @@ export function resetCelebration(): void {
  */
 export async function celebrate(bursts: Burst[]): Promise<void> {
   if (!bursts.length) return;
+  // A good moment to ask for a store rating, if the person qualifies.
+  void import("@/lib/storeReview").then(({ noteCelebration }) => noteCelebration()).catch(() => {});
   // Respect the OS setting rather than relying on every call site to pass it.
   if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return;
