@@ -8,14 +8,13 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   bloomTarget,
-  easeOutBack,
+  lightsFor,
   isNightByNextPrayer,
   moonIllumination,
   moonPhase,
   seededRandom,
-  windAt,
 } from "@/components/ufuq/garden/gardenMath";
-import { GardenEngine } from "@/components/ufuq/garden/GardenEngine";
+import { GardenOverlay, MOON_AT } from "@/components/ufuq/garden/gardenOverlay";
 import { normalizeUfuqLook, normalizeUfuqPalette, resolveUfuqPalette, UFUQ_GARDEN_META_COLORS } from "@/lib/design";
 import { applyUfuqDesign } from "@/hooks/useApplyTheme";
 import { searchSettings } from "@/lib/settingsCatalog";
@@ -76,30 +75,53 @@ describe("the garden grows", () => {
     expect([a(), a(), a()]).toEqual([b(), b(), b()]);
   });
 
-  it("moves gently", () => {
-    for (let x = 0; x < 400; x += 37) {
-      for (let t = 0; t < 30; t += 1.7) expect(Math.abs(windAt(x, t))).toBeLessThanOrEqual(0.92);
-    }
-    expect(easeOutBack(0)).toBeCloseTo(0);
-    expect(easeOutBack(1)).toBeCloseTo(1);
-    expect(easeOutBack(0.7)).toBeGreaterThan(1);
+  it("steps aside where there is no canvas", () => {
+    expect(GardenOverlay.create(document.createElement("canvas"), "night", "/garden/moon.jpg")).toBeNull();
   });
 
-  it("steps aside where there is no canvas", () => {
-    const engine = GardenEngine.create(document.createElement("canvas"), document.createElement("canvas"), {
-      mode: "night",
-      blooms: 20,
-      palmFruit: false,
-      treeFruit: false,
-      live: true,
-    });
-    expect(engine).toBeNull();
+  it("lights more fireflies with more remembrance", () => {
+    expect(lightsFor(bloomTarget(0, 0))).toBeGreaterThan(0);
+    expect(lightsFor(bloomTarget(100, 10))).toBeGreaterThan(lightsFor(bloomTarget(0, 0)));
+    expect(lightsFor(64)).toBeLessThanOrEqual(48);
   });
 
   it("quotes the hadith of the seedlings of Paradise with its source", () => {
     const home = read("src/components/ufuq/UfuqHome.tsx");
     expect(home).toContain("غِراسَها: سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر");
     expect(home).toContain("رواه الترمذي (٣٤٦٢)، وحسّنه الألباني");
+  });
+});
+
+describe("the filmed garden", () => {
+  const size = (p: string) => readFileSync(resolve(process.cwd(), p)).byteLength;
+
+  it("ships a film and a still for each scene, and the Moon, within budget", () => {
+    for (const scene of ["night", "day"]) {
+      expect(size(`public/garden/${scene}.mp4`)).toBeLessThan(4.5 * 1024 * 1024);
+      expect(size(`public/garden/${scene}.jpg`)).toBeLessThan(300 * 1024);
+    }
+    expect(size("public/garden/moon.jpg")).toBeLessThan(80 * 1024);
+  });
+
+  it("plays silently, inline and in a loop, with the still behind it", () => {
+    const backdrop = read("src/components/ufuq/garden/GardenBackdrop.tsx");
+    for (const attr of ["muted", "loop", "playsInline", "disablePictureInPicture", "poster={still}"]) {
+      expect(backdrop).toContain(attr);
+    }
+    expect(backdrop).toContain("u-garden-still");
+    // Autoplay may be refused: keep the still and retry on the next touch.
+    expect(backdrop).toContain('window.addEventListener("pointerdown", retry');
+  });
+
+  it("documents where every clip comes from", () => {
+    const readme = read("tools/garden-footage/README.md");
+    for (const id of ["4148", "4621", "1178", "1168", "1187", "SVS 5048"]) expect(readme).toContain(id);
+    expect(readme).toContain("Mixkit Stock Video Free License");
+  });
+
+  it("keeps the moon in open sky", () => {
+    expect(MOON_AT.y).toBeGreaterThan(0.34);
+    expect(MOON_AT.x).toBeLessThan(0.5);
   });
 });
 

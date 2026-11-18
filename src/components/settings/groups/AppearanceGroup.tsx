@@ -91,7 +91,7 @@ export function AppearanceGroup() {
               <ToggleRow
                 id="garden-live"
                 title="حديقة حيّة"
-                hint="الريح في العشب والنخل، والفراشات نهارًا واليراعات ليلًا. أطفئها لتوفير البطارية"
+                hint="مشهد مصوَّر حيّ: نخيل وعشب وزهر يتمايل، ويراعات ليلًا. أطفئه ليبقى صورة ثابتة توفّر البطارية"
                 checked={prefs.gardenLive !== false}
                 onChange={(on) => setPrefs({ gardenLive: on })}
               />
@@ -218,7 +218,7 @@ export function AppearanceGroup() {
           <ToggleRow
             id="garden-live"
             title="حديقة حيّة"
-            hint="الريح في العشب والنخل واليراعات. أطفئها لتبقى الحديقة ساكنة وتوفّر البطارية"
+            hint="مشهد مصوَّر حيّ: نخيل وعشب وزهر يتمايل، ويراعات ليلًا. أطفئه ليبقى صورة ثابتة توفّر البطارية"
             checked={prefs.gardenLive !== false}
             onChange={(on) => setPrefs({ gardenLive: on })}
           />

@@ -56,3 +56,7 @@ public/data/video-library.rejected.json
 # regenerated on demand, and never to be committed.
 /huawei/out/
 /play/out/
+
+# Python bytecode (tools)
+__pycache__/
+*.pyc
