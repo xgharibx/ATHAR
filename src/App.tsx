@@ -7,6 +7,7 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncBridge";
 import { useNoorStore } from "@/store/noorStore";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { AppLockGate } from "@/components/security/AppLockGate";
 import { getLocalDateKey, getNextIbadahBoundary, getNextLocalMidnight, shiftDateKey } from "@/lib/dayBoundaries";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { usePrayerLiveActivity } from "@/hooks/usePrayerLiveActivity";
@@ -529,6 +530,7 @@ function AppContent() {
   return (
     <>
       {!onboardingDone && <OnboardingFlow />}
+      <AppLockGate />
       <LeaderboardSyncBridge />
       <PwaInstallBanner />
       <Routes>

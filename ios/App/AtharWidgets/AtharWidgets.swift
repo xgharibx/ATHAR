@@ -447,6 +447,11 @@ struct AtharWidgetBundle: WidgetBundle {
     var body: some Widget {
         AtharPrayerWidget()
         AtharNextPrayerWidget()
+        AtharAdhkarWidget()
+        AtharWirdWidget()
+        AtharStreakWidget()
+        AtharAsmaWidget()
+        AtharTasbeehWidget()
         PrayerLiveActivity()
     }
 }

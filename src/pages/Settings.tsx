@@ -34,6 +34,7 @@ import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { TranslationPicker } from "@/components/quran/TranslationPicker";
 import { TRANSLATION_SOURCES, getTranslation as getTranslationAny, type TranslationId } from "@/lib/quranTranslations";
 import { RecitationDownloadsRow } from "@/components/quran/RecitationDownloadsRow";
+import { appLockMethodLabel, appLockStatus, appLockSupported, confirmOwner, type AppLockStatus } from "@/lib/appLock";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
 
@@ -230,6 +231,37 @@ export function SettingsPage() {
   const [showReciterPicker, setShowReciterPicker] = React.useState(false);
 
   const [isNative, setIsNative] = React.useState(false);
+  // App lock: which method the phone offers, and turning the lock on or off
+  // only after the phone confirms its owner.
+  const [appLockAvailable, setAppLockAvailable] = React.useState<boolean | null>(null);
+  const [appLockKind, setAppLockKind] = React.useState<AppLockStatus["kind"]>("passcode");
+  const [appLockBusy, setAppLockBusy] = React.useState(false);
+  React.useEffect(() => {
+    if (!appLockSupported()) return;
+    let active = true;
+    void appLockStatus().then((status) => {
+      if (!active) return;
+      setAppLockAvailable(status.available);
+      setAppLockKind(status.kind);
+    });
+    return () => { active = false; };
+  }, []);
+  const toggleAppLock = React.useCallback(async (next: boolean) => {
+    setAppLockBusy(true);
+    try {
+      const status = await appLockStatus();
+      if (!status.available) {
+        setAppLockAvailable(false);
+        toast.error("فعّل رمز قفل الجهاز أو البصمة من إعدادات الهاتف أولًا");
+        return;
+      }
+      if (!(await confirmOwner(next ? "تفعيل قفل التطبيق" : "إيقاف قفل التطبيق"))) return;
+      setPrefs({ biometricLock: next });
+      toast.success(next ? "تم تفعيل قفل التطبيق" : "تم إيقاف قفل التطبيق");
+    } finally {
+      setAppLockBusy(false);
+    }
+  }, [setPrefs]);
   const isIOS = Capacitor.getPlatform() === "ios";
   const countdownPlatform = isIOS ? "ios" : Capacitor.getPlatform() === "android" ? "android" : null;
   const [, refreshAiSharingConsent] = React.useReducer((revision: number) => revision + 1, 0);
@@ -1589,18 +1621,19 @@ export function SettingsPage() {
           <div className="font-semibold">الأمان والمتقدّم</div>
         </div>
         <div className="stack-y-3">
-          {/* Se8: Biometric lock — only shown on native. Not implemented yet (no native
-              biometric plugin wired in), so this is an honest "coming soon" stub rather
-              than a switch that falsely promises protection it can't enforce. */}
+          {/* Se8: App lock — Face ID / fingerprint, with the phone's passcode as fallback. */}
           {isNative && (
             <SettingRow
-              title="القفل البيومتري"
-              desc="حماية التطبيق ببصمة الإصبع أو التعرف على الوجه — قريبًا"
+              title="قفل التطبيق"
+              desc={appLockAvailable === false
+                ? "فعّل رمز قفل الجهاز أو البصمة من إعدادات الهاتف لاستخدام القفل"
+                : `يُطلب ${appLockMethodLabel(appLockKind)} لفتح أثر بعد إغلاقه أو تركه دقيقة`}
               right={
                 <Switch
-                  checked={false}
-                  disabled
-                  onCheckedChange={() => toast("قريبًا — القفل البيومتري قيد التطوير")}
+                  aria-label="قفل التطبيق"
+                  checked={prefs.biometricLock ?? false}
+                  disabled={appLockAvailable === false || appLockBusy}
+                  onCheckedChange={(next) => void toggleAppLock(next)}
                 />
               }
             />

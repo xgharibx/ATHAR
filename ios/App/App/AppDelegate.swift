@@ -22,6 +22,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         "noor_widget_adhkar_v1",
         "noor_widget_wird_v1",
         "noor_widget_dashboard_v1",
+        // Which account the Home Screen tasbeeh credits its taps to.
+        "noor_widget_tasbeeh_owner_v1",
     ]
 
     private var pendingNativeAuthURL: URL?

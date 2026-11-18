@@ -15,10 +15,14 @@ const mocks = vi.hoisted(() => {
   return {
     mockCapacitor: { getPlatform: vi.fn(() => "android") },
     mockPreferencesGet: vi.fn(async () => ({ value: null as string | null })),
+    pullTasbeehTotals: vi.fn(async () => {}),
   };
 });
 
-vi.mock("@capacitor/core", () => ({ Capacitor: mocks.mockCapacitor }));
+vi.mock("@capacitor/core", () => ({
+  Capacitor: mocks.mockCapacitor,
+  registerPlugin: () => ({ pullTasbeehTotals: mocks.pullTasbeehTotals }),
+}));
 vi.mock("@capacitor/preferences", () => ({
   Preferences: { get: mocks.mockPreferencesGet },
 }));
@@ -54,11 +58,24 @@ describe("mergeTasbeehFromWidget", () => {
     useNoorStore.setState({ tasbeehDailyLog: {}, tasbeehLifetime: {}, activity: {} });
   });
 
-  it("does nothing on non-Android platforms", async () => {
-    mocks.mockCapacitor.getPlatform.mockReturnValue("ios");
+  it("does nothing on the web, which has no Home Screen widget", async () => {
+    mocks.mockCapacitor.getPlatform.mockReturnValue("web");
     setWidgetTotals({ subhanallah: 33 });
     await mergeTasbeehFromWidget();
     expect(useNoorStore.getState().tasbeehLifetime.subhanallah ?? 0).toBe(0);
+  });
+
+  it("on iPhone, pulls the widget's App Group ledger first, then merges it the same way", async () => {
+    mocks.mockCapacitor.getPlatform.mockReturnValue("ios");
+    mocks.pullTasbeehTotals.mockClear();
+    const order: string[] = [];
+    mocks.pullTasbeehTotals.mockImplementationOnce(async () => { order.push("pull"); });
+    setWidgetLedger({ local: { [TODAY]: { "سُبْحَانَ اللَّهِ": 12 } } });
+    const read = mocks.mockPreferencesGet.getMockImplementation()!;
+    mocks.mockPreferencesGet.mockImplementation(async (args: { key: string }) => { order.push("read"); return read(args); });
+    await mergeTasbeehFromWidget();
+    expect(order.slice(0, 2)).toEqual(["pull", "read"]);
+    expect(useNoorStore.getState().tasbeehDailyLog[TODAY]?.["سُبْحَانَ اللَّهِ"]).toBe(12);
   });
 
   it("does nothing when the widget has no stored totals", async () => {

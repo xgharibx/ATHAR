@@ -16,7 +16,19 @@ public class WidgetRefreshPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "WidgetRefresh"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "refresh", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "pullTasbeehTotals", returnType: CAPPluginReturnPromise),
     ]
+
+    /// Copy the Home Screen tasbeeh's tap ledger, which only the widget
+    /// extension can write (App Group), to where @capacitor/preferences reads,
+    /// so src/lib/tasbeehWidgetSync.ts can merge it into the app's statistics.
+    @objc func pullTasbeehTotals(_ call: CAPPluginCall) {
+        let key = "noor_widget_tasbeeh_totals_v1"
+        if let value = UserDefaults(suiteName: AppDelegate.widgetAppGroup)?.string(forKey: key) {
+            UserDefaults.standard.set(value, forKey: "CapacitorStorage." + key)
+        }
+        call.resolve()
+    }
 
     @objc func refresh(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
