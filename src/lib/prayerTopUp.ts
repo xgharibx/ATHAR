@@ -44,6 +44,18 @@ export type PrayerTopUpPlan = {
   templates: Partial<Record<TopUpPrayer, TopUpTemplate>>;
   /** d: local date, s: its id slot, t: "HH:mm" per prayer. */
   days: Array<{ d: string; s: number; t: Record<TopUpPrayer, string> }>;
+  /** The Adhan as an alarm (src/lib/adhanAlarm.ts), or null when off. */
+  alarm?: PrayerAlarmPlan | null;
+};
+
+export type PrayerAlarmPlan = {
+  prayers: TopUpPrayer[];
+  /** Arabic prayer names for the alarm's title. */
+  names: Record<TopUpPrayer, string>;
+  /** iPhone: the bundled .caf; Android: the res/raw name. */
+  sound: { ios: string; android: string };
+  /** The app's own times for the days it queued (alarms ring at the same minute as its alerts). */
+  appDays: Array<{ d: string; t: Partial<Record<TopUpPrayer, string>> }>;
 };
 
 export type PrayerTopUpInput = {
@@ -56,6 +68,7 @@ export type PrayerTopUpInput = {
   slotOffset: number;
   slotForDate: (dateISO: string) => number;
   planDays?: number;
+  alarm?: PrayerAlarmPlan | null;
 };
 
 export function buildPrayerTopUpPlan(input: PrayerTopUpInput): PrayerTopUpPlan {
@@ -88,6 +101,7 @@ export function buildPrayerTopUpPlan(input: PrayerTopUpInput): PrayerTopUpPlan {
     windowDays: input.slotCount,
     templates: input.templates,
     days,
+    alarm: input.alarm ?? null,
   };
 }
 

@@ -49,4 +49,9 @@
     <string name="tile_prayer_open">Open prayer times</string>
     <string name="tile_sebha_label">Tasbeeh</string>
     <string name="tile_sebha_subtitle">Open the counter</string>
+    <!-- The Adhan alarm (AdhanAlarmService, AdhanAlarmActivity). -->
+    <string name="adhan_alarm_channel">Adhan alarm</string>
+    <string name="adhan_alarm_channel_description">Rings the Adhan as an alarm, even on silent</string>
+    <string name="adhan_alarm_stop">Stop</string>
+    <string name="adhan_alarm_text">Time for prayer</string>
 </resources>

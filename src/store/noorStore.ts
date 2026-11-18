@@ -235,7 +235,11 @@ export type Reminders = {
   dailyHadithNotif: boolean; // Phase 10 — daily hadith at Fajr
   iqamaOffsets: Record<PrayerAlertPrayer, number>; // minutes after adhan per prayer
   prayerLiveActivity: boolean; // next-prayer countdown outside the app: iOS Live Activity, Android ongoing notification
+  /** The Adhan as a real alarm that rings on silent (src/lib/adhanAlarm.ts). Off unless chosen. */
+  adhanAlarm?: AdhanAlarmPreferences;
 };
+
+export type AdhanAlarmPreferences = { enabled: boolean; prayers: PrayerAlertPreferences };
 
 // L1: Friends leaderboard
 export type LocalFriend = {

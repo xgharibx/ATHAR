@@ -9,10 +9,12 @@
 /* Begin PBXBuildFile section */
 		05F9986B8DC2960E7806EFAF /* SpotlightPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1C5E3F220E5AA1FE715AF0 /* SpotlightPlugin.swift */; };
 		0C45654F4D15DBB810F0EDC1 /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */; };
+		17FE68421D1C0A0BE443A679 /* AdhanAlarmPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7104E0C1268ABBB2F0C6B8D /* AdhanAlarmPlugin.swift */; };
 		185FCCCF943857665BB09FDD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 35281742DA46EB40310EDCB8 /* Foundation.framework */; };
 		2092794A6A13885F30AA0EDD /* AtharIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A951A88B658C401B46D299C4 /* AtharIntents.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		3A3E5D9FE31030D4CF420644 /* CompassPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21BD0F60D9CBF1755C249433 /* CompassPlugin.swift */; };
+		42B93C56AF0A437B1C8CCAEF /* AdhanAlarmKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B1A2751F9E4F9DA86AC4C58 /* AdhanAlarmKit.swift */; };
 		44295D741B785CFED93713C0 /* PrayerActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 275FA8C0A3494BAD1F058741 /* PrayerActivityPlugin.swift */; };
 		44594294AA8E7BE6C19E6A8A /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 9349BF7F4A89B845F3880B82 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
@@ -78,6 +80,7 @@
 		0179CF4362FFF4CD1EA8A4DA /* AsmaAlHusna.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AsmaAlHusna.swift; sourceTree = "<group>"; };
 		17B10A020A6515A15E2717EF /* debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		1828D97C2DF926F77BD8CB63 /* SurahNames.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SurahNames.swift; sourceTree = "<group>"; };
+		1B1A2751F9E4F9DA86AC4C58 /* AdhanAlarmKit.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdhanAlarmKit.swift; sourceTree = "<group>"; };
 		1C9D82B08E87261CC48FC478 /* App.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		20C3FCB675C0844437B74CB3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		21BD0F60D9CBF1755C249433 /* CompassPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CompassPlugin.swift; sourceTree = "<group>"; };
@@ -111,6 +114,7 @@
 		B10D03353703029A438FEE40 /* AtharTasbeehWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharTasbeehWidget.swift; sourceTree = "<group>"; };
 		C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetRefreshPlugin.swift; sourceTree = "<group>"; };
 		D3646930F2BA6A8C2EFE8343 /* OpenAtharScreenIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OpenAtharScreenIntent.swift; sourceTree = "<group>"; };
+		D7104E0C1268ABBB2F0C6B8D /* AdhanAlarmPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdhanAlarmPlugin.swift; sourceTree = "<group>"; };
 		D7D17B7713167EB479302556 /* NextPrayerIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NextPrayerIntent.swift; sourceTree = "<group>"; };
 		D98930BB8755D497D125B1E5 /* VoiceTasbeehPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceTasbeehPlugin.swift; sourceTree = "<group>"; };
 		DC241998B23C88977A89039F /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -212,6 +216,8 @@
 				A951A88B658C401B46D299C4 /* AtharIntents.swift */,
 				1828D97C2DF926F77BD8CB63 /* SurahNames.swift */,
 				4D1C5E3F220E5AA1FE715AF0 /* SpotlightPlugin.swift */,
+				1B1A2751F9E4F9DA86AC4C58 /* AdhanAlarmKit.swift */,
+				D7104E0C1268ABBB2F0C6B8D /* AdhanAlarmPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -383,6 +389,8 @@
 				C1440BA516FF93C7FC2DC2FB /* SurahNames.swift in Sources */,
 				05F9986B8DC2960E7806EFAF /* SpotlightPlugin.swift in Sources */,
 				5ADBF07D638E8D9638E8DCB2 /* OpenAtharScreenIntent.swift in Sources */,
+				42B93C56AF0A437B1C8CCAEF /* AdhanAlarmKit.swift in Sources */,
+				17FE68421D1C0A0BE443A679 /* AdhanAlarmPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

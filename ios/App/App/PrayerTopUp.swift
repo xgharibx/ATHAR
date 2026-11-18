@@ -31,6 +31,7 @@ enum PrayerTopUp {
 
     static func clear() {
         UserDefaults.standard.removeObject(forKey: planKey)
+        Task { await AdhanAlarmKit.cancelAll() }
         BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: taskIdentifier)
         let center = UNUserNotificationCenter.current()
         center.getPendingNotificationRequests { pending in
@@ -78,6 +79,9 @@ enum PrayerTopUp {
 
     /** Fill the free places with the next days. Calls back with how many are queued. */
     static func run(completion: ((Int) -> Void)? = nil) {
+        // The Adhan alarm, when chosen, follows the same plan.
+        let alarmPlan = loadPlan()
+        Task { await AdhanAlarmKit.sync(plan: alarmPlan) }
         guard let plan = loadPlan() else {
             completion?(0)
             return

@@ -8,6 +8,7 @@ import pkgJson from "../../package.json";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
+import { AdhanAlarmCard } from "@/components/settings/AdhanAlarmCard";
 import { Slider } from "@/components/ui/Slider";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -1365,6 +1366,14 @@ export function SettingsPage() {
                 ))}
               </div>
             </div>
+
+            {isNative && (Capacitor.getPlatform() === "ios" || Capacitor.getPlatform() === "android") ? (
+              <AdhanAlarmCard
+                reminders={reminders}
+                setReminders={setReminders}
+                platform={Capacitor.getPlatform() as "ios" | "android"}
+              />
+            ) : null}
 
             <div className="mt-4 rounded-2xl border border-(--stroke) bg-(--card-2) p-4">
               <div className="flex items-center justify-between gap-3 flex-wrap">
