@@ -16,6 +16,7 @@ import {
 } from "@/components/ufuq/garden/gardenMath";
 import { GardenOverlay } from "@/components/ufuq/garden/gardenOverlay";
 import { MoonLayer, MOON_IN_FILM } from "@/components/ufuq/garden/gardenMoon";
+import { FLOWER_STAGES, flowerVariants, mix, paintFlowerHead } from "@/components/ufuq/garden/gardenSprites";
 import { normalizeUfuqLook, normalizeUfuqPalette, resolveUfuqPalette, UFUQ_GARDEN_META_COLORS } from "@/lib/design";
 import { applyUfuqDesign } from "@/hooks/useApplyTheme";
 import { searchSettings } from "@/lib/settingsCatalog";
@@ -91,6 +92,31 @@ describe("the garden grows", () => {
     const home = read("src/components/ufuq/UfuqHome.tsx");
     expect(home).toContain("غِراسَها: سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر");
     expect(home).toContain("رواه الترمذي (٣٤٦٢)، وحسّنه الألباني");
+  });
+});
+
+describe("the live garden", () => {
+  it("mixes colours for light and shade", () => {
+    expect(mix("#000000", "#ffffff", 0.5)).toBe("#808080");
+    expect(mix("#102030", "#102030", 0.7)).toBe("#102030");
+    expect(mix("#ff0000", "#0000ff", 2)).toBe("#0000ff");
+  });
+
+  it("opens each flower over several stages, with roses in more than one colour", () => {
+    expect(FLOWER_STAGES).toBeGreaterThanOrEqual(8);
+    expect(flowerVariants("rose")).toBeGreaterThan(1);
+    // No canvas here: painting quietly gives nothing rather than throwing.
+    expect(() => paintFlowerHead("rose", 0, 0.5, 40, "night", 2)).not.toThrow();
+  });
+
+  it("draws real plants, not shapes: palm fronds of leaflets, rose petals, the real Moon", () => {
+    const engine = read("src/components/ufuq/garden/GardenEngine.ts");
+    for (const used of ["paintFrond", "paintPalmTrunk", "paintPomegranate", "paintCypress", "paintFlowerHead", "paintRealMoon"]) {
+      expect(engine).toContain(used);
+    }
+    // A flower earned by a tasbeeh grows: the stem rises, then the bud opens.
+    expect(engine).toContain("const opening = clamp01((age - 0.8) / 2.6)");
+    expect(read("src/components/ufuq/UfuqShell.tsx")).toContain('look === "live" ? <LiveGardenBackdrop /> : <GardenBackdrop />');
   });
 });
 

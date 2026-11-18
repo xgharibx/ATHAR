@@ -4,9 +4,14 @@
  * One canvas, back to front:
  *   sky (and the Milky Way) → moon in tonight's real phase, or sun and clouds
  *   → stars, shooting stars, birds → far hills with a distant mosque → near
- *   hills → a date palm, two cypresses and a blossoming tree, all in the wind
+ *   hills → a date palm, two cypresses and a pomegranate tree, all in the wind
  *   → back grass → flowers that open and close with the light → front grass
  *   → fireflies at night, butterflies and drifting petals by day.
+ *
+ * The plants themselves (gardenSprites.ts) are painted once each in full
+ * detail — a date palm with its criss-cross trunk and leaflet fronds, cypress
+ * foliage, a pomegranate tree, roses that open petal by petal — all lit from
+ * the same side as the sun or the Moon, and only moved frame by frame.
  *
  * Cost is kept low on purpose: the static layers are painted once into
  * off-screen canvases, grass is drawn in one path per colour, the loop runs
@@ -17,11 +22,26 @@
 import {
   bloomTarget as _bloomTarget,
   easeOutBack,
-  moonIllumination,
-  moonPhase,
   seededRandom,
   windAt,
 } from "@/components/ufuq/garden/gardenMath";
+import { paintRealMoon } from "@/components/ufuq/garden/gardenMoon";
+import {
+  composeSprites,
+  FLOWER_STAGES,
+  flowerVariants,
+  mix,
+  paintCloud,
+  paintCypress,
+  paintDates,
+  paintFlowerHead,
+  paintFrond,
+  paintPalmTrunk,
+  paintPomegranate,
+  paintStemLeaf,
+  type FlowerKind,
+  type Sprite,
+} from "@/components/ufuq/garden/gardenSprites";
 
 export type GardenMode = "day" | "night";
 
@@ -40,13 +60,24 @@ export type GardenOptions = {
 export const bloomTarget = _bloomTarget;
 
 type Blade = { x: number; h: number; w: number; lean: number; flex: number; ph: number; c: number };
-type FlowerKind = "tulip" | "daisy" | "rose" | "poppy" | "lavender" | "jasmine";
-type Flower = { x: number; y: number; stem: number; kind: FlowerKind; color: string; size: number; ph: number; born: number; tilt: number };
+type Flower = { x: number; y: number; stem: number; kind: FlowerKind; variant: number; size: number; ph: number; born: number; tilt: number; leaf: number };
 type Star = { x: number; y: number; r: number; a: number; tw: number; ph: number; tint: string };
 type Firefly = { x: number; y: number; ph: number; sp: number; rx: number; ry: number };
 type Butterfly = { x: number; y: number; ph: number; sp: number; color: string; dir: number };
 type Petal = { x: number; y: number; vx: number; vy: number; rot: number; vr: number; s: number; color: string };
-type Branch = { depth: number; angle: number; len: number; children: Branch[] };
+type Frond = { side: 1 | -1; elev: number; k: number; v: number; back: boolean; ph: number };
+type Plants = {
+  trunk: Sprite | null;
+  /** The older fronds behind, baked into one image around the crown. */
+  backCrown: Sprite | null;
+  frondsFront: Array<Sprite | null>;
+  dates: Array<Sprite | null>;
+  cypress: Array<Sprite | null>;
+  tree: Sprite | null;
+  treeFruit: Sprite | null;
+  roseLeaf: Sprite | null;
+  blade: Sprite | null;
+};
 type Gust = { x: number; s: number; at: number };
 
 type Palette = {
@@ -57,13 +88,7 @@ type Palette = {
   ground: [string, string];
   grassBack: string[];
   grassFront: string[];
-  cypress: [string, string];
-  palmTrunk: string;
-  palmFrond: string;
-  branch: string;
   blossoms: string[];
-  leaves: string;
-  flowerDim: number;
 };
 
 const PALETTES: Record<GardenMode, Palette> = {
@@ -75,13 +100,7 @@ const PALETTES: Record<GardenMode, Palette> = {
     ground: ["#4d8f58", "#2f6a3c"],
     grassBack: ["#6fae7c", "#5d9f6d", "#7dba86"],
     grassFront: ["#3f8f4a", "#4fa358", "#2f7a3c", "#66b86a"],
-    cypress: ["#2f6b45", "#1f5233"],
-    palmTrunk: "#8a6b4a",
-    palmFrond: "#3f8a4c",
-    branch: "#6b4a3a",
-    blossoms: ["#f7b6c8", "#fbd3de", "#ffffff", "#f39ab4"],
-    leaves: "#5fa863",
-    flowerDim: 1,
+    blossoms: ["#e8452a", "#ff7a50", "#f05a3a", "#ffa07a"],
   },
   night: {
     sky: [[0, "#010207"], [0.48, "#040a1a"], [0.84, "#0b1630"], [1, "#14223f"]],
@@ -91,26 +110,44 @@ const PALETTES: Record<GardenMode, Palette> = {
     ground: ["#0a1d14", "#030a07"],
     grassBack: ["#0d241b", "#0b2017", "#10291f"],
     grassFront: ["#123423", "#174029", "#0e2a1c", "#1d4a30"],
-    cypress: ["#0d2619", "#081a11"],
-    palmTrunk: "#1f1913",
-    palmFrond: "#10301f",
-    branch: "#231a18",
-    blossoms: ["#8d6c86", "#a3889d", "#c7c2d8", "#7a5a72"],
-    leaves: "#143522",
-    flowerDim: 0.72,
+    blossoms: ["#5c2a30", "#6a3438", "#4a2228", "#7a4044"],
   },
 };
 
-const FLOWER_COLORS: Record<FlowerKind, string[]> = {
-  tulip: ["#e2455c", "#f28cb1", "#f6c945", "#ef7f45"],
-  daisy: ["#ffffff"],
-  rose: ["#c8243f", "#e95b7d", "#f6a5b9"],
-  poppy: ["#e5402f", "#f06a3b"],
-  lavender: ["#8a6cd6", "#a58be0"],
-  jasmine: ["#ffffff"],
-};
+/** Roses most of all; the rest keep the bed varied. */
+const KINDS: FlowerKind[] = ["rose", "tulip", "rose", "daisy", "rose", "lavender", "tulip", "jasmine", "poppy", "rose", "daisy", "jasmine"];
 
-const KINDS: FlowerKind[] = ["tulip", "daisy", "rose", "tulip", "poppy", "lavender", "jasmine", "daisy", "rose", "jasmine"];
+let moonImg: HTMLImageElement | null = null;
+let moonLoading = false;
+const moonWaiters: Array<() => void> = [];
+/** NASA's Moon (the same one the filmed garden uses), loaded once. */
+function moonImage(onLoad: () => void): HTMLImageElement | null {
+  if (moonImg) return moonImg;
+  moonWaiters.push(onLoad);
+  if (!moonLoading && typeof Image !== "undefined") {
+    moonLoading = true;
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => {
+      moonImg = img;
+      moonWaiters.splice(0).forEach((fn) => fn());
+    };
+    img.src = `${import.meta.env.BASE_URL ?? "/"}garden/moon.jpg`;
+  }
+  return null;
+}
+
+/** Flower heads are painted at this diameter and drawn smaller. */
+const HEAD_BASE = 40;
+/** How far the palm leans from its base to its crown, as a share of its height. */
+const PALM_LEAN = 0.14;
+
+function drawSprite(ctx: CanvasRenderingContext2D, s: Sprite | null, x: number, y: number, k = 1) {
+  if (!s) return;
+  ctx.drawImage(s.canvas, x - s.ax * k, y - s.ay * k, s.w * k, s.h * k);
+}
+
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 function makeCanvas(w: number, h: number): HTMLCanvasElement {
   const c = document.createElement("canvas");
@@ -137,9 +174,14 @@ export class GardenEngine {
   private groundH = 0;
 
   private painted = false;
-  private cypressSprite: HTMLCanvasElement | null = null;
+  private plants: Plants | null = null;
+  private heads = new Map<string, Sprite | null>();
+  private palmH = 0;
+  private treeH = 0;
+  private fronds: Frond[] = [];
+  private rowMax = { back: 30, mid: 34, front: 48 };
   private glow: HTMLCanvasElement | null = null;
-  private clouds: Array<{ img: HTMLCanvasElement; x: number; y: number; sp: number }> = [];
+  private clouds: Array<{ sprite: Sprite; x: number; y: number; sp: number }> = [];
 
   private stars: Star[] = [];
   private back: Blade[] = [];
@@ -149,7 +191,6 @@ export class GardenEngine {
   private fireflies: Firefly[] = [];
   private butterflies: Butterfly[] = [];
   private petals: Petal[] = [];
-  private tree: Branch | null = null;
   private gusts: Gust[] = [];
   private shooting: { x: number; y: number; vx: number; vy: number; at: number } | null = null;
   private nextShootingAt = 0;
@@ -259,7 +300,8 @@ export class GardenEngine {
   destroy() {
     this.running = false;
     cancelAnimationFrame(this.raf);
-    this.cypressSprite = this.glow = null;
+    this.plants = this.glow = null;
+    this.heads.clear();
   }
 
   /** Slow phone: first fewer pixels, then fewer blades. */
@@ -317,14 +359,23 @@ export class GardenEngine {
     this.mid = Array.from({ length: midCount }, () => blade(2, 14, 34, 4)).sort((a, b) => a.c - b.c);
     this.front = Array.from({ length: frontCount }, () => blade(1, 22, 48, 4)).sort((a, b) => a.c - b.c);
 
-    // The blossoming tree: a fixed shape, so it is the same tree every day.
-    const grow = (depth: number, len: number): Branch => ({
-      depth,
-      angle: depth === 0 ? 0 : (rnd() - 0.5) * 0.9,
-      len,
-      children: depth >= 6 ? [] : Array.from({ length: depth < 2 ? 2 : rnd() > 0.35 ? 2 : 3 }, () => grow(depth + 1, len * (0.68 + rnd() * 0.12))),
-    });
-    this.tree = grow(0, Math.min(90, h * 0.085));
+    const rowMax = (rows: Blade[]) => rows.reduce((m, b) => Math.max(m, b.h), 1);
+    this.rowMax = { back: rowMax(this.back), mid: rowMax(this.mid), front: rowMax(this.front) };
+
+    // The palm's crown: older fronds behind, rising ones and drooping ones in
+    // front, the same crown every day.
+    this.palmH = Math.min(330, h * 0.4);
+    this.treeH = Math.min(250, h * 0.28);
+    const fr = seededRandom(613);
+    const back: Frond[] = [-1.32, -1.05, -0.78, -0.5, -0.22].flatMap((elev, i) => [
+      { side: 1 as const, elev: elev + fr() * 0.12, k: 0.82 + fr() * 0.15, v: i % 3, back: true, ph: fr() * 6 },
+      { side: -1 as const, elev: elev + 0.1 + fr() * 0.12, k: 0.82 + fr() * 0.15, v: (i + 1) % 3, back: true, ph: fr() * 6 },
+    ]);
+    const front: Frond[] = [-1.15, -0.62, -0.1, 0.42, 0.95].flatMap((elev, i) => [
+      { side: 1 as const, elev: elev + fr() * 0.1, k: 0.92 + fr() * 0.14, v: i % 3, back: false, ph: fr() * 6 },
+      { side: -1 as const, elev: elev + 0.05 + fr() * 0.1, k: 0.9 + fr() * 0.14, v: (i + 2) % 3, back: false, ph: fr() * 6 },
+    ]);
+    this.fronds = [...back, ...front];
 
     this.fireflies = Array.from({ length: 22 }, () => ({
       x: rnd() * w,
@@ -370,18 +421,18 @@ export class GardenEngine {
     const born = sprout ? this.now : -10;
     while (this.flowers.length < target) {
       const kind = KINDS[Math.floor(rnd() * KINDS.length)]!;
-      const colors = FLOWER_COLORS[kind];
       const depth = rnd();
       this.flowers.push({
         x: 12 + rnd() * (w - 24),
         y: groundY + 6 + depth * groundH * 0.42,
         stem: (22 + rnd() * 30) * (0.75 + depth * 0.5) * (groundH / 110),
         kind,
-        color: colors[Math.floor(rnd() * colors.length)]!,
+        variant: Math.floor(rnd() * flowerVariants(kind)),
         size: (1.05 + rnd() * 0.5) * (0.8 + depth * 0.45),
         ph: rnd() * Math.PI * 2,
         born,
         tilt: (rnd() - 0.5) * 0.3,
+        leaf: rnd() > 0.5 ? 1 : -1,
       });
     }
     if (this.flowers.length > target) this.flowers.length = target;
@@ -394,6 +445,7 @@ export class GardenEngine {
     const { w, h, groundY } = this;
     if (!w || !h) return;
     this.moonSprite = null;
+    this.heads.clear();
     const night = this.opts.mode === "night";
     const p = PALETTES[this.opts.mode];
     const dpr = this.dpr;
@@ -457,6 +509,12 @@ export class GardenEngine {
     g.fillStyle = p.farHills;
     g.fill();
     this.paintMosque(g, w * 0.6, groundY - 62, Math.min(1.25, w / 360), p.mosque, night);
+    // Air between us and the far hills: they fade into the sky a little.
+    const haze = g.createLinearGradient(0, groundY - 110, 0, groundY + 10);
+    haze.addColorStop(0, night ? "rgba(20,34,63,0)" : "rgba(214,232,248,0)");
+    haze.addColorStop(1, night ? "rgba(20,34,63,0.55)" : "rgba(222,236,250,0.6)");
+    g.fillStyle = haze;
+    g.fillRect(0, groundY - 110, w, 120);
     ridge(groundY + 6, 36, 0.011, 0.031, 4.2);
     g.fillStyle = p.nearHills;
     g.fill();
@@ -471,39 +529,38 @@ export class GardenEngine {
     g.lineTo(0, h);
     g.closePath();
     g.fill();
+    // Soil and fallen leaves, so the ground is not one flat colour.
+    const soil = seededRandom(5);
+    for (let i = 0; i < Math.round(w * 1.2); i++) {
+      const x = soil() * w;
+      const y = groundY + 8 + Math.pow(soil(), 0.8) * (h - groundY);
+      g.fillStyle = night
+        ? `rgba(${soil() > 0.5 ? "0,0,0" : "60,80,110"},${0.1 + soil() * 0.15})`
+        : `rgba(${soil() > 0.5 ? "30,60,25" : "150,190,110"},${0.12 + soil() * 0.16})`;
+      g.beginPath();
+      g.ellipse(x, y, 1 + soil() * 2.2, 0.6 + soil() * 1, soil() * 3, 0, Math.PI * 2);
+      g.fill();
+    }
+    // Shadows the trees cast away from the light (the light is up and to the left).
+    const shadow = (x: number, y: number, r: number) => {
+      const sg = g.createRadialGradient(x + r * 0.55, y, 1, x + r * 0.55, y, r);
+      sg.addColorStop(0, night ? "rgba(0,0,0,0.42)" : "rgba(20,50,25,0.32)");
+      sg.addColorStop(1, "rgba(0,0,0,0)");
+      g.save();
+      g.translate(x + r * 0.55, y);
+      g.scale(1, 0.22);
+      g.translate(-(x + r * 0.55), -y);
+      g.fillStyle = sg;
+      g.fillRect(x - r, y - r, r * 3, r * 2);
+      g.restore();
+    };
+    shadow(w * 0.08, groundY + 24, this.palmH * 0.3);
+    shadow(w * 0.74, groundY + 10, this.treeH * 0.42);
+    shadow(w * 0.9, groundY + 14, 40);
+    shadow(w * 0.985, groundY + 14, 34);
     this.painted = true;
 
-    // A cypress, painted once and swayed as a whole.
-    const cw = 46;
-    const ch = Math.min(380, h * 0.44);
-    const cy = makeCanvas(cw * dpr, ch * dpr);
-    const c = cy.getContext("2d");
-    if (c) {
-      c.scale(dpr, dpr);
-      const body = c.createLinearGradient(0, 0, cw, 0);
-      body.addColorStop(0, p.cypress[1]);
-      body.addColorStop(0.45, p.cypress[0]);
-      body.addColorStop(1, p.cypress[1]);
-      c.fillStyle = body;
-      c.beginPath();
-      c.moveTo(cw / 2, 0);
-      c.bezierCurveTo(cw * 0.95, ch * 0.3, cw, ch * 0.75, cw * 0.62, ch);
-      c.lineTo(cw * 0.38, ch);
-      c.bezierCurveTo(0, ch * 0.75, cw * 0.05, ch * 0.3, cw / 2, 0);
-      c.fill();
-      c.strokeStyle = night ? "rgba(0,0,0,0.25)" : "rgba(10,40,20,0.22)";
-      c.lineWidth = 1;
-      const rnd = seededRandom(7);
-      for (let i = 0; i < 26; i++) {
-        const y = rnd() * ch * 0.95;
-        const spread = Math.sin((y / ch) * Math.PI) * cw * 0.36;
-        c.beginPath();
-        c.moveTo(cw / 2 + (rnd() - 0.5) * spread, y);
-        c.quadraticCurveTo(cw / 2, y + 10, cw / 2 + (rnd() - 0.5) * spread, y + 18);
-        c.stroke();
-      }
-    }
-    this.cypressSprite = cy;
+    this.paintPlants();
 
     // One soft glow, reused by every firefly and jasmine at night.
     const glow = makeCanvas(48, 48);
@@ -518,29 +575,68 @@ export class GardenEngine {
     }
     this.glow = glow;
 
-    // Day clouds: soft heaps of circles, painted once each.
+    // Day clouds: shaded heaps, lit on top and grey underneath.
     this.clouds = [];
     if (!night) {
       const rnd = seededRandom(31);
       for (let i = 0; i < 4; i++) {
-        const cwid = 140 + rnd() * 110;
-        const chei = 60;
-        const img = makeCanvas(cwid * dpr, chei * dpr);
-        const k = img.getContext("2d");
-        if (!k) continue;
-        k.scale(dpr, dpr);
-        k.fillStyle = "rgba(255,255,255,0.75)";
-        k.shadowColor = "rgba(255,255,255,0.9)";
-        k.shadowBlur = 14;
-        for (let j = 0; j < 7; j++) {
-          const r = 12 + rnd() * 16;
-          k.beginPath();
-          k.arc(20 + rnd() * (cwid - 40), 32 + (rnd() - 0.5) * 12, r, 0, Math.PI * 2);
-          k.fill();
-        }
-        this.clouds.push({ img, x: rnd() * w, y: 50 + rnd() * groundY * 0.4, sp: 3 + rnd() * 5 });
+        const sprite = paintCloud(130 + rnd() * 140, dpr, 40 + i);
+        if (sprite) this.clouds.push({ sprite, x: rnd() * w, y: 40 + rnd() * groundY * 0.36, sp: 3 + rnd() * 5 });
       }
     }
+  }
+
+  /** Every plant, painted once for this mode and size. */
+  private paintPlants() {
+    const mode = this.opts.mode;
+    const dpr = this.dpr;
+    const H = this.palmH;
+    const L = H * 0.44;
+    const tree = paintPomegranate(this.treeH, mode, dpr, 77);
+    const ch = Math.min(380, this.h * 0.44);
+    const backFronds = [0, 1, 2].map((i) => paintFrond(L, mode, dpr, 300 + i, 0.55));
+    this.plants = {
+      trunk: paintPalmTrunk(H, PALM_LEAN, mode, dpr),
+      backCrown: this.paintBackCrown(backFronds, L),
+      frondsFront: [0, 1, 2].map((i) => paintFrond(L, mode, dpr, 400 + i, 0)),
+      dates: [0, 1, 2].map((i) => paintDates(H * 0.13, mode, dpr, 500 + i)),
+      cypress: [paintCypress(48, ch, mode, dpr, 21), paintCypress(40, ch * 0.82, mode, dpr, 22)],
+      tree: composeSprites([tree.wood, tree.leaves, tree.blossom], dpr),
+      treeFruit: composeSprites([tree.wood, tree.leaves, tree.blossom, tree.fruit], dpr),
+      roseLeaf: paintStemLeaf(22, mode, dpr, false),
+      blade: paintStemLeaf(30, mode, dpr, true),
+    };
+  }
+
+  /** The back fronds, laid out once around the crown; they sway together. */
+  private paintBackCrown(fronds: Array<Sprite | null>, L: number): Sprite | null {
+    const R = Math.ceil(L * 1.15);
+    const dpr = this.dpr;
+    const canvas = makeCanvas(R * 2 * dpr, R * 2 * dpr);
+    const g = canvas.getContext("2d");
+    if (!g) return null;
+    for (const f of this.fronds) {
+      if (!f.back) continue;
+      const s = fronds[f.v];
+      if (!s) continue;
+      g.setTransform(dpr, 0, 0, dpr, R * dpr, R * dpr);
+      g.scale(f.side, 1);
+      g.rotate(f.elev);
+      g.drawImage(s.canvas, -s.ax * f.k, -s.ay * f.k, s.w * f.k, s.h * f.k);
+    }
+    return composeSprites([{ canvas, w: R * 2, h: R * 2, ax: R, ay: R }], dpr);
+  }
+
+  /** A flower head at one stage of opening, painted the first time it is needed. */
+  private head(f: Flower, stage: number): Sprite | null {
+    const idx = Math.round(clamp01(stage) * (FLOWER_STAGES - 1));
+    const key = `${f.kind}:${f.variant}:${idx}`;
+    let sprite = this.heads.get(key);
+    if (sprite === undefined) {
+      sprite = paintFlowerHead(f.kind, f.variant, idx / (FLOWER_STAGES - 1), HEAD_BASE, this.opts.mode, this.dpr);
+      this.heads.set(key, sprite);
+    }
+    return sprite;
   }
 
   private paintMosque(g: CanvasRenderingContext2D, cx: number, base: number, k: number, color: string, night: boolean) {
@@ -612,13 +708,14 @@ export class GardenEngine {
     }
 
     this.drawCypresses(t);
-    this.drawBlossomTree(t, p);
-    this.drawPalm(t, p);
+    this.drawTree(t);
+    this.drawPalm(t);
 
-    this.drawGrass(this.back, p.grassBack, t, groundY + 4, 0.7);
-    this.drawFlowers(t, night, p.flowerDim);
-    this.drawGrass(this.mid, p.grassFront, t, groundY + this.groundH * 0.5, 0.85);
-    this.drawGrass(this.front, p.grassFront, t, h + 2, 1);
+    const { back, mid, front } = this.rowMax;
+    this.drawGrass(this.back, p.grassBack, t, groundY + 4, 0.7, back, night);
+    this.drawFlowers(t, night);
+    this.drawGrass(this.mid, p.grassFront, t, groundY + this.groundH * 0.5, 0.85, mid, night);
+    this.drawGrass(this.front, p.grassFront, t, h + 2, 1, front, night);
 
     if (night) this.drawFireflies(t);
     else {
@@ -642,55 +739,17 @@ export class GardenEngine {
   private moonSprite: HTMLCanvasElement | null = null;
   private moonSize = 0;
 
-  /** Tonight's moon in its real phase, with its halo, painted once. */
+  /** Tonight's Moon in its real phase, from NASA's map once it has loaded. */
   private paintMoon() {
-    const r = Math.min(40, Math.max(22, this.w * 0.065));
-    const phase = moonPhase(new Date());
-    const lit = moonIllumination(phase);
-    const size = Math.ceil(r * 10);
-    const dpr = this.dpr;
-    const sprite = makeCanvas(size * dpr, size * dpr);
-    const ctx = sprite.getContext("2d");
-    if (!ctx) return;
-    ctx.scale(dpr, dpr);
-    const c = size / 2;
-    const halo = ctx.createRadialGradient(c, c, r * 0.8, c, c, r * (3.2 + lit * 1.6));
-    halo.addColorStop(0, `rgba(215,225,255,${0.1 + lit * 0.16})`);
-    halo.addColorStop(1, "rgba(215,225,255,0)");
-    ctx.fillStyle = halo;
-    ctx.fillRect(0, 0, size, size);
-    ctx.translate(c, c);
-    // The unlit disc, faint with earthshine.
-    ctx.fillStyle = "#1b2440";
-    ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.fill();
-    if (lit > 0.02) {
-      const waxing = phase < 0.5;
-      if (!waxing) ctx.scale(-1, 1);
-      const rx = r * Math.abs(Math.cos(2 * Math.PI * phase));
-      ctx.beginPath();
-      ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false);
-      ctx.ellipse(0, 0, rx, r, 0, Math.PI / 2, -Math.PI / 2, lit < 0.5);
-      ctx.closePath();
-      const face = ctx.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.1, 0, 0, r * 1.05);
-      face.addColorStop(0, "#fffaf0");
-      face.addColorStop(1, "#e3dcc8");
-      ctx.fillStyle = face;
-      ctx.fill();
-      // A few maria, only where the moon is lit.
-      ctx.save();
-      ctx.clip();
-      ctx.fillStyle = "rgba(120,115,100,0.16)";
-      for (const [mx, my, mr] of [[-0.25, -0.2, 0.28], [0.22, 0.15, 0.22], [-0.05, 0.38, 0.16], [0.35, -0.35, 0.12]] as const) {
-        ctx.beginPath();
-        ctx.arc(mx * r, my * r, mr * r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-    }
-    this.moonSprite = sprite;
-    this.moonSize = size;
+    const img = moonImage(() => {
+      this.moonSprite = null;
+      if (!this.running) this.drawFrame(this.now);
+    });
+    if (!img) return;
+    const r = Math.max(16, Math.min(30, this.w * 0.05));
+    const R = Math.ceil(r * 3.6);
+    this.moonSprite = paintRealMoon(img, r, R, this.dpr);
+    this.moonSize = R * 2;
   }
 
   private drawMoon(lift: number) {
@@ -739,10 +798,10 @@ export class GardenEngine {
   private drawClouds(t: number) {
     const ctx = this.ctx;
     for (const c of this.clouds) {
-      const span = this.w + c.img.width / this.dpr;
-      const x = ((c.x + t * c.sp) % span) - c.img.width / this.dpr;
-      ctx.globalAlpha = 0.85;
-      ctx.drawImage(c.img, x, c.y, c.img.width / this.dpr, c.img.height / this.dpr);
+      const span = this.w + c.sprite.w;
+      const x = ((c.x + t * c.sp) % span) - c.sprite.w;
+      ctx.globalAlpha = 0.9;
+      ctx.drawImage(c.sprite.canvas, x, c.y, c.sprite.w, c.sprite.h);
     }
     ctx.globalAlpha = 1;
   }
@@ -778,165 +837,106 @@ export class GardenEngine {
 
   private drawCypresses(t: number) {
     const ctx = this.ctx;
-    const sprite = this.cypressSprite;
-    if (!sprite) return;
-    const sw = sprite.width / this.dpr;
-    const sh = sprite.height / this.dpr;
-    const trees: Array<[number, number]> = [[this.w * 0.9, 1], [this.w * 0.985, 0.82]];
-    for (const [x, k] of trees) {
+    const plants = this.plants;
+    if (!plants) return;
+    const trees: Array<[number, Sprite | null]> = [[this.w * 0.9, plants.cypress[0] ?? null], [this.w * 0.985, plants.cypress[1] ?? null]];
+    for (const [x, sprite] of trees) {
       const sway = (windAt(x, t * 0.6) + this.gustAt(x, t) * 0.6) * 0.045;
       ctx.save();
       ctx.translate(x, this.groundY + 14);
       ctx.transform(1, 0, -sway, 1, 0, 0);
-      ctx.drawImage(sprite, (-sw * k) / 2, -sh * k, sw * k, sh * k);
+      drawSprite(ctx, sprite, 0, 0);
       ctx.restore();
     }
   }
 
-  private drawBlossomTree(t: number, p: Palette) {
+  /** The pomegranate, one image bending in the wind from its root. */
+  private drawTree(t: number) {
     const ctx = this.ctx;
-    const root = this.tree;
-    if (!root) return;
-    const baseX = this.w * 0.74;
-    const baseY = this.groundY + 10;
-    const wind = windAt(baseX, t * 0.7) + this.gustAt(baseX, t) * 0.7;
-    const tips: Array<[number, number, number]> = [];
-    const byDepth: Path2D[] = Array.from({ length: 7 }, () => new Path2D());
-    const walk = (b: Branch, x: number, y: number, angle: number) => {
-      const a = angle + b.angle + wind * 0.035 * (b.depth + 1);
-      const x2 = x + Math.sin(a) * b.len;
-      const y2 = y - Math.cos(a) * b.len;
-      byDepth[b.depth]!.moveTo(x, y);
-      byDepth[b.depth]!.lineTo(x2, y2);
-      if (!b.children.length) tips.push([x2, y2, a]);
-      for (const child of b.children) walk(child, x2, y2, a);
+    const plants = this.plants;
+    if (!plants) return;
+    const x = this.w * 0.74;
+    const y = this.groundY + 10;
+    const wind = windAt(x, t * 0.7) + this.gustAt(x, t) * 0.7;
+    const sway = wind * 0.03 + Math.sin(t * 2.1) * 0.004;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.transform(1, 0, -sway, 1, 0, 0);
+    drawSprite(ctx, this.opts.treeFruit ? plants.treeFruit : plants.tree, 0, 0);
+    ctx.restore();
+  }
+
+  /** The date palm: the trunk bends as one, each frond moves on its own. */
+  private drawPalm(t: number) {
+    const ctx = this.ctx;
+    const plants = this.plants;
+    if (!plants) return;
+    const baseX = this.w * 0.08;
+    const baseY = this.groundY + 24;
+    const H = this.palmH;
+    const wind = windAt(baseX, t * 0.7) + this.gustAt(baseX, t) * 0.8;
+    const bend = (wind * 5) / H;
+    const crownX = baseX + PALM_LEAN * H + wind * 5;
+    const crownY = baseY - H + 6;
+
+    ctx.save();
+    ctx.translate(baseX, baseY);
+    ctx.transform(1, 0, -bend, 1, 0, 0);
+    drawSprite(ctx, plants.trunk, 0, 0);
+    ctx.restore();
+
+    const frond = (f: Frond) => {
+      const sprite = plants.frondsFront[f.v] ?? null;
+      if (!sprite) return;
+      ctx.save();
+      ctx.translate(crownX, crownY);
+      ctx.scale(f.side, 1);
+      ctx.rotate(f.elev + wind * 0.09 * f.side + Math.sin(t * 1.4 + f.ph) * 0.03);
+      drawSprite(ctx, sprite, 0, 0, f.k);
+      ctx.restore();
     };
-    walk(root, baseX, baseY, -0.05);
-    ctx.strokeStyle = p.branch;
-    ctx.lineCap = "round";
-    byDepth.forEach((path, depth) => {
-      ctx.lineWidth = Math.max(0.8, 7 - depth * 1.1);
-      ctx.stroke(path);
-    });
-    // leaves under the blossom
-    ctx.fillStyle = p.leaves;
+    ctx.save();
+    ctx.translate(crownX, crownY);
+    ctx.rotate(wind * 0.035 + Math.sin(t * 1.1) * 0.012);
+    drawSprite(ctx, plants.backCrown, 0, 0);
+    ctx.restore();
+    // The heart of the crown: frond bases packed in shadow.
+    const heart = ctx.createRadialGradient(crownX - 2, crownY - 2, 1, crownX, crownY, H * 0.07);
+    heart.addColorStop(0, this.opts.mode === "night" ? "rgba(8,10,8,0.95)" : "rgba(58,48,24,0.95)");
+    heart.addColorStop(0.6, this.opts.mode === "night" ? "rgba(10,16,12,0.7)" : "rgba(70,74,34,0.6)");
+    heart.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = heart;
     ctx.beginPath();
-    for (const [x, y] of tips) {
-      ctx.moveTo(x + 6, y);
-      ctx.ellipse(x, y, 6, 4, 0.4, 0, Math.PI * 2);
-    }
+    ctx.ellipse(crownX, crownY, H * 0.07, H * 0.055, 0, 0, Math.PI * 2);
     ctx.fill();
-    // blossom
-    tips.forEach(([x, y], i) => {
-      ctx.fillStyle = p.blossoms[i % p.blossoms.length]!;
-      ctx.beginPath();
-      ctx.arc(x + ((i * 7) % 5) - 2, y - 2, 3.2, 0, Math.PI * 2);
-      ctx.arc(x + 3, y + 2, 2.4, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    if (this.opts.treeFruit) {
-      ctx.fillStyle = this.opts.mode === "night" ? "#6b1f26" : "#c63241";
-      tips.forEach(([x, y], i) => {
-        if (i % 5 !== 0) return;
-        ctx.beginPath();
-        ctx.arc(x - 3, y + 7, 4.2, 0, Math.PI * 2);
-        ctx.fill();
+    if (this.opts.palmFruit) {
+      const swing = wind * 0.05;
+      plants.dates.forEach((sprite, i) => {
+        ctx.save();
+        ctx.translate(crownX + (i - 1) * H * 0.04, crownY + 4);
+        ctx.rotate(-0.25 + i * 0.25 - swing);
+        drawSprite(ctx, sprite, 0, 0);
+        ctx.restore();
       });
     }
+    for (const f of this.fronds) if (!f.back) frond(f);
   }
 
-  private drawPalm(t: number, p: Palette) {
+  /** Blades are shaded from the soil up to a lit tip; one path per colour. */
+  private drawGrass(blades: Blade[], colors: string[], t: number, baseY: number, flexScale: number, maxH: number, night: boolean) {
     const ctx = this.ctx;
-    const baseX = this.w * 0.08;
-    const baseY = this.groundY + 18;
-    const H = Math.min(330, this.h * 0.4);
-    const wind = windAt(baseX, t * 0.7) + this.gustAt(baseX, t) * 0.8;
-    const crownX = baseX + H * 0.16 + wind * 5;
-    const crownY = baseY - H;
-    const ctrlX = baseX + H * 0.02;
-    const ctrlY = baseY - H * 0.55;
-
-    // Trunk: tapering, with the rings a palm carries.
-    ctx.strokeStyle = p.palmTrunk;
-    ctx.lineCap = "round";
-    const steps = 22;
-    let px = baseX;
-    let py = baseY;
-    for (let i = 1; i <= steps; i++) {
-      const s = i / steps;
-      const x = (1 - s) * (1 - s) * baseX + 2 * (1 - s) * s * ctrlX + s * s * crownX;
-      const y = (1 - s) * (1 - s) * baseY + 2 * (1 - s) * s * ctrlY + s * s * crownY;
-      ctx.lineWidth = 11 - s * 5;
-      ctx.beginPath();
-      ctx.moveTo(px, py);
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      px = x;
-      py = y;
-    }
-    ctx.strokeStyle = "rgba(0,0,0,0.18)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let i = 1; i < steps; i += 1) {
-      const s = i / steps;
-      const x = (1 - s) * (1 - s) * baseX + 2 * (1 - s) * s * ctrlX + s * s * crownX;
-      const y = (1 - s) * (1 - s) * baseY + 2 * (1 - s) * s * ctrlY + s * s * crownY;
-      const half = (11 - s * 5) / 2;
-      ctx.moveTo(x - half, y);
-      ctx.lineTo(x + half, y + 1.5);
-    }
-    ctx.stroke();
-
-    if (this.opts.palmFruit) {
-      ctx.fillStyle = this.opts.mode === "night" ? "#4a2a12" : "#b5651d";
-      for (let i = 0; i < 14; i++) {
-        const a = (i / 14) * Math.PI * 2;
-        ctx.beginPath();
-        ctx.ellipse(crownX + Math.cos(a) * 7 + (i % 2 ? 6 : -6), crownY + 10 + Math.abs(Math.sin(a)) * 9, 2.6, 3.6, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // Fronds: a fan of arching spines, each with its leaflets.
-    const fronds = 11;
-    const L = H * 0.36;
-    const spines = new Path2D();
-    const leaflets = new Path2D();
-    for (let i = 0; i < fronds; i++) {
-      const spread = -Math.PI * 0.95 + (i / (fronds - 1)) * Math.PI * 0.9;
-      const a = spread + wind * 0.09 + Math.sin(t * 1.4 + i) * 0.035;
-      const droop = 0.55 + Math.abs(Math.cos(spread + Math.PI / 2)) * 0.35;
-      const ex = crownX + Math.cos(a) * L;
-      const ey = crownY + Math.sin(a) * L * 0.55 + L * droop * 0.55;
-      const mx = crownX + Math.cos(a) * L * 0.55;
-      const my = crownY + Math.sin(a) * L * 0.55 - L * 0.12;
-      spines.moveTo(crownX, crownY);
-      spines.quadraticCurveTo(mx, my, ex, ey);
-      for (let j = 1; j < 16; j++) {
-        const s = j / 16;
-        const x = (1 - s) * (1 - s) * crownX + 2 * (1 - s) * s * mx + s * s * ex;
-        const y = (1 - s) * (1 - s) * crownY + 2 * (1 - s) * s * my + s * s * ey;
-        const len = (1 - s) * 16 + 4;
-        leaflets.moveTo(x, y);
-        leaflets.lineTo(x + Math.cos(a + 1.9) * len, y + Math.abs(Math.sin(a + 1.9)) * len + 2);
-        leaflets.moveTo(x, y);
-        leaflets.lineTo(x + Math.cos(a - 1.9) * len * 0.8, y + Math.abs(Math.sin(a - 1.9)) * len + 3);
-      }
-    }
-    ctx.strokeStyle = p.palmFrond;
-    ctx.lineWidth = 2.4;
-    ctx.stroke(spines);
-    ctx.lineWidth = 1.3;
-    ctx.stroke(leaflets);
-  }
-
-  private drawGrass(blades: Blade[], colors: string[], t: number, baseY: number, flexScale: number) {
-    const ctx = this.ctx;
+    const soil = night ? "#020604" : "#1d4422";
+    const light = night ? "#4a6a86" : "#e6f6b0";
     let current = -1;
     let path: Path2D | null = null;
     const flush = () => {
       if (path && current >= 0) {
-        ctx.fillStyle = colors[current]!;
+        const color = colors[current]!;
+        const grad = ctx.createLinearGradient(0, baseY - maxH, 0, baseY);
+        grad.addColorStop(0, mix(color, light, night ? 0.22 : 0.3));
+        grad.addColorStop(0.55, color);
+        grad.addColorStop(1, mix(color, soil, 0.6));
+        ctx.fillStyle = grad;
         ctx.fill(path);
       }
     };
@@ -959,137 +959,87 @@ export class GardenEngine {
     flush();
   }
 
-  private drawFlowers(t: number, night: boolean, dim: number) {
+  /**
+   * Each flower grows from the soil when it is earned: the stem rises, its
+   * leaves unfold, then the bud swells and opens, petal by petal, over a few
+   * seconds. At night most close part-way; jasmine opens and glows.
+   */
+  private drawFlowers(t: number, night: boolean) {
     const ctx = this.ctx;
+    const plants = this.plants;
+    if (!plants) return;
+    const dpr = this.dpr;
+    // translate(x, y) · scale(side, 1) · rotate(r), without save/restore.
+    const place = (x: number, y: number, r: number, side = 1) => {
+      const c = Math.cos(r) * dpr;
+      const s = Math.sin(r) * dpr;
+      ctx.setTransform(side * c, s, -side * s, c, x * dpr, y * dpr);
+    };
+    type Shown = { f: Flower; age: number; a: number; wind: number; stem: number; hx: number; hy: number; mx: number; my: number };
+    const shown: Shown[] = [];
+    // Stems first, all in two strokes (thin and thick).
+    const thin = new Path2D();
+    const thick = new Path2D();
     for (const f of this.flowers) {
-      const age = t - f.born;
-      const grow = f.born < 0 ? 1 : easeOutBack(age / 1.4);
-      if (grow <= 0.01) continue;
+      const age = f.born < 0 ? 99 : t - f.born;
+      const rise = f.born < 0 ? 1 : easeOutBack(clamp01(age / 1.1));
+      if (rise <= 0.01) continue;
       const wind = windAt(f.x, t) + this.gustAt(f.x, t);
       const a = f.tilt + wind * 0.22 + Math.sin(t * 1.8 + f.ph) * 0.03;
-      const stem = f.stem * Math.min(1, grow);
+      const stem = f.stem * Math.min(1, rise);
       const hx = f.x + Math.sin(a) * stem;
       const hy = f.y - Math.cos(a) * stem;
-      ctx.strokeStyle = night ? "#123222" : "#3f8a45";
-      ctx.lineWidth = 1.4;
-      ctx.beginPath();
-      ctx.moveTo(f.x, f.y);
-      ctx.quadraticCurveTo(f.x + Math.sin(a * 0.4) * stem * 0.5, f.y - stem * 0.5, hx, hy);
-      ctx.stroke();
-      // Most flowers close a little at night; jasmine opens and glows.
-      const open = f.kind === "jasmine" ? 1 : night ? 0.72 : 1;
-      const s = f.size * grow * open;
-      ctx.save();
-      ctx.translate(hx, hy);
-      ctx.rotate(a);
-      ctx.globalAlpha = f.kind === "jasmine" ? 1 : dim;
-      this.drawHead(f, s, night);
-      ctx.restore();
-      if (night && f.kind === "jasmine" && this.glow) {
+      const mx = f.x + Math.sin(a * 0.4) * stem * 0.5;
+      const my = f.y - stem * 0.5;
+      const path = f.size > 1.35 ? thick : thin;
+      path.moveTo(f.x, f.y);
+      path.quadraticCurveTo(mx, my, hx, hy);
+      shown.push({ f, age, a, wind, stem, hx, hy, mx, my });
+    }
+    ctx.strokeStyle = night ? "#0f2a1c" : "#3a7a3a";
+    ctx.lineWidth = 1.05;
+    ctx.stroke(thin);
+    ctx.lineWidth = 1.5;
+    ctx.stroke(thick);
+
+    for (const { f, age, a, wind, stem, hx, hy, mx, my } of shown) {
+      // Leaves along the stem: serrated for roses, long blades for the rest.
+      const leaf = f.kind === "rose" ? plants.roseLeaf : plants.blade;
+      if (leaf && f.kind !== "lavender") {
+        const unfold = clamp01((age - 0.3) / 1.2);
+        const k = (stem / leaf.w) * (f.kind === "rose" ? 0.34 : 0.5) * unfold;
+        if (k > 0.02) {
+          const pairs = f.kind === "rose" ? 2 : 1;
+          for (let i = 0; i < pairs; i++) {
+            const u = pairs === 2 ? (i ? 0.62 : 0.38) : 0.3;
+            const side = i % 2 ? -f.leaf : f.leaf;
+            const lx = (1 - u) * (1 - u) * f.x + 2 * (1 - u) * u * mx + u * u * hx;
+            const ly = (1 - u) * (1 - u) * f.y + 2 * (1 - u) * u * my + u * u * hy;
+            place(lx, ly, -0.75 + wind * 0.15 * side + (1 - unfold) * -0.8, side);
+            drawSprite(ctx, leaf, 0, 0, k);
+          }
+        }
+      }
+
+      const opening = clamp01((age - 0.8) / 2.6);
+      let stage = 1 - Math.pow(1 - opening, 2);
+      if (night && f.kind !== "jasmine") stage = Math.min(stage, f.kind === "rose" ? 0.62 : 0.55);
+      const sprite = this.head(f, stage);
+      if (sprite) {
+        const pop = f.born < 0 ? 1 : 0.55 + 0.45 * easeOutBack(clamp01((age - 0.6) / 1.4));
+        place(hx, hy, a * 0.6);
+        drawSprite(ctx, sprite, 0, 0, ((11 * f.size) / HEAD_BASE) * pop);
+      }
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (night && this.glow) {
+      for (const { f, hx, hy } of shown) {
+        if (f.kind !== "jasmine") continue;
         ctx.globalAlpha = 0.25 + 0.15 * Math.sin(t * 1.3 + f.ph);
         ctx.drawImage(this.glow, hx - 12, hy - 12, 24, 24);
       }
       ctx.globalAlpha = 1;
-    }
-  }
-
-  private drawHead(f: Flower, s: number, night: boolean) {
-    const ctx = this.ctx;
-    switch (f.kind) {
-      case "tulip": {
-        ctx.fillStyle = f.color;
-        ctx.beginPath();
-        ctx.ellipse(-3.2 * s, -1 * s, 3.4 * s, 6.5 * s, -0.35, 0, Math.PI * 2);
-        ctx.ellipse(3.2 * s, -1 * s, 3.4 * s, 6.5 * s, 0.35, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "rgba(0,0,0,0.12)";
-        ctx.beginPath();
-        ctx.ellipse(0, -1.5 * s, 3.2 * s, 6.8 * s, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = f.color;
-        ctx.beginPath();
-        ctx.ellipse(0, -1.8 * s, 2.8 * s, 6.4 * s, 0, 0, Math.PI * 2);
-        ctx.fill();
-        break;
-      }
-      case "daisy": {
-        ctx.fillStyle = night ? "#d9dbe6" : "#ffffff";
-        ctx.beginPath();
-        for (let i = 0; i < 9; i++) {
-          const a = (i / 9) * Math.PI * 2;
-          const x = Math.cos(a) * 4.2 * s;
-          const y = Math.sin(a) * 4.2 * s;
-          ctx.moveTo(x + 2.6 * s, y);
-          ctx.ellipse(x, y, 3.4 * s, 1.5 * s, a, 0, Math.PI * 2);
-        }
-        ctx.fill();
-        ctx.fillStyle = "#f2c230";
-        ctx.beginPath();
-        ctx.arc(0, 0, 2.4 * s, 0, Math.PI * 2);
-        ctx.fill();
-        break;
-      }
-      case "rose": {
-        ctx.fillStyle = f.color;
-        ctx.beginPath();
-        ctx.arc(0, 0, 5.4 * s, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(80,0,20,0.35)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(0.5 * s, 0.3 * s, 3.4 * s, 0.4, 5.2);
-        ctx.moveTo(1.6 * s, 0);
-        ctx.arc(0, 0, 1.6 * s, 0, 4.4);
-        ctx.stroke();
-        break;
-      }
-      case "poppy": {
-        ctx.fillStyle = f.color;
-        ctx.beginPath();
-        for (let i = 0; i < 4; i++) {
-          const a = (i / 4) * Math.PI * 2 + 0.4;
-          ctx.moveTo(Math.cos(a) * 3.5 * s + 4 * s, Math.sin(a) * 3.5 * s);
-          ctx.arc(Math.cos(a) * 3.5 * s, Math.sin(a) * 3.5 * s, 4 * s, 0, Math.PI * 2);
-        }
-        ctx.fill();
-        ctx.fillStyle = "#1d1410";
-        ctx.beginPath();
-        ctx.arc(0, 0, 1.8 * s, 0, Math.PI * 2);
-        ctx.fill();
-        break;
-      }
-      case "lavender": {
-        ctx.fillStyle = f.color;
-        ctx.beginPath();
-        for (let i = 0; i < 7; i++) {
-          const y = -i * 2.6 * s;
-          const r = (2.2 - i * 0.18) * s;
-          ctx.moveTo(r, y);
-          ctx.ellipse(0, y, r, r * 1.3, 0, 0, Math.PI * 2);
-        }
-        ctx.fill();
-        break;
-      }
-      case "jasmine": {
-        ctx.fillStyle = "#ffffff";
-        for (const [ox, oy] of [[0, 0], [-4.5, 2.5], [4, 3]] as const) {
-          ctx.beginPath();
-          for (let i = 0; i < 5; i++) {
-            const a = (i / 5) * Math.PI * 2;
-            const x = ox * s + Math.cos(a) * 2.3 * s;
-            const y = oy * s + Math.sin(a) * 2.3 * s;
-            ctx.moveTo(x + 1.5 * s, y);
-            ctx.arc(x, y, 1.5 * s, 0, Math.PI * 2);
-          }
-          ctx.fill();
-          ctx.fillStyle = "#f6e7a6";
-          ctx.beginPath();
-          ctx.arc(ox * s, oy * s, 0.8 * s, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = "#ffffff";
-        }
-        break;
-      }
     }
   }
 
