@@ -8,6 +8,15 @@ import { parseWebReminderClickDetail } from "@/lib/webReminderActions";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 import { useNoorStore } from "@/store/noorStore";
 import { getLocalDateKey, parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
+import { DEFAULT_PRAYER_COORDINATES, readCachedPrayerCoordinates } from "@/lib/prayerLocation";
+import {
+  buildPrayerTopUpPlan,
+  clearPrayerTopUp,
+  configurePrayerTopUp,
+  isTopUpNotification,
+  TOP_UP_PRAYERS,
+  type PrayerTopUpPlan,
+} from "@/lib/prayerTopUp";
 import {
   PRAYER_ACTION_TYPE_ID,
   REMINDER_ACTION_TYPE_ID,
@@ -77,12 +86,13 @@ const DAILY_HADITH_ID = 9501;
 const NOTIFICATION_DATE_SLOT_OFFSET = 10;
 /**
  * Prayer alarms are queued a week ahead so they keep firing while the app
- * stays closed. Each date takes one of seven ID slots (day ordinal mod 7):
- * the seven days in any window never share a slot, and every ID stays
+ * stays closed, and the phone keeps adding the following days by itself
+ * (src/lib/prayerTopUp.ts). Each date takes one of ten ID slots (day ordinal
+ * mod 10): the ten days in any window never share a slot, and every ID stays
  * inside its own block (prayers 92xx, follow-ups 93xx, Ramadan 94xx,
  * hadith 95xx).
  */
-const NOTIFICATION_DATE_SLOTS = 7;
+const NOTIFICATION_DATE_SLOTS = 10;
 export const PRAYER_SCHEDULE_DAYS = 7;
 /** Follow-ups and the daily hadith only matter for today and tomorrow. */
 const NEAR_TERM_DAYS = 2;
@@ -171,7 +181,7 @@ function notificationIdsForDateSlot(ids: readonly number[], dateISO: string): nu
 function dateSlotIdForAction(baseId: number, dateISO?: string): number | null {
   const today = getLocalDateKey();
   const targetDate = dateISO ?? today;
-  const inWindow = Array.from({ length: PRAYER_SCHEDULE_DAYS }, (_, offset) => shiftDateKey(today, offset)).includes(targetDate);
+  const inWindow = Array.from({ length: NOTIFICATION_DATE_SLOTS }, (_, offset) => shiftDateKey(today, offset)).includes(targetDate);
   if (!inWindow) return null;
   return notificationIdForDate(baseId, targetDate);
 }
@@ -477,6 +487,7 @@ export async function ensureExactAlarmPermission(): Promise<void> {
 
 export async function cancelAllReminders() {
   const { LocalNotifications } = await import("@capacitor/local-notifications");
+  await clearPrayerTopUp();
 
   await LocalNotifications.cancel({
     notifications: [
@@ -660,6 +671,69 @@ function buildReminderNotifications(
 
 export type PrayerNotificationDay = { dateISO: string; timings: PrayerNotificationTimings };
 
+/** One prayer's Adhan notification, apart from its id, time and date. */
+function prayerAdhanContent(prayerName: PrayerTimingName, audio: NotificationAudioConfig) {
+  return {
+    title: "أثر — الأذان",
+    body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
+    channelId: audio.channelId,
+    ...notificationSound(audio.soundFile),
+    smallIcon: REMINDER_NOTIFICATION_ICON,
+    largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+    iconColor: REMINDER_ICON_COLOR,
+    actionTypeId: PRAYER_ACTION_TYPE_ID,
+  };
+}
+
+/**
+ * What the phone needs to keep queuing the Adhan after the app's own week:
+ * the enabled prayers' notification content, and a year of offline times for
+ * the saved location (or the app's Cairo default) and calculation settings.
+ */
+export function buildPrayerTopUpPlanForSync(
+  scheduledThrough: string,
+  audio: NotificationAudioConfig,
+  enabledPrayers: PrayerAlertPreferences,
+  owner: string,
+  options: { planDays?: number } = {},
+): PrayerTopUpPlan | null {
+  const templates: PrayerTopUpPlan["templates"] = {};
+  for (const prayerName of TOP_UP_PRAYERS) {
+    if (!enabledPrayers[prayerName]) continue;
+    templates[prayerName] = {
+      baseId: PRAYER_NOTIFICATION_IDS[prayerName],
+      notification: {
+        ...prayerAdhanContent(prayerName, audio),
+        extra: { prayerName, atharTopUp: true, accountOwner: owner },
+      },
+    };
+  }
+  if (!Object.keys(templates).length) return null;
+  const prefs = useNoorStore.getState().prefs;
+  return buildPrayerTopUpPlan({
+    scheduledThrough,
+    coords: readCachedPrayerCoordinates() ?? DEFAULT_PRAYER_COORDINATES,
+    method: prefs.prayerCalcMethod ?? 5,
+    school: prefs.asrMadhab ?? 0,
+    templates,
+    slotCount: NOTIFICATION_DATE_SLOTS,
+    slotOffset: NOTIFICATION_DATE_SLOT_OFFSET,
+    slotForDate: notificationDateSlot,
+    planDays: options.planDays,
+  });
+}
+
+/** The last date with a queued Adhan, or the first day if none survived. */
+function lastScheduledPrayerDate(notifications: LocalNotification[], fallback: string): string {
+  const mainIds = new Set(notificationIdsForAllDateSlots(Object.values(PRAYER_NOTIFICATION_IDS)));
+  let last = fallback;
+  for (const notification of notifications) {
+    const dateISO = notification.extra?.dateISO;
+    if (mainIds.has(notification.id) && typeof dateISO === "string" && dateISO > last) last = dateISO;
+  }
+  return last;
+}
+
 export function buildPrayerNotificationsForDays(
   days: PrayerNotificationDay[],
   audio: NotificationAudioConfig,
@@ -709,15 +783,8 @@ export function buildPrayerNotificationsForDays(
 
       const main = {
         id: notificationIdForDate(PRAYER_NOTIFICATION_IDS[prayerName], day.dateISO),
-        title: "أثر — الأذان",
-        body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
-        channelId: audio.channelId,
-        ...notificationSound(audio.soundFile),
-        smallIcon: REMINDER_NOTIFICATION_ICON,
-        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-        iconColor: REMINDER_ICON_COLOR,
+        ...prayerAdhanContent(prayerName, audio),
         schedule: withAndroidDozeDelivery({ at }),
-        actionTypeId: PRAYER_ACTION_TYPE_ID,
         extra,
       };
 
@@ -1145,6 +1212,7 @@ async function syncRemindersForOwner(
     await cancelAllReminders();
     return;
   }
+  if (!reminders.prayerAlertsEnabled) await clearPrayerTopUp();
 
   const reminderIds = Object.values(REMINDER_IDS);
   const shouldRefreshPrayerNotifications = !reminders.prayerAlertsEnabled || !!prayerTimings;
@@ -1189,8 +1257,9 @@ async function syncRemindersForOwner(
   if (getAccountStorageOwner() !== owner) return;
   const notifications: LocalNotification[] = buildReminderNotifications(reminders, reminderAudio, completion);
 
+  let prayerNotificationAudio: NotificationAudioConfig | null = null;
   if (reminders.prayerAlertsEnabled && prayerTimings) {
-    const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
+    prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
     if (getAccountStorageOwner() !== owner) return;
     notifications.push(...buildPrayerNotificationsForDays(
       scheduleDays,
@@ -1219,7 +1288,11 @@ async function syncRemindersForOwner(
     try {
       const replacing = new Set(notifications.map((notification) => notification.id));
       const pending = await LocalNotifications.getPending();
-      alreadyQueued = pending.notifications.filter((item) => !replacing.has(Number(item.id))).length;
+      // Days the phone queued by itself make room: it refills what is left
+      // of the budget after this schedule (configurePrayerTopUp below).
+      alreadyQueued = pending.notifications
+        .filter((item) => !replacing.has(Number(item.id)) && !isTopUpNotification(item.extra))
+        .length;
     } catch {
       alreadyQueued = 0;
     }
@@ -1233,6 +1306,18 @@ async function syncRemindersForOwner(
       extra: { ...notification.extra, accountOwner: owner },
     })),
   });
+
+  if (reminders.prayerAlertsEnabled && prayerTimings && prayerNotificationAudio) {
+    if (getAccountStorageOwner() !== owner) return;
+    const plan = buildPrayerTopUpPlanForSync(
+      lastScheduledPrayerDate(scheduled, todayISO),
+      prayerNotificationAudio,
+      { ...DEFAULT_PRAYER_ALERTS, ...reminders.prayerAlerts },
+      owner,
+    );
+    if (plan) await configurePrayerTopUp(plan);
+    else await clearPrayerTopUp();
+  }
 }
 
 /** 3C: Register a listener that navigates to the route embedded in a notification's extra.

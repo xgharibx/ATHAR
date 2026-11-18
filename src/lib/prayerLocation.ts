@@ -13,6 +13,9 @@ export type PrayerCoordinates = {
   lng: number;
 };
 
+/** Cairo, matching the city fallback, for offline times without a saved location. */
+export const DEFAULT_PRAYER_COORDINATES: PrayerCoordinates = { lat: 30.0444, lng: 31.2357 };
+
 export function readCachedPrayerCoordinates(): PrayerCoordinates | null {
   try {
     const raw = accountScopedLocalStorage.getItem(PRAYER_COORDS_KEY);

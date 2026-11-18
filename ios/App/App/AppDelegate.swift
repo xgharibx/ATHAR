@@ -31,6 +31,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private var nativeAuthDeliveryAttempts = 0
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Keep the Adhan queued past the app's own week, also while it stays closed.
+        PrayerTopUp.registerBackgroundTask()
+        PrayerTopUp.run()
         // Opened from a Home Screen quick action (long-press on the app icon).
         if let shortcut = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
             Self.openShortcut(shortcut)
@@ -60,6 +63,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidEnterBackground(_ application: UIApplication) {
         Self.mirrorWidgetDataToAppGroup()
+        PrayerTopUp.scheduleBackgroundRefresh()
     }
 
     /// Copies the web app's widget payloads into the shared App Group and asks

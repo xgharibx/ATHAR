@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalculationMethod, Coordinates, Madhab, PrayerTimes as AdhanPrayerTimes, type CalculationParameters } from "adhan";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { useNoorStore } from "@/store/noorStore";
 import { getPrayerWidgetClockContext, syncPrayerWidget } from "@/lib/prayerWidget";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
+import { computeLocalPrayerTimings } from "@/lib/localPrayerTimes";
 import { Capacitor } from "@capacitor/core";
 import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
 import { DEFAULT_PRAYER_CITY, getPrayerLocationIdentity, PRAYER_COORDS_KEY, PRAYER_LOCATION_CHANGED_EVENT, readCachedPrayerCoordinates, type PrayerCoordinates } from "@/lib/prayerLocation";
@@ -254,43 +254,6 @@ function writeCachedCoords(lat: number, lng: number) {
   }
 }
 
-// AlAdhan numeric method codes → local `adhan` parameters. The offline library
-// exposes the prayer angles but not every authority's minute-by-minute tuning.
-function methodToCalculationParameters(method: number): CalculationParameters {
-  switch (method) {
-    case 1: return CalculationMethod.Karachi();
-    case 2: return CalculationMethod.NorthAmerica(); // ISNA
-    case 3: return CalculationMethod.MuslimWorldLeague();
-    case 4: return CalculationMethod.UmmAlQura();
-    case 5: return CalculationMethod.Egyptian();
-    case 7: return CalculationMethod.Tehran();
-    case 8: return CalculationMethod.Dubai(); // Gulf Region — closest available
-    case 9: return CalculationMethod.Kuwait();
-    case 10: return CalculationMethod.Qatar();
-    case 11: return CalculationMethod.Singapore();
-    case 12: return localAngleMethod(12, 12); // France
-    case 13: return CalculationMethod.Turkey();
-    case 14: return localAngleMethod(16, 15); // Russia
-    case 15: return CalculationMethod.MoonsightingCommittee();
-    case 16: return CalculationMethod.Dubai();
-    case 17: return localAngleMethod(20, 18); // JAKIM
-    case 18: return localAngleMethod(18, 18); // Tunisia
-    case 19: return localAngleMethod(18, 17); // Algeria
-    case 20: return localAngleMethod(20, 18); // Indonesia
-    case 21: return localAngleMethod(19, 17); // Morocco
-    case 23: return localAngleMethod(18, 18, 5); // Jordan: Maghrib is 5 minutes after sunset
-    default: return CalculationMethod.MuslimWorldLeague();
-  }
-}
-
-function localAngleMethod(fajrAngle: number, ishaAngle: number, maghribOffset = 0): CalculationParameters {
-  const params = CalculationMethod.Other();
-  params.fajrAngle = fajrAngle;
-  params.ishaAngle = ishaAngle;
-  params.adjustments.maghrib = maghribOffset;
-  return params;
-}
-
 function two(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -307,24 +270,14 @@ function localDateKey(date: Date): string {
  * device timezone, which is also used by the app's countdowns and notification scheduler.
  */
 function computeLocalPrayerTimes(lat: number, lng: number, date: Date, method: number, school: number): PrayerTimesResponse {
-  const params = methodToCalculationParameters(method);
-  params.madhab = school === 1 ? Madhab.Hanafi : Madhab.Shafi;
-  const times = new AdhanPrayerTimes(new Coordinates(lat, lng), date, params);
-  const fmt = (d: Date) => `${two(d.getHours())}:${two(d.getMinutes())}`;
+  const timings = computeLocalPrayerTimings(lat, lng, date, method, school);
 
   const hijriParts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "numeric", year: "numeric" }).formatToParts(date);
   const part = (t: string) => hijriParts.find((p) => p.type === t)?.value ?? "1";
 
   return {
     data: {
-      timings: {
-        Fajr: fmt(times.fajr),
-        Sunrise: fmt(times.sunrise),
-        Dhuhr: fmt(times.dhuhr),
-        Asr: fmt(times.asr),
-        Maghrib: fmt(times.maghrib),
-        Isha: fmt(times.isha),
-      },
+      timings,
       date: {
         readable: date.toDateString(),
         hijri: {
