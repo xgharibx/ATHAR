@@ -33,6 +33,7 @@ import { StartupReady } from "@/components/StartupReady";
 import { useStartupReady } from "@/hooks/useStartupReady";
 import { warmBundledAdhkar } from "@/data/load";
 import { afterStartupReady } from "@/lib/startup";
+import { isRamadan } from "@/lib/ramadan";
 import { indexAppForSpotlight } from "@/lib/spotlight";
 import { followTravel } from "@/lib/travelLocation";
 import { startContinueReadingShortcut } from "@/lib/continueReading";
@@ -282,7 +283,11 @@ function AppContent() {
     { dateISO: shiftDateKey(liveActivityTodayKey, 1), timings: tomorrowNotificationPrayerTimings },
     ...(upcomingNotificationPrayerDays ?? []),
   ], [liveActivityTodayKey, notificationPrayerTimings, tomorrowNotificationPrayerTimings, upcomingNotificationPrayerDays]);
-  usePrayerLiveActivity(reminders.prayerLiveActivity ?? false, liveActivityDays);
+  usePrayerLiveActivity(
+    reminders.prayerLiveActivity ?? false,
+    liveActivityDays,
+    reminders.ramadanCountdown === false ? undefined : isRamadan,
+  );
 
   // N6: Smart-reminder completion snapshot — lets reminders skip already-done azkar
   // and switch to a "finish what you started" nudge when partially complete.

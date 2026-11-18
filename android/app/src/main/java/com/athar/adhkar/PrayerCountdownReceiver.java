@@ -12,6 +12,7 @@ public class PrayerCountdownReceiver extends BroadcastReceiver {
     static final String EXTRA_AT = "at";
     static final String EXTRA_FOLLOWING_NAME = "followingNameAr";
     static final String EXTRA_FOLLOWING_AT = "followingAt";
+    static final String EXTRA_HEADLINE = "headline";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -29,7 +30,9 @@ public class PrayerCountdownReceiver extends BroadcastReceiver {
                 return;
             }
             // The prayer after that is not known until the app opens again.
-            PrayerCountdown.show(context, new PrayerCountdown.State(followingName, followingAt, null, 0));
+            // In Ramadan the next one (iftar or the end of suhoor) keeps the Ramadan headline.
+            String headline = intent.getStringExtra(EXTRA_HEADLINE);
+            PrayerCountdown.show(context, new PrayerCountdown.State(followingName, followingAt, null, 0, headline, null));
         }
     }
 }

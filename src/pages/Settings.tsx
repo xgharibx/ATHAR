@@ -1599,6 +1599,19 @@ export function SettingsPage() {
                   }}
                 />
               </div>
+              {reminders.prayerLiveActivity ? (
+                <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card) p-3">
+                  <div>
+                    <div className="text-xs font-semibold">في رمضان: الإفطار والسحور</div>
+                    <div className="text-[11px] opacity-65 mt-0.5">يعدّ تنازليًا للإفطار ولانتهاء السحور بدل كل صلاة</div>
+                  </div>
+                  <Switch
+                    aria-label="في رمضان: عدّاد الإفطار والسحور"
+                    checked={reminders.ramadanCountdown !== false}
+                    onCheckedChange={(v) => setReminders({ ramadanCountdown: v })}
+                  />
+                </div>
+              ) : null}
             </div>
           )}
 

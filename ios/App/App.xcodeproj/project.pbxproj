@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		05F9986B8DC2960E7806EFAF /* SpotlightPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1C5E3F220E5AA1FE715AF0 /* SpotlightPlugin.swift */; };
 		0C45654F4D15DBB810F0EDC1 /* PrayerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D640EE1A7D11B2EA163E83 /* PrayerActivityAttributes.swift */; };
+		110A2AC5BBFFC355DF4204CE /* AtharMoreWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4FFEF27FFB5830C345962B /* AtharMoreWidgets.swift */; };
 		17FE68421D1C0A0BE443A679 /* AdhanAlarmPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7104E0C1268ABBB2F0C6B8D /* AdhanAlarmPlugin.swift */; };
 		185FCCCF943857665BB09FDD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 35281742DA46EB40310EDCB8 /* Foundation.framework */; };
 		2092794A6A13885F30AA0EDD /* AtharIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A951A88B658C401B46D299C4 /* AtharIntents.swift */; };
@@ -114,6 +115,7 @@
 		A7D84291C0A24D96A7A12004 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12005 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A951A88B658C401B46D299C4 /* AtharIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharIntents.swift; sourceTree = "<group>"; };
+		AC4FFEF27FFB5830C345962B /* AtharMoreWidgets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharMoreWidgets.swift; sourceTree = "<group>"; };
 		ACF0538B9505F0274F3CE067 /* AtharDailyWidgets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharDailyWidgets.swift; sourceTree = "<group>"; };
 		B10D03353703029A438FEE40 /* AtharTasbeehWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharTasbeehWidget.swift; sourceTree = "<group>"; };
 		C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetRefreshPlugin.swift; sourceTree = "<group>"; };
@@ -242,6 +244,7 @@
 				0179CF4362FFF4CD1EA8A4DA /* AsmaAlHusna.swift */,
 				B10D03353703029A438FEE40 /* AtharTasbeehWidget.swift */,
 				8CFE3AE8D41290C1677A7A7F /* AtharControls.swift */,
+				AC4FFEF27FFB5830C345962B /* AtharMoreWidgets.swift */,
 			);
 			name = AtharWidgets;
 			path = AtharWidgets;
@@ -417,6 +420,7 @@
 				A444128C4A5B6C186E9A6F89 /* AtharTasbeehWidget.swift in Sources */,
 				59C2BF6AFBC722E3C1354DF5 /* OpenAtharScreenIntent.swift in Sources */,
 				AAD527A3FFE642A19917078B /* AtharControls.swift in Sources */,
+				110A2AC5BBFFC355DF4204CE /* AtharMoreWidgets.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

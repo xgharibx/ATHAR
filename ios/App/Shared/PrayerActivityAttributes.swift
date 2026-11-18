@@ -22,5 +22,9 @@ struct PrayerActivityAttributes: ActivityAttributes {
         /// The prayer after this one, shown once this one has arrived.
         var followingNameAr: String?
         var followingTime: Date?
+        /// The small line above the name («رمضان كريم» in Ramadan); «الصلاة القادمة» when absent.
+        var headline: String?
+        /// What happens at the time («أذان المغرب» for iftar); «الأذان» when absent.
+        var eventLabel: String?
     }
 }

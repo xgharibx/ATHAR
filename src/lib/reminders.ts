@@ -293,16 +293,8 @@ function dailyPhrase(phrases: string[]): string {
 // ── N4: Ramadan detection ────────────────────────────────────────────────────
 
 /** Returns true when the Gregorian date falls in Ramadan (Hijri month 9). */
-export function isRamadan(date = new Date()): boolean {
-  try {
-    const fmt = new Intl.DateTimeFormat("en-u-ca-islamic", { month: "numeric" });
-    const parts = fmt.formatToParts(date);
-    const monthPart = parts.find((p) => p.type === "month");
-    return monthPart?.value === "9";
-  } catch {
-    return false;
-  }
-}
+import { isRamadan } from "@/lib/ramadan";
+export { isRamadan };
 
 const DEFAULT_PRAYER_ALERTS: PrayerAlertPreferences = {
   Fajr: true,

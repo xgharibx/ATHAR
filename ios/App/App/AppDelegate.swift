@@ -23,6 +23,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         "noor_widget_adhkar_v1",
         "noor_widget_wird_v1",
         "noor_widget_dashboard_v1",
+        "noor_widget_qadaa_v1",
+        "noor_widget_sunnah_v1",
+        "noor_widget_qibla_v1",
         // Which account the Home Screen tasbeeh credits its taps to.
         "noor_widget_tasbeeh_owner_v1",
     ]
@@ -96,6 +99,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         for key in AppDelegate.widgetKeys {
             if let value = standard.string(forKey: "CapacitorStorage." + key) {
                 shared.set(value, forKey: key)
+            } else {
+                // Cleared by the app (e.g. signing out): the widgets forget it too.
+                shared.removeObject(forKey: key)
             }
         }
         #if canImport(WidgetKit)
@@ -159,8 +165,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     static func inAppRoute(from url: URL) -> String? {
         guard url.scheme?.lowercased() == "app.athar", url.host == "open" else { return nil }
         let path = url.path.isEmpty ? "/" : url.path
-        guard path.range(of: "^/[A-Za-z0-9/_-]*$", options: .regularExpression) != nil else { return nil }
-        return path
+        // A simple query is kept («/library/sharh?h=123» from the hadith widget).
+        let route = url.query.map { path + "?" + $0 } ?? path
+        return isSafeRoute(route) ? route : nil
     }
 
     /// An in-app path, optionally with a simple query («/mushaf?surah=18»).
