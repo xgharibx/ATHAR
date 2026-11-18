@@ -989,6 +989,11 @@ export function MushafPage() {
             finish();
             toast.error("تعذر تشغيل التلاوة");
           },
+          // The radio started: the recitation has stopped.
+          onInterrupted: () => {
+            if (!stillWanted()) return;
+            finish();
+          },
         },
       );
       if (!stillWanted()) {

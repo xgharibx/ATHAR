@@ -29,6 +29,8 @@ type QuranAudioPlugin = {
     rate: number;
     volume: number;
     repeat: RecitationRepeat;
+    /** Live radio streams: nothing is buffered ahead, and the lock screen shows a live broadcast. */
+    live?: boolean;
   }): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;
@@ -82,14 +84,40 @@ export type NativeRecitationEvents = {
   onState(state: RecitationState): void;
   onEnded(): void;
   onError(message: string, index: number): void;
+  /** Another player (the radio, or a new recitation) took over the native player. */
+  onInterrupted?(): void;
 };
+
+/**
+ * One native player serves the Mushaf and the radio. Whoever starts it last
+ * owns it: the previous owner stops listening to its events and is told it
+ * was interrupted, so the two never mix up each other's verses or stations.
+ */
+let owner: { id: number; interrupt(): void } | null = null;
+let ownerSeq = 0;
+
+function takeOverPlayer(interrupt: () => void): number {
+  const previous = owner;
+  const id = ++ownerSeq;
+  owner = { id, interrupt };
+  previous?.interrupt();
+  return id;
+}
+
+function ownsPlayer(id: number): boolean {
+  return owner?.id === id;
+}
+
+function releasePlayer(id: number): void {
+  if (owner?.id === id) owner = null;
+}
 
 /**
  * Hand a run of verses to the native player. Resolves to null when this app
  * build has no native player, so the caller can use the web player instead.
  */
 export async function startNativeRecitation(
-  options: { verses: RecitationVerse[]; startIndex: number; rate: number; volume: number; repeat: RecitationRepeat },
+  options: { verses: RecitationVerse[]; startIndex: number; rate: number; volume: number; repeat: RecitationRepeat; live?: boolean },
   events: NativeRecitationEvents,
 ): Promise<NativeRecitationSession | null> {
   const native = nativePlugin();
@@ -102,11 +130,18 @@ export async function startNativeRecitation(
   const detach = () => {
     for (const handle of handles.splice(0)) void handle.remove().catch(() => {});
   };
+  let ownerId = 0;
   const end = () => {
     if (ended) return;
     ended = true;
     detach();
+    releasePlayer(ownerId);
   };
+  ownerId = takeOverPlayer(() => {
+    if (ended) return;
+    end();
+    events.onInterrupted?.();
+  });
 
   try {
     handles.push(
@@ -133,6 +168,7 @@ export async function startNativeRecitation(
       rate: options.rate,
       volume: options.volume,
       repeat: options.repeat,
+      ...(options.live ? { live: true } : {}),
     });
   } catch {
     // An app build from before the native player.
@@ -143,8 +179,9 @@ export async function startNativeRecitation(
   return {
     pause() {
       if (ended) return;
+      const stillOwner = ownsPlayer(ownerId);
       end();
-      void native.stop().catch(() => {});
+      if (stillOwner) void native.stop().catch(() => {});
     },
     get volume() {
       return volume;

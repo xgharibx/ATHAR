@@ -15,6 +15,9 @@ import UIKit
  *
  *   play({ items: [{ id, url, title, artist }], startIndex, rate, volume, repeat })
  *       repeat: "none" | "one" (the current verse) | "all" (the whole list)
+ *       live: true for the Quran radio stations: only the station playing is
+ *       loaded (a live stream has no end to buffer towards), and the lock
+ *       screen shows a live broadcast; next and previous change station
  *   pause() / resume() / stop() / next() / previous()
  *   setRate({ rate }) / setVolume({ volume })
  *   download({ urls, maxBytes })  saves verses for offline listening,
@@ -57,6 +60,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
     private let player = AVQueuePlayer()
     private var verses: [Verse] = []
     private var repeatMode: Repeat = .none
+    private var live = false
     private var rate: Float = 1
     private var currentIndex = 0
     /// Which verse each queued player item plays.
@@ -115,7 +119,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         indexOf.removeAll()
         currentIndex = index
         player.insert(playerItem(for: index), after: nil)
-        if let following = nextIndex(after: index) {
+        if !live, let following = nextIndex(after: index) {
             player.insert(playerItem(for: following), after: player.items().last)
         }
     }
@@ -134,7 +138,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let queued = Set(player.items().map { ObjectIdentifier($0) })
         indexOf = indexOf.filter { queued.contains($0.key) }
         // Keep one verse buffering behind the current one.
-        if player.items().count < 2, let following = nextIndex(after: index) {
+        if !live, player.items().count < 2, let following = nextIndex(after: index) {
             player.insert(playerItem(for: following), after: player.items().last)
         }
         observeStatus(of: item)
@@ -196,12 +200,13 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         var info: [String: Any] = [
             MPMediaItemPropertyTitle: verse.title,
             MPMediaItemPropertyArtist: verse.artist,
-            MPMediaItemPropertyAlbumTitle: "القرآن الكريم · أثر",
+            MPMediaItemPropertyAlbumTitle: live ? "إذاعة القرآن الكريم · أثر" : "القرآن الكريم · أثر",
+            MPNowPlayingInfoPropertyIsLiveStream: live,
             MPNowPlayingInfoPropertyPlaybackRate: player.timeControlStatus == .playing ? Double(rate) : 0,
             MPNowPlayingInfoPropertyDefaultPlaybackRate: Double(rate),
         ]
         if let artwork { info[MPMediaItemPropertyArtwork] = artwork }
-        if let item = player.currentItem {
+        if !live, let item = player.currentItem {
             let duration = item.duration.seconds
             if duration.isFinite, duration > 0 { info[MPMediaItemPropertyPlaybackDuration] = duration }
             let elapsed = item.currentTime().seconds
@@ -296,6 +301,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let requestedRate = Float(call.getDouble("rate") ?? 1)
         let volume = Float(call.getDouble("volume") ?? 1)
         let repeatMode = Repeat(rawValue: call.getString("repeat") ?? "none") ?? .none
+        let live = call.getBool("live") ?? false
 
         DispatchQueue.main.async {
             do {
@@ -308,6 +314,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             }
             self.verses = parsed
             self.repeatMode = repeatMode
+            self.live = live
             self.rate = max(0.5, min(2, requestedRate.isFinite ? requestedRate : 1))
             self.player.defaultRate = self.rate
             self.player.volume = max(0, min(1, volume.isFinite ? volume : 1))
