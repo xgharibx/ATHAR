@@ -1,5 +1,4 @@
-name: Capture iOS store screens
-
+name: Athar native QA
 on:
   workflow_dispatch:
 
@@ -7,68 +6,138 @@ permissions:
   contents: read
 
 jobs:
-  capture:
-    runs-on: macos-26
-    timeout-minutes: 25
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 26
           cache: npm
-      - name: Build current app assets
-        env:
-          VITE_LEADERBOARD_ENDPOINT: ${{ secrets.VITE_LEADERBOARD_ENDPOINT }}
-          VITE_LEADERBOARD_ANON_KEY: ${{ secrets.VITE_LEADERBOARD_ANON_KEY }}
-          VITE_COMPANION_PROXY_URL: ${{ secrets.VITE_COMPANION_PROXY_URL }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://ojstudhmcypoqfnwugbf.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build the app and instrumentation APKs
+        run: |
+          npm ci
+          npm run build
+          npx cap sync android
+          cd android
+          ./gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest
+      - name: Launch Android emulator
+        run: |
+          sdkmanager "emulator" "system-images;android-35;google_apis;x86_64"
+          printf 'no\n' | avdmanager create avd -n athar-qa -k 'system-images;android-35;google_apis;x86_64' -d pixel_6
+          if [ ! -w /dev/kvm ]; then sudo chgrp "$(id -gn)" /dev/kvm && sudo chmod g+rw /dev/kvm; fi
+          "$ANDROID_HOME/emulator/emulator" -avd athar-qa -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          timeout 180 adb wait-for-device
+          for attempt in {1..90}; do
+            if [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then
+              adb shell input keyevent 82
+              exit 0
+            fi
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/emulator.log"
+          exit 1
+      - name: Install and exercise Athar screens
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/android-qa"
+          adb install android/app/build/outputs/apk/debug/app-debug.apk
+          adb install -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          failed=0
+          while IFS='|' read -r name route title; do
+            log="$RUNNER_TEMP/android-qa/$name.txt"
+            adb shell "am instrument -w -r -e class com.athar.adhkar.ReleaseScreenshotCaptureTest -e screenshotRoute '$route' -e screenshotReadyText '$title' -e screenshotName '$name.png' com.athar.adhkar.test/androidx.test.runner.AndroidJUnitRunner" > "$log" || true
+            if grep -Fq 'OK (1 test)' "$log"; then
+              echo "| $name | Passed |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "| $name | Failed |" >> "$GITHUB_STEP_SUMMARY"
+              cat "$log"
+              failed=1
+            fi
+          done <<'SCREENS'
+          home|/|مواقيت الصلاة
+          adhkar|/c/evening|أذكار المساء
+          quran|/quran|القرآن الكريم
+          mushaf|/mushaf/1|ٱلۡحَمۡدُ
+          prayer|/prayer-times|مواقيت الصلاة
+          qibla|/qibla|القبلة
+          mosques|/mosques|المساجد القريبة
+          sebha|/sebha|السبحة اليومية
+          wird|/wird|جدول الورد
+          muhasaba|/muhasaba|جدول المحاسبة
+          qadaa|/qadaa|قضاء الفوائت
+          library|/library|المكتبة الإسلامية
+          hadith|/hadith|الأحاديث
+          ijaz|/ijaz|الإعجاز العلمي
+          companion|/companion|عرّفني على نفسك
+          reminders|/reminders|تذكيراتي
+          feedback|/feedback|صوتك يترك أثرًا
+          SCREENS
+          adb pull /sdcard/Android/data/com.athar.adhkar/files/release-screenshots/ "$RUNNER_TEMP/android-qa/screenshots" || true
+          exit "$failed"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: android-native-qa
+          path: ${{ runner.temp }}/android-qa
+          if-no-files-found: warn
+          retention-days: 7
+
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 26
+          cache: npm
+      - name: Build for an iPhone simulator
         run: |
           npm ci
           npm run build
           npx cap sync ios
-      - name: Build for iPhone Simulator
-        run: |
-          xcodebuild -workspace ios/App/App.xcworkspace -scheme App \
-            -configuration Debug -sdk iphonesimulator \
-            -derivedDataPath "$RUNNER_TEMP/athar-simulator" CODE_SIGNING_ALLOWED=NO build
-      - name: Capture current screens without system bars
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug -sdk iphonesimulator -derivedDataPath "$RUNNER_TEMP/athar-simulator" CODE_SIGNING_ALLOWED=NO build
+      - name: Install and capture Athar screens
         shell: bash
         run: |
           set -euo pipefail
-          device=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; a=[x for group in d.values() for x in group if x.get("isAvailable") and x["name"] in ("iPhone 17 Pro", "iPhone 16 Pro")]; a.sort(key=lambda x: (x["name"] != "iPhone 17 Pro")); print(a[0]["udid"] if a else "")')
-          test -n "$device" || { echo 'No supported iPhone simulator available'; exit 1; }
+          device=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; a=[x for items in d.values() for x in items if x["name"] in ("iPhone 17 Pro", "iPhone 16 Pro")]; a.sort(key=lambda x: x["name"] != "iPhone 17 Pro"); print(a[0]["udid"] if a else "")')
+          test -n "$device"
           xcrun simctl boot "$device" || true
           xcrun simctl bootstatus "$device" -b
           app="$RUNNER_TEMP/athar-simulator/Build/Products/Debug-iphonesimulator/App.app"
           index="$app/public/index.html"
-          test -f "$index"
-          cp "$index" "$RUNNER_TEMP/athar-index-original.html"
-          /usr/libexec/PlistBuddy -c 'Add :UIStatusBarHidden bool YES' "$app/Info.plist" || /usr/libexec/PlistBuddy -c 'Set :UIStatusBarHidden YES' "$app/Info.plist"
-          mkdir -p "$RUNNER_TEMP/athar-captures"
-          for page in companion ijaz; do
-            PAGE="$page" INDEX="$index" ORIGINAL="$RUNNER_TEMP/athar-index-original.html" python3 - <<'PY'
-          import os
-          html = open(os.environ['ORIGINAL'], encoding='utf-8').read()
-          page = os.environ['PAGE']
-          setup = '''<script>
-          localStorage.setItem("noor_store_v1", JSON.stringify({state:{onboardingDone:true},version:38}));
-          localStorage.setItem("noor_companion_profile_v1", JSON.stringify({level:"regular",goals:["consistency"],concerns:["none"],greetingName:"",onboarded:true,createdAt:1,includePersonalContext:false}));
-          history.replaceState(null,"","/''' + page + '''");
-          </script>'''
-          assert '</head>' in html
-          open(os.environ['INDEX'], 'w', encoding='utf-8').write(html.replace('</head>', setup + '</head>', 1))
+          cp "$index" "$RUNNER_TEMP/athar-original-index.html"
+          mkdir -p "$RUNNER_TEMP/ios-qa"
+          for path in / /c/evening /quran /mushaf/1 /prayer-times /qibla /mosques /sebha /wird /muhasaba /qadaa /library /hadith /ijaz /companion /reminders /feedback; do
+            name=${path#/}; name=${name//\//-}; name=${name:-home}
+            QA_PATH="$path" APP_INDEX="$index" ORIGINAL="$RUNNER_TEMP/athar-original-index.html" python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          original = Path(os.environ["ORIGINAL"]).read_text()
+          path = os.environ["QA_PATH"]
+          seed = "" if path == "/" else """localStorage.setItem("noor_store_v1", JSON.stringify({state:{onboardingDone:true},version:38}));"""
+          setup = "<script>" + seed + "history.replaceState(null, '', " + json.dumps(path) + ");</script>"
+          Path(os.environ["APP_INDEX"]).write_text(original.replace("</head>", setup + "</head>", 1))
           PY
             xcrun simctl terminate "$device" com.athar.adhkar 2>/dev/null || true
             xcrun simctl uninstall "$device" com.athar.adhkar 2>/dev/null || true
             xcrun simctl install "$device" "$app"
             xcrun simctl launch "$device" com.athar.adhkar
-            sleep 35
-            xcrun simctl io "$device" screenshot "$RUNNER_TEMP/athar-captures/$page.png"
+            sleep 9
+            xcrun simctl io "$device" screenshot "$RUNNER_TEMP/ios-qa/$name.png"
           done
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
         with:
-          name: ios-store-captures
-          path: ${{ runner.temp }}/athar-captures/*.png
-          if-no-files-found: error
+          name: ios-native-qa
+          path: ${{ runner.temp }}/ios-qa
+          if-no-files-found: warn
           retention-days: 7
