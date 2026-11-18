@@ -42,8 +42,19 @@ final class PrayerCountdown {
         final long at;
         @Nullable final String followingNameAr;
         final long followingAt;
+        /** «رمضان كريم» in Ramadan; «الصلاة القادمة» when null. */
+        @Nullable final String headline;
+        /** «أذان المغرب» for iftar; «الأذان» when null. */
+        @Nullable final String eventLabel;
 
         State(String nameAr, long at, @Nullable String followingNameAr, long followingAt) {
+            this(nameAr, at, followingNameAr, followingAt, null, null);
+        }
+
+        State(String nameAr, long at, @Nullable String followingNameAr, long followingAt,
+              @Nullable String headline, @Nullable String eventLabel) {
+            this.headline = headline == null || headline.isEmpty() ? null : headline;
+            this.eventLabel = eventLabel == null || eventLabel.isEmpty() ? null : eventLabel;
             this.nameAr = nameAr;
             this.at = at;
             boolean hasFollowing = followingNameAr != null && !followingNameAr.isEmpty() && followingAt > at;
@@ -112,13 +123,14 @@ final class PrayerCountdown {
         ensureChannel(context);
         long now = System.currentTimeMillis();
         String adhan = DateFormat.getTimeFormat(context).format(new Date(state.at));
+        String event = state.eventLabel != null ? state.eventLabel : "الأذان";
         String text = state.followingNameAr != null
-            ? "الأذان " + adhan + " · ثم " + state.followingNameAr
-            : "الأذان " + adhan;
+            ? event + " " + adhan + " · ثم " + state.followingNameAr
+            : event + " " + adhan;
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_athar_notification)
-            .setContentTitle("الصلاة القادمة: " + state.nameAr)
+            .setContentTitle((state.headline != null ? state.headline : "الصلاة القادمة") + ": " + state.nameAr)
             .setContentText(text)
             // The system's own timer counts down to the adhan; nothing needs to run.
             .setWhen(state.at)
@@ -154,7 +166,8 @@ final class PrayerCountdown {
             .setAction(action)
             .putExtra(PrayerCountdownReceiver.EXTRA_AT, state.at)
             .putExtra(PrayerCountdownReceiver.EXTRA_FOLLOWING_NAME, state.followingNameAr)
-            .putExtra(PrayerCountdownReceiver.EXTRA_FOLLOWING_AT, state.followingAt);
+            .putExtra(PrayerCountdownReceiver.EXTRA_FOLLOWING_AT, state.followingAt)
+            .putExtra(PrayerCountdownReceiver.EXTRA_HEADLINE, state.headline);
         return PendingIntent.getBroadcast(
             context,
             NOTIFICATION_ID + requestCode,

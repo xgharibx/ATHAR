@@ -117,7 +117,9 @@ public class PrayerActivityPlugin: CAPPlugin, CAPBridgedPlugin {
             prayerTime: prayerTime,
             countdownStart: start,
             followingNameAr: followingName,
-            followingTime: followingTime
+            followingTime: followingTime,
+            headline: call.getString("headline").flatMap { $0.isEmpty ? nil : $0 },
+            eventLabel: call.getString("eventLabel").flatMap { $0.isEmpty ? nil : $0 }
         )
         let content = ActivityContent(state: state, staleDate: prayerTime, relevanceScore: 100)
 

@@ -237,6 +237,7 @@ export type Reminders = {
   dailyHadithNotif: boolean; // Phase 10 — daily hadith at Fajr
   iqamaOffsets: Record<PrayerAlertPrayer, number>; // minutes after adhan per prayer
   prayerLiveActivity: boolean; // next-prayer countdown outside the app: iOS Live Activity, Android ongoing notification
+  ramadanCountdown?: boolean; // in Ramadan the countdown is to iftar and the end of suhoor; on unless turned off
   /** The Adhan as a real alarm that rings on silent (src/lib/adhanAlarm.ts). Off unless chosen. */
   adhanAlarm?: AdhanAlarmPreferences;
   /** Android: Do Not Disturb for a few minutes from each Adhan (src/lib/prayerSilence.ts). */

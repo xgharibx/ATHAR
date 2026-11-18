@@ -16,7 +16,14 @@ const RECHECK_MS = 30 * 60 * 1000;
  * times load, when a prayer arrives while the app is open, and each time the
  * app comes back to the foreground (the only time iOS lets an app start one).
  */
-export function usePrayerLiveActivity(enabled: boolean, days: readonly LiveActivityPrayerDay[]): void {
+export function usePrayerLiveActivity(
+  enabled: boolean,
+  days: readonly LiveActivityPrayerDay[],
+  /** In Ramadan: count down to iftar and the end of suhoor instead. */
+  isRamadanDay?: (date: Date) => boolean,
+): void {
+  const ramadanRef = React.useRef(isRamadanDay);
+  React.useEffect(() => { ramadanRef.current = isRamadanDay; });
   const daysKey = JSON.stringify(days);
 
   React.useEffect(() => {
@@ -33,7 +40,7 @@ export function usePrayerLiveActivity(enabled: boolean, days: readonly LiveActiv
     const run = () => {
       if (timer !== null) clearTimeout(timer);
       const now = Date.now();
-      const request = buildPrayerActivityRequest(new Date(now), parsedDays);
+      const request = buildPrayerActivityRequest(new Date(now), parsedDays, { isRamadanDay: ramadanRef.current });
       void syncPrayerLiveActivity(request);
       const wait = request ? Math.min(request.at - now + 1000, RECHECK_MS) : RECHECK_MS;
       timer = setTimeout(run, Math.max(1000, wait));

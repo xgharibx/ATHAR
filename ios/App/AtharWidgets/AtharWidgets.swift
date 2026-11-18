@@ -308,6 +308,11 @@ struct PrayerActivityTimes {
 
     /// The prayer being counted down to: this one, or the next once it has arrived.
     var targetName: String { arrived ? (state.followingNameAr ?? state.prayerNameAr) : state.prayerNameAr }
+    /// Ramadan: iftar and the end of suhoor, with a crescent.
+    var ramadan: Bool { state.headline != nil }
+    var headline: String { arrived ? "حان الآن" : (state.headline ?? "الصلاة القادمة") }
+    var eventLabel: String { arrived ? "أذان \(targetName)" : (state.eventLabel ?? "الأذان") }
+    var symbol: String { arrived ? "bell.fill" : (ramadan ? "moon.fill" : "moon.stars.fill") }
     var targetRange: ClosedRange<Date>? {
         if !arrived { return min(state.countdownStart, state.prayerTime)...state.prayerTime }
         guard let following = state.followingTime, following > state.prayerTime else { return nil }
@@ -321,11 +326,11 @@ struct PrayerActivityLockScreenView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center) {
-                Image(systemName: times.arrived ? "bell.fill" : "moon.stars.fill")
+                Image(systemName: times.symbol)
                     .font(.title3)
                     .foregroundColor(gold)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(times.arrived ? "حان الآن وقت صلاة" : "الصلاة القادمة")
+                    Text(times.arrived ? "حان الآن" : times.headline)
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.7))
                     Text(times.state.prayerNameAr)
@@ -354,7 +359,7 @@ struct PrayerActivityLockScreenView: View {
                 }
                 .tint(gold)
                 HStack {
-                    Text(times.arrived ? "أذان \(times.targetName)" : "الأذان")
+                    Text(times.eventLabel)
                     Spacer()
                     Text(range.upperBound, style: .time)
                 }
@@ -379,7 +384,7 @@ struct PrayerLiveActivity: Widget {
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(times.arrived ? "حان الآن" : "الصلاة القادمة")
+                        Text(times.headline)
                             .font(.caption2)
                             .foregroundColor(.white.opacity(0.7))
                         Text(times.state.prayerNameAr)
@@ -407,7 +412,7 @@ struct PrayerLiveActivity: Widget {
                             }
                             .tint(gold)
                             HStack {
-                                Text(times.arrived ? "أذان \(times.targetName)" : "الأذان")
+                                Text(times.eventLabel)
                                 Spacer()
                                 Text(range.upperBound, style: .time)
                             }
@@ -418,7 +423,7 @@ struct PrayerLiveActivity: Widget {
                     }
                 }
             } compactLeading: {
-                Image(systemName: times.arrived ? "bell.fill" : "moon.stars.fill")
+                Image(systemName: times.symbol)
                     .foregroundColor(gold)
             } compactTrailing: {
                 if let range = times.targetRange {
@@ -431,7 +436,7 @@ struct PrayerLiveActivity: Widget {
                     Text(times.state.prayerNameAr).foregroundColor(gold)
                 }
             } minimal: {
-                Image(systemName: times.arrived ? "bell.fill" : "moon.stars.fill")
+                Image(systemName: times.symbol)
                     .foregroundColor(gold)
             }
             .keylineTint(gold)
@@ -452,6 +457,9 @@ struct AtharWidgetBundle: WidgetBundle {
         AtharStreakWidget()
         AtharAsmaWidget()
         AtharTasbeehWidget()
+        AtharQadaaWidget()
+        AtharSunnahWidget()
+        AtharQiblaWidget()
         PrayerLiveActivity()
         if #available(iOS 18.0, *) {
             AtharSebhaControl()

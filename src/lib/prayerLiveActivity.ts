@@ -39,7 +39,7 @@ export type LiveActivityPrayerDay = {
   timings: Partial<Record<string, string>> | null | undefined;
 };
 
-export type PrayerMoment = { key: LiveActivityPrayer; nameAr: string; at: Date };
+export type PrayerMoment = { key: LiveActivityPrayer; nameAr: string; at: Date; ramadan?: boolean };
 
 export type PrayerActivityRequest = {
   prayerKey: LiveActivityPrayer;
@@ -49,7 +49,30 @@ export type PrayerActivityRequest = {
   startAt: number;
   followingNameAr?: string;
   followingAt?: number;
+  /** The small line above the name; the native side shows «الصلاة القادمة» without it. */
+  headline?: string;
+  /** What happens at the time («الأذان», or «أذان المغرب» for iftar). */
+  eventLabel?: string;
 };
+
+/**
+ * In Ramadan the countdown is to iftar (Maghrib) and to the end of suhoor
+ * (Fajr), the two moments the fasting day turns on.
+ */
+export const RAMADAN_MOMENTS: Partial<Record<LiveActivityPrayer, { nameAr: string; eventLabel: string }>> = {
+  Fajr: { nameAr: "الإمساك", eventLabel: "أذان الفجر" },
+  Maghrib: { nameAr: "الإفطار", eventLabel: "أذان المغرب" },
+};
+export const RAMADAN_HEADLINE = "رمضان كريم";
+
+/** Keep only iftar and the end of suhoor on Ramadan days, under their Ramadan names. */
+export function ramadanFocus(moments: PrayerMoment[], isRamadanDay: (date: Date) => boolean): PrayerMoment[] {
+  return moments.flatMap((moment) => {
+    if (!isRamadanDay(moment.at)) return [moment];
+    const ramadan = RAMADAN_MOMENTS[moment.key];
+    return ramadan ? [{ ...moment, nameAr: ramadan.nameAr, ramadan: true }] : [];
+  });
+}
 
 /** Every prayer of the given days, in time order. */
 export function prayerMoments(days: readonly LiveActivityPrayerDay[]): PrayerMoment[] {
@@ -77,8 +100,9 @@ export function prayerMoments(days: readonly LiveActivityPrayerDay[]): PrayerMom
 export function buildPrayerActivityRequest(
   now: Date,
   days: readonly LiveActivityPrayerDay[],
+  options: { isRamadanDay?: (date: Date) => boolean } = {},
 ): PrayerActivityRequest | null {
-  const moments = prayerMoments(days);
+  const moments = options.isRamadanDay ? ramadanFocus(prayerMoments(days), options.isRamadanDay) : prayerMoments(days);
   const nowMs = now.getTime();
   const nextIndex = moments.findIndex((moment) => moment.at.getTime() > nowMs);
   if (nextIndex < 0) return null;
@@ -95,6 +119,7 @@ export function buildPrayerActivityRequest(
     at,
     startAt: previous ? previous.at.getTime() : nowMs,
     ...(following ? { followingNameAr: following.nameAr, followingAt: following.at.getTime() } : {}),
+    ...(next.ramadan ? { headline: RAMADAN_HEADLINE, eventLabel: RAMADAN_MOMENTS[next.key]!.eventLabel } : {}),
   };
 }
 

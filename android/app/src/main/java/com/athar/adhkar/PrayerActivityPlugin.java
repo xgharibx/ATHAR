@@ -47,7 +47,9 @@ public class PrayerActivityPlugin extends Plugin {
             name,
             prayerAt,
             call.getString("followingNameAr"),
-            followingAt == null || followingAt.isNaN() ? 0 : followingAt.longValue()
+            followingAt == null || followingAt.isNaN() ? 0 : followingAt.longValue(),
+            call.getString("headline"),
+            call.getString("eventLabel")
         );
         boolean shown = PrayerCountdown.show(context, state);
         result.put("active", shown);

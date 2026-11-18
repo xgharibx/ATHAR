@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { prayerCountdownAllowed, prayerCountdownPlatform } from "@/lib/prayerLiveActivity";
+import { isRamadan } from "@/lib/ramadan";
 import { useNoorStore } from "@/store/noorStore";
 
 const DISMISSED_KEY = "athar_countdown_suggestion_dismissed_v1";
@@ -27,6 +28,7 @@ export function CountdownSuggestion() {
   const setReminders = useNoorStore((s) => s.setReminders);
   const [dismissed, setDismissed] = React.useState(readDismissed);
   const platform = prayerCountdownPlatform();
+  const ramadan = isRamadan();
 
   if (!platform || enabled || dismissed) return null;
 
@@ -47,7 +49,7 @@ export function CountdownSuggestion() {
         : "اسمح لتطبيق أثر بإرسال الإشعارات من إعدادات الجهاز");
       return;
     }
-    toast.success("سيظهر العدّ التنازلي للصلاة القادمة");
+    toast.success(ramadan ? "سيظهر العدّ التنازلي للإفطار والسحور" : "سيظهر العدّ التنازلي للصلاة القادمة");
   };
 
   return (
@@ -58,9 +60,11 @@ export function CountdownSuggestion() {
     >
       <BellRing size={20} aria-hidden="true" className="mt-0.5 shrink-0 text-(--accent)" />
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold">عدّاد الصلاة القادمة</div>
+        <div className="text-sm font-semibold">{ramadan ? "عدّاد الإفطار والسحور" : "عدّاد الصلاة القادمة"}</div>
         <div className="mt-1 text-xs opacity-70 leading-relaxed">
-          {platform === "ios"
+          {ramadan
+            ? "رمضان كريم: اعرض عدًّا تنازليًا للإفطار ولانتهاء السحور على شاشة القفل، دون فتح التطبيق."
+            : platform === "ios"
             ? "اعرض عدًّا تنازليًا للصلاة القادمة على شاشة القفل وفي الجزيرة التفاعلية، دون فتح التطبيق."
             : "اعرض عدًّا تنازليًا للصلاة القادمة في شريط الإشعارات وعلى شاشة القفل، دون فتح التطبيق."}
         </div>
