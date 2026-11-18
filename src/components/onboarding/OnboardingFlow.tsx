@@ -4,58 +4,29 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useNoorStore } from "@/store/noorStore";
-import { isNativePlatform, requestNotificationPermission } from "@/lib/reminders";
+import { requestNotificationPermission } from "@/lib/reminders";
 import { requestPrayerLocation } from "@/hooks/usePrayerTimes";
 import { arNum } from "@/lib/formatNumber";
 import { FocusManagedDialog } from "@/components/ui/FocusManagedDialog";
-
-type ReminderPermission = "granted" | "denied" | "prompt";
-
-async function requestReminderPermission(): Promise<ReminderPermission> {
-  try {
-    if (await isNativePlatform()) {
-      const permission = await requestNotificationPermission();
-      return permission === "granted" ? "granted" : permission === "denied" ? "denied" : "prompt";
-    }
-  } catch {
-    // Fall through to the browser notification API when available.
-  }
-
-  if (!("Notification" in globalThis)) return "prompt";
-  if (Notification.permission === "granted") return "granted";
-  if (Notification.permission === "denied") return "denied";
-  const permission = await Notification.requestPermission().catch(() => "denied" as NotificationPermission);
-  return permission === "granted" ? "granted" : permission === "denied" ? "denied" : "prompt";
-}
 
 const STEPS = [
   {
     emoji: "✨",
     title: "أهلاً بك في أثر",
-    description: "تطبيقك اليومي للأذكار والقرآن الكريم. ابدأ رحلتك الروحية الآن.",
+    description: "هنا تقرأ القرآن، وتتابع أذكارك ووردك، وتطّلع على مواقيت الصلاة.",
     action: "التالي",
   },
   {
     emoji: "🕌",
     title: "مواقيت الصلاة",
-    description: "استخدم موقعك لحساب مواقيت الصلاة، أو تابع بمواقيت القاهرة.",
+    description: "استخدم موقعك لحساب مواقيت الصلاة. عند الاتصال بالإنترنت، تُرسل الإحداثيات إلى خدمة المواقيت.",
     action: "استخدام موقعي",
   },
   {
-    emoji: "🔔",
-    title: "التنبيهات",
-    description: "هل تريد تذكيراً بالأذكار ومواقيت الصلاة؟ يمكنك تغيير هذا لاحقاً من الإعدادات.",
-    action: "السماح",
-    onAction: async () => {
-      await requestReminderPermission();
-    },
-  },
-  {
     emoji: "🌅",
-    title: "تذكير بأوقات الصلاة",
-    description: "تفعيل تنبيهات الأذان لجميع الصلوات الخمس؟ يمكنك ضبط كل صلاة بشكل مستقل لاحقاً.",
-    action: "تفعيل التنبيهات",
-    prayerReminders: true, // handled in component
+    title: "تنبيهات الصلاة",
+    description: "يمكن لأثر تذكيرك بالصلوات الخمس. تستطيع تغيير تنبيه كل صلاة من الإعدادات.",
+    action: "تفعيل تنبيهات الصلاة",
   },
 ] as const;
 
@@ -91,6 +62,8 @@ export function OnboardingFlow() {
         .then((locationSaved) => {
           if (locationSaved) {
             void queryClient.invalidateQueries({ queryKey: ["prayer-times", "v4"] }).catch(() => undefined);
+          } else {
+            toast.error("تعذّر تحديد موقعك. يمكنك المحاولة مجددًا من صفحة المواقيت.");
           }
         })
         .catch(() => undefined);
@@ -98,25 +71,23 @@ export function OnboardingFlow() {
       return;
     }
 
+    if (step === 0) {
+      advanceOrFinish();
+      return;
+    }
+
     setLoading(true);
     try {
-      if ("onAction" in current && current.onAction) {
-        await current.onAction();
-      }
+      const permission = await requestNotificationPermission().catch(() => "denied" as const);
       if (!mountedRef.current) return;
-      if ("prayerReminders" in current && current.prayerReminders) {
-        const remindersAllowed = (await requestReminderPermission()) === "granted";
-        if (!mountedRef.current) return;
-        if (!remindersAllowed) {
-          setReminders({ enabled: false, prayerAlertsEnabled: false });
-          toast.error("لم يتم السماح بالإشعارات");
-          return;
-        }
+      if (permission === "granted") {
         setReminders({
           enabled: true,
           prayerAlertsEnabled: true,
           prayerAlerts: { Fajr: true, Dhuhr: true, Asr: true, Maghrib: true, Isha: true },
         });
+      } else {
+        toast.error("يمكنك تفعيل التنبيهات من إعدادات الجهاز لاحقًا.");
       }
     } finally {
       if (mountedRef.current) setLoading(false);
@@ -134,7 +105,7 @@ export function OnboardingFlow() {
   };
 
   const actionLabel = loading ? "جارٍ…" : current.action;
-  const showLaterButton = step === 1 || ("prayerReminders" in current && current.prayerReminders);
+  const showLaterButton = step > 0;
 
   return (
     <FocusManagedDialog className="onboarding-overlay" aria-labelledby="onboarding-title" onClose={handleSkip} onClick={(e) => e.stopPropagation()} dir="rtl">
@@ -177,7 +148,7 @@ export function OnboardingFlow() {
 
           {step < steps.length - 1 && !showLaterButton && (
             <button type="button"
-              className="w-full mt-2 py-2.5 text-sm opacity-45 hover:opacity-70 transition arabic-text"
+              className="w-full mt-2 py-2.5 text-sm opacity-75 hover:opacity-100 transition arabic-text"
               onClick={handleSkip}
               disabled={loading}
             >
@@ -186,11 +157,11 @@ export function OnboardingFlow() {
           )}
           {showLaterButton && (
             <button type="button"
-              className="w-full mt-2 py-2.5 text-sm opacity-45 hover:opacity-70 transition arabic-text"
+              className="w-full mt-2 py-2.5 text-sm opacity-75 hover:opacity-100 transition arabic-text"
               onClick={handleLater}
               disabled={loading}
             >
-              {step === 1 ? "ليس الآن" : "لاحقاً"}
+              {step === 1 ? "المتابعة بمواقيت القاهرة" : "لاحقًا"}
             </button>
           )}
         </motion.div>

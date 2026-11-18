@@ -5390,6 +5390,21 @@ body:has([role="dialog"][data-state="open"]) .fab {
     pointer-events: none;
   }
 
+  .mushaf-reveal-controls {
+    position: fixed;
+    inset-block-start: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+    inset-inline-end: 0.5rem;
+    z-index: 145;
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border: 1px solid color-mix(in srgb, var(--fg) 28%, transparent);
+    border-radius: 50%;
+    color: var(--fg);
+    background: var(--card-2);
+  }
+
   .mushaf-chrome-icon-btn {
     width: 40px;
     height: 40px;

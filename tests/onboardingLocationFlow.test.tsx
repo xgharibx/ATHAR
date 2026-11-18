@@ -24,7 +24,7 @@ vi.mock("@/store/noorStore", () => ({
   useNoorStore: (selector: (state: { setOnboardingDone: typeof mocks.setOnboardingDone; setReminders: typeof mocks.setReminders }) => unknown) =>
     selector({ setOnboardingDone: mocks.setOnboardingDone, setReminders: mocks.setReminders }),
 }));
-vi.mock("@/lib/reminders", () => ({ isNativePlatform: vi.fn(), requestNotificationPermission: mocks.requestNotificationPermission }));
+vi.mock("@/lib/reminders", () => ({ requestNotificationPermission: mocks.requestNotificationPermission }));
 vi.mock("@/hooks/usePrayerTimes", () => ({ requestPrayerLocation: mocks.requestPrayerLocation }));
 vi.mock("react-hot-toast", () => ({ default: { error: vi.fn() } }));
 vi.mock("framer-motion", () => ({
@@ -103,13 +103,13 @@ describe("onboarding location choice", () => {
 
     const progress = container?.querySelector<HTMLElement>('[role="progressbar"]');
     expect(progress?.getAttribute("aria-valuenow")).toBe("1");
-    expect(progress?.getAttribute("aria-valuetext")).toBe("الخطوة ١ من ٤");
+    expect(progress?.getAttribute("aria-valuetext")).toBe("الخطوة ١ من ٣");
     expect(container?.querySelector('[role="tablist"]')).toBeNull();
 
     await act(async () => { buttonNamed("التالي").click(); });
 
     expect(container?.querySelector('[role="progressbar"]')?.getAttribute("aria-valuenow")).toBe("2");
-    expect(container?.querySelector('[role="progressbar"]')?.getAttribute("aria-valuetext")).toBe("الخطوة ٢ من ٤");
+    expect(container?.querySelector('[role="progressbar"]')?.getAttribute("aria-valuetext")).toBe("الخطوة ٢ من ٣");
   });
 
   it("shows the location purpose and fallback before asking for permission", async () => {
@@ -120,7 +120,7 @@ describe("onboarding location choice", () => {
     expect(container?.textContent).toContain("القاهرة");
     expect(container?.textContent).not.toContain("AlAdhan");
     expect(buttonNamed("استخدام موقعي")).toBeTruthy();
-    expect(buttonNamed("ليس الآن")).toBeTruthy();
+    expect(buttonNamed("المتابعة بمواقيت القاهرة")).toBeTruthy();
     expect(mocks.requestPrayerLocation).not.toHaveBeenCalled();
   });
 
@@ -131,9 +131,9 @@ describe("onboarding location choice", () => {
     expect(container?.textContent).toContain("مواقيت الصلاة");
     expect(container?.textContent).toContain("استخدام موقعي");
 
-    await act(async () => { buttonNamed("ليس الآن").click(); });
+    await act(async () => { buttonNamed("المتابعة بمواقيت القاهرة").click(); });
 
-    expect(container?.textContent).toContain("التنبيهات");
+    expect(container?.textContent).toContain("تنبيهات الصلاة");
     expect(mocks.requestPrayerLocation).not.toHaveBeenCalled();
     expect(mocks.setOnboardingDone).not.toHaveBeenCalled();
   });
@@ -148,11 +148,32 @@ describe("onboarding location choice", () => {
     await act(async () => { buttonNamed("استخدام موقعي").click(); });
 
     expect(mocks.requestPrayerLocation).toHaveBeenCalledOnce();
-    expect(container?.textContent).toContain("التنبيهات");
+    expect(container?.textContent).toContain("تنبيهات الصلاة");
     expect(mocks.setOnboardingDone).not.toHaveBeenCalled();
 
     await act(async () => { resolveLocation(true); await pendingLocation; });
     expect(mocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["prayer-times", "v4"] });
+  });
+
+  it.each(["granted", "denied"] as const)("finishes native onboarding when notifications are %s", async (permission) => {
+    mocks.requestNotificationPermission.mockResolvedValue(permission);
+    mount();
+
+    await act(async () => { buttonNamed("التالي").click(); });
+    await act(async () => { buttonNamed("المتابعة بمواقيت القاهرة").click(); });
+    expect(mocks.requestNotificationPermission).not.toHaveBeenCalled();
+
+    await act(async () => { buttonNamed("تفعيل تنبيهات الصلاة").click(); });
+    expect(mocks.requestNotificationPermission).toHaveBeenCalledOnce();
+    expect(mocks.setOnboardingDone).toHaveBeenCalledWith(true);
+    if (permission === "granted") {
+      expect(mocks.setReminders).toHaveBeenCalledWith(expect.objectContaining({
+        enabled: true,
+        prayerAlertsEnabled: true,
+      }));
+    } else {
+      expect(mocks.setReminders).not.toHaveBeenCalled();
+    }
   });
 
   it("finishes web onboarding without asking for notification permission or promising prayer alerts", async () => {
@@ -163,10 +184,10 @@ describe("onboarding location choice", () => {
 
     await act(async () => { buttonNamed("التالي").click(); });
     expect(container?.textContent).toContain("مواقيت الصلاة");
-    await act(async () => { buttonNamed("ليس الآن").click(); });
+    await act(async () => { buttonNamed("المتابعة بمواقيت القاهرة").click(); });
 
     expect(mocks.setOnboardingDone).toHaveBeenCalledWith(true);
-    expect(container?.textContent).not.toContain("تذكير بأوقات الصلاة");
+    expect(container?.textContent).not.toContain("تنبيهات الصلاة");
     expect(container?.textContent).not.toContain("التنبيهات");
     expect(requestPermission).not.toHaveBeenCalled();
     expect(mocks.requestNotificationPermission).not.toHaveBeenCalled();

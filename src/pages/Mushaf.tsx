@@ -421,18 +421,13 @@ export function MushafPage() {
     return quranDB.find((s) => s.id === primarySurahId)?.englishName ?? "";
   }, [quranDB, primarySurahId]);
 
-  // Chrome auto-hide
+  // Keep controls within reach until the reader scrolls or hides them.
   const [showChrome, setShowChrome] = React.useState(true);
-  const showChromeRef = React.useRef(true);
-  React.useEffect(() => { showChromeRef.current = showChrome; }, [showChrome]);
-  const chromeTimer = React.useRef<number | null>(null);
   const lastScrollYRef = React.useRef(0);
   const scrollIntentRef = React.useRef(0);
-  const flashChrome = React.useCallback((durationMs = 2200) => {
+  const revealControls = React.useCallback(() => {
     scrollIntentRef.current = 0;
     setShowChrome(true);
-    if (chromeTimer.current) clearTimeout(chromeTimer.current);
-    chromeTimer.current = window.setTimeout(() => setShowChrome(false), durationMs);
   }, []);
   // Hide only on clear downward reading intent. Scroll bounce must not re-show chrome.
   const handleContentScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -455,12 +450,10 @@ export function MushafPage() {
 
     if (scrollIntentRef.current > 36) {
       setShowChrome(false);
-      if (chromeTimer.current) { clearTimeout(chromeTimer.current); chromeTimer.current = null; }
       scrollIntentRef.current = 0;
     }
   }, [currentPage]);
-  React.useEffect(() => { lastScrollYRef.current = 0; scrollIntentRef.current = 0; if (showChromeRef.current) flashChrome(); }, [currentPage, flashChrome]);
-  React.useEffect(() => () => { if (chromeTimer.current) clearTimeout(chromeTimer.current); }, []);
+  React.useEffect(() => { lastScrollYRef.current = 0; scrollIntentRef.current = 0; }, [currentPage]);
 
   // Set browser tab title
   React.useEffect(() => {
@@ -529,12 +522,8 @@ export function MushafPage() {
     setLastRead(item.surahId, item.originalAyah);
     sessionAyahCountRef.current += 1;
     recordQuranRead(1);
-    // Only re-flash the chrome when the user lands on a different ayah —
-    // re-tapping the same ayah (or toggling selection off) shouldn't make the
-    // top/bottom bars pop back in every single tap. The chrome stays visible
-    // for 5s on a new selection so it doesn't blink away too fast either.
-    if (!isSame) flashChrome(5000);
-  }, [flashChrome, memorizationMode, recordQuranRead, setLastRead, toggleAyahReveal]);
+    if (!isSame) revealControls();
+  }, [revealControls, memorizationMode, recordQuranRead, setLastRead, toggleAyahReveal]);
 
   // Note sheet
   const [noteSheetOpen, setNoteSheetOpen] = React.useState(false);
@@ -671,8 +660,8 @@ export function MushafPage() {
   );
   const [inlineTafseerData, setInlineTafseerData] = React.useState<Record<number, string[]>>({});
   const [inlineTafseerLoading, setInlineTafseerLoading] = React.useState(false);
-  const [inlineTafseerError, setInlineTafseerError] = React.useState(false);
   const [tafsirRetry, setTafsirRetry] = React.useState(0);
+  const [tafsirPopup, setTafsirPopup] = React.useState<{ key: string; ayahs: string[] | null } | null>(null);
   const setInlineTafseerSource = React.useCallback((source: string) => {
     if (source !== inlineTafseerSource) {
       // Never leave commentary from the old edition visible while the chosen
@@ -680,14 +669,12 @@ export function MushafPage() {
       // surah-keyed, so clear it at the source-selection boundary.
       setInlineTafseerData({});
       setInlineTafseerLoading(true);
-      setInlineTafseerError(false);
     }
     setInlineTafseerSourceState(source);
   }, [inlineTafseerSource]);
   React.useEffect(() => {
     if (!requestedTafsirSource) return;
     setInlineTafseerData({});
-    setInlineTafseerError(false);
     setInlineTafseerLoading(true);
     setInlineTafseerSourceState(requestedTafsirSource);
     setInlineTafseer(true);
@@ -1197,22 +1184,19 @@ export function MushafPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageItems]);
 
-  // Q11-B: Fetch tafseer for popup when tafsirItem opens (works even when inline tafseer is OFF)
+  const popupTafsirSurah = tafsirItem?.surahId;
+  const popupTafsirKey = `${inlineTafseerSource}:${popupTafsirSurah}:${tafsirRetry}`;
+  const popupTafsir = tafsirPopup?.key === popupTafsirKey ? tafsirPopup : null;
   React.useEffect(() => {
-    if (!tafsirItem) return;
-    const sid = tafsirItem.surahId;
+    if (popupTafsirSurah === undefined) return;
     let mounted = true;
-    setInlineTafseerLoading(true);
-    setInlineTafseerError(false);
-    loadTafsirCached(inlineTafseerSource, sid)
+    loadTafsirCached(inlineTafseerSource, popupTafsirSurah)
       .then((ayahs) => {
-        if (!mounted) return;
-        setInlineTafseerData((prev) => ({ ...prev, [sid]: ayahs }));
+        if (mounted) setTafsirPopup({ key: popupTafsirKey, ayahs });
       })
-      .catch(() => { if (mounted) setInlineTafseerError(true); })
-      .finally(() => { if (mounted) setInlineTafseerLoading(false); });
+      .catch(() => { if (mounted) setTafsirPopup({ key: popupTafsirKey, ayahs: null }); });
     return () => { mounted = false; };
-  }, [tafsirItem, inlineTafseerSource, loadTafsirCached, tafsirRetry]);
+  }, [popupTafsirSurah, popupTafsirKey, inlineTafseerSource, loadTafsirCached]);
 
   // Mutashabihat: look up similar-ayah matches for the open ayah once the Quran DB is loaded
   React.useEffect(() => {
@@ -1796,6 +1780,8 @@ export function MushafPage() {
   const selKey = selectedItem ? `${selectedItem.surahId}:${selectedItem.displayAyah}` : "";
   const isSelBookmarked = selectedItem ? !!bookmarks[selKey] : false;
   const selHL = (selectedItem ? (highlights[selKey] ?? null) : null) as HlColor | null;
+  const showPageControls = showChrome || !!selectedItem;
+  const popupTafsirText = tafsirItem ? popupTafsir?.ayahs?.[tafsirItem.originalAyah] : undefined;
 
   return (
     <div
@@ -1815,8 +1801,9 @@ export function MushafPage() {
     >
       {/* ── Top chrome bar ───────────────────────────────── */}
       <div
-        className={`mushaf-chrome-top${showChrome || !!selectedItem ? "" : " chrome-hidden"}`}
-        onClick={() => flashChrome()}
+        className={`mushaf-chrome-top${showPageControls ? "" : " chrome-hidden"}`}
+        inert={!showPageControls}
+        onClick={revealControls}
       >
         {/* Q19: Reading progress bar */}
         <div className="mushaf-progress-strip" aria-hidden="true">
@@ -1836,8 +1823,8 @@ export function MushafPage() {
         {/* Focus / reading mode */}
         <button type="button"
           className="mushaf-chrome-icon-btn"
-          aria-label="وضع القراءة"
-          onClick={(e) => { e.stopPropagation(); if (chromeTimer.current) clearTimeout(chromeTimer.current); chromeTimer.current = null; setShowChrome(false); }}
+          aria-label="إخفاء أدوات القراءة"
+          onClick={(e) => { e.stopPropagation(); setSelectedItem(null); setShowChrome(false); }}
         >
           <EyeOff size={15} aria-hidden="true" />
         </button>
@@ -1857,7 +1844,7 @@ export function MushafPage() {
             e.stopPropagation();
             setMemorizationMode(!memorizationMode);
             if (memorizationMode) setRevealedItems(new Set());
-            flashChrome();
+            revealControls();
           }}
           title={memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ — اضغط على الآيات لكشفها"}
         >
@@ -1890,6 +1877,16 @@ export function MushafPage() {
           </button>
         )}
       </div>
+      {!showPageControls && (
+        <button
+          type="button"
+          className="mushaf-reveal-controls"
+          aria-label="إظهار أدوات القراءة"
+          onClick={revealControls}
+        >
+          <Eye size={17} aria-hidden="true" />
+        </button>
+      )}
 
       {/* ── Q17: In-page search bar ───────────────────────── */}
       {showSearch && (
@@ -1981,7 +1978,7 @@ export function MushafPage() {
       {/* ── Scrollable page area ─────────────────────────── */}
       <div
         className="mushaf-page-area"
-        onClick={() => { setSelectedItem(null); flashChrome(); }}
+        onClick={() => { setSelectedItem(null); revealControls(); }}
       >
         <div
           ref={pageContentRef}
@@ -2291,7 +2288,7 @@ export function MushafPage() {
       )}
 
       {/* ── Bottom bar: prev/next + page strip (auto-hide with chrome) ─── */}
-      <div className={`mushaf-bottom-bar${showChrome || !!selectedItem ? "" : " chrome-hidden"}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`mushaf-bottom-bar${showPageControls ? "" : " chrome-hidden"}`} inert={!showPageControls} onClick={(e) => e.stopPropagation()}>
         <button type="button"
           className="mushaf-bottom-nav-btn"
           onClick={(e) => { e.stopPropagation(); goPage(currentPage - 1); }}
@@ -2322,7 +2319,7 @@ export function MushafPage() {
 
       {/* ── Audio player bar ──────────────────────────────── */}
       {!selectedItem && audioBarVisible && (
-        <div className={`mushaf-audio-bar${showChrome ? "" : " chrome-hidden"}`} onClick={(e) => e.stopPropagation()}>
+        <div className={`mushaf-audio-bar${showChrome ? "" : " chrome-hidden"}`} inert={!showChrome} onClick={(e) => e.stopPropagation()}>
           <button type="button"
             className="mushaf-audio-play-btn"
             onClick={() => {
@@ -2675,7 +2672,7 @@ export function MushafPage() {
                   aria-label="نسخ"
                   onClick={() => {
                     const ayahTxt = `${tafsirItem.text} ﴿${tafsirItem.displayAyah}﴾`;
-                    const tafseerTxt = inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ?? "";
+                    const tafseerTxt = popupTafsirText ?? "";
                     const src = `تفسير ${getTafsirLabel(inlineTafseerSource)}`;
                     navigator.clipboard.writeText(`${ayahTxt}\n\n${src}:\n${tafseerTxt}`).then(() => toast.success("تم النسخ ✓")).catch(() => {});
                   }}
@@ -2706,6 +2703,7 @@ export function MushafPage() {
               {TAFSIR_EDITIONS.map(({ slug, label }) => (
                 <button type="button"
                   key={slug}
+                  aria-pressed={inlineTafseerSource === slug}
                   onClick={() => setInlineTafseerSource(slug)}
                   className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
                     inlineTafseerSource === slug
@@ -2727,12 +2725,12 @@ export function MushafPage() {
                 borderColor: "color-mix(in srgb, var(--accent) 18%, transparent)",
               }}
             >
-              {inlineTafseerLoading && !inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
-                <span className="flex items-center gap-2 justify-center py-3 opacity-40 text-xs">
+              {!popupTafsir ? (
+                <span className="flex items-center gap-2 justify-center py-3 opacity-60 text-xs" role="status">
                   <span className="w-3 h-3 border border-(--stroke) border-t-(--accent) rounded-full animate-spin inline-block" aria-hidden="true" />
                   جارٍ تحميل التفسير…
                 </span>
-              ) : inlineTafseerError ? (
+              ) : popupTafsir.ayahs === null ? (
                 <div className="flex flex-col items-center gap-2 text-center" role="alert">
                   <span className="text-xs">تعذر تحميل التفسير. تحقق من الاتصال ثم أعد المحاولة.</span>
                   <button
@@ -2742,8 +2740,8 @@ export function MushafPage() {
                     onClick={() => setTafsirRetry((attempt) => attempt + 1)}
                   >إعادة المحاولة</button>
                 </div>
-              ) : inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
-                <p className="opacity-90 leading-8">{inlineTafseerData[tafsirItem.surahId][tafsirItem.originalAyah]}</p>
+              ) : popupTafsirText ? (
+                <p className="opacity-90 leading-8">{popupTafsirText}</p>
               ) : (
                 <span className="opacity-35 text-xs">لا يوجد تفسير لهذه الآية</span>
               )}

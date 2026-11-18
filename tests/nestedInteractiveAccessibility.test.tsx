@@ -104,9 +104,9 @@ describe("interactive controls inside content rows", () => {
     expect(item.querySelector('[role="button"]')).toBeNull();
     const actions = Array.from(item.querySelectorAll("button"));
     expect(actions.map((button) => button.getAttribute("aria-label"))).toEqual([
-      "افتح سورة الفاتحة في المصحف — 2 آية",
+      "افتح الفاتحة في المصحف، عدد الآيات ٢",
       "معاينة آيات الفاتحة",
-      "معلومات سورة الفاتحة",
+      "معلومات عن الفاتحة",
     ]);
     expect(actions.every((button) => button.parentElement?.parentElement === item)).toBe(true);
 
