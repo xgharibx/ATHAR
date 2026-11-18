@@ -36,4 +36,14 @@ describe("Athar on Wear OS", () => {
     expect(read("android/settings.gradle")).toContain("include ':wear'");
     expect(read(".github/workflows/android-validate.yml")).toContain(":wear:assembleDebug :wear:lintDebug");
   });
+
+  it("shows the next prayer as a tile and on the watch face, kept fresh from the phone", () => {
+    const manifest = read("android/wear/src/main/AndroidManifest.xml");
+    expect(manifest).toMatch(/PrayerTileService[\s\S]*?BIND_TILE_PROVIDER/);
+    expect(manifest).toMatch(/PrayerComplicationService[\s\S]*?SHORT_TEXT,LONG_TEXT[\s\S]*?UPDATE_PERIOD_SECONDS/);
+    expect(manifest).toMatch(/PhoneDataService[\s\S]*?DATA_CHANGED[\s\S]*?pathPrefix="\/athar\/prayer"/);
+    const store = read("android/wear/src/main/java/com/athar/adhkar/wear/PrayerStore.java");
+    expect(store).toContain("TileService.getUpdater(context).requestUpdate(PrayerTileService.class)");
+    expect(store).toContain("requestUpdateAll()");
+  });
 });

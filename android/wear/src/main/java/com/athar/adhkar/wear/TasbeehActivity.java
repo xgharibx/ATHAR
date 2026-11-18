@@ -57,6 +57,7 @@ public class TasbeehActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        prayerJson = PrayerStore.load(this);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -200,7 +201,10 @@ public class TasbeehActivity extends Activity {
         Wearable.getDataClient(this).getDataItems(uri).addOnSuccessListener(items -> {
             for (DataItem item : items) {
                 String json = DataMapItem.fromDataItem(item).getDataMap().getString("json");
-                if (json != null) prayerJson = json;
+                if (json != null) {
+                    prayerJson = json;
+                    PrayerStore.save(this, json);
+                }
             }
             items.release();
             render();

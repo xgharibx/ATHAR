@@ -28,4 +28,9 @@ android {
 dependencies {
     implementation "androidx.core:core:$androidxCoreVersion"
     implementation "com.google.android.gms:play-services-wearable:18.2.0"
+    // The next prayer as a tile and a watch-face complication.
+    implementation "androidx.wear.tiles:tiles:1.4.1"
+    implementation "androidx.wear.protolayout:protolayout:1.2.1"
+    implementation "androidx.wear.watchface:watchface-complications-data-source:1.2.1"
+    implementation "androidx.concurrent:concurrent-futures:1.2.0"
 }
