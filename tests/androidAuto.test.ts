@@ -33,4 +33,13 @@ describe("Android Auto: Athar's Quran in the car", () => {
     expect(manifest).toContain('android:name="com.google.android.gms.car.application"');
     expect(fs.readFileSync("android/app/src/main/res/xml/automotive_app_desc.xml", "utf8")).toContain('<uses name="media" />');
   });
+
+  it("answers voice search: «play Surat Al-Kahf on Athar»", () => {
+    const manifest = fs.readFileSync("android/app/src/main/AndroidManifest.xml", "utf8");
+    expect(manifest).toContain('<action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />');
+    const library = fs.readFileSync("android/app/src/main/java/com/athar/adhkar/CarLibrary.java", "utf8");
+    expect(library).toContain("onSearch(");
+    expect(library).toContain("onGetSearchResult(");
+    expect(library).toContain("item.requestMetadata.searchQuery");
+  });
 });

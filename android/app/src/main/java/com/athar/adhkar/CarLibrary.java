@@ -150,6 +150,40 @@ final class CarLibrary implements MediaLibrarySession.Callback {
         return null;
     }
 
+    /** Letters only, one spelling: «سورة الكهف» and «الكهف» and «كهف» all meet. */
+    static String simplify(String text) {
+        String value = text == null ? "" : text.toLowerCase(Locale.ROOT)
+            .replaceAll("[\u064B-\u065F\u0670\u0640]", "")
+            .replaceAll("[أإآٱ]", "ا")
+            .replace('ة', 'ه')
+            .replace('ى', 'ي')
+            .replace("سورة", "").replace("سوره", "")
+            .replace("surah", "").replace("surat", "").replace("sura", "")
+            .replaceAll("[^\\p{L}\\p{N}]", "");
+        return value.startsWith("ال") && value.length() > 3 ? value.substring(2) : value;
+    }
+
+    /** Spoken or typed search: surahs by name (with the first reciter), or the radio. */
+    List<MediaItem> search(String query) {
+        List<MediaItem> results = new ArrayList<>();
+        String wanted = simplify(query);
+        if (wanted.isEmpty()) return results;
+        if (wanted.contains("اذاعه") || wanted.contains("راديو") || wanted.contains("radio")) {
+            results.addAll(children(RADIO));
+            return results;
+        }
+        JSONArray reciters = catalog().optJSONArray("reciters");
+        JSONObject first = reciters == null ? null : reciters.optJSONObject(0);
+        if (first == null) return results;
+        List<MediaItem> surahs = children("reciter:" + first.optString("id"));
+        if (surahs == null) return results;
+        for (MediaItem surah : surahs) {
+            String name = simplify(String.valueOf(surah.mediaMetadata.title));
+            if (!name.isEmpty() && (name.equals(wanted) || name.contains(wanted) || wanted.contains(name))) results.add(surah);
+        }
+        return results;
+    }
+
     /** A picked item, ready to play: a surah becomes its verses. */
     List<MediaItem> resolve(MediaItem item) {
         List<MediaItem> resolved = new ArrayList<>();
@@ -157,6 +191,13 @@ final class CarLibrary implements MediaLibrarySession.Callback {
         if (item.localConfiguration != null) {
             resolved.add(item);
             return resolved;
+        }
+        // "Play Surat Al-Kahf on Athar": the first match, or the radio.
+        CharSequence query = item.requestMetadata.searchQuery;
+        if (query != null && item.mediaId.isEmpty()) {
+            List<MediaItem> found = search(query.toString());
+            if (found.isEmpty()) found = children(RADIO);
+            return found == null || found.isEmpty() ? resolved : resolve(found.get(0));
         }
         String id = item.mediaId;
         if (id.startsWith("radio:")) {
@@ -224,6 +265,24 @@ final class CarLibrary implements MediaLibrarySession.Callback {
             }
         }
         return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE));
+    }
+
+    @Override
+    public ListenableFuture<LibraryResult<Void>> onSearch(
+        MediaLibrarySession session, MediaSession.ControllerInfo browser, String query, @Nullable LibraryParams params) {
+        session.notifySearchResultChanged(browser, query, search(query).size(), params);
+        return Futures.immediateFuture(LibraryResult.ofVoid());
+    }
+
+    @Override
+    public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetSearchResult(
+        MediaLibrarySession session, MediaSession.ControllerInfo browser, String query,
+        int page, int pageSize, @Nullable LibraryParams params) {
+        List<MediaItem> all = search(query);
+        int from = Math.max(0, page) * Math.max(1, pageSize);
+        int to = Math.min(all.size(), from + Math.max(1, pageSize));
+        List<MediaItem> slice = from >= all.size() ? new ArrayList<>() : all.subList(from, to);
+        return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.copyOf(slice), params));
     }
 
     @Override
