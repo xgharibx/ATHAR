@@ -10,8 +10,8 @@ import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.session.DefaultMediaNotificationProvider;
+import androidx.media3.session.MediaLibraryService;
 import androidx.media3.session.MediaSession;
-import androidx.media3.session.MediaSessionService;
 
 /**
  * Plays the Quran recitation natively, in a media playback foreground service.
@@ -23,13 +23,15 @@ import androidx.media3.session.MediaSessionService;
  * the app in the background, and Media3 shows the standard media
  * notification with lock-screen, headphone, watch and car controls.
  *
- * QuranAudioPlugin drives it through a MediaController.
+ * QuranAudioPlugin drives it through a MediaController. It is also a media
+ * library (CarLibrary): Android Auto and other media browsers can pick a
+ * Quran radio station, or a reciter and a surah, and play it from here.
  */
 @OptIn(markerClass = UnstableApi.class)
-public class RecitationService extends MediaSessionService {
+public class RecitationService extends MediaLibraryService {
 
     @Nullable
-    private MediaSession session;
+    private MediaLibrarySession session;
 
     @Override
     public void onCreate() {
@@ -49,7 +51,8 @@ public class RecitationService extends MediaSessionService {
             .build();
 
         Intent open = getPackageManager().getLaunchIntentForPackage(getPackageName());
-        MediaSession.Builder builder = new MediaSession.Builder(this, player).setId("athar-recitation");
+        MediaLibrarySession.Builder builder = new MediaLibrarySession.Builder(this, player, new CarLibrary(this))
+            .setId("athar-recitation");
         if (open != null) {
             builder.setSessionActivity(
                 PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)
@@ -64,14 +67,14 @@ public class RecitationService extends MediaSessionService {
 
     @Nullable
     @Override
-    public MediaSession onGetSession(MediaSession.ControllerInfo controllerInfo) {
+    public MediaLibrarySession onGetSession(MediaSession.ControllerInfo controllerInfo) {
         return session;
     }
 
     @Override
     public void onTaskRemoved(@Nullable Intent rootIntent) {
         // Swiping the app away keeps a playing recitation going; otherwise stop.
-        MediaSession current = session;
+        MediaLibrarySession current = session;
         if (current == null) {
             stopSelf();
             return;
@@ -84,7 +87,7 @@ public class RecitationService extends MediaSessionService {
 
     @Override
     public void onDestroy() {
-        MediaSession current = session;
+        MediaLibrarySession current = session;
         if (current != null) {
             current.getPlayer().release();
             current.release();
