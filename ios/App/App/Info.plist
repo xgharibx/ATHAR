@@ -83,6 +83,8 @@
 	<false/>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Athar uses Face ID to unlock the app when you turn on the app lock.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Athar uses your location to calculate prayer times, find Qibla direction, and search for nearby mosques.</string>
 	<key>NSMicrophoneUsageDescription</key>

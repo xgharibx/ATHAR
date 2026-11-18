@@ -1,5 +1,5 @@
 /**
- * Widget → App tasbeeh sync (Android).
+ * Widget → App tasbeeh sync (Android and iPhone).
  *
  * The interactive home-screen widget stores cumulative daily totals per
  * account owner. The app merges every unprocessed date on foreground, so taps
@@ -50,8 +50,15 @@ function getDayCounts(day: WidgetDay | Record<string, number>): Record<string, n
 }
 
 export async function mergeTasbeehFromWidget(): Promise<void> {
-  if (Capacitor.getPlatform() !== "android") return;
+  const platform = Capacitor.getPlatform();
+  if (platform !== "android" && platform !== "ios") return;
   try {
+    if (platform === "ios") {
+      // Only the widget extension can write the App Group; copy its ledger
+      // to where Preferences reads before merging.
+      const { registerPlugin } = await import("@capacitor/core");
+      await registerPlugin<{ pullTasbeehTotals(): Promise<void> }>("WidgetRefresh").pullTasbeehTotals();
+    }
     const { Preferences } = await import("@capacitor/preferences");
     const { value } = await Preferences.get({ key: TOTALS_KEY });
     if (!value) return;
