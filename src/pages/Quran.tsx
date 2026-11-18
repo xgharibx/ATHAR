@@ -1385,7 +1385,7 @@ export function QuranPage() {
                     recordRecentSurah(s.id);
                     navigate(`/mushaf?surah=${s.id}${juzStartAyah === null ? "" : `&ayah=${juzStartAyah}`}`);
                   }}
-                  aria-label={`افتح سورة ${s.name} في المصحف${juzStartAyah === null ? "" : ` عند الآية ${arNum(juzStartAyah)} في الجزء ${arNum(filterJuz!)}`} — ${s.ayahs.length} آية`}
+                  aria-label={`افتح ${s.name} في المصحف${juzStartAyah === null ? "" : ` عند الآية ${arNum(juzStartAyah)} في الجزء ${arNum(filterJuz!)}`}، عدد الآيات ${arNum(s.ayahs.length)}`}
                   className="min-w-0 flex-1 flex items-center gap-4 border-0 bg-transparent p-0 text-right text-inherit cursor-pointer focus:outline-hidden focus:bg-accent-8"
                 >
                   {/* Number badge */}
@@ -1486,7 +1486,7 @@ export function QuranPage() {
                       setInfoAnchor((e.currentTarget as HTMLElement).getBoundingClientRect());
                       setInfoSurahId(s.id);
                     }}
-                    aria-label={`معلومات سورة ${s.name}`}
+                    aria-label={`معلومات عن ${s.name}`}
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-(--muted-2) transition hover:bg-(--card-2) hover:text-(--accent) hover:border-accent-35">
                     <Info size={14} aria-hidden="true" />
                   </button>

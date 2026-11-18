@@ -53,6 +53,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function ChoiceGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <fieldset className="min-w-0 stack-y-1.5">
+      <legend className="text-xs text-(--muted)">{label}</legend>
+      {children}
+    </fieldset>
+  );
+}
+
 const inputCls =
   "w-full rounded-2xl bg-(--card) border border-(--stroke) px-4 py-2.5 text-sm min-h-[44px] outline-hidden focus:border-(--accent)";
 
@@ -164,7 +173,7 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
       <div>
         <h2 className="text-base font-semibold">ابدأ قضاءك</h2>
         <p className="text-xs text-(--muted) mt-1 leading-6">
-          تُحفظ الأرقام في جهازك وتتزامن مع حسابك، ويمكنك تعديلها متى شئت.
+          تُحفظ الأرقام على جهازك. إذا سجّلت الدخول، تُزامَن مع حسابك. يمكنك تعديلها متى شئت.
         </p>
       </div>
 
@@ -173,7 +182,7 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
         <Chip active={mode === "manual"} onClick={() => setMode("manual")}>أعرف أرقامي</Chip>
       </div>
 
-      <Field label="المذهب (يحدد الوتر وحكم الفدية)">
+      <ChoiceGroup label="المذهب (يحدد الوتر وحكم الفدية)">
         <div className="flex flex-wrap gap-2">
           {(Object.keys(MADHHAB_LABELS) as Madhhab[]).map((m) => (
             <Chip
@@ -188,16 +197,16 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
             </Chip>
           ))}
         </div>
-      </Field>
+      </ChoiceGroup>
 
       {mode === "calc" ? (
         <div className="stack-y-4">
-          <Field label="أنا">
+          <ChoiceGroup label="أنا">
             <div className="flex gap-2">
               <Chip active={gender === "male"} onClick={() => setGender("male")}>رجل</Chip>
               <Chip active={gender === "female"} onClick={() => setGender("female")}>امرأة</Chip>
             </div>
-          </Field>
+          </ChoiceGroup>
           <div className="grid grid-cols-2 gap-3">
             <Field label="تاريخ الميلاد">
               <DateField max={today} value={birth} onChange={(e) => setBirth(e.target.value)} className={inputCls} />
@@ -212,13 +221,13 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
           <Field label="كم صليتَ تقريبًا من هذه الفترة؟ (٪)">
             <input type="number" inputMode="numeric" min={0} max={100} value={prayedPct} onChange={(e) => setPrayedPct(e.target.value)} className={inputCls} />
           </Field>
-          <Field label="مدى تأكدك من هذه التواريخ">
+          <ChoiceGroup label="مدى تأكدك من هذه التواريخ">
             <div className="flex flex-wrap gap-2">
               {(Object.keys(CERTAINTY) as Certainty[]).map((c) => (
                 <Chip key={c} active={certainty === c} onClick={() => setCertainty(c)}>{CERTAINTY[c].label}</Chip>
               ))}
             </div>
-          </Field>
+          </ChoiceGroup>
           {gender === "female" && (
             <div className="grid grid-cols-3 gap-3">
               <Field label="أيام الحيض"><input type="number" inputMode="numeric" value={haydDays} onChange={(e) => setHaydDays(e.target.value)} className={inputCls} /></Field>

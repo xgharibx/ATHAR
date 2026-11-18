@@ -150,6 +150,26 @@ afterEach(() => {
 });
 
 describe("Mushaf reading state across pages", () => {
+  it("keeps page controls usable after a pause and restores them after reading mode", async () => {
+    vi.useFakeTimers();
+    try {
+      await mount();
+      const controls = container.querySelector(".mushaf-bottom-bar")!;
+      const button = (label: string) => container.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!;
+
+      await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+      expect(controls.hasAttribute("inert")).toBe(false);
+      await act(async () => button("إخفاء أدوات القراءة").click());
+      expect(controls.hasAttribute("inert")).toBe(true);
+      await act(async () => button("إظهار أدوات القراءة").click());
+      expect(controls.hasAttribute("inert")).toBe(false);
+      await act(async () => button("الصفحة التالية").click());
+      expect(container.querySelector(".mushaf-page-indicator-num")?.textContent).toBe("٢");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("clears the selected ayah and its toolbar when navigating to another page", async () => {
     await mount();
 

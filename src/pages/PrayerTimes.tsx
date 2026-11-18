@@ -1405,7 +1405,7 @@ export function PrayerTimesPage() {
           <div className="stack-y-2.5" role="tabpanel" id="pt-panel-today" aria-labelledby="pt-tab-today" tabIndex={0}>
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm font-semibold">تفاصيل اليوم</div>
-              <div className="text-[10px] opacity-40">الإقامة بعد الأذان بالدقائق المحددة</div>
+              <div className="text-[10px] opacity-60">موعد الإقامة تقديري، بحسب الدقائق التي حدّدتها.</div>
             </div>
             {schedule.detailRows.map((row) => {
               const Icon = rowIcon(row);
@@ -1432,15 +1432,21 @@ export function PrayerTimesPage() {
                   </div>
                   <div className="shrink-0 ms-auto">
                     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                      {row.prayerName && (
+                        <div className="text-right">
+                          <div className="text-[10px] opacity-60 mb-0.5">دخول الوقت</div>
+                          <div dir="ltr" className="text-sm font-medium tabular-nums">{format12h(timings[row.prayerName] ?? "")}</div>
+                        </div>
+                      )}
                       <div className="text-right">
-                        <div className="text-[10px] opacity-40 mb-0.5">{row.type === "prayer" ? "أذان" : "الوقت"}</div>
+                        <div className="text-[10px] opacity-60 mb-0.5">{row.type === "prayer" ? "الفترة المعروضة" : "الوقت"}</div>
                         <div dir="ltr" className="text-sm font-medium tabular-nums">{row.timeLabel}</div>
                       </div>
                       {showIqama && row.prayerName && (
                         <>
                           <div className="w-px self-stretch bg-(--card-2)" />
                           <div className="text-right">
-                            <div className="text-[10px] opacity-40 mb-0.5">إقامة</div>
+                            <div className="text-[10px] opacity-60 mb-0.5">إقامة تقديرية</div>
                             <IqamaTimeInline prayerTime={timings[row.prayerName] ?? ""} offset={iqamaOffsets[row.prayerName] ?? 15} />
                           </div>
                         </>

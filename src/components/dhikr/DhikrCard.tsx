@@ -397,6 +397,7 @@ export function DhikrCard(props: {
                 opacity: actionsOpen ? 1 : 0,
                 flexShrink: 1,
               }}
+              inert={!actionsOpen}
               aria-hidden={!actionsOpen}
             >
               <div className="flex flex-nowrap items-center gap-1 pr-1">
@@ -546,12 +547,10 @@ export function DhikrCard(props: {
 
             <div className="flex flex-wrap items-center justify-end gap-2">
               <IconButton
-                aria-label="تراجع خطوة"
-                onClick={() => {
-                  if (isDailyLockedItem) return;
-                  decrement({ sectionId, index, target, itemId });
-                }}
-                className={cn((current <= 0 || isDailyLockedItem) && "opacity-40 pointer-events-none")}
+                aria-label={isDailyLockedItem ? "التراجع غير متاح بعد إتمام الذكر اليومي" : "إنقاص العدّ بواحد"}
+                disabled={current <= 0 || isDailyLockedItem}
+                onClick={() => decrement({ sectionId, index, target, itemId })}
+                className="disabled:opacity-40"
               >
                 <Minus size={18} aria-hidden="true" className="opacity-80" />
               </IconButton>

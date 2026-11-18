@@ -249,14 +249,14 @@ function StreakCard({ streak, best, lastActive }: { streak: number; best: number
       </div>
       {broken && (
         <div className="mt-2 text-[11px] opacity-70 leading-5">
-          ⚠️ انقطعت سلسلتك — اعمل ١ تسبيحة للحفاظ على سلسلتك
+          انقطعت السلسلة. سبّح مرةً اليوم لتبدأ من جديد.
         </div>
       )}
       {!active && streak === 0 && (
-        <div className="mt-2 text-[11px] opacity-60">اعمل ١ تسبيحة للحفاظ على سلسلتك</div>
+        <div className="mt-2 text-[11px] opacity-60">سبّح مرةً اليوم لتبدأ سلسلتك.</div>
       )}
       {active && (
-        <div className="mt-2 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>✓ اليوم مكتمل</div>
+        <div className="mt-2 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>✓ سُجّل تسبيحك لهذا اليوم</div>
       )}
     </Card>
   );
