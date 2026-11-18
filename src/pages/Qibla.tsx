@@ -9,6 +9,7 @@ import { nextAlignment, useCompassHeading } from "@/hooks/useCompassHeading";
 import { readCachedPrayerCoordinates } from "@/lib/prayerLocation";
 import { vibrate } from "@/lib/haptics";
 import { useNoorStore } from "@/store/noorStore";
+import { deviceLocationSupported, getDeviceLocation, type DeviceLocationError } from "@/lib/deviceLocation";
 
 // Kaaba coordinates (Adhan.js authoritative values)
 const MECCA_LAT = 21.4225241;
@@ -59,24 +60,19 @@ export function QiblaPage() {
 
   // Request geolocation
   const requestGeo = React.useCallback(() => {
-    if (!navigator.geolocation) {
+    if (!deviceLocationSupported()) {
       setGeo({ status: "unsupported" });
       return;
     }
     setGeo({ status: "loading" });
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeo({
-          status: "ok",
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-        });
+    // The Qibla bearing barely moves within a city, so an approximate location is enough.
+    getDeviceLocation({ precise: false, timeoutMs: 10000, maxAgeMs: 10 * 60_000 }).then(
+      ({ lat, lng, accuracy }) => {
+        setGeo({ status: "ok", lat, lng, accuracy: accuracy ?? Number.NaN });
       },
-      (err) => {
-        setGeo({ status: "error", code: err.code, msg: err.message });
+      (err: DeviceLocationError) => {
+        setGeo({ status: "error", code: err.code ?? 2, msg: err.message });
       },
-      { enableHighAccuracy: true, timeout: 10000 }
     );
   }, []);
 
@@ -328,7 +324,7 @@ export function QiblaPage() {
             <div className="flex gap-4">
               <div className="opacity-60">الدقة</div>
               <div dir="ltr" className="font-mono font-medium">
-                {geo.accuracy == null ? <span dir="rtl" className="font-sans">موقع مواقيت الصلاة</span> : `±${Math.round(geo.accuracy)}م`}
+                {geo.accuracy == null ? <span dir="rtl" className="font-sans">موقع مواقيت الصلاة</span> : Number.isFinite(geo.accuracy) ? `±${Math.round(geo.accuracy)}م` : "—"}
               </div>
             </div>
             <Button variant="secondary" size="sm" className="mt-2" onClick={requestGeo}>

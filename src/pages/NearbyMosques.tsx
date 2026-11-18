@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import toast from "react-hot-toast";
 import { Capacitor } from "@capacitor/core";
 import { directionsUrl, mapsAppLabel, openDirectionsOnAndroid, webMapsUrl } from "@/lib/directions";
+import { deviceLocationSupported, getDeviceLocation, type DeviceLocationError } from "@/lib/deviceLocation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -157,24 +158,22 @@ export function NearbyMosquesPage() {
   }, []);
 
   const requestGeo = React.useCallback(() => {
-    if (!navigator.geolocation) {
+    if (!deviceLocationSupported()) {
       setGeo({ status: "unsupported" });
       return;
     }
     setGeo({ status: "loading" });
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
+    // A precise fix: the nearest mosques are a few hundred metres apart.
+    getDeviceLocation({ precise: true, timeoutMs: 10000 }).then(
+      ({ lat, lng }) => {
         if (!isMounted.current) return;
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
         setGeo({ status: "ok", lat, lng });
         void fetchMosques(lat, lng);
       },
-      (err) => {
+      (err: DeviceLocationError) => {
         if (!isMounted.current) return;
-        setGeo({ status: "error", code: err.code, msg: err.message });
+        setGeo({ status: "error", code: err.code ?? 2, msg: err.message });
       },
-      { enableHighAccuracy: true, timeout: 10000 },
     );
   }, [fetchMosques]);
 

@@ -10,8 +10,9 @@
  * While the app stays closed, the phone notices a new time zone itself and
  * asks the person to open Athar (PrayerTopUp, `tz` in the plan).
  */
-import { Capacitor, registerPlugin } from "@capacitor/core";
+import { Capacitor } from "@capacitor/core";
 import { getAccountStorageOwner } from "@/lib/accountStorageScope";
+import { getDeviceLocation, locationPermissionGranted } from "@/lib/deviceLocation";
 import { readCachedPrayerCoordinates, type PrayerCoordinates } from "@/lib/prayerLocation";
 
 export const TRAVEL_DISTANCE_KM = 25;
@@ -27,29 +28,10 @@ export function distanceKm(a: PrayerCoordinates, b: PrayerCoordinates): number {
   return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-type LocationAccessPlugin = { status(): Promise<{ granted: boolean }> };
-
-/** Whether the location permission is already granted; never asks for it. */
-async function locationGranted(): Promise<boolean> {
-  try {
-    return (await registerPlugin<LocationAccessPlugin>("LocationAccess").status()).granted === true;
-  } catch {
-    return false;
-  }
-}
-
-function currentPosition(): Promise<PrayerCoordinates> {
-  return new Promise((resolve, reject) => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      reject(new Error("unsupported"));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => resolve({ lat: position.coords.latitude, lng: position.coords.longitude }),
-      reject,
-      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 15 * 60_000 },
-    );
-  });
+/** Where the phone is now, without ever asking for permission. */
+async function currentPosition(): Promise<PrayerCoordinates> {
+  const { lat, lng } = await getDeviceLocation({ precise: false, timeoutMs: 10_000, maxAgeMs: 15 * 60_000, onlyIfGranted: true });
+  return { lat, lng };
 }
 
 let lastCheck = Number.NEGATIVE_INFINITY;
@@ -68,7 +50,7 @@ export async function followTravel(
   if (!saved) return "skipped";
   lastCheck = now;
   const owner = getAccountStorageOwner();
-  if (!(await locationGranted())) return "skipped";
+  if (!(await locationPermissionGranted())) return "skipped";
   try {
     const here = await currentPosition();
     if (getAccountStorageOwner() !== owner) return "skipped";

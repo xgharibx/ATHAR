@@ -8,6 +8,7 @@ import { computeLocalPrayerTimings } from "@/lib/localPrayerTimes";
 import { Capacitor } from "@capacitor/core";
 import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
 import { DEFAULT_PRAYER_CITY, getPrayerLocationIdentity, PRAYER_COORDS_KEY, PRAYER_LOCATION_CHANGED_EVENT, readCachedPrayerCoordinates, type PrayerCoordinates } from "@/lib/prayerLocation";
+import { getDeviceLocation } from "@/lib/deviceLocation";
 
 export const PRAYER_COORDS_KEY_EXPORT = PRAYER_COORDS_KEY;
 
@@ -297,26 +298,16 @@ function computeLocalPrayerTimes(lat: number, lng: number, date: Date, method: n
   };
 }
 
-function getCurrentPosition(timeoutMs = 8000): Promise<GeolocationPosition> {
-  return new Promise((resolve, reject) => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      reject(new Error("geolocation not supported"));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
-      enableHighAccuracy: false,
-      timeout: timeoutMs,
-      maximumAge: 30 * 60 * 1000
-    });
-  });
+/** City-level accuracy is plenty for prayer times; a fix from the last half hour will do. */
+function getCurrentPosition(timeoutMs = 8000) {
+  return getDeviceLocation({ precise: false, timeoutMs, maxAgeMs: 30 * 60 * 1000 });
 }
 
 /** Request and persist device coordinates only after an explicit user action. */
 export async function requestPrayerLocation(): Promise<boolean> {
   const requestOwner = getAccountStorageOwner();
   try {
-    const position = await getCurrentPosition();
-    const { latitude: lat, longitude: lng } = position.coords;
+    const { lat, lng } = await getCurrentPosition();
     if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lng) || lng < -180 || lng > 180) {
       return false;
     }
