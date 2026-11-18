@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { useNoorStore, DEFAULT_HOME_WIDGETS_ORDER, type NoorTheme, type ExportBlobV1, type HomeWidgetKey } from "@/store/noorStore";
 import { shareFileBlob } from "@/lib/shareTargets";
-import { clamp } from "@/lib/utils";
+import { clamp, cn } from "@/lib/utils";
 import { toArabicNumeral } from "@/lib/quranMeta";
 import {
   cancelAllReminders,
@@ -35,6 +35,7 @@ import { TranslationPicker } from "@/components/quran/TranslationPicker";
 import { TRANSLATION_SOURCES, getTranslation as getTranslationAny, type TranslationId } from "@/lib/quranTranslations";
 import { RecitationDownloadsRow } from "@/components/quran/RecitationDownloadsRow";
 import { appLockMethodLabel, appLockStatus, appLockSupported, confirmOwner, type AppLockStatus } from "@/lib/appLock";
+import { changeAppIcon, currentAppIcon, type AppIconName } from "@/lib/appIcon";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
 
@@ -231,6 +232,26 @@ export function SettingsPage() {
   const [showReciterPicker, setShowReciterPicker] = React.useState(false);
 
   const [isNative, setIsNative] = React.useState(false);
+  // App icon: the alternate icons (recolours of the real one).
+  const [appIcon, setAppIcon] = React.useState<AppIconName | null>(null);
+  const [appIconBusy, setAppIconBusy] = React.useState(false);
+  React.useEffect(() => {
+    let active = true;
+    void currentAppIcon().then((name) => { if (active) setAppIcon(name); });
+    return () => { active = false; };
+  }, []);
+  const chooseAppIcon = React.useCallback(async (name: AppIconName) => {
+    setAppIconBusy(true);
+    const { ok, appliesOnLeave } = await changeAppIcon(name);
+    setAppIconBusy(false);
+    if (!ok) {
+      toast.error("تعذّر تغيير الأيقونة");
+      return;
+    }
+    setAppIcon(name);
+    if (appliesOnLeave) toast.success("ستتغيّر الأيقونة عند الخروج من التطبيق، وقد تحتاج بعض الهواتف إلى إعادة إضافتها للشاشة الرئيسية");
+  }, []);
+
   // App lock: which method the phone offers, and turning the lock on or off
   // only after the phone confirms its owner.
   const [appLockAvailable, setAppLockAvailable] = React.useState<boolean | null>(null);
@@ -1645,19 +1666,27 @@ export function SettingsPage() {
               <div className="text-sm font-semibold">أيقونة التطبيق</div>
             </div>
             <div className="text-xs opacity-60 mb-3">اختر نمط أيقونة التطبيق على شاشتك الرئيسية</div>
-            {isNative ? (
-              <div className="flex flex-wrap gap-2">
+            {isNative && appIcon ? (
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="أيقونة التطبيق">
                 {([
                   { id: "default", label: "🌿 الافتراضي" },
                   { id: "light", label: "☀️ فاتح" },
                   { id: "dark", label: "🌑 داكن" },
                   { id: "ramadan", label: "🌙 رمضان" },
                   { id: "gold", label: "✨ ذهبي" },
-                ]).map((icon) => (
+                ] as Array<{ id: AppIconName; label: string }>).map((icon) => (
                   <button type="button"
                     key={icon.id}
-                    onClick={() => toast("قريبًا — تغيير أيقونة التطبيق قيد التطوير")}
-                    className="px-3 py-2 rounded-xl border border-(--stroke) bg-(--card) text-xs transition min-h-[36px] opacity-60 cursor-not-allowed"
+                    role="radio"
+                    aria-checked={appIcon === icon.id}
+                    disabled={appIconBusy}
+                    onClick={() => void chooseAppIcon(icon.id)}
+                    className={cn(
+                      "px-3 py-2 rounded-xl border text-xs transition min-h-[36px]",
+                      appIcon === icon.id
+                        ? "border-accent-35 bg-accent-15 font-semibold"
+                        : "border-(--stroke) bg-(--card) hover:border-accent-35",
+                    )}
                   >
                     {icon.label}
                   </button>

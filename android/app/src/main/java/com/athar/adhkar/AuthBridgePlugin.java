@@ -13,7 +13,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  *
  * Google refuses to render its OAuth consent screen inside an app WebView
  * ("disallowed_useragent"), so sign-in has to leave the app and come back via
- * the app.athar://auth scheme (see MainActivity + AndroidManifest).
+ * the app.athar://auth scheme (see AtharActivity + AndroidManifest).
  *
  * This exists instead of @capacitor/browser because that plugin (and
  * @capacitor/app) still ship `getDefaultProguardFile('proguard-android.txt')`

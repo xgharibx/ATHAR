@@ -9,7 +9,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.core.splashscreen.SplashScreen;
 import com.getcapacitor.BridgeActivity;
 
-public class MainActivity extends BridgeActivity {
+public class AtharActivity extends BridgeActivity {
 
     /** Route requested by a widget tap, injected once the web app is ready. */
     private String pendingRoute;
@@ -41,6 +41,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(StoreReviewPlugin.class);
         registerPlugin(AppLockPlugin.class);
         registerPlugin(InAppUpdatePlugin.class);
+        registerPlugin(AppIconPlugin.class);
         super.onCreate(savedInstanceState);
 
         // Ask once a day, in the background, whether a newer version has been
@@ -176,6 +177,14 @@ public class MainActivity extends BridgeActivity {
             }
         };
         handler.post(attempt);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        // A new app icon is switched in only once Athar is off screen, since
+        // some launchers close an app whose launcher entry changes.
+        AppIconPlugin.applyPending(this);
     }
 
     @Override

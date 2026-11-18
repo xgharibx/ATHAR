@@ -9,22 +9,19 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!--
+          The app's one activity. The launcher icon is not declared here but on
+          the activity-aliases below, so the icon can be changed from Settings
+          (AppIconPlugin) without a second launcher entry.
+        -->
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
-            android:name=".MainActivity"
+            android:name=".AtharActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
             android:exported="true">
 
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <!-- Long-press the app icon: Prayer times, Qibla, Tasbeeh, Mushaf. -->
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
 
             <!-- OAuth return leg. Google will not render its consent screen
                  inside a WebView, so sign-in opens the system browser; this
@@ -47,6 +44,96 @@
             </intent-filter>
 
         </activity>
+
+        <!-- The default icon. Keeps the original launcher component name, so icons already on people's home screens stay put after the update. -->
+        <activity-alias
+            android:name=".MainActivity"
+            android:targetActivity=".AtharActivity"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:label="@string/title_activity_main">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <!-- Alternate icon: light (Settings › أيقونة التطبيق). -->
+        <activity-alias
+            android:name=".MainActivityLight"
+            android:targetActivity=".AtharActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_light"
+            android:roundIcon="@mipmap/ic_launcher_light_round"
+            android:label="@string/title_activity_main">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <!-- Alternate icon: dark (Settings › أيقونة التطبيق). -->
+        <activity-alias
+            android:name=".MainActivityDark"
+            android:targetActivity=".AtharActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_dark"
+            android:roundIcon="@mipmap/ic_launcher_dark_round"
+            android:label="@string/title_activity_main">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <!-- Alternate icon: ramadan (Settings › أيقونة التطبيق). -->
+        <activity-alias
+            android:name=".MainActivityRamadan"
+            android:targetActivity=".AtharActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_ramadan"
+            android:roundIcon="@mipmap/ic_launcher_ramadan_round"
+            android:label="@string/title_activity_main">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <!-- Alternate icon: gold (Settings › أيقونة التطبيق). -->
+        <activity-alias
+            android:name=".MainActivityGold"
+            android:targetActivity=".AtharActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_gold"
+            android:roundIcon="@mipmap/ic_launcher_gold_round"
+            android:label="@string/title_activity_main">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
 
         <!-- Widget theme picker — shown when any Athar widget is placed
              (referenced by android:configure in every widget info.xml). -->
