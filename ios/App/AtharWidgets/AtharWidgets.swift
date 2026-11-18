@@ -453,5 +453,11 @@ struct AtharWidgetBundle: WidgetBundle {
         AtharAsmaWidget()
         AtharTasbeehWidget()
         PrayerLiveActivity()
+        if #available(iOS 18.0, *) {
+            AtharSebhaControl()
+            AtharPrayerControl()
+            AtharMushafControl()
+            AtharQiblaControl()
+        }
     }
 }

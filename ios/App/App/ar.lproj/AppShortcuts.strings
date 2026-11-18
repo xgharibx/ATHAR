@@ -1,4 +1,14 @@
-/* Siri phrases in Arabic for NextPrayerIntent (NextPrayerIntent.swift). */
+/* Siri phrases in Arabic for Athar's App Shortcuts (AtharIntents.swift). */
 "When is the next prayer in ${applicationName}" = "متى الصلاة القادمة في ${applicationName}";
 "Next prayer in ${applicationName}" = "الصلاة القادمة في ${applicationName}";
 "${applicationName} next prayer" = "موعد الصلاة في ${applicationName}";
+"Read ${surah} in ${applicationName}" = "اقرأ سورة ${surah} في ${applicationName}";
+"Open ${surah} in ${applicationName}" = "افتح سورة ${surah} في ${applicationName}";
+"Continue the Quran in ${applicationName}" = "تابع القرآن في ${applicationName}";
+"Continue reading in ${applicationName}" = "تابع القراءة في ${applicationName}";
+"Start tasbeeh in ${applicationName}" = "سبّح في ${applicationName}";
+"Open the tasbeeh in ${applicationName}" = "افتح السبحة في ${applicationName}";
+"Morning adhkar in ${applicationName}" = "أذكار الصباح في ${applicationName}";
+"Evening adhkar in ${applicationName}" = "أذكار المساء في ${applicationName}";
+"Find the Qibla in ${applicationName}" = "اتجاه القبلة في ${applicationName}";
+"Qibla in ${applicationName}" = "القبلة في ${applicationName}";

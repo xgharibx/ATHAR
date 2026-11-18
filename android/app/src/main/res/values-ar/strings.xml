@@ -23,4 +23,9 @@
     <string name="widget_wirdtable_label">أثر · جدول الأوراد</string>
     <string name="widget_qadaa_label">أثر · القضاء</string>
     <string name="widget_qadaa_board_label">أثر · لوحة القضاء</string>
+    <!-- Quick Settings tiles (PrayerTileService, SebhaTileService). -->
+    <string name="tile_prayer_label">الصلاة القادمة</string>
+    <string name="tile_prayer_open">افتح مواقيت الصلاة</string>
+    <string name="tile_sebha_label">السبحة</string>
+    <string name="tile_sebha_subtitle">افتح العدّاد</string>
 </resources>

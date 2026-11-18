@@ -1,3 +1,4 @@
+import CoreSpotlight
 import UIKit
 import Capacitor
 import WebKit
@@ -34,6 +35,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Keep the Adhan queued past the app's own week, also while it stays closed.
         PrayerTopUp.registerBackgroundTask()
         PrayerTopUp.run()
+        // Control Center, Lock Screen and Action button controls open a screen here.
+        AtharScreenRouter.handler = { Self.deliverRoute($0) }
+        if let pending = AtharScreenRouter.pending {
+            AtharScreenRouter.pending = nil
+            Self.deliverRoute(pending)
+        }
+        // Let Siri learn the surah names for «اقرأ سورة … في أثر».
+        AtharShortcuts.updateAppShortcutParameters()
         // Opened from a Home Screen quick action (long-press on the app icon).
         if let shortcut = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
             Self.openShortcut(shortcut)
@@ -110,6 +119,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        // A surah, adhkar or section picked in iPhone search (SpotlightPlugin).
+        if userActivity.activityType == CSSearchableItemActionType,
+           let route = userActivity.userInfo?[CSSearchableItemActivityIdentifier] as? String,
+           Self.isSafeRoute(route) {
+            Self.deliverRoute(route)
+            return true
+        }
         // Called when the app was launched with an activity, including Universal Links.
         // Feel free to add additional processing here, but if you want the App API to support
         // tracking app url opens, make sure to keep this call
@@ -133,6 +149,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let path = url.path.isEmpty ? "/" : url.path
         guard path.range(of: "^/[A-Za-z0-9/_-]*$", options: .regularExpression) != nil else { return nil }
         return path
+    }
+
+    /// An in-app path, optionally with a simple query («/mushaf?surah=18»).
+    static func isSafeRoute(_ route: String) -> Bool {
+        route.range(of: "^/[A-Za-z0-9/_-]*(\\?[A-Za-z0-9_=&-]*)?$", options: .regularExpression) != nil
     }
 
     /// Navigate the web app to `route` once it has mounted, retrying briefly on a cold start.

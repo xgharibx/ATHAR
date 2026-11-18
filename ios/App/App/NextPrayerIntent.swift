@@ -6,8 +6,8 @@ import Foundation
  * القادمة في أثر؟». Siri answers out loud without opening the app, from the
  * prayer times the app last saved (the same payload the widgets use).
  *
- * The English phrases are below; the Arabic ones are in
- * ar.lproj/AppShortcuts.strings.
+ * Its phrases are in AtharShortcuts (AtharIntents.swift); the Arabic ones are
+ * in ar.lproj/AppShortcuts.strings.
  */
 struct NextPrayerIntent: AppIntent {
     static let title: LocalizedStringResource = "Next prayer"
@@ -26,19 +26,6 @@ struct NextPrayerIntent: AppIntent {
         return .result(dialog: IntentDialog(stringLiteral: arabic
             ? "صلاة \(next.nameAr) الساعة \(time)، بعد \(left)."
             : "\(next.name) is at \(time), in \(left)."))
-    }
-}
-
-struct AtharShortcuts: AppShortcutsProvider {
-    static var appShortcuts: [AppShortcut] {
-        AppShortcut(
-            intent: NextPrayerIntent(),
-            phrases: [
-                "When is the next prayer in \(.applicationName)",
-                "Next prayer in \(.applicationName)",
-                "\(.applicationName) next prayer",
-            ]
-        )
     }
 }
 
