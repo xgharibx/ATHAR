@@ -54,4 +54,8 @@
     <string name="adhan_alarm_channel_description">Rings the Adhan as an alarm, even on silent</string>
     <string name="adhan_alarm_stop">Stop</string>
     <string name="adhan_alarm_text">Time for prayer</string>
+    <!-- After travel to another time zone (TravelNotice). -->
+    <string name="travel_channel">Travel</string>
+    <string name="travel_title">New time zone</string>
+    <string name="travel_text">Open Athar to update the prayer times for where you are now.</string>
 </resources>

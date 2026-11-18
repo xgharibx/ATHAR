@@ -63,6 +63,7 @@ final class PrayerTopUp {
     static void clear(Context context) {
         prefs(context).edit().remove(KEY_PLAN).apply();
         AdhanAlarm.cancel(context);
+        PrayerSilence.cancel(context);
         WorkManager.getInstance(context).cancelUniqueWork(PERIODIC_WORK);
     }
 
@@ -106,6 +107,16 @@ final class PrayerTopUp {
         return format.format(date);
     }
 
+    /**
+     * Whether the plan's times belong to the phone's time zone. After travel to
+     * another one they are another city's times: nothing more is queued from
+     * them, and the person is asked to open Athar (TravelNotice).
+     */
+    static boolean timeZoneMatches(JSONObject plan) {
+        String tz = plan == null ? "" : plan.optString("tz", "");
+        return tz.isEmpty() || tz.equals(java.util.TimeZone.getDefault().getID());
+    }
+
     /** The saved plan, or null. */
     static JSONObject loadPlan(Context context) {
         String raw = prefs(context).getString(KEY_PLAN, null);
@@ -119,12 +130,17 @@ final class PrayerTopUp {
 
     /** Queue the days after the app's own week that fall inside the window. Returns how many. */
     static synchronized int run(Context context) {
-        // The Adhan alarm, when chosen, follows the same plan.
+        // The Adhan alarm and the prayer silence, when chosen, follow the same plan.
         AdhanAlarm.sync(context);
+        PrayerSilence.sync(context);
         String raw = prefs(context).getString(KEY_PLAN, null);
         if (raw == null) return 0;
         try {
             JSONObject plan = new JSONObject(raw);
+            if (!timeZoneMatches(plan)) {
+                TravelNotice.show(context, plan.optString("tz", ""));
+                return 0;
+            }
             List<JSObject> wanted = notificationsToQueue(plan, Calendar.getInstance(), System.currentTimeMillis());
             if (wanted.isEmpty()) return 0;
 

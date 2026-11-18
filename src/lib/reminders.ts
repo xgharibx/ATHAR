@@ -10,6 +10,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { getLocalDateKey, parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { DEFAULT_PRAYER_COORDINATES, readCachedPrayerCoordinates } from "@/lib/prayerLocation";
 import { adhanAlarmPreferences, adhanAlarmStatus, alarmPrayers } from "@/lib/adhanAlarm";
+import { prayerSilenceAllowed, prayerSilencePreferences } from "@/lib/prayerSilence";
 import {
   buildPrayerTopUpPlan,
   clearPrayerTopUp,
@@ -700,6 +701,8 @@ export function buildPrayerTopUpPlanForSync(
     planDays?: number;
     /** The Adhan as an alarm: which prayers, the silent audio for their alerts, and the app's own days. */
     alarm?: { prayers: readonly PrayerTimingName[]; quiet: NotificationAudioConfig; soundFile: string; appDays: PrayerNotificationDay[] } | null;
+    /** Android: Do Not Disturb for `minutes` from each enabled prayer's Adhan. */
+    silence?: { minutes: number; appDays: PrayerNotificationDay[] } | null;
   } = {},
 ): PrayerTopUpPlan | null {
   const templates: PrayerTopUpPlan["templates"] = {};
@@ -731,12 +734,22 @@ export function buildPrayerTopUpPlanForSync(
       prayers: [...alarm.prayers],
       names: { ...PRAYER_LABELS },
       sound: { ios: toIosSoundFile(alarm.soundFile), android: alarm.soundFile.replace(/\.[^.]+$/, "") },
-      appDays: alarm.appDays.map((day) => ({
-        d: day.dateISO,
-        t: Object.fromEntries(TOP_UP_PRAYERS.filter((name) => day.timings[name]).map((name) => [name, day.timings[name]!])),
-      })),
+      appDays: compactDays(alarm.appDays),
+    } : null,
+    silence: options.silence ? {
+      minutes: options.silence.minutes,
+      prayers: TOP_UP_PRAYERS.filter((name) => enabledPrayers[name]),
+      appDays: compactDays(options.silence.appDays),
     } : null,
   });
+}
+
+/** The app's own days in the plan's shape: { d, t: { prayer: "HH:mm" } }. */
+function compactDays(days: PrayerNotificationDay[]): Array<{ d: string; t: Partial<Record<PrayerTimingName, string>> }> {
+  return days.map((day) => ({
+    d: day.dateISO,
+    t: Object.fromEntries(TOP_UP_PRAYERS.filter((name) => day.timings[name]).map((name) => [name, day.timings[name]!])),
+  }));
 }
 
 /** The last date with a queued Adhan, or the first day if none survived. */
@@ -1277,6 +1290,7 @@ async function syncRemindersForOwner(
 
   let prayerNotificationAudio: NotificationAudioConfig | null = null;
   let ringingPrayers: PrayerTimingName[] = [];
+  let silenceMinutes = 0;
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
     if (getAccountStorageOwner() !== owner) return;
@@ -1284,6 +1298,11 @@ async function syncRemindersForOwner(
       ringingPrayers = alarmPrayers(reminders, await adhanAlarmStatus());
       if (getAccountStorageOwner() !== owner) return;
     }
+    const silence = prayerSilencePreferences(reminders);
+    if (silence.enabled && Capacitor.getPlatform() === "android" && await prayerSilenceAllowed()) {
+      silenceMinutes = silence.minutes;
+    }
+    if (getAccountStorageOwner() !== owner) return;
     notifications.push(...buildPrayerNotificationsForDays(
       scheduleDays,
       prayerNotificationAudio,
@@ -1345,6 +1364,7 @@ async function syncRemindersForOwner(
           soundFile: getPrayerSoundOption(reminders.prayerSoundProfile).fileName,
           appDays: scheduleDays,
         } : null,
+        silence: silenceMinutes ? { minutes: silenceMinutes, appDays: scheduleDays } : null,
       },
     );
     if (plan) await configurePrayerTopUp(plan);

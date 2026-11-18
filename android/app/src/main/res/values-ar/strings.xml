@@ -33,4 +33,8 @@
     <string name="adhan_alarm_channel_description">يرنّ الأذان كمنبّه حتى في الوضع الصامت</string>
     <string name="adhan_alarm_stop">إيقاف</string>
     <string name="adhan_alarm_text">حيّ على الصلاة</string>
+    <!-- After travel to another time zone (TravelNotice). -->
+    <string name="travel_channel">السفر</string>
+    <string name="travel_title">منطقة زمنية جديدة</string>
+    <string name="travel_text">افتح أثر لتحديث مواقيت الصلاة لمكانك الحالي.</string>
 </resources>

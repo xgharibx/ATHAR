@@ -187,6 +187,7 @@ export type Preferences = {
   homeWidgets: Record<HomeWidgetKey, boolean>;
   prayerCalcMethod: number; // 1-23 AlAdhan method, default 5 (Egyptian)
   asrMadhab: 0 | 1; // 0=Shafi'i, 1=Hanafi
+  prayerLocationFollow?: boolean; // update the saved location when the person has travelled (src/lib/travelLocation.ts); on unless turned off
   homeStripOrder?: string[]; // ordered IDs of azkar strip cards
   mushafTextColor?: string; // custom Mushaf text colour hex
   bgVibrancyBoost?: boolean; // boost background vibrancy
@@ -237,7 +238,11 @@ export type Reminders = {
   prayerLiveActivity: boolean; // next-prayer countdown outside the app: iOS Live Activity, Android ongoing notification
   /** The Adhan as a real alarm that rings on silent (src/lib/adhanAlarm.ts). Off unless chosen. */
   adhanAlarm?: AdhanAlarmPreferences;
+  /** Android: Do Not Disturb for a few minutes from each Adhan (src/lib/prayerSilence.ts). */
+  prayerSilence?: PrayerSilencePreferences;
 };
+
+export type PrayerSilencePreferences = { enabled: boolean; minutes: number };
 
 export type AdhanAlarmPreferences = { enabled: boolean; prayers: PrayerAlertPreferences };
 

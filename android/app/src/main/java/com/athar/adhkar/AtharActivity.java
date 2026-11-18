@@ -46,6 +46,8 @@ public class AtharActivity extends BridgeActivity {
         registerPlugin(VoiceTasbeehPlugin.class);
         registerPlugin(AppShortcutsPlugin.class);
         registerPlugin(AdhanAlarmPlugin.class);
+        registerPlugin(PrayerSilencePlugin.class);
+        registerPlugin(LocationAccessPlugin.class);
         super.onCreate(savedInstanceState);
 
         // Ask once a day, in the background, whether a newer version has been

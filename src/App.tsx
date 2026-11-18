@@ -9,7 +9,8 @@ import { useNoorStore } from "@/store/noorStore";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { AppLockGate } from "@/components/security/AppLockGate";
 import { getLocalDateKey, getNextIbadahBoundary, getNextLocalMidnight, shiftDateKey } from "@/lib/dayBoundaries";
-import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { usePrayerTimes, writeCachedCoords } from "@/hooks/usePrayerTimes";
+import toast from "react-hot-toast";
 import { usePrayerLiveActivity } from "@/hooks/usePrayerLiveActivity";
 import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels, type PrayerNotificationDay } from "@/lib/reminders";
 import { syncCustomReminders } from "@/lib/reminderSync";
@@ -33,6 +34,7 @@ import { useStartupReady } from "@/hooks/useStartupReady";
 import { warmBundledAdhkar } from "@/data/load";
 import { afterStartupReady } from "@/lib/startup";
 import { indexAppForSpotlight } from "@/lib/spotlight";
+import { followTravel } from "@/lib/travelLocation";
 import { startContinueReadingShortcut } from "@/lib/continueReading";
 import { resetScrollForRouteChange } from "@/hooks/useScrollRestoration";
 import { FeedbackPage } from "@/pages/Feedback";
@@ -397,6 +399,22 @@ function AppContent() {
       cancelScheduled?.();
     };
   }, []);
+
+  // Prayer times follow the person when they travel (src/lib/travelLocation.ts).
+  const followLocation = useNoorStore((s) => s.prefs.prayerLocationFollow !== false);
+  React.useEffect(() => {
+    const check = () => {
+      void followTravel(writeCachedCoords, { enabled: followLocation }).then((result) => {
+        if (result === "moved") toast.success("حدّثنا مواقيت الصلاة لموقعك الجديد");
+      });
+    };
+    const cancelWaiting = afterStartupReady(check);
+    const stopListening = listenForAppResume(check);
+    return () => {
+      cancelWaiting();
+      stopListening();
+    };
+  }, [followLocation]);
 
   // The phone's own shortcuts into the app: iPhone search (Spotlight) and
   // Android's «تابع القراءة» long-press shortcut.
