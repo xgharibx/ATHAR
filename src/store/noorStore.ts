@@ -29,7 +29,7 @@ import { parsePrayerKey, parseFastKey, type Madhhab, type PlanMode } from "@/lib
 import { sanitizeItem as sanitizeWirdItem, sanitizeLog as sanitizeWirdLog, pruneWirdLog, type WirdItem } from "@/lib/wird";
 import { pruneLog as pruneMuhasabaLog } from "@/lib/muhasaba";
 import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
-import { normalizeDesignMode, normalizeUfuqPalette, type DesignMode, type UfuqPalette } from "@/lib/design";
+import { normalizeDesignMode, normalizeUfuqLook, normalizeUfuqPalette, type DesignMode, type UfuqLook, type UfuqPalette } from "@/lib/design";
 import {
   accountScopedLocalStorage,
   getAccountStorageOwner,
@@ -147,8 +147,12 @@ export type Preferences = {
   theme: NoorTheme;
   /** «الكلاسيكي» or the new «أفق» design (src/lib/design.ts). Absent means classic. */
   designMode?: DesignMode;
-  /** «أفق» palette: follow the phone, or always day / always night. */
+  /** «أفق» palette: follow the phone or the prayer times, or always day / night. */
   ufuqPalette?: UfuqPalette;
+  /** The look inside «أفق»: the living garden (default) or plain paper. */
+  ufuqLook?: UfuqLook;
+  /** The garden moves (wind, fireflies…); off draws it still. */
+  gardenLive?: boolean;
   fontScale: number; // 0.9 - 1.6
   lineHeight: number; // 1.6 - 2.4
   quranFontScale: number; // 0.9 - 1.6
@@ -822,6 +826,8 @@ function normalizePrefs(value: unknown): Preferences {
     keepScreenAwake: typeof source.keepScreenAwake === "boolean" ? source.keepScreenAwake : DEFAULT_PREFS.keepScreenAwake,
     designMode: normalizeDesignMode(source.designMode),
     ufuqPalette: normalizeUfuqPalette(source.ufuqPalette),
+    ufuqLook: normalizeUfuqLook(source.ufuqLook),
+    gardenLive: typeof source.gardenLive === "boolean" ? source.gardenLive : true,
     hapticStrength: validStrength,
     homeWidgets: normalizeHomeWidgets(source.homeWidgets),
     homeWidgetsOrder: normalizeHomeWidgetsOrder(source.homeWidgetsOrder),

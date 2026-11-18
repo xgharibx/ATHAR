@@ -408,13 +408,18 @@
         var raw = localStorage.getItem("athar_design_v1");
         var hint = raw && JSON.parse(raw);
         if (!hint || hint.design !== "ufuq") return;
-        var dark = hint.palette === "night" || (hint.palette !== "day" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var hour = new Date().getHours();
+        var dark = hint.palette === "night"
+          || (hint.palette === "time" && (hour >= 18 || hour < 5))
+          || (hint.palette !== "day" && hint.palette !== "time" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var garden = hint.look !== "plain";
         var root = document.documentElement;
         root.setAttribute("data-design", "ufuq");
         root.setAttribute("data-ufuq-palette", dark ? "night" : "day");
+        root.setAttribute("data-ufuq-look", garden ? "garden" : "plain");
         root.classList.add(dark ? "dark" : "light");
         var meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute("content", dark ? "#0a0d13" : "#f5f1e8");
+        if (meta) meta.setAttribute("content", garden ? (dark ? "#010207" : "#5e97dc") : (dark ? "#0a0d13" : "#f5f1e8"));
       } catch (e) {}
     })();
     </script>

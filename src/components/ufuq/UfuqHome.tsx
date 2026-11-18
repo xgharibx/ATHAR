@@ -27,6 +27,7 @@ import { arNum } from "@/lib/formatNumber";
 import { shareText } from "@/lib/shareTargets";
 import { getHomeAdhkarAction } from "@/lib/homeTimeActions";
 import { trackUxEvent } from "@/lib/uxMetrics";
+import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
 import { PRAYER_KEYS, skyPhaseFor, ufuqClock, ufuqGreeting, untilLabel } from "@/components/ufuq/ufuqTime";
 
 function dailyIndex(key: string, length: number): number {
@@ -211,6 +212,39 @@ function TodayPath({ sections }: { sections: Section[] }) {
   );
 }
 
+/** In the garden: what today's remembrance has planted, and why. */
+function GardenGrowthCard() {
+  const navigate = useNavigate();
+  const growth = useGardenGrowth();
+  const planted = Math.max(0, growth.planted);
+  return (
+    <div className="u-card u-growth">
+      <div className="u-growth-head">
+        <span className="u-growth-count u-num">{arNum(planted)}</span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-[15px] font-semibold">
+            {planted === 0 ? "حديقتك تنتظر غرسك" : planted === 1 ? "زهرة غرستها اليوم" : planted === 2 ? "زهرتان غرستهما اليوم" : planted <= 10 ? "زهرات غرستها اليوم" : "زهرة غرستها اليوم"}
+          </span>
+          <span className="block text-[12.5px] text-(--muted) mt-0.5">كل تسبيحة وذكر تُنبت زهرة في الحديقة خلفك</span>
+        </span>
+        <button type="button" className="u-pill-btn" onClick={() => navigate("/sebha")}>سبِّح</button>
+      </div>
+      <div className="u-growth-fruits">
+        <span className={`u-growth-fruit ${growth.palmFruit ? "is-on" : ""}`}>
+          {growth.palmFruit ? `النخلة تُثمر · ${arNum(growth.streak)} أيام متتالية` : "النخلة تُثمر بعد ٣ أيام متتالية"}
+        </span>
+        <span className={`u-growth-fruit ${growth.treeFruit ? "is-on" : ""}`}>
+          {growth.treeFruit ? "الرمّان أثمر: أتممت وِردك" : "الرمّان يُثمر حين تُتمّ وِردك"}
+        </span>
+      </div>
+      <blockquote className="u-growth-hadith">
+        «…وأخبِرْهم أنّ الجنةَ طيّبةُ التُّربة، عذبةُ الماء، وأنّها قِيعان، وأنّ غِراسَها: سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر»
+        <cite>رواه الترمذي (٣٤٦٢)، وحسّنه الألباني</cite>
+      </blockquote>
+    </div>
+  );
+}
+
 function VerseOfTheDay() {
   const navigate = useNavigate();
   const today = useTodayKey();
@@ -305,6 +339,7 @@ export function UfuqHome() {
   const hour = useCurrentHour();
   const prayer = usePrayerTimes();
   const sections = React.useMemo(() => data?.db.sections ?? [], [data]);
+  const garden = useNoorStore((s) => (s.prefs.ufuqLook ?? "garden") === "garden");
 
   const hijri = React.useMemo(() => {
     const fromApi = formatPrayerHijriDate(prayer.data?.data?.date?.hijri);
@@ -348,6 +383,15 @@ export function UfuqHome() {
         <h2>مسار اليوم</h2>
       </div>
       <TodayPath sections={sections} />
+
+      {garden ? (
+        <>
+          <div className="u-section-head">
+            <h2>حديقتك</h2>
+          </div>
+          <GardenGrowthCard />
+        </>
+      ) : null}
 
       <div className="u-section-head">
         <h2>من كتاب الله</h2>
@@ -404,6 +448,7 @@ export function UfuqHome() {
         <br />
         اترك أثرًا طيبًا
       </p>
+      {garden ? <div className="u-garden-window" aria-hidden="true" /> : null}
     </div>
   );
 }

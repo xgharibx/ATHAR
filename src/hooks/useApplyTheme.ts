@@ -8,8 +8,10 @@ import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
 import {
   rememberDesignForFirstPaint,
   resolveUfuqPalette,
+  UFUQ_GARDEN_META_COLORS,
   UFUQ_META_COLORS,
   type DesignMode,
+  type UfuqLook,
   type UfuqPalette,
 } from "@/lib/design";
 
@@ -208,16 +210,24 @@ function apply(theme: NoorTheme): string {
  * or dark keep doing so; everything else comes from src/styles/ufuq.css.
  * Exported for tests.
  */
-export function applyUfuqDesign(palette: UfuqPalette | undefined): string {
+export function applyUfuqDesign(palette: UfuqPalette | undefined, look: UfuqLook = "plain"): string {
   const root = document.documentElement;
-  const resolved = resolveUfuqPalette(palette, Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches));
+  // «الوقت»: night from Maghrib until Fajr, read from the same next-prayer
+  // record the living «سماء» theme uses.
+  const samaPhase = getSamaPhase();
+  const resolved = resolveUfuqPalette(
+    palette,
+    Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches),
+    samaPhase === "fajr" || samaPhase === "isha",
+  );
   root.classList.remove(...ALL_THEME_CLASSES);
   root.classList.add(resolved === "night" ? "dark" : "light");
   root.dataset.design = "ufuq";
   root.dataset.ufuqPalette = resolved;
+  root.dataset.ufuqLook = look;
   root.style.removeProperty("--accent");
   applyAccentForeground(root);
-  const color = UFUQ_META_COLORS[resolved];
+  const color = look === "garden" ? UFUQ_GARDEN_META_COLORS[resolved] : UFUQ_META_COLORS[resolved];
   setMetaThemeColor(color);
   return color;
 }
@@ -226,6 +236,7 @@ function clearUfuqDesign() {
   const root = document.documentElement;
   delete root.dataset.design;
   delete root.dataset.ufuqPalette;
+  delete root.dataset.ufuqLook;
 }
 
 /**
@@ -243,21 +254,30 @@ export function useApplyTheme() {
   const clearReading = useNoorStore((s) => s.prefs.clearReading);
   const designMode: DesignMode = useNoorStore((s) => s.prefs.designMode) ?? "classic";
   const ufuqPalette = useNoorStore((s) => s.prefs.ufuqPalette);
+  const ufuqLook: UfuqLook = useNoorStore((s) => s.prefs.ufuqLook) ?? "garden";
 
   useEffect(() => {
     if (useNoorStore.persist.hasHydrated() && !isAccountStorageOwnerTransitionInProgress()) {
-      rememberDesignForFirstPaint(designMode, ufuqPalette ?? "auto");
+      rememberDesignForFirstPaint(designMode, ufuqPalette ?? "auto", ufuqLook);
     }
     if (designMode !== "ufuq") return;
     // «أفق» replaces the classic theme while it is on; the classic choice is
     // kept untouched in prefs.theme for when the person switches back.
     document.body.classList.remove("transparent-mode");
-    applyUfuqDesign(ufuqPalette);
+    const refresh = () => applyUfuqDesign(ufuqPalette, ufuqLook);
+    refresh();
     const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
-    const onChange = () => applyUfuqDesign(ufuqPalette);
-    mq?.addEventListener?.("change", onChange);
-    return () => mq?.removeEventListener?.("change", onChange);
-  }, [designMode, ufuqPalette]);
+    mq?.addEventListener?.("change", refresh);
+    // «الوقت» turns to night at Maghrib and back at Fajr while the app is open.
+    const onVisible = () => document.visibilityState === "visible" && refresh();
+    document.addEventListener("visibilitychange", onVisible);
+    const timer = ufuqPalette === "time" ? window.setInterval(refresh, 60 * 1000) : 0;
+    return () => {
+      mq?.removeEventListener?.("change", refresh);
+      document.removeEventListener("visibilitychange", onVisible);
+      if (timer) window.clearInterval(timer);
+    };
+  }, [designMode, ufuqPalette, ufuqLook]);
 
   useEffect(() => {
     if (designMode === "ufuq") return;
@@ -321,7 +341,7 @@ export function useApplyTheme() {
       root.style.removeProperty("--accent");
     }
     applyAccentForeground(root);
-  }, [customAccent, theme, designMode, ufuqPalette]);
+  }, [customAccent, theme, designMode, ufuqPalette, ufuqLook]);
 
   useEffect(() => {
     const root = document.documentElement;

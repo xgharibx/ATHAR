@@ -76,7 +76,8 @@ function QuickSwitches() {
   const setReminders = useNoorStore((s) => s.setReminders);
   const ufuq = prefs.designMode === "ufuq";
   const dark = ufuq
-    ? resolveUfuqPalette(prefs.ufuqPalette, Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches)) === "night"
+    ? document.documentElement.dataset.ufuqPalette === "night"
+      || resolveUfuqPalette(prefs.ufuqPalette, Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches)) === "night"
     : isDarkTheme(prefs.theme);
   const vibrating = prefs.enableHaptics && prefs.hapticStrength !== "off";
 
@@ -139,7 +140,11 @@ function useGroupSummaries(): Record<SettingsGroupId, string> {
     quran: getReciter(prefs.quranReciter ?? "Alafasy_128kbps")?.label ?? "",
     tasbeeh: `الهدف ${arNum(sebhaTarget)}${prefs.enableHaptics && prefs.hapticStrength !== "off" ? " · مع الاهتزاز" : ""}`,
     appearance: prefs.designMode === "ufuq"
-      ? `أُفُق · ${prefs.ufuqPalette === "day" ? "نهار" : prefs.ufuqPalette === "night" ? "ليل" : "حسب الهاتف"}`
+      ? [
+        "أُفُق",
+        (prefs.ufuqLook ?? "garden") === "garden" ? "الحديقة" : "بسيط",
+        prefs.ufuqPalette === "day" ? "نهار" : prefs.ufuqPalette === "night" ? "ليل" : prefs.ufuqPalette === "time" ? "حسب الوقت" : "حسب الهاتف",
+      ].join(" · ")
       : `الكلاسيكي · ${themeLabel(prefs.theme)}`,
     home: `${arNum(shownCards)} من ${arNum(order.length)} بطاقات`,
     privacy: Capacitor.isNativePlatform() ? (prefs.biometricLock ? "القفل مفعّل" : "القفل متوقف") : "الذكاء الاصطناعي",
