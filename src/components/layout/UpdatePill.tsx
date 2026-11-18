@@ -16,6 +16,7 @@ import { Capacitor } from "@capacitor/core";
 
 import { useUpdateAvailable } from "@/hooks/useUpdateAvailable";
 import { openStoreListing } from "@/lib/storeIdentity";
+import { completePlayUpdate, onPlayUpdateState, playUpdateDownloaded, startPlayUpdate } from "@/lib/inAppUpdate";
 import { usePwaUpdate } from "@/hooks/usePwaUpdate";
 
 export function UpdatePill() {
@@ -24,16 +25,59 @@ export function UpdatePill() {
 
 function NativeUpdatePill() {
   const { available, latest, dismiss } = useUpdateAvailable();
+  // Google Play builds: download inside the app, then restart into it.
+  const [phase, setPhase] = React.useState<"idle" | "downloading" | "downloaded">("idle");
 
-  if (!available) return null;
+  React.useEffect(() => {
+    let active = true;
+    void playUpdateDownloaded().then((downloaded) => {
+      if (active && downloaded) setPhase("downloaded");
+    });
+    const stop = onPlayUpdateState((status) => {
+      if (status === "downloading") setPhase("downloading");
+      else if (status === "downloaded") setPhase("downloaded");
+      else if (status === "failed" || status === "canceled") setPhase("idle");
+    });
+    return () => {
+      active = false;
+      stop();
+    };
+  }, []);
 
-  const open = () => {
-    // Play on a Play build, AppGallery on a Huawei build, opened natively so it
-    // lands inside the store app.
+  if (phase === "downloaded") {
+    return (
+      <UpdateAction
+        label="اكتمل تنزيل التحديث — أعد التشغيل"
+        title="أعد تشغيل أثر لتثبيت التحديث"
+        text="أعد التشغيل"
+        onOpen={() => void completePlayUpdate()}
+        onDismiss={() => setPhase("idle")}
+      />
+    );
+  }
+  if (!available && phase === "idle") return null;
+
+  const open = async () => {
+    if (phase === "downloading") return;
+    if (await startPlayUpdate()) {
+      setPhase("downloading");
+      return;
+    }
+    // Huawei builds, iPhone, or Play has nothing to offer yet (staged
+    // rollout): the store page, opened natively inside the store app.
     void openStoreListing();
   };
 
-  return <UpdateAction label={`تحديث متاح — الإصدار ${latest}`} title={`الإصدار ${latest}`} onOpen={open} onDismiss={dismiss} />;
+  return (
+    <UpdateAction
+      label={phase === "downloading" ? "جارٍ تنزيل التحديث" : `تحديث متاح — الإصدار ${latest}`}
+      title={`الإصدار ${latest}`}
+      applying={phase === "downloading"}
+      applyingText="جارٍ التنزيل…"
+      onOpen={() => void open()}
+      onDismiss={dismiss}
+    />
+  );
 }
 
 function WebUpdatePill() {
@@ -45,10 +89,12 @@ function WebUpdatePill() {
   return <UpdateAction label="تحديث متاح — تطبيق التحديث" title="تطبيق التحديث بعد حفظ تغييراتك" applying={applying} onOpen={open} onDismiss={dismiss} />;
 }
 
-function UpdateAction({ label, title, applying = false, onOpen, onDismiss }: {
+function UpdateAction({ label, title, applying = false, text = "تحديث", applyingText = "جارٍ التحديث…", onOpen, onDismiss }: {
   label: string;
   title: string;
   applying?: boolean;
+  text?: string;
+  applyingText?: string;
   onOpen: () => void;
   onDismiss: () => void;
 }) {
@@ -63,7 +109,7 @@ function UpdateAction({ label, title, applying = false, onOpen, onDismiss }: {
         title={title}
       >
         <ArrowUpCircle size={15} aria-hidden="true" />
-        <span>{applying ? "جارٍ التحديث…" : "تحديث"}</span>
+        <span>{applying ? applyingText : text}</span>
       </button>
       <button
         type="button"

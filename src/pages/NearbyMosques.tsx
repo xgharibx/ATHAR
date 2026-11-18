@@ -4,6 +4,8 @@ import { ArrowRight, MapPin, RefreshCw, Share2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import toast from "react-hot-toast";
+import { Capacitor } from "@capacitor/core";
+import { directionsUrl, mapsAppLabel, openDirectionsOnAndroid, webMapsUrl } from "@/lib/directions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -271,7 +273,9 @@ export function NearbyMosquesPage() {
             {mosques.length} مسجد في نطاق {NEARBY_RADIUS_KM} كم
           </div>
           {mosques.map((mosque, i) => {
-            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${mosque.lat},${mosque.lon}`;
+            const place = { lat: mosque.lat, lng: mosque.lon, name: mosque.name };
+            // Shared links stay on the web so they open on any phone.
+            const mapsUrl = webMapsUrl(place);
             const distLabel =
               mosque.distanceKm < 1
                 ? `${Math.round(mosque.distanceKm * 1000)} م`
@@ -316,10 +320,15 @@ export function NearbyMosquesPage() {
                       <Share2 size={14} aria-hidden="true" />
                     </button>
                     <a
-                      href={mapsUrl}
+                      href={directionsUrl(place)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`فتح ${mosque.name} في خرائط جوجل (تبويب جديد)`}
+                      onClick={(event) => {
+                        if (Capacitor.getPlatform() !== "android") return;
+                        event.preventDefault();
+                        void openDirectionsOnAndroid(place);
+                      }}
+                      aria-label={`الاتجاهات إلى ${mosque.name} في ${mapsAppLabel()}`}
                       className="shrink-0 text-[11px] px-3 py-1.5 rounded-full border border-(--stroke) hover:bg-(--card-2) transition whitespace-nowrap"
                       style={{ color: "var(--accent)" }}
                     >

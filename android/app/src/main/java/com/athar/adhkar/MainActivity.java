@@ -40,6 +40,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(PrayerActivityPlugin.class);
         registerPlugin(StoreReviewPlugin.class);
         registerPlugin(AppLockPlugin.class);
+        registerPlugin(InAppUpdatePlugin.class);
         super.onCreate(savedInstanceState);
 
         // Ask once a day, in the background, whether a newer version has been
