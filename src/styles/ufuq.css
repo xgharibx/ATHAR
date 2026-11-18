@@ -1217,6 +1217,24 @@ body.quran-focus-mode .u-topbar {
   --u-shadow-float: 0 22px 54px rgba(0, 0, 0, 0.6);
 }
 
+/* «الحديقة الحيّة»: a lens's vignette and a little colour grading, so the
+   drawn garden is seen as if through a camera, not as a flat picture. */
+.u-garden-grade {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 90% at 50% 42%, transparent 55%, rgba(4, 10, 24, 0.28) 100%),
+    linear-gradient(180deg, rgba(255, 236, 200, 0.06), transparent 35%, rgba(10, 30, 20, 0.08));
+}
+
+html[data-ufuq-palette="night"] .u-garden-grade {
+  background:
+    radial-gradient(130% 90% at 50% 40%, transparent 50%, rgba(0, 0, 6, 0.5) 100%),
+    linear-gradient(180deg, rgba(40, 60, 120, 0.06), transparent 40%, rgba(0, 0, 0, 0.12));
+}
+
 .u-garden-veil {
   position: fixed;
   inset: 0;

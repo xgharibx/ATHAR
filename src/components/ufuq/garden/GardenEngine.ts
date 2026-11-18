@@ -59,17 +59,20 @@ export type GardenOptions = {
 
 export const bloomTarget = _bloomTarget;
 
-type Blade = { x: number; h: number; w: number; lean: number; flex: number; ph: number; c: number };
+type Blade = { x: number; h: number; w: number; lean: number; flex: number; ph: number; c: number; dy: number };
 type Flower = { x: number; y: number; stem: number; kind: FlowerKind; variant: number; size: number; ph: number; born: number; tilt: number; leaf: number };
 type Star = { x: number; y: number; r: number; a: number; tw: number; ph: number; tint: string };
 type Firefly = { x: number; y: number; ph: number; sp: number; rx: number; ry: number };
 type Butterfly = { x: number; y: number; ph: number; sp: number; color: string; dir: number };
 type Petal = { x: number; y: number; vx: number; vy: number; rot: number; vr: number; s: number; color: string };
-type Frond = { side: 1 | -1; elev: number; k: number; v: number; back: boolean; ph: number };
+/** fs < 1: the frond points toward us and looks shorter (foreshortened). */
+type Frond = { side: 1 | -1; elev: number; k: number; v: number; back: boolean; ph: number; fs?: number };
+type Mote = { x: number; y: number; ph: number; sp: number; r: number };
 type Plants = {
   trunk: Sprite | null;
   /** The older fronds behind, baked into one image around the crown. */
   backCrown: Sprite | null;
+  dry: Array<Sprite | null>;
   frondsFront: Array<Sprite | null>;
   dates: Array<Sprite | null>;
   cypress: Array<Sprite | null>;
@@ -98,8 +101,8 @@ const PALETTES: Record<GardenMode, Palette> = {
     mosque: "rgba(28, 62, 122, 0.34)",
     nearHills: "#7fae96",
     ground: ["#4d8f58", "#2f6a3c"],
-    grassBack: ["#6fae7c", "#5d9f6d", "#7dba86"],
-    grassFront: ["#3f8f4a", "#4fa358", "#2f7a3c", "#66b86a"],
+    grassBack: ["#6fae7c", "#5d9f6d", "#7dba86", "#8cbf7a", "#6aa36a"],
+    grassFront: ["#3f8f4a", "#4fa358", "#2f7a3c", "#66b86a", "#5a9a3e", "#7ab45a", "#357f48"],
     blossoms: ["#e8452a", "#ff7a50", "#f05a3a", "#ffa07a"],
   },
   night: {
@@ -108,8 +111,8 @@ const PALETTES: Record<GardenMode, Palette> = {
     mosque: "#0b1633",
     nearHills: "#07141b",
     ground: ["#0a1d14", "#030a07"],
-    grassBack: ["#0d241b", "#0b2017", "#10291f"],
-    grassFront: ["#123423", "#174029", "#0e2a1c", "#1d4a30"],
+    grassBack: ["#0d241b", "#0b2017", "#10291f", "#0f2620", "#0c221a"],
+    grassFront: ["#123423", "#174029", "#0e2a1c", "#1d4a30", "#16382a", "#1a4232", "#10301f"],
     blossoms: ["#5c2a30", "#6a3438", "#4a2228", "#7a4044"],
   },
 };
@@ -179,6 +182,12 @@ export class GardenEngine {
   private palmH = 0;
   private treeH = 0;
   private fronds: Frond[] = [];
+  private dryFronds: Frond[] = [];
+  private motes: Mote[] = [];
+  /** The nearest grass, drawn small and scaled up: out of focus, and cheaper. */
+  private soft: HTMLCanvasElement | null = null;
+  private softCtx: CanvasRenderingContext2D | null = null;
+  private softH = 0;
   private rowMax = { back: 30, mid: 34, front: 48 };
   private glow: HTMLCanvasElement | null = null;
   private clouds: Array<{ sprite: Sprite; x: number; y: number; sp: number }> = [];
@@ -245,6 +254,8 @@ export class GardenEngine {
     this.bgCanvas.height = Math.round(this.h * this.bgDpr);
     this.groundH = Math.min(200, Math.max(120, this.h * 0.2));
     this.groundY = this.h - this.groundH;
+    this.soft ??= makeCanvas(1, 1);
+    this.softCtx ??= this.soft.getContext("2d");
     this.build();
     if (!this.running) this.drawFrame(this.now);
   }
@@ -301,6 +312,8 @@ export class GardenEngine {
     this.running = false;
     cancelAnimationFrame(this.raf);
     this.plants = this.glow = null;
+    this.soft = null;
+    this.softCtx = null;
     this.heads.clear();
   }
 
@@ -342,7 +355,8 @@ export class GardenEngine {
       };
     });
 
-    const blade = (base: number, minH: number, maxH: number, colors: number): Blade => ({
+    const blade = (base: number, minH: number, maxH: number, colors: number, rootSpread = 0): Blade => ({
+      dy: rnd() * rootSpread,
       x: rnd() * (w + 20) - 10,
       h: (minH + rnd() * (maxH - minH)) * scale,
       w: (2 + rnd() * 2.6) * Math.max(0.8, scale),
@@ -355,9 +369,9 @@ export class GardenEngine {
     const backCount = Math.round((w / 2.4) * this.density);
     const midCount = Math.round((w / 2.1) * this.density);
     const frontCount = Math.round((w / 2.2) * this.density);
-    this.back = Array.from({ length: backCount }, () => blade(0, 10 / scale * scale2, 26 / scale * scale2 + 4, 3)).sort((a, b) => a.c - b.c);
-    this.mid = Array.from({ length: midCount }, () => blade(2, 14, 34, 4)).sort((a, b) => a.c - b.c);
-    this.front = Array.from({ length: frontCount }, () => blade(1, 22, 48, 4)).sort((a, b) => a.c - b.c);
+    this.back = Array.from({ length: backCount }, () => blade(0, 10 / scale * scale2, 26 / scale * scale2 + 4, 5, groundH * 0.06)).sort((a, b) => a.c - b.c);
+    this.mid = Array.from({ length: midCount }, () => blade(2, 14, 34, 7, groundH * 0.16)).sort((a, b) => a.c - b.c);
+    this.front = Array.from({ length: frontCount }, () => blade(1, 22, 48, 7)).sort((a, b) => a.c - b.c);
 
     const rowMax = (rows: Blade[]) => rows.reduce((m, b) => Math.max(m, b.h), 1);
     this.rowMax = { back: rowMax(this.back), mid: rowMax(this.mid), front: rowMax(this.front) };
@@ -375,7 +389,24 @@ export class GardenEngine {
       { side: 1 as const, elev: elev + fr() * 0.1, k: 0.92 + fr() * 0.14, v: i % 3, back: false, ph: fr() * 6 },
       { side: -1 as const, elev: elev + 0.05 + fr() * 0.1, k: 0.9 + fr() * 0.14, v: (i + 2) % 3, back: false, ph: fr() * 6 },
     ]);
-    this.fronds = [...back, ...front];
+    // Two fronds reach out toward us, shortened by perspective.
+    const toward: Frond[] = [
+      { side: 1, elev: 0.18, k: 1, v: 1, back: false, ph: fr() * 6, fs: 0.5 },
+      { side: -1, elev: 0.32, k: 0.95, v: 2, back: false, ph: fr() * 6, fs: 0.42 },
+    ];
+    this.fronds = [...back, ...front, ...toward];
+    this.dryFronds = [
+      { side: 1, elev: 1.3, k: 0.62, v: 0, back: true, ph: 1 },
+      { side: -1, elev: 1.38, k: 0.58, v: 1, back: true, ph: 2 },
+      { side: 1, elev: 1.52, k: 0.5, v: 1, back: true, ph: 3 },
+    ];
+    this.motes = Array.from({ length: 26 }, () => ({
+      x: rnd() * w,
+      y: groundY * 0.25 + rnd() * h * 0.55,
+      ph: rnd() * 100,
+      sp: 0.2 + rnd() * 0.4,
+      r: 0.6 + rnd() * 1.1,
+    }));
 
     this.fireflies = Array.from({ length: 22 }, () => ({
       x: rnd() * w,
@@ -491,6 +522,29 @@ export class GardenEngine {
       sun.addColorStop(1, "rgba(255,236,200,0)");
       s.fillStyle = sun;
       s.fillRect(0, 0, w, h);
+      // Shafts of sunlight slanting down through the air.
+      const sx = w * 0.2;
+      const sy = groundY * 0.18;
+      s.save();
+      s.globalCompositeOperation = "lighter";
+      // Soft-edged, and faint near the sun where its glare already fills the air.
+      if ("filter" in s) s.filter = `blur(${Math.round(w * 0.03)}px)`;
+      for (const [ang, spread, a] of [[0.95, 0.07, 0.05], [1.14, 0.05, 0.035], [1.32, 0.08, 0.045], [0.78, 0.05, 0.03]] as const) {
+        const len = h * 1.1;
+        const ray = s.createLinearGradient(sx, sy, sx + Math.cos(ang) * len, sy + Math.sin(ang) * len);
+        ray.addColorStop(0, "rgba(255,244,214,0)");
+        ray.addColorStop(0.18, `rgba(255,244,214,${a})`);
+        ray.addColorStop(0.6, `rgba(255,244,214,${a * 0.45})`);
+        ray.addColorStop(1, "rgba(255,244,214,0)");
+        s.fillStyle = ray;
+        s.beginPath();
+        s.moveTo(sx, sy);
+        s.lineTo(sx + Math.cos(ang - spread) * len, sy + Math.sin(ang - spread) * len);
+        s.lineTo(sx + Math.cos(ang + spread) * len, sy + Math.sin(ang + spread) * len);
+        s.closePath();
+        s.fill();
+      }
+      s.restore();
     }
 
     // Hills, the distant mosque and the ground, on the same still layer.
@@ -505,10 +559,13 @@ export class GardenEngine {
       g.lineTo(w, h);
       g.closePath();
     };
+    // Far away is a little out of focus, like the eye or a lens sees it.
+    if ("filter" in g) g.filter = "blur(1.4px)";
     ridge(groundY - 22, 70, 0.006, 0.019, 1.7);
     g.fillStyle = p.farHills;
     g.fill();
     this.paintMosque(g, w * 0.6, groundY - 62, Math.min(1.25, w / 360), p.mosque, night);
+    if ("filter" in g) g.filter = "none";
     // Air between us and the far hills: they fade into the sky a little.
     const haze = g.createLinearGradient(0, groundY - 110, 0, groundY + 10);
     haze.addColorStop(0, night ? "rgba(20,34,63,0)" : "rgba(214,232,248,0)");
@@ -598,6 +655,7 @@ export class GardenEngine {
     this.plants = {
       trunk: paintPalmTrunk(H, PALM_LEAN, mode, dpr),
       backCrown: this.paintBackCrown(backFronds, L),
+      dry: [0, 1].map((i) => paintFrond(L, mode, dpr, 700 + i, 0.2, true)),
       frondsFront: [0, 1, 2].map((i) => paintFrond(L, mode, dpr, 400 + i, 0)),
       dates: [0, 1, 2].map((i) => paintDates(H * 0.13, mode, dpr, 500 + i)),
       cypress: [paintCypress(48, ch, mode, dpr, 21), paintCypress(40, ch * 0.82, mode, dpr, 22)],
@@ -715,12 +773,13 @@ export class GardenEngine {
     this.drawGrass(this.back, p.grassBack, t, groundY + 4, 0.7, back, night);
     this.drawFlowers(t, night);
     this.drawGrass(this.mid, p.grassFront, t, groundY + this.groundH * 0.5, 0.85, mid, night);
-    this.drawGrass(this.front, p.grassFront, t, h + 2, 1, front, night);
+    this.drawNearGrass(p.grassFront, t, front, night);
 
     if (night) this.drawFireflies(t);
     else {
       this.drawPetals(t);
       this.drawButterflies(t);
+      this.drawMotes(t);
     }
   }
 
@@ -892,9 +951,20 @@ export class GardenEngine {
       ctx.translate(crownX, crownY);
       ctx.scale(f.side, 1);
       ctx.rotate(f.elev + wind * 0.09 * f.side + Math.sin(t * 1.4 + f.ph) * 0.03);
+      if (f.fs) ctx.scale(f.fs, 1);
       drawSprite(ctx, sprite, 0, 0, f.k);
       ctx.restore();
     };
+    // Old fronds, dry and hanging, are the first thing under the crown.
+    for (const f of this.dryFronds) {
+      const sprite = plants.dry[f.v] ?? null;
+      ctx.save();
+      ctx.translate(crownX, crownY + 4);
+      ctx.scale(f.side, 1);
+      ctx.rotate(f.elev + wind * 0.04 * f.side);
+      drawSprite(ctx, sprite, 0, 0, f.k);
+      ctx.restore();
+    }
     ctx.save();
     ctx.translate(crownX, crownY);
     ctx.rotate(wind * 0.035 + Math.sin(t * 1.1) * 0.012);
@@ -923,8 +993,7 @@ export class GardenEngine {
   }
 
   /** Blades are shaded from the soil up to a lit tip; one path per colour. */
-  private drawGrass(blades: Blade[], colors: string[], t: number, baseY: number, flexScale: number, maxH: number, night: boolean) {
-    const ctx = this.ctx;
+  private drawGrass(blades: Blade[], colors: string[], t: number, baseY: number, flexScale: number, maxH: number, night: boolean, ctx = this.ctx) {
     const soil = night ? "#020604" : "#1d4422";
     const light = night ? "#4a6a86" : "#e6f6b0";
     let current = -1;
@@ -948,13 +1017,14 @@ export class GardenEngine {
       }
       const wind = windAt(b.x, t) + this.gustAt(b.x, t);
       const a = b.lean + (wind * 0.34 + Math.sin(t * 2.2 + b.ph) * 0.05) * b.flex * flexScale;
+      const root = baseY + b.dy;
       const tipX = b.x + Math.sin(a) * b.h;
-      const tipY = baseY - Math.cos(a) * b.h;
+      const tipY = root - Math.cos(a) * b.h;
       const cx = b.x + Math.sin(a * 0.45) * b.h * 0.5;
-      const cy = baseY - b.h * 0.55;
-      path!.moveTo(b.x - b.w / 2, baseY);
+      const cy = root - b.h * 0.55;
+      path!.moveTo(b.x - b.w / 2, root);
       path!.quadraticCurveTo(cx - b.w * 0.3, cy, tipX, tipY);
-      path!.quadraticCurveTo(cx + b.w * 0.3, cy, b.x + b.w / 2, baseY);
+      path!.quadraticCurveTo(cx + b.w * 0.3, cy, b.x + b.w / 2, root);
     }
     flush();
   }
@@ -1041,6 +1111,49 @@ export class GardenEngine {
       }
       ctx.globalAlpha = 1;
     }
+  }
+
+  /**
+   * The grass nearest the eye is out of focus, as through a camera: drawn at
+   * under half the resolution and scaled up, which softens it and costs less.
+   */
+  private drawNearGrass(colors: string[], t: number, maxH: number, night: boolean) {
+    const soft = this.soft;
+    const g = this.softCtx;
+    const band = Math.ceil(maxH + 14);
+    if (!soft || !g) {
+      this.drawGrass(this.front, colors, t, this.h + 2, 1, maxH, night);
+      return;
+    }
+    const k = 0.42;
+    const sw = Math.max(1, Math.round(this.w * k));
+    const sh = Math.max(1, Math.round(band * k));
+    if (soft.width !== sw || soft.height !== sh) {
+      soft.width = sw;
+      soft.height = sh;
+    }
+    this.softH = band;
+    g.setTransform(k, 0, 0, k, 0, -(this.h - band) * k);
+    g.clearRect(0, this.h - band, this.w, band);
+    this.drawGrass(this.front, colors, t, this.h + 2, 1, maxH, night, g);
+    this.ctx.imageSmoothingQuality = "high";
+    this.ctx.drawImage(soft, 0, this.h - this.softH, this.w, this.softH);
+  }
+
+  /** Pollen and dust turning slowly in the sunlight. */
+  private drawMotes(t: number) {
+    const ctx = this.ctx;
+    ctx.fillStyle = "#fff6d8";
+    for (const m of this.motes) {
+      const x = m.x + Math.sin(t * m.sp + m.ph) * 26 + t * 4 * m.sp;
+      const y = m.y + Math.cos(t * m.sp * 0.7 + m.ph) * 18;
+      const xx = ((x % (this.w + 20)) + this.w + 20) % (this.w + 20) - 10;
+      ctx.globalAlpha = 0.18 + 0.32 * Math.max(0, Math.sin(t * 0.9 + m.ph));
+      ctx.beginPath();
+      ctx.arc(xx, y, m.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
   }
 
   private drawFireflies(t: number) {
