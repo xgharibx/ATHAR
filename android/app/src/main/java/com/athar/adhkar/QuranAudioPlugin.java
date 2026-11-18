@@ -250,6 +250,39 @@ public class QuranAudioPlugin extends Plugin {
         withController(call, (player) -> player.setVolume(volume));
     }
 
+    /** Calls waiting for their batch, while the app is open. */
+    private final java.util.Map<String, PluginCall> waiting = new java.util.concurrent.ConcurrentHashMap<>();
+
+    @Override
+    public void load() {
+        super.load();
+        RecitationDownloadWorker.listener = new RecitationDownloadWorker.Listener() {
+            @Override
+            public void progress(String batch, int done, int total) {
+                if (!waiting.containsKey(batch)) return;
+                JSObject progress = new JSObject();
+                progress.put("done", done);
+                progress.put("total", total);
+                notifyListeners("downloadProgress", progress);
+            }
+
+            @Override
+            public void finished(String batch, int saved, int failed, int evicted) {
+                PluginCall call = waiting.remove(batch);
+                if (call == null) return;
+                JSObject result = new JSObject();
+                result.put("saved", saved);
+                result.put("failed", failed);
+                result.put("evicted", evicted);
+                call.resolve(result);
+            }
+        };
+    }
+
+    /**
+     * Saves verses in the background (RecitationDownloadWorker): the download
+     * carries on after the app is left, and resolves here if the app is still open.
+     */
     @PluginMethod
     public void download(PluginCall call) {
         JSArray raw = call.getArray("urls");
@@ -265,29 +298,12 @@ public class QuranAudioPlugin extends Plugin {
         long maxBytes = Math.max(1, call.getLong("maxBytes", 1024L * 1024 * 1024));
         Context context = getContext();
         downloads.execute(() -> {
-            int saved = 0;
-            int failed = 0;
-            Set<String> batch = new HashSet<>();
-            for (int i = 0; i < urls.size(); i++) {
-                String url = urls.get(i);
-                if (RecitationDownloads.save(context, url)) {
-                    saved++;
-                    File file = RecitationDownloads.fileFor(context, url);
-                    if (file != null) batch.add(file.getAbsolutePath());
-                } else {
-                    failed++;
-                }
-                JSObject progress = new JSObject();
-                progress.put("done", i + 1);
-                progress.put("total", urls.size());
-                notifyListeners("downloadProgress", progress);
+            try {
+                String batch = RecitationDownloadWorker.enqueue(context, urls, maxBytes, call.getString("title"));
+                waiting.put(batch, call);
+            } catch (Exception e) {
+                call.reject("The download could not start", e);
             }
-            int evicted = RecitationDownloads.enforceBudget(context, maxBytes, batch);
-            JSObject result = new JSObject();
-            result.put("saved", saved);
-            result.put("failed", failed);
-            result.put("evicted", evicted);
-            call.resolve(result);
         });
     }
 
@@ -319,6 +335,8 @@ public class QuranAudioPlugin extends Plugin {
         controller = null;
         controllerFuture = null;
         downloads.shutdown();
+        RecitationDownloadWorker.listener = null;
+        waiting.clear();
         super.handleOnDestroy();
     }
 }

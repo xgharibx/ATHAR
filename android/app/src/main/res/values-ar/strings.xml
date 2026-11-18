@@ -37,4 +37,9 @@
     <string name="travel_channel">السفر</string>
     <string name="travel_title">منطقة زمنية جديدة</string>
     <string name="travel_text">افتح أثر لتحديث مواقيت الصلاة لمكانك الحالي.</string>
+    <!-- Background recitation downloads (RecitationDownloadWorker). -->
+    <string name="downloads_channel">التنزيلات</string>
+    <string name="downloads_title">اكتمل تنزيل التلاوة</string>
+    <string name="downloads_done_all">حُفظت %1$d آية للاستماع دون إنترنت</string>
+    <string name="downloads_done_some">حُفظت %1$d من %2$d آية للاستماع دون إنترنت</string>
 </resources>
