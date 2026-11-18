@@ -17,7 +17,7 @@
  * Dates are ISO `YYYY-MM-DD` strings throughout, compared as UTC midnights. A
  * Date object would drag the device's time zone into a count of days.
  */
-import { gregorianToHijri } from "@/lib/hijri";
+import { forHijri, gregorianToHijri } from "@/lib/hijri";
 
 // ── Keys ────────────────────────────────────────────────────────────────
 
@@ -133,7 +133,7 @@ export function hijriMonthStartISO(year: number, month: number): string {
   for (let off = 0; off <= 45; off += 1) {
     for (const sign of off === 0 ? [1] : [1, -1]) {
       const iso = toISO(guess + sign * off * DAY_MS);
-      const h = gregorianToHijri(localDateFromISO(iso));
+      const h = gregorianToHijri(forHijri(localDateFromISO(iso)));
       if (h.year === year && h.month === month && h.day === 1) return iso;
     }
   }
@@ -141,7 +141,7 @@ export function hijriMonthStartISO(year: number, month: number): string {
 }
 
 export function hijriYearOf(iso: string): number {
-  return gregorianToHijri(localDateFromISO(iso)).year;
+  return gregorianToHijri(forHijri(localDateFromISO(iso))).year;
 }
 
 // ── Estimating what is owed ─────────────────────────────────────────────
@@ -516,7 +516,7 @@ export type NextRamadan = {
 };
 
 export function nextRamadan(today: string): NextRamadan {
-  const h = gregorianToHijri(localDateFromISO(today));
+  const h = gregorianToHijri(forHijri(localDateFromISO(today)));
   const inRamadan = h.month === 9;
   // During Ramadan the "next" one is the following year; before it, this year's.
   const year = h.month < 9 ? h.year : h.year + 1;

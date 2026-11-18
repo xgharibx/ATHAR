@@ -9,6 +9,8 @@ import { Capacitor } from "@capacitor/core";
 import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
 import { DEFAULT_PRAYER_CITY, getPrayerLocationIdentity, PRAYER_COORDS_KEY, PRAYER_LOCATION_CHANGED_EVENT, readCachedPrayerCoordinates, type PrayerCoordinates } from "@/lib/prayerLocation";
 import { getDeviceLocation } from "@/lib/deviceLocation";
+import { forHijri, getHijriOffsetDays } from "@/lib/hijri";
+import { adjustTimings, hasAdjustments } from "@/lib/prayerAdjust";
 
 export const PRAYER_COORDS_KEY_EXPORT = PRAYER_COORDS_KEY;
 
@@ -79,6 +81,16 @@ function writeCached(dayKey: string, locationKey: string, payload: PrayerTimesRe
 }
 
 export function formatPrayerHijriDate(hijri?: PrayerHijriDate): string {
+  // With a Hijri offset the downloaded date no longer applies: today's date is
+  // worked out on the device instead.
+  if (getHijriOffsetDays() !== 0) {
+    try {
+      return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-arab", { day: "numeric", month: "long", year: "numeric" })
+        .format(forHijri(new Date()));
+    } catch {
+      return "";
+    }
+  }
   const rawDate = hijri?.date?.trim();
   const monthName = hijri?.month?.ar?.trim();
   if (!rawDate || !monthName) return "";
@@ -274,7 +286,8 @@ function localDateKey(date: Date): string {
 function computeLocalPrayerTimes(lat: number, lng: number, date: Date, method: number, school: number): PrayerTimesResponse {
   const timings = computeLocalPrayerTimings(lat, lng, date, method, school);
 
-  const hijriParts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "numeric", year: "numeric" }).formatToParts(date);
+  const hijriDay = forHijri(date);
+  const hijriParts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "numeric", year: "numeric" }).formatToParts(hijriDay);
   const part = (t: string) => hijriParts.find((p) => p.type === t)?.value ?? "1";
 
   return {
@@ -285,8 +298,8 @@ function computeLocalPrayerTimes(lat: number, lng: number, date: Date, method: n
         hijri: {
           date: `${two(Number(part("day")))}-${two(Number(part("month")))}-${part("year")}`,
           month: {
-            en: new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { month: "long" }).format(date),
-            ar: new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { month: "long" }).format(date),
+            en: new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { month: "long" }).format(hijriDay),
+            ar: new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { month: "long" }).format(hijriDay),
           },
           weekday: {
             en: new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date),
@@ -325,6 +338,8 @@ export function usePrayerTimes() {
   const [clockContext, setClockContext] = React.useState(getPrayerWidgetClockContext);
   const method = useNoorStore((s) => s.prefs.prayerCalcMethod ?? 5);
   const school = useNoorStore((s) => s.prefs.asrMadhab ?? 0);
+  // The person's minute adjustments (Settings › الصلاة), applied to every time handed out.
+  const adjust = useNoorStore((s) => s.prefs.prayerTimeAdjust);
 
   const [, setPrayerLocationRevision] = React.useState(0);
   React.useEffect(() => {
@@ -499,25 +514,36 @@ export function usePrayerTimes() {
     ),
   });
 
+  const adjustData = React.useCallback(<T extends PrayerTimesResponse | undefined>(data: T): T => {
+    if (!data?.data?.timings || !hasAdjustments(adjust)) return data;
+    return { ...data, data: { ...data.data, timings: adjustTimings(data.data.timings, adjust) } } as T;
+  }, [adjust]);
+  const data = React.useMemo(() => adjustData(query.data), [adjustData, query.data]);
+  const tomorrow = React.useMemo(() => adjustData(tomorrowQuery.data), [adjustData, tomorrowQuery.data]);
+  const upcoming = React.useMemo(
+    () => (hasAdjustments(adjust) ? upcomingQuery.data?.map((day) => ({ ...day, timings: adjustTimings(day.timings, adjust) })) : upcomingQuery.data),
+    [adjust, upcomingQuery.data],
+  );
+
   const getPrayerTimingsForDate = React.useCallback((date: Date) => {
     const requestedDay = localDateKey(date);
-    if (requestedDay === dayKey && query.data?.data?.timings) return query.data.data.timings;
-    if (requestedDay === tomorrowKey && tomorrowQuery.data?.data?.timings) return tomorrowQuery.data.data.timings;
+    if (requestedDay === dayKey && data?.data?.timings) return data.data.timings;
+    if (requestedDay === tomorrowKey && tomorrow?.data?.timings) return tomorrow.data.timings;
 
-    return computeLocalPrayerTimes(
+    return adjustTimings(computeLocalPrayerTimes(
       coordsLat ?? 30.0444,
       coordsLng ?? 31.2357,
       date,
       method,
       school,
-    ).data.timings;
-  }, [coordsLat, coordsLng, dayKey, method, query.data?.data?.timings, school, tomorrowKey, tomorrowQuery.data?.data?.timings]);
+    ).data.timings, adjust);
+  }, [adjust, coordsLat, coordsLng, data, dayKey, method, school, tomorrow, tomorrowKey]);
 
   React.useEffect(() => {
-    if (query.data?.data?.timings) {
-      syncPrayerWidget(query.data.data.timings, dayKey).catch(() => {});
+    if (data?.data?.timings) {
+      syncPrayerWidget(data.data.timings, dayKey).catch(() => {});
     }
-  }, [clockContext, dayKey, query.data]);
+  }, [clockContext, dayKey, data]);
 
   React.useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -543,5 +569,5 @@ export function usePrayerTimes() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dayKey, query.refetch]);
 
-  return { ...query, tomorrow: tomorrowQuery.data, upcoming: upcomingQuery.data, getPrayerTimingsForDate };
+  return { ...query, data, tomorrow, upcoming, getPrayerTimingsForDate };
 }

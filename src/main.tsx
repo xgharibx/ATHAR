@@ -196,6 +196,8 @@ if (rootContainer) {
     void loadStoreIdentity();
     // Copy must work the same in a phone WebView as in a browser.
     void import("@/lib/clipboardFallback").then((m) => m.installClipboardFallback());
+    // Every Hijri date follows the person's adjustment (Settings › الصلاة).
+    void import("@/lib/hijriOffsetSync").then((m) => m.startHijriOffsetSync());
     // Sharing and web links use the phone's own share menu and in-app browser.
     void import("@/lib/shareTargets").then((m) => m.installNativeWebShare());
     void import("@/lib/inAppBrowser").then((m) => m.installInAppBrowserLinks());

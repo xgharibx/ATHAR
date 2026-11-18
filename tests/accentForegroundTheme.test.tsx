@@ -89,7 +89,7 @@ describe("accent foreground contrast", () => {
     const forest = themeCss.match(/\.forest\s*\{([^}]+)\}/)?.[1] ?? "";
     expect(forest).toMatch(/--bg:\s*#022c22/i);
     expect(forest).toMatch(/--accent:\s*#ffffff/i);
-    expect(readFileSync("src/pages/Settings.tsx", "utf8"))
+    expect(readFileSync("src/lib/settingsTheme.ts", "utf8"))
       .toMatch(/forest:\s*"#ffffff"/i);
   });
 

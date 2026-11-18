@@ -172,7 +172,6 @@ export type Preferences = {
   enable3D: boolean;
   enableHaptics: boolean;
   hapticStrength?: "off" | "light" | "medium" | "strong";
-  enableSounds: boolean;
   tasbeehSoundEnabled: boolean;
   reduceMotion: boolean;
   transparentMode: boolean;
@@ -189,6 +188,10 @@ export type Preferences = {
   homeWidgets: Record<HomeWidgetKey, boolean>;
   prayerCalcMethod: number; // 1-23 AlAdhan method, default 5 (Egyptian)
   asrMadhab: 0 | 1; // 0=Shafi'i, 1=Hanafi
+  /** Minutes added to (or taken from) each prayer's calculated time, −30…30. */
+  prayerTimeAdjust?: Partial<Record<PrayerAlertPrayer, number>>;
+  /** Days added to the calculated Hijri date (−2…2), to match the local moon sighting. */
+  hijriOffsetDays?: number;
   prayerLocationFollow?: boolean; // update the saved location when the person has travelled (src/lib/travelLocation.ts); on unless turned off
   homeStripOrder?: string[]; // ordered IDs of azkar strip cards
   mushafTextColor?: string; // custom Mushaf text colour hex
@@ -736,7 +739,6 @@ const DEFAULT_PREFS: Preferences = {
   stripDiacritics: false,
   enable3D: true,
   enableHaptics: true,
-  enableSounds: false,
   tasbeehSoundEnabled: true,
   reduceMotion: false,
   transparentMode: true,
@@ -2344,7 +2346,6 @@ export const useNoorStore = create<NoorState>()(
           quranFilterRevelation: DEFAULT_PREFS.quranFilterRevelation,
           showBenefits: DEFAULT_PREFS.showBenefits,
           stripDiacritics: DEFAULT_PREFS.stripDiacritics,
-          enableSounds: DEFAULT_PREFS.enableSounds,
           tasbeehSoundEnabled: DEFAULT_PREFS.tasbeehSoundEnabled,
           reduceMotion: DEFAULT_PREFS.reduceMotion,
           transparentMode: DEFAULT_PREFS.transparentMode,

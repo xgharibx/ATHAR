@@ -30,7 +30,6 @@ function resetStore() {
       ...state.prefs,
       enableHaptics: true,
       hapticStrength: "medium",
-      enableSounds: false,
       autoAdvanceDhikr: true,
     },
   });
@@ -312,14 +311,6 @@ describe("Sebha preferences", () => {
     expect(useNoorStore.getState().prefs.hapticStrength).toBe("light");
     sync(() => useNoorStore.getState().setPrefs({ hapticStrength: "strong" }));
     expect(useNoorStore.getState().prefs.hapticStrength).toBe("strong");
-  });
-
-  it("enableSounds toggle persists", () => {
-    sync(() => useNoorStore.getState().setPrefs({ enableSounds: true }));
-    expect(useNoorStore.getState().prefs.enableSounds).toBe(true);
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = JSON.parse(raw!);
-    expect(parsed.state.prefs.enableSounds).toBe(true);
   });
 
   it("autoAdvanceDhikr controls auto-advance preference", () => {

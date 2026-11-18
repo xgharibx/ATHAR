@@ -19,6 +19,7 @@ import { Capacitor, registerPlugin } from "@capacitor/core";
 import type { LocalNotification } from "@capacitor/local-notifications";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { computeLocalPrayerTimings } from "@/lib/localPrayerTimes";
+import { adjustTimings, type PrayerTimeAdjust } from "@/lib/prayerAdjust";
 
 export const TOP_UP_PRAYERS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"] as const;
 export type TopUpPrayer = (typeof TOP_UP_PRAYERS)[number];
@@ -82,6 +83,8 @@ export type PrayerTopUpInput = {
   alarm?: PrayerAlarmPlan | null;
   silence?: PrayerSilencePlan | null;
   timeZone?: string;
+  /** The person's minute adjustments (src/lib/prayerAdjust.ts). */
+  adjust?: PrayerTimeAdjust | null;
 };
 
 function deviceTimeZone(): string {
@@ -101,7 +104,7 @@ export function buildPrayerTopUpPlan(input: PrayerTopUpInput): PrayerTopUpPlan {
     if (!date) continue;
     // Midday avoids any daylight-saving edge at midnight.
     date.setHours(12, 0, 0, 0);
-    const timings = computeLocalPrayerTimings(input.coords.lat, input.coords.lng, date, input.method, input.school);
+    const timings = adjustTimings(computeLocalPrayerTimings(input.coords.lat, input.coords.lng, date, input.method, input.school), input.adjust);
     days.push({
       d,
       s: input.slotForDate(d),

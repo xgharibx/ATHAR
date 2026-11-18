@@ -611,6 +611,7 @@ function AppContent() {
           <Route path="insights" element={<S><InsightsPage /></S>} />
           <Route path="leaderboard" element={<S><LeaderboardPage /></S>} />
           <Route path="settings" element={<S><SettingsPage /></S>} />
+          <Route path="settings/:group" element={<S><SettingsPage /></S>} />
           <Route path="sources" element={<S><SourcesPage /></S>} />
           {/* C1-C7: New content pages */}
           <Route path="asma" element={<S><AsmaAlHusnaPage /></S>} />

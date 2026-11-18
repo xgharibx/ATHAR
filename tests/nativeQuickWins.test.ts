@@ -44,7 +44,7 @@ describe("keeping the screen on", () => {
     for (const page of ["src/pages/Mushaf.tsx", "src/pages/Sebha.tsx", "src/pages/Tasmee.tsx"]) {
       expect(read(page)).toContain("useKeepScreenAwake(");
     }
-    expect(read("src/pages/Settings.tsx")).toContain("keepScreenAwake");
+    expect(read("src/components/settings/groups/AppearanceGroup.tsx")).toContain("keepScreenAwake");
   });
 });
 

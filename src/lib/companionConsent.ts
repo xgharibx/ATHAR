@@ -1,4 +1,3 @@
-import { Capacitor } from "@capacitor/core";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 // v2 is intentionally separate from the legacy device-wide grant. That old
@@ -14,11 +13,17 @@ export function hasCompanionAiConsent(): boolean {
   }
 }
 
+/**
+ * Asked everywhere before the first message reaches the outside AI service:
+ * the App Store and Google Play both require clear disclosure and consent
+ * before personal data goes to a third party (Settings › الخصوصية والأمان
+ * shows and withdraws it).
+ */
 export function needsCompanionAiConsent(): boolean {
-  return Capacitor.getPlatform() === "ios" && !hasCompanionAiConsent();
+  return !hasCompanionAiConsent();
 }
 
-/** Returns false before any message state or network work when iOS consent is missing. */
+/** Returns false before any message state or network work when consent is missing. */
 export function canSendCompanionAiMessage(
   consentApprovedForThisSend: boolean,
   onConsentRequired: () => void,

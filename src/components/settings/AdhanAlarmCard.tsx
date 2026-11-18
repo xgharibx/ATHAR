@@ -42,7 +42,7 @@ export function AdhanAlarmCard({
     return () => { alive = false; };
   }, []);
 
-  const disabled = !reminders.enabled || !reminders.prayerAlertsEnabled;
+  const disabled = !reminders.prayerAlertsEnabled;
 
   const turnOn = async (on: boolean) => {
     if (!on) {

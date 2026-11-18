@@ -53,6 +53,7 @@ import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useSc
 import { toArabicNumeral } from "@/lib/quranMeta";
 import { arNum } from "@/lib/formatNumber";
 import { countCompletedKhatmaDays, getKhatmaTimeline } from "@/lib/quranKhatma";
+import { forHijri } from "@/lib/hijri";
 
 // Shared empty value, so the store selectors return the same object each time.
 const NO_CHECKLIST: Record<string, boolean> = {};
@@ -174,7 +175,7 @@ function getHijriDate(hijri?: PrayerHijriDate): string {
       day: "numeric",
       month: "long",
       year: "numeric",
-    }).format(new Date());
+    }).format(forHijri(new Date()));
   } catch {
     return "";
   }

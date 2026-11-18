@@ -32,7 +32,6 @@ function resetStore() {
       ...state.prefs,
       enableHaptics: true,
       hapticStrength: "medium",
-      enableSounds: false,
       autoAdvanceDhikr: true,
       tasbeehLongPressEnabled: true,
       tasbeehVolumeKeysEnabled: false,

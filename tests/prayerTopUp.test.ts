@@ -142,14 +142,20 @@ describe("prayer alerts that keep coming while the app is closed", () => {
     expect(lastPlan().scheduledThrough).toBe("2026-10-02");
   });
 
-  it("stops the phone's own queuing when prayer alerts or all reminders are turned off", async () => {
+  it("stops the phone's own queuing when prayer alerts are turned off", async () => {
     await syncReminders(reminders({ prayerAlertsEnabled: false }), WEEK_TIMINGS);
     expect(mocks.topUp.clear).toHaveBeenCalled();
     expect(mocks.topUp.configure).not.toHaveBeenCalled();
 
     mocks.topUp.clear.mockClear();
-    await syncReminders(reminders({ enabled: false }), WEEK_TIMINGS);
+    await syncReminders(reminders({ enabled: false, prayerAlertsEnabled: false }), WEEK_TIMINGS);
     expect(mocks.topUp.clear).toHaveBeenCalled();
+  });
+
+  it("keeps the Adhan when only the daily reminders are turned off", async () => {
+    await syncReminders(reminders({ enabled: false }), WEEK_TIMINGS);
+    expect(mocks.topUp.clear).not.toHaveBeenCalled();
+    expect(mocks.topUp.configure).toHaveBeenCalled();
   });
 
   it("on iPhone, does not let the phone's own days crowd out the app's week", async () => {
