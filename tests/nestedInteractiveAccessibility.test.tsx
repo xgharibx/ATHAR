@@ -158,6 +158,9 @@ describe("interactive controls inside content rows", () => {
   });
 
   it("renders reminder open and cancel actions as separate peer buttons", async () => {
+    // The person has already allowed messages to the AI service.
+    const { grantCompanionAiConsent } = await import("@/lib/companionConsent");
+    grantCompanionAiConsent();
     mount(<MemoryRouter><CompanionModal open prefill="أضف تذكيرًا" onClose={() => {}} /><LocationMarker /></MemoryRouter>);
 
     expect(document.body.textContent).not.toContain("MiniMax");

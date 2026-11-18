@@ -61,13 +61,11 @@ describe("downloaded recitations", () => {
     expect(container!.textContent).toBe("");
   });
 
-  it("sits in a Settings card that is shown, not a hidden one", async () => {
+  it("sits on the Quran settings page, under the reciter", async () => {
     const fs = await import("node:fs");
-    const settings = fs.readFileSync("src/pages/Settings.tsx", "utf8");
-    const row = settings.indexOf("<RecitationDownloadsRow />");
+    const page = fs.readFileSync("src/components/settings/groups/QuranGroup.tsx", "utf8");
+    const row = page.indexOf("<RecitationDownloadsRow />");
     expect(row).toBeGreaterThan(-1);
-    // Before the hidden Quran card, inside the always-visible reading card.
-    expect(row).toBeLessThan(settings.indexOf("{SHOW_QURAN_PIN && ("));
-    expect(row).toBeGreaterThan(settings.indexOf('aria-label="اختيار القارئ"'));
+    expect(row).toBeGreaterThan(page.indexOf('id="reciter"'));
   });
 });

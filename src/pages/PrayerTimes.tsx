@@ -27,31 +27,12 @@ import { PTRIndicator, usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useNoorStore } from "@/store/noorStore";
 import type { PrayerAlertPrayer } from "@/store/noorStore";
 import { clearCachedPrayerCoordinates, DEFAULT_PRAYER_CITY, getPrayerLocationIdentity, readCachedPrayerCoordinates } from "@/lib/prayerLocation";
+import { adjustTimings, hasAdjustments, type PrayerTimeAdjust } from "@/lib/prayerAdjust";
+import { PRAYER_CALC_METHODS } from "@/lib/prayerCalcMethods";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const PRAYER_CALC_METHODS = [
-  { value: 1,  label: "جامعة العلوم الإسلامية - كراتشي" },
-  { value: 2,  label: "الجمعية الإسلامية لأمريكا الشمالية" },
-  { value: 3,  label: "رابطة العالم الإسلامي" },
-  { value: 4,  label: "جامعة أم القرى - مكة المكرمة" },
-  { value: 5,  label: "الهيئة المصرية العامة للمساحة" },
-  { value: 7,  label: "معهد الجيوفيزياء - إيران" },
-  { value: 8,  label: "دول الخليج" },
-  { value: 9,  label: "الكويت" },
-  { value: 10, label: "قطر" },
-  { value: 11, label: "سنغافورة" },
-  { value: 12, label: "فرنسا" },
-  { value: 13, label: "ديانت - تركيا" },
-  { value: 14, label: "روسيا" },
-  { value: 15, label: "لجنة رؤية الهلال العالمية" },
-  { value: 17, label: "ماليزيا - JAKIM" },
-  { value: 18, label: "تونس" },
-  { value: 19, label: "الجزائر" },
-  { value: 20, label: "إندونيسيا - KEMENAG" },
-  { value: 21, label: "المغرب" },
-  { value: 23, label: "الأردن - وزارة الأوقاف" },
-] as const;
+
 
 const PRIMARY_PRAYERS: PrayerAlertPrayer[] = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
@@ -219,6 +200,34 @@ function getLocalDateKey() {
 
 // ─── Calendar hook ────────────────────────────────────────────────────────────
 
+/** The person's prayer-time adjustments and Hijri offset, applied to a downloaded month. */
+function adjustCalendar(entries: CalendarDayEntry[], adjust: PrayerTimeAdjust | undefined, hijriOffset: number): CalendarDayEntry[] {
+  if (!hasAdjustments(adjust) && !hijriOffset) return entries;
+  return entries.map((entry) => {
+    let hijri = entry.date.hijri;
+    if (hijriOffset) {
+      const [dd, mm, yyyy] = entry.date.gregorian.date.split("-").map(Number);
+      const day = new Date(yyyy, (mm ?? 1) - 1, dd ?? 1, 12);
+      day.setDate(day.getDate() + hijriOffset);
+      try {
+        const parts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "numeric", year: "numeric" }).formatToParts(day);
+        const part = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? "0");
+        const month = part("month");
+        hijri = {
+          ...hijri,
+          day: String(part("day")),
+          year: String(part("year")),
+          date: `${String(part("day")).padStart(2, "0")}-${String(month).padStart(2, "0")}-${part("year")}`,
+          month: { ...hijri.month, number: month, ar: HIJRI_MONTH_NAMES[month - 1] ?? hijri.month.ar },
+        };
+      } catch {
+        // Keep the downloaded date.
+      }
+    }
+    return { ...entry, timings: adjustTimings(entry.timings, adjust), date: { ...entry.date, hijri } };
+  });
+}
+
 function usePrayerCalendar(year: number, month: number, enabled = true) {
   const method  = useNoorStore((s) => s.prefs.prayerCalcMethod ?? 5);
   const school  = useNoorStore((s) => s.prefs.asrMadhab ?? 0);
@@ -226,10 +235,14 @@ function usePrayerCalendar(year: number, month: number, enabled = true) {
   const city = DEFAULT_PRAYER_CITY.city;
   const country = DEFAULT_PRAYER_CITY.country;
   const locationIdentity = getPrayerLocationIdentity(coords);
+  const adjust = useNoorStore((s) => s.prefs.prayerTimeAdjust);
+  const hijriOffset = useNoorStore((s) => s.prefs.hijriOffsetDays ?? 0);
+  const select = React.useCallback((entries: CalendarDayEntry[]) => adjustCalendar(entries, adjust, hijriOffset), [adjust, hijriOffset]);
 
   return useQuery<CalendarDayEntry[]>({
     queryKey: ["prayer-calendar", year, month, method, school, locationIdentity],
     enabled,
+    select,
     queryFn: async (context?: { signal?: AbortSignal }) => {
       const url = coords
         ? `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${coords.lat}&longitude=${coords.lng}&method=${method}&school=${school}`

@@ -152,7 +152,7 @@ export function mascotForPhrase(phrase: string): MascotKey {
 
 /**
  * Sound profiles for the target-reached chime. Frequency (Hz) + duration
- * pattern; honors enableSounds + reduceMotion preferences.
+ * pattern; honors the reduceMotion preference.
  */
 export type SoundProfileDef = {
   id: "chime_bell" | "soft_ping" | "rising_3" | "single_tap";

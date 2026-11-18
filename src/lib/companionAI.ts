@@ -41,6 +41,7 @@ import {
   retrieveUserRemindersAsPassages,
   verifyAnswerAsync,
 } from "@/lib/companionKnowledge";
+import { forHijri } from "@/lib/hijri";
 
 /* ─── Locked model + transport ───────────────────────────────────────────── */
 
@@ -217,7 +218,7 @@ function parseHijriParts(): { day: number; month: number; year: number } {
   try {
     const parts = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", {
       day: "numeric", month: "numeric", year: "numeric",
-    }).formatToParts(new Date());
+    }).formatToParts(forHijri(new Date()));
     const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? "0");
     return { day: get("day"), month: get("month"), year: get("year") };
   } catch {
@@ -351,7 +352,7 @@ export function buildCompanionContext(): CompanionContext {
       for (let d2 = 0; d2 < 380; d2++) {
         const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d2);
         const parts = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { month: "numeric" })
-          .formatToParts(t);
+          .formatToParts(forHijri(t));
         const m = Number(parts.find((p) => p.type === "month")?.value ?? "0");
         if (m === 9) { daysToRamadan = d2; break; }
       }

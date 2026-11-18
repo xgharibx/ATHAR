@@ -52,7 +52,7 @@ import type { SoundProfileDef } from "./dhikrCatalog";
 
 /**
  * Play a soft chime when the user reaches the target. Uses Web Audio
- * oscillators (no asset files) so it works offline. Respects enableSounds.
+ * oscillators (no asset files) so it works offline.
  */
 export function playCompletionSound(
   enabled: boolean,

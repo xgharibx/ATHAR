@@ -1,5 +1,5 @@
 import type { CustomReminder, FastingPattern } from "@/data/reminderTypes";
-import { gregorianToHijri } from "@/lib/hijri";
+import { forHijri, gregorianToHijri } from "@/lib/hijri";
 
 export type ReminderAnchor = NonNullable<CustomReminder["anchorKey"]>;
 export type PrayerName = "Fajr" | "Sunrise" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
@@ -274,7 +274,7 @@ function isFastingDay(reminder: CustomReminder, day: Date): boolean {
   const pattern = fastingPattern(reminder);
   if (!pattern) return reminder.dayOfWeek === day.getDay();
   if (pattern === "monday-thursday") return day.getDay() === 1 || day.getDay() === 4;
-  const hijri = gregorianToHijri(day);
+  const hijri = gregorianToHijri(forHijri(day));
   if (pattern === "shawwal") return hijri.month === 10 && hijri.day >= 2 && hijri.day <= 7;
   if (pattern === "ayyam-al-beed") return hijri.day >= 13 && hijri.day <= 15;
   if (pattern === "arafah") return hijri.month === 12 && hijri.day === 9;

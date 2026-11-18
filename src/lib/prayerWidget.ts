@@ -16,6 +16,7 @@
 
 import { Capacitor } from "@capacitor/core";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { forHijri } from "@/lib/hijri";
 
 const WIDGET_KEY = "noor_widget_prayer_v2";
 
@@ -84,7 +85,7 @@ function nowMinutes(): number {
 function detectRamadan(): boolean {
   try {
     const fmt = new Intl.DateTimeFormat("en-u-ca-islamic", { month: "numeric" });
-    const parts = fmt.formatToParts(new Date());
+    const parts = fmt.formatToParts(forHijri(new Date()));
     const monthPart = parts.find((p) => p.type === "month");
     return monthPart?.value === "9";
   } catch {

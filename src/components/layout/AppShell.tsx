@@ -532,6 +532,7 @@ export function AppShell() {
     let label = exact;
     if (!label) {
       if (p.startsWith("/mushaf")) label = "المصحف الشريف";
+      else if (p.startsWith("/settings/")) label = "الإعدادات";
       else if (p.startsWith("/hadith/")) label = "قارئ الحديث";
       else if (p.startsWith("/library/")) label = "المكتبة الإسلامية";
       else if (p.startsWith("/video-library/")) label = "مكتبة الفيديو";

@@ -4,6 +4,31 @@
  * Accurate within ±1 day for dates after 1900 CE.
  */
 
+/**
+ * Days added to the calculated Hijri date (Settings › الصلاة), so it matches
+ * the local moon sighting. Kept in sync with the saved preference by
+ * src/lib/hijriOffsetSync.ts; every Hijri date the app shows goes through
+ * forHijri().
+ */
+let hijriOffsetDays = 0;
+
+export function setHijriOffsetDays(days: unknown): void {
+  const n = typeof days === "number" && Number.isFinite(days) ? Math.round(days) : 0;
+  hijriOffsetDays = Math.max(-2, Math.min(2, n));
+}
+
+export function getHijriOffsetDays(): number {
+  return hijriOffsetDays;
+}
+
+/** The Gregorian date whose calculated Hijri date is this date's, after the offset. */
+export function forHijri(date: Date): Date {
+  if (!hijriOffsetDays) return date;
+  const shifted = new Date(date.getTime());
+  shifted.setDate(shifted.getDate() + hijriOffsetDays);
+  return shifted;
+}
+
 export interface HijriDate {
   year: number;
   month: number; // 1-12
@@ -164,7 +189,7 @@ export function getIslamicSeason(h: HijriDate): SeasonInfo | null {
 
 /** Get current Hijri date and season info for today. */
 export function getTodayIslamicInfo(): { hijri: HijriDate; season: SeasonInfo | null } {
-  const hijri = gregorianToHijri(new Date());
+  const hijri = gregorianToHijri(forHijri(new Date()));
   const season = getIslamicSeason(hijri);
   return { hijri, season };
 }

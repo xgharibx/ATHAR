@@ -3,7 +3,7 @@
  * Each event is defined by its Hijri month + day.
  * Use getNextIslamicEvent() to find the next upcoming event from today.
  */
-import { gregorianToHijri } from "@/lib/hijri";
+import { forHijri, gregorianToHijri } from "@/lib/hijri";
 
 export type IslamicEvent = {
   id: string;
@@ -37,7 +37,7 @@ function findNextHijriDate(targetMonth: number, targetDay: number, maxSearch = 4
   for (let i = 0; i < maxSearch; i++) {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
-    const h = gregorianToHijri(d);
+    const h = gregorianToHijri(forHijri(d));
     if (h.month === targetMonth && h.day === targetDay) return d;
   }
   return null;

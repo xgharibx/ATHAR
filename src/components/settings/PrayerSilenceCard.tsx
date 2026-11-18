@@ -26,7 +26,7 @@ export function PrayerSilenceCard({
   platform: "ios" | "android";
 }) {
   const preferences = prayerSilencePreferences(reminders);
-  const disabled = !reminders.enabled || !reminders.prayerAlertsEnabled;
+  const disabled = !reminders.prayerAlertsEnabled;
   const [waitingForAccess, setWaitingForAccess] = React.useState(false);
 
   // Back from Android's Do Not Disturb access screen: finish turning it on.

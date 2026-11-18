@@ -110,9 +110,9 @@ describe("iOS Ask Athar sharing consent", () => {
     expect(requestProvider).toHaveBeenCalledOnce();
   });
 
-  it.each(["android", "web"])("does not change the %s send flow", (platform) => {
+  it.each(["android", "web"])("asks on %s too, before the first message", (platform) => {
     platformState.value = platform;
 
-    expect(needsCompanionAiConsent()).toBe(false);
+    expect(needsCompanionAiConsent()).toBe(true);
   });
 });

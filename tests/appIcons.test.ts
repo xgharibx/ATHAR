@@ -6,7 +6,7 @@ const manifest = fs.readFileSync("android/app/src/main/AndroidManifest.xml", "ut
 const androidPlugin = fs.readFileSync("android/app/src/main/java/com/athar/adhkar/AppIconPlugin.java", "utf8");
 const iosPlugin = fs.readFileSync("ios/App/App/AppIconPlugin.swift", "utf8");
 const project = fs.readFileSync("ios/App/App.xcodeproj/project.pbxproj", "utf8");
-const settings = fs.readFileSync("src/pages/Settings.tsx", "utf8");
+const settings = fs.readFileSync("src/components/settings/groups/AppearanceGroup.tsx", "utf8");
 const variants = APP_ICONS.filter((name) => name !== "default");
 const title = (name: string) => name[0]!.toUpperCase() + name.slice(1);
 

@@ -3,28 +3,25 @@ import { describe, expect, it } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-describe("Settings page exposes the new translation card", () => {
-  it("Settings.tsx contains the new translation card title", () => {
-    // We can't render the full page easily without a testing-library; instead
-    // we assert the source file contains the card the user sees.
+describe("Settings offers the Quran translation again", () => {
+  it("shows the translation picker on the Quran settings page", () => {
     const file = fs.readFileSync(
-      path.resolve(process.cwd(), "src/pages/Settings.tsx"),
+      path.resolve(process.cwd(), "src/components/settings/groups/QuranGroup.tsx"),
       "utf8",
     );
     expect(file).toContain("ترجمة القرآن");
-    expect(file).toContain("<TranslationSettingsCard />");
-    expect(file).toContain("id=\"settings-translation\"");
+    expect(file).toContain("<TranslationPicker");
+    expect(file).toContain('id="translation"');
   });
 
-  it("labels the reminder toggle by the behavior it controls", () => {
+  it("names the reminder switch and sound by what they control", () => {
     const file = fs.readFileSync(
-      path.resolve(process.cwd(), "src/pages/Settings.tsx"),
+      path.resolve(process.cwd(), "src/components/settings/groups/RemindersGroup.tsx"),
       "utf8",
     );
-    expect(file).toContain("aria-pressed={remindersOn}");
-    expect(file).toContain("title=\"التذكيرات\"");
+    expect(file).toContain('title="التذكيرات اليومية"');
     expect(file).toContain("صوت التذكير");
-    expect(file).not.toContain("هذه المعاينة لا تغيّر تنبيهات الأذكار المعتادة");
+    expect(file).toContain("تنبيهات الأذان مستقلة عن هذه التذكيرات");
   });
 
   it("TranslationPicker renders the master switch and the three sources", async () => {

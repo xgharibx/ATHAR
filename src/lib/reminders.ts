@@ -727,6 +727,7 @@ export function buildPrayerTopUpPlanForSync(
     coords: readCachedPrayerCoordinates() ?? DEFAULT_PRAYER_COORDINATES,
     method: prefs.prayerCalcMethod ?? 5,
     school: prefs.asrMadhab ?? 0,
+    adjust: prefs.prayerTimeAdjust ?? null,
     templates,
     slotCount: NOTIFICATION_DATE_SLOTS,
     slotOffset: NOTIFICATION_DATE_SLOT_OFFSET,
@@ -1242,7 +1243,10 @@ async function syncRemindersForOwner(
   const { LocalNotifications } = await import("@capacitor/local-notifications");
   if (getAccountStorageOwner() !== owner) return;
 
-  if (!reminders.enabled) {
+  // Two independent switches: the daily reminders (adhkar, wird, khatma,
+  // tasbeeh, Fajr hadith) and the prayer alerts. Only when both are off does
+  // nothing stay queued.
+  if (!reminders.enabled && !reminders.prayerAlertsEnabled) {
     await cancelAllReminders();
     return;
   }
@@ -1289,7 +1293,9 @@ async function syncRemindersForOwner(
   if (getAccountStorageOwner() !== owner) return;
   const reminderAudio = await ensureReminderChannel(reminders.soundProfile);
   if (getAccountStorageOwner() !== owner) return;
-  const notifications: LocalNotification[] = buildReminderNotifications(reminders, reminderAudio, completion);
+  const notifications: LocalNotification[] = reminders.enabled
+    ? buildReminderNotifications(reminders, reminderAudio, completion)
+    : [];
 
   let prayerNotificationAudio: NotificationAudioConfig | null = null;
   let ringingPrayers: PrayerTimingName[] = [];
@@ -1319,7 +1325,7 @@ async function syncRemindersForOwner(
     ));
   }
 
-  if (reminders.dailyHadithNotif && prayerTimings) {
+  if (reminders.enabled && reminders.dailyHadithNotif && prayerTimings) {
     notifications.push(...buildDailyHadithNotificationsForDays(scheduleDays, quiet));
   }
 
