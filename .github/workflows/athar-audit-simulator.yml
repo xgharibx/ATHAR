@@ -14,6 +14,8 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 26
@@ -29,66 +31,24 @@ jobs:
           npx cap sync android
           cd android
           ./gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest
-      - name: Launch Android emulator
+      - name: Prepare Android emulator access
         run: |
-          sdk_root="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
-          sdkmanager_path=$(find "$sdk_root/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)
-          test -x "$sdkmanager_path"
-          export PATH="$sdk_root/platform-tools:$(dirname "$sdkmanager_path"):$PATH"
-          echo "$sdk_root/platform-tools" >> "$GITHUB_PATH"
-          "$sdkmanager_path" "emulator" "system-images;android-35;google_apis;x86_64"
-          printf 'no\n' | avdmanager create avd -n athar-qa -k 'system-images;android-35;google_apis;x86_64' -d pixel_6
-          if [ ! -w /dev/kvm ]; then sudo chgrp "$(id -gn)" /dev/kvm && sudo chmod g+rw /dev/kvm; fi
-          "$sdk_root/emulator/emulator" -avd athar-qa -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
-          timeout 180 adb wait-for-device
-          for attempt in {1..90}; do
-            if [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then
-              adb shell input keyevent 82
-              exit 0
-            fi
-            sleep 2
-          done
-          cat "$RUNNER_TEMP/emulator.log"
-          exit 1
-      - name: Install and exercise Athar screens
-        shell: bash
-        run: |
-          set -euo pipefail
           mkdir -p "$RUNNER_TEMP/android-qa"
-          adb install android/app/build/outputs/apk/debug/app-debug.apk
-          adb install -t android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-          failed=0
-          while IFS='|' read -r name route title; do
-            log="$RUNNER_TEMP/android-qa/$name.txt"
-            adb shell "am instrument -w -r -e class com.athar.adhkar.ReleaseScreenshotCaptureTest -e screenshotRoute '$route' -e screenshotReadyText '$title' -e screenshotName '$name.png' com.athar.adhkar.test/androidx.test.runner.AndroidJUnitRunner" > "$log" || true
-            if grep -Fq 'OK (1 test)' "$log"; then
-              echo "| $name | Passed |" >> "$GITHUB_STEP_SUMMARY"
-            else
-              echo "| $name | Failed |" >> "$GITHUB_STEP_SUMMARY"
-              cat "$log"
-              failed=1
-            fi
-          done <<'SCREENS'
-          home|/|مواقيت الصلاة
-          adhkar|/c/evening|أذكار المساء
-          quran|/quran|القرآن الكريم
-          mushaf|/mushaf/1|ٱلۡحَمۡدُ
-          prayer|/prayer-times|مواقيت الصلاة
-          qibla|/qibla|القبلة
-          mosques|/mosques|المساجد القريبة
-          sebha|/sebha|السبحة اليومية
-          wird|/wird|جدول الورد
-          muhasaba|/muhasaba|جدول المحاسبة
-          qadaa|/qadaa|قضاء الفوائت
-          library|/library|المكتبة الإسلامية
-          hadith|/hadith|الأحاديث
-          ijaz|/ijaz|الإعجاز العلمي
-          companion|/companion|عرّفني على نفسك
-          reminders|/reminders|تذكيراتي
-          feedback|/feedback|صوتك يترك أثرًا
-          SCREENS
-          adb pull /sdcard/Android/data/com.athar.adhkar/files/release-screenshots/ "$RUNNER_TEMP/android-qa/screenshots" || true
-          exit "$failed"
+          if [ -e /dev/kvm ] && [ ! -w /dev/kvm ]; then
+            sudo chgrp "$(id -gn)" /dev/kvm
+            sudo chmod g+rw /dev/kvm
+          fi
+      - name: Run the Android app on an emulator
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu software
+          emulator-boot-timeout: 480
+          disable-animations: true
+          script: bash .github/qa/athar-android-audit.sh
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
@@ -150,5 +110,6 @@ jobs:
           path: ${{ runner.temp }}/ios-qa
           if-no-files-found: warn
           retention-days: 7
+
 
 
