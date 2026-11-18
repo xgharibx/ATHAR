@@ -146,14 +146,17 @@ describe("native prayer notification schedule horizon", () => {
     expect(fitToNotificationBudget(notifications, 100, "2026-10-02")).toBe(notifications);
   });
 
-  it("cancels a logged prayer's follow-up anywhere in the week window", async () => {
+  it("cancels a logged prayer's follow-up anywhere in the ten-day id window", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 9, 2, 8, 0, 0));
     notificationMock.cancel.mockClear();
     await cancelPrayerFollowUp("Asr", "2026-10-07");
     expect(notificationMock.cancel).toHaveBeenCalledTimes(1);
     notificationMock.cancel.mockClear();
-    await cancelPrayerFollowUp("Asr", "2026-10-09");
+    await cancelPrayerFollowUp("Asr", "2026-10-11");
+    expect(notificationMock.cancel).toHaveBeenCalledTimes(1);
+    notificationMock.cancel.mockClear();
+    await cancelPrayerFollowUp("Asr", "2026-10-12");
     expect(notificationMock.cancel).not.toHaveBeenCalled();
   });
 });

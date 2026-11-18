@@ -42,12 +42,14 @@ public class AtharActivity extends BridgeActivity {
         registerPlugin(AppLockPlugin.class);
         registerPlugin(InAppUpdatePlugin.class);
         registerPlugin(AppIconPlugin.class);
+        registerPlugin(PrayerTopUpPlugin.class);
         super.onCreate(savedInstanceState);
 
         // Ask once a day, in the background, whether a newer version has been
         // published — the people who need telling are the ones not opening the
         // app, so an in-app check alone never reaches them.
         UpdateCheckWorker.schedule(this);
+        PrayerTopUp.ensureScheduled(this);
 
         pendingRoute = isReturnFromFeedback(getIntent()) ? "/" : readRoute(getIntent());
         pendingAuthUrl = readAuthUrl(getIntent());
