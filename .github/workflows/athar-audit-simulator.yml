@@ -1,0 +1,116 @@
+name: Athar native QA
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [codex/athar-qa-first-pass]
+    paths: ['.github/workflows/athar-audit-simulator.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 26
+          cache: npm
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build the app and instrumentation APKs
+        run: |
+          npm ci
+          npm run build
+          npx cap sync android
+          cd android
+          ./gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest
+      - name: Prepare Android emulator access
+        run: |
+          mkdir -p "$RUNNER_TEMP/android-qa"
+          if [ -e /dev/kvm ] && [ ! -w /dev/kvm ]; then
+            sudo chgrp "$(id -gn)" /dev/kvm
+            sudo chmod g+rw /dev/kvm
+          fi
+      - name: Run the Android app on an emulator
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader -feature -Vulkan
+          emulator-boot-timeout: 480
+          disable-animations: true
+          script: bash .github/qa/athar-android-audit.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: android-native-qa
+          path: ${{ runner.temp }}/android-qa
+          if-no-files-found: warn
+          retention-days: 7
+
+  ios:
+    if: github.event_name == 'workflow_dispatch' || github.event.action == 'opened'
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 26
+          cache: npm
+      - name: Build for an iPhone simulator
+        run: |
+          npm ci
+          npm run build
+          npx cap sync ios
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug -sdk iphonesimulator -derivedDataPath "$RUNNER_TEMP/athar-simulator" CODE_SIGNING_ALLOWED=NO build
+      - name: Install and capture Athar screens
+        shell: bash
+        run: |
+          set -euo pipefail
+          device=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; a=[x for items in d.values() for x in items if x["name"] in ("iPhone 17 Pro", "iPhone 16 Pro")]; a.sort(key=lambda x: x["name"] != "iPhone 17 Pro"); print(a[0]["udid"] if a else "")')
+          test -n "$device"
+          xcrun simctl boot "$device" || true
+          xcrun simctl bootstatus "$device" -b
+          app="$RUNNER_TEMP/athar-simulator/Build/Products/Debug-iphonesimulator/App.app"
+          index="$app/public/index.html"
+          cp "$index" "$RUNNER_TEMP/athar-original-index.html"
+          mkdir -p "$RUNNER_TEMP/ios-qa"
+          for path in / /c/evening /quran /mushaf/1 /prayer-times /qibla /mosques /sebha /wird /muhasaba /qadaa /library /hadith /ijaz /companion /reminders /feedback; do
+            name=${path#/}; name=${name//\//-}; name=${name:-home}
+            QA_PATH="$path" APP_INDEX="$index" ORIGINAL="$RUNNER_TEMP/athar-original-index.html" python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          original = Path(os.environ["ORIGINAL"]).read_text()
+          path = os.environ["QA_PATH"]
+          seed = "" if path == "/" else """localStorage.setItem("noor_store_v1", JSON.stringify({state:{onboardingDone:true},version:38}));"""
+          setup = "<script>" + seed + "history.replaceState(null, '', " + json.dumps(path) + ");</script>"
+          Path(os.environ["APP_INDEX"]).write_text(original.replace("</head>", setup + "</head>", 1))
+          PY
+            xcrun simctl terminate "$device" com.athar.adhkar 2>/dev/null || true
+            xcrun simctl uninstall "$device" com.athar.adhkar 2>/dev/null || true
+            xcrun simctl install "$device" "$app"
+            xcrun simctl launch "$device" com.athar.adhkar
+            sleep 9
+            xcrun simctl io "$device" screenshot "$RUNNER_TEMP/ios-qa/$name.png"
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: ios-native-qa
+          path: ${{ runner.temp }}/ios-qa
+          if-no-files-found: warn
+          retention-days: 7
+
+
+
+
