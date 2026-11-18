@@ -89,8 +89,8 @@ describe("prayer alerts that keep coming while the app is closed", () => {
     expect(plan!.templates.Fajr).toMatchObject({
       baseId: 9201,
       notification: {
-        title: "أثر — الأذان",
-        body: "حان وقت صلاة الفجر",
+        title: "صلاة الفجر",
+        body: "الصلاة خيرٌ من النوم · {time}",
         channelId: AUDIO.channelId,
         sound: AUDIO.soundFile,
         actionTypeId: "PRAYER_ACTIONS",

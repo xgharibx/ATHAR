@@ -238,6 +238,11 @@
             android:name=".WidgetActionReceiver"
             android:exported="false" />
 
+        <!-- Notification buttons that act without opening the app. -->
+        <receiver
+            android:name=".NotificationActionReceiver"
+            android:exported="false" />
+
         <!-- Compact Daily Widget (2×1) -->
         <receiver
             android:name=".NoorCompactWidgetProvider"

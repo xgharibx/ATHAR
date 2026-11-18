@@ -144,6 +144,17 @@ const queryClient = new QueryClient({
   }
 });
 
+// A widget tap on a closed Android app: start on the widget's page instead of
+// drawing the home screen first and then jumping (AtharActivity.LaunchRoute).
+try {
+  const launchRoute = (window as unknown as { AtharLaunch?: { take(): string } }).AtharLaunch?.take();
+  if (launchRoute && /^\/[A-Za-z0-9/_-]*$/.test(launchRoute) && window.location.pathname === "/") {
+    window.history.replaceState(window.history.state, "", launchRoute);
+  }
+} catch {
+  // No bridge (a browser, or iPhone): nothing to do.
+}
+
 // On Capacitor Android, BASE_URL is "./" which breaks React Router (routes won't match).
 // Use "/" as basename for Capacitor, otherwise use Vite's BASE_URL (handles GitHub Pages /ATHAR/).
 const isCapacitorRuntime = !!(globalThis as unknown as Record<string, unknown>).Capacitor;

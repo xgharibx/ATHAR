@@ -50,6 +50,7 @@ public class AtharActivity extends BridgeActivity {
         registerPlugin(LocationAccessPlugin.class);
         registerPlugin(ScreenAwakePlugin.class);
         registerPlugin(InAppBrowserPlugin.class);
+        registerPlugin(NotificationActionsPlugin.class);
         super.onCreate(savedInstanceState);
 
         // Ask once a day, in the background, whether a newer version has been
@@ -67,6 +68,38 @@ public class AtharActivity extends BridgeActivity {
                 handleAtharBackPressed();
             }
         });
+    }
+
+    /**
+     * A widget tap on a closed app: the page reads its route before it first
+     * draws (src/main.tsx), so Athar opens straight on it instead of showing
+     * the home screen and then jumping. The bridge is added before the web
+     * view loads anything.
+     */
+    @Override
+    protected void load() {
+        String launchRoute = isReturnFromFeedback(getIntent()) ? null : readRoute(getIntent());
+        if (launchRoute != null) {
+            WebView webView = findViewById(com.getcapacitor.android.R.id.webview);
+            if (webView != null) webView.addJavascriptInterface(new LaunchRoute(launchRoute), "AtharLaunch");
+        }
+        super.load();
+    }
+
+    /** Hands the launch route to the page once. */
+    static final class LaunchRoute {
+        private String route;
+
+        LaunchRoute(String route) {
+            this.route = route;
+        }
+
+        @android.webkit.JavascriptInterface
+        public synchronized String take() {
+            String value = route;
+            route = null;
+            return value == null ? "" : value;
+        }
     }
 
     @Override
@@ -208,12 +241,12 @@ public class AtharActivity extends BridgeActivity {
         WearSync.sendPrayer(this);
     }
 
-    private static String readRoute(Intent intent) {
+    private String readRoute(Intent intent) {
         if (intent == null) return null;
         String route = intent.getStringExtra(AtharWidgetProvider.EXTRA_ROUTE);
         // Only accept simple absolute in-app paths (defense in depth — the
         // extra is only ever set by our own widgets).
-        if (route != null && route.matches("/[a-zA-Z0-9/_-]*")) return route;
+        if (route != null && route.matches("/[a-zA-Z0-9/_-]*")) return WidgetRoutes.resolve(this, route);
         return null;
     }
 

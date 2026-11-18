@@ -138,6 +138,23 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         PendingIntent pi = openApp(context, appWidgetId * 24, null);
         views.setOnClickPendingIntent(R.id.dashboard_root, pi);
         views.setOnClickPendingIntent(R.id.dash_open_btn, pi);
+        // Each part opens its own screen.
+        PendingIntent prayersPi = openApp(context, appWidgetId * 24 + 1, "/prayer-times");
+        for (int id : new int[]{ R.id.dash_prayers_label, R.id.dash_next_countdown,
+                R.id.dot_fajr, R.id.dot_dhuhr, R.id.dot_asr, R.id.dot_maghrib, R.id.dot_isha,
+                R.id.dash_dot_label_fajr, R.id.dash_dot_label_dhuhr, R.id.dash_dot_label_asr,
+                R.id.dash_dot_label_maghrib, R.id.dash_dot_label_isha }) {
+            views.setOnClickPendingIntent(id, prayersPi);
+        }
+        PendingIntent morningPi = openApp(context, appWidgetId * 24 + 2, "/c/morning");
+        for (int id : new int[]{ R.id.dash_morning_icon, R.id.dash_morning_word, R.id.dash_morning_bar, R.id.dash_morning_count }) {
+            views.setOnClickPendingIntent(id, morningPi);
+        }
+        PendingIntent eveningPi = openApp(context, appWidgetId * 24 + 3, "/c/evening");
+        for (int id : new int[]{ R.id.dash_evening_icon, R.id.dash_evening_word, R.id.dash_evening_bar, R.id.dash_evening_count }) {
+            views.setOnClickPendingIntent(id, eveningPi);
+        }
+        views.setOnClickPendingIntent(R.id.dash_wird_row, openApp(context, appWidgetId * 24 + 4, "/mushaf"));
 
         // LIGHT theme needs dark ink (the prayer dots pick their own colour
         // by theme above; dash_open_btn keeps fixed light text on its fixed

@@ -8,6 +8,10 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: "ic_stat_athar_notification",
       iconColor: "#2F4F37",
+      // Android: these notification buttons act without opening the app
+      // (NotificationActionReceiver; the library is patched to honour this).
+      androidBackgroundActions: ["mark_prayed", "snooze_60", "snooze", "done"],
+      androidActionReceiver: "com.athar.adhkar.NotificationActionReceiver",
     },
   },
   android: {

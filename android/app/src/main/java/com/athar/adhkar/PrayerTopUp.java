@@ -209,6 +209,9 @@ final class PrayerTopUp {
                 extra.put("atharWallClockDateISO", dateISO);
                 extra.put("atharWallClockTime", hhmm.substring(0, 5));
                 notification.put("extra", extra);
+                // The Adhan names its own time: "{time}" in the app's template.
+                if (notification.has("body")) notification.put("body", NotificationText.withTime(notification.getString("body"), hhmm));
+                if (notification.has("largeBody")) notification.put("largeBody", NotificationText.withTime(notification.getString("largeBody"), hhmm));
                 result.add(notification);
             }
         }

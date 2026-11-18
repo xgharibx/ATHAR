@@ -33,10 +33,10 @@ describe("native prayer notification schedule horizon", () => {
       },
     ], LOUD, ALL_PRAYERS_ENABLED, QUIET, { includeDailyHadith: true, now });
 
-    const todayDhuhr = notifications.find((item) => item.title === "أثر — الأذان" && item.extra?.prayerName === "Dhuhr" && item.extra?.dateISO === "2026-10-02");
-    const tomorrowFajr = notifications.find((item) => item.title === "أثر — الأذان" && item.extra?.prayerName === "Fajr" && item.extra?.dateISO === "2026-10-03");
-    const tomorrowFollowUp = notifications.find((item) => item.title === "أثر — تذكير لطيف" && item.extra?.prayerName === "Fajr" && item.extra?.dateISO === "2026-10-03");
-    const tomorrowHadith = notifications.find((item) => item.title === "أثر — حديث اليوم ﷺ");
+    const todayDhuhr = notifications.find((item) => String(item.title).startsWith("صلاة ") && item.extra?.prayerName === "Dhuhr" && item.extra?.dateISO === "2026-10-02");
+    const tomorrowFajr = notifications.find((item) => String(item.title).startsWith("صلاة ") && item.extra?.prayerName === "Fajr" && item.extra?.dateISO === "2026-10-03");
+    const tomorrowFollowUp = notifications.find((item) => String(item.title).startsWith("هل صلّيت") && item.extra?.prayerName === "Fajr" && item.extra?.dateISO === "2026-10-03");
+    const tomorrowHadith = notifications.find((item) => item.title === "حديث اليوم ﷺ");
 
     expect(todayDhuhr?.schedule.at).toEqual(new Date(2026, 9, 2, 12, 0, 0));
     expect(tomorrowFajr?.schedule.at).toEqual(new Date(2026, 9, 3, 5, 1, 0));
@@ -55,7 +55,7 @@ describe("native prayer notification schedule horizon", () => {
     ], LOUD, ALL_PRAYERS_ENABLED, QUIET, { now });
 
     expect(notifications).toHaveLength(1);
-    expect(notifications[0].title).toBe("أثر — تذكير لطيف");
+    expect(notifications[0].title).toMatch(/^هل صلّيت/);
     expect(notifications[0].extra).toMatchObject({ prayerName: "Dhuhr", dateISO: "2026-10-02" });
   });
 
@@ -66,7 +66,7 @@ describe("native prayer notification schedule horizon", () => {
     ], LOUD, ALL_PRAYERS_ENABLED, QUIET, { now });
 
     expect(notifications).toHaveLength(1);
-    expect(notifications[0].title).toBe("أثر — تذكير لطيف");
+    expect(notifications[0].title).toMatch(/^هل صلّيت/);
     expect(notifications[0].extra).toMatchObject({ prayerName: "Fajr", dateISO: "2026-10-02" });
     expect(notifications[0].schedule.at).toEqual(new Date(2026, 9, 2, 5, 30, 0));
   });
@@ -90,7 +90,7 @@ describe("native prayer notification schedule horizon", () => {
     const notifications = buildPrayerNotificationsForDays([
       { dateISO: "2026-10-03", timings: { Fajr: "05:01" } },
     ], LOUD, ALL_PRAYERS_ENABLED, QUIET);
-    const tomorrowFollowUp = notifications.find((item) => item.title === "أثر — تذكير لطيف");
+    const tomorrowFollowUp = notifications.find((item) => String(item.title).startsWith("هل صلّيت"));
     await cancelPrayerFollowUp("Fajr", "2026-10-03");
 
     expect(notificationMock.cancel).toHaveBeenCalledWith({ notifications: [{ id: tomorrowFollowUp?.id }] });
@@ -104,9 +104,9 @@ describe("native prayer notification schedule horizon", () => {
     }));
     const notifications = buildPrayerNotificationsForDays(days, LOUD, ALL_PRAYERS_ENABLED, QUIET, { includeDailyHadith: true, now });
 
-    const adhans = notifications.filter((item) => item.title === "أثر — الأذان");
-    const followUps = notifications.filter((item) => item.title === "أثر — تذكير لطيف");
-    const hadiths = notifications.filter((item) => item.title === "أثر — حديث اليوم ﷺ");
+    const adhans = notifications.filter((item) => String(item.title).startsWith("صلاة "));
+    const followUps = notifications.filter((item) => String(item.title).startsWith("هل صلّيت"));
+    const hadiths = notifications.filter((item) => item.title === "حديث اليوم ﷺ");
     expect(adhans).toHaveLength(35);
     expect(new Set(adhans.map((item) => item.extra?.dateISO)).size).toBe(7);
     expect(new Set(followUps.map((item) => item.extra?.dateISO))).toEqual(new Set(["2026-10-02", "2026-10-03"]));

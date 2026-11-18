@@ -19,6 +19,7 @@ import { ensureDefaultNotificationChannels } from "@/lib/reminders";
 import { scheduleCustomNotification } from "@/lib/customReminderNotifications";
 
 const EXPECTED_ACTION_TYPE_IDS = [
+  "ADHKAR_ACTIONS",
   "CUSTOM_REMINDER_ACTIONS",
   "PRAYER_ACTIONS",
   "REMINDER_ACTIONS",
