@@ -28,4 +28,9 @@
     <string name="tile_prayer_open">افتح مواقيت الصلاة</string>
     <string name="tile_sebha_label">السبحة</string>
     <string name="tile_sebha_subtitle">افتح العدّاد</string>
+    <!-- The Adhan alarm (AdhanAlarmService, AdhanAlarmActivity). -->
+    <string name="adhan_alarm_channel">منبّه الأذان</string>
+    <string name="adhan_alarm_channel_description">يرنّ الأذان كمنبّه حتى في الوضع الصامت</string>
+    <string name="adhan_alarm_stop">إيقاف</string>
+    <string name="adhan_alarm_text">حيّ على الصلاة</string>
 </resources>

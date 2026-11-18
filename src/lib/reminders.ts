@@ -9,6 +9,7 @@ import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, 
 import { useNoorStore } from "@/store/noorStore";
 import { getLocalDateKey, parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { DEFAULT_PRAYER_COORDINATES, readCachedPrayerCoordinates } from "@/lib/prayerLocation";
+import { adhanAlarmPreferences, adhanAlarmStatus, alarmPrayers } from "@/lib/adhanAlarm";
 import {
   buildPrayerTopUpPlan,
   clearPrayerTopUp,
@@ -695,15 +696,21 @@ export function buildPrayerTopUpPlanForSync(
   audio: NotificationAudioConfig,
   enabledPrayers: PrayerAlertPreferences,
   owner: string,
-  options: { planDays?: number } = {},
+  options: {
+    planDays?: number;
+    /** The Adhan as an alarm: which prayers, the silent audio for their alerts, and the app's own days. */
+    alarm?: { prayers: readonly PrayerTimingName[]; quiet: NotificationAudioConfig; soundFile: string; appDays: PrayerNotificationDay[] } | null;
+  } = {},
 ): PrayerTopUpPlan | null {
   const templates: PrayerTopUpPlan["templates"] = {};
+  const alarm = options.alarm && options.alarm.prayers.length ? options.alarm : null;
   for (const prayerName of TOP_UP_PRAYERS) {
     if (!enabledPrayers[prayerName]) continue;
+    const ringsAsAlarm = alarm?.prayers.includes(prayerName) ?? false;
     templates[prayerName] = {
       baseId: PRAYER_NOTIFICATION_IDS[prayerName],
       notification: {
-        ...prayerAdhanContent(prayerName, audio),
+        ...prayerAdhanContent(prayerName, ringsAsAlarm && alarm ? alarm.quiet : audio),
         extra: { prayerName, atharTopUp: true, accountOwner: owner },
       },
     };
@@ -720,6 +727,15 @@ export function buildPrayerTopUpPlanForSync(
     slotOffset: NOTIFICATION_DATE_SLOT_OFFSET,
     slotForDate: notificationDateSlot,
     planDays: options.planDays,
+    alarm: alarm ? {
+      prayers: [...alarm.prayers],
+      names: { ...PRAYER_LABELS },
+      sound: { ios: toIosSoundFile(alarm.soundFile), android: alarm.soundFile.replace(/\.[^.]+$/, "") },
+      appDays: alarm.appDays.map((day) => ({
+        d: day.dateISO,
+        t: Object.fromEntries(TOP_UP_PRAYERS.filter((name) => day.timings[name]).map((name) => [name, day.timings[name]!])),
+      })),
+    } : null,
   });
 }
 
@@ -743,6 +759,8 @@ export function buildPrayerNotificationsForDays(
     includeDailyHadith?: boolean;
     now?: Date;
     prayerLog?: Record<string, Record<string, boolean>>;
+    /** Prayers that ring as an alarm: their notification stays silent. */
+    alarmPrayers?: readonly string[];
   } = {},
 ): LocalNotification[] {
   const now = options.now ?? new Date();
@@ -783,7 +801,7 @@ export function buildPrayerNotificationsForDays(
 
       const main = {
         id: notificationIdForDate(PRAYER_NOTIFICATION_IDS[prayerName], day.dateISO),
-        ...prayerAdhanContent(prayerName, audio),
+        ...prayerAdhanContent(prayerName, options.alarmPrayers?.includes(prayerName) ? quiet : audio),
         schedule: withAndroidDozeDelivery({ at }),
         extra,
       };
@@ -1258,9 +1276,14 @@ async function syncRemindersForOwner(
   const notifications: LocalNotification[] = buildReminderNotifications(reminders, reminderAudio, completion);
 
   let prayerNotificationAudio: NotificationAudioConfig | null = null;
+  let ringingPrayers: PrayerTimingName[] = [];
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
     if (getAccountStorageOwner() !== owner) return;
+    if (adhanAlarmPreferences(reminders).enabled) {
+      ringingPrayers = alarmPrayers(reminders, await adhanAlarmStatus());
+      if (getAccountStorageOwner() !== owner) return;
+    }
     notifications.push(...buildPrayerNotificationsForDays(
       scheduleDays,
       prayerNotificationAudio,
@@ -1269,6 +1292,7 @@ async function syncRemindersForOwner(
       {
         includeDailyHadith: false,
         prayerLog: useNoorStore.getState().prayerLog,
+        alarmPrayers: ringingPrayers,
       },
     ));
   }
@@ -1314,6 +1338,14 @@ async function syncRemindersForOwner(
       prayerNotificationAudio,
       { ...DEFAULT_PRAYER_ALERTS, ...reminders.prayerAlerts },
       owner,
+      {
+        alarm: ringingPrayers.length ? {
+          prayers: ringingPrayers,
+          quiet,
+          soundFile: getPrayerSoundOption(reminders.prayerSoundProfile).fileName,
+          appDays: scheduleDays,
+        } : null,
+      },
     );
     if (plan) await configurePrayerTopUp(plan);
     else await clearPrayerTopUp();

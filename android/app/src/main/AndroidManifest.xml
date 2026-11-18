@@ -340,6 +340,29 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_wirdtable_info" />
         </receiver>
+        <!-- The Adhan as a real alarm (AdhanAlarm): rings on silent, Stop screen over the lock screen. -->
+        <receiver
+            android:name=".AdhanAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+        <service
+            android:name=".AdhanAlarmService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+        <activity
+            android:name=".AdhanAlarmActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
         <!-- Quick Settings tiles: the next prayer, and the tasbeeh counter. -->
         <service
             android:name=".PrayerTileService"
@@ -382,6 +405,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <!-- Sebha voice counting -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- The Adhan alarm's Stop screen over the lock screen. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!-- Android 11+: lets the app find the phone's speech recogniser for voice tasbeeh. -->
     <queries>
