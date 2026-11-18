@@ -57,6 +57,7 @@ import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 // IDB-cached builder in quranLoad share the exact same shape.
 import type { PageItem } from "@/data/pageIndexBuilder";
 import { arNum } from "@/lib/formatNumber";
+import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
 
 /**
  * The reader's "more" sheet, parked at the owner's request.
@@ -589,6 +590,8 @@ export function MushafPage() {
 
   // Audio refs & state
   const [playingKey, setPlayingKey] = React.useState<string | null>(null);
+  // The page stays lit while reading, and throughout a recitation being followed.
+  useKeepScreenAwake(true, { idleMinutes: playingKey ? null : undefined });
   // The web player's audio element, or the native recitation player in the apps.
   const audioRef = React.useRef<RecitationHandle | null>(null);
   const nativeSessionRef = React.useRef<NativeRecitationSession | null>(null);

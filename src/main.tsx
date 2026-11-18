@@ -185,6 +185,9 @@ if (rootContainer) {
     void loadStoreIdentity();
     // Copy must work the same in a phone WebView as in a browser.
     void import("@/lib/clipboardFallback").then((m) => m.installClipboardFallback());
+    // Sharing and web links use the phone's own share menu and in-app browser.
+    void import("@/lib/shareTargets").then((m) => m.installNativeWebShare());
+    void import("@/lib/inAppBrowser").then((m) => m.installInAppBrowserLinks());
 
     // Head start for the shorts feed: fetching YouTube's IFrame API was measured at
     // ~900ms and only began once the feed opened. Doing it when the browser is idle,
