@@ -87,13 +87,14 @@ export function DesignInvite() {
   );
 }
 
-function GardenPreview({ night }: { night: boolean }) {
+function GardenPreview({ night, bed = false }: { night: boolean; bed?: boolean }) {
   return (
-    <span className={cn("design-mock design-mock-garden", night && "is-night")} aria-hidden="true">
+    <span className={cn("design-mock design-mock-garden", night && "is-night", bed && "has-bed")} aria-hidden="true">
       {night ? <span className="dm-moon" /> : null}
       <span className="dm-palm" />
       <span className="dm-cypress" />
       <span className="dm-ground" />
+      {bed ? <span className="dm-bed"><span /><span /><span /><span /><span /></span> : null}
     </span>
   );
 }
@@ -120,7 +121,7 @@ export function UfuqLookPicker() {
             }}
             className={cn("design-choice", active && "is-active")}
           >
-            {option.id === "garden" ? <GardenPreview night={night} /> : <UfuqPreview />}
+            {option.id === "plain" ? <UfuqPreview /> : <GardenPreview night={night} bed={option.id === "bustan"} />}
             <span className="design-choice-label">
               <span className="design-choice-check" aria-hidden="true">{active ? <Check size={12} strokeWidth={3} /> : null}</span>
               {option.label}

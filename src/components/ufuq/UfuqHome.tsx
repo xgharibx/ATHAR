@@ -341,7 +341,7 @@ export function UfuqHome() {
   const hour = useCurrentHour();
   const prayer = usePrayerTimes();
   const sections = React.useMemo(() => data?.db.sections ?? [], [data]);
-  const garden = useNoorStore((s) => (s.prefs.ufuqLook ?? "garden") === "garden");
+  const garden = useNoorStore((s) => (s.prefs.ufuqLook ?? "garden") !== "plain");
 
   const hijri = React.useMemo(() => {
     const fromApi = formatPrayerHijriDate(prayer.data?.data?.date?.hijri);

@@ -22,8 +22,12 @@ export type DesignMode = "classic" | "ufuq";
  */
 export type UfuqPalette = "auto" | "time" | "day" | "night";
 
-/** The look inside «أفق»: quiet paper, or the living garden. */
-export type UfuqLook = "plain" | "garden";
+/**
+ * The look inside «أفق»: the filmed garden, the same garden with a bed of
+ * real flowers planted by the day's remembrance («بستان الذِّكر»), or quiet
+ * paper.
+ */
+export type UfuqLook = "plain" | "garden" | "bustan";
 
 export type UfuqResolvedPalette = "day" | "night";
 
@@ -41,6 +45,7 @@ export const UFUQ_PALETTES: ReadonlyArray<{ id: UfuqPalette; label: string }> = 
 
 export const UFUQ_LOOKS: ReadonlyArray<{ id: UfuqLook; label: string; hint: string }> = [
   { id: "garden", label: "الحديقة", hint: "حديقة حقيقية مصوَّرة وقمر الليلة بطَوره، تُضيئها يراعاتُ ذكرك" },
+  { id: "bustan", label: "بستان الذِّكر", hint: "حوضُ وردٍ حقيقي يُزهر بتسبيحك: كل ذكرٍ تتفتّح له وردة" },
   { id: "plain", label: "بسيط", hint: "ورق هادئ بلا حركة، أخفّ على البطارية" },
 ];
 
@@ -68,7 +73,12 @@ export function normalizeUfuqPalette(value: unknown): UfuqPalette {
 }
 
 export function normalizeUfuqLook(value: unknown): UfuqLook {
-  return value === "plain" ? "plain" : "garden";
+  return value === "plain" || value === "bustan" ? value : "garden";
+}
+
+/** Both garden looks share the garden's palettes and frame. */
+export function isGardenLook(look: UfuqLook | undefined): boolean {
+  return look !== "plain";
 }
 
 export function resolveUfuqPalette(

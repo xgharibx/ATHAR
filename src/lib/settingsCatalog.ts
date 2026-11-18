@@ -84,7 +84,7 @@ export const SETTINGS_ITEMS: readonly SettingsItem[] = [
 
   // المظهر
   { id: "design", group: "appearance", title: "تصميم التطبيق", keywords: ["تصميم", "التصميم الجديد", "أفق", "الكلاسيكي", "القديم", "شكل التطبيق", "design", "new design", "classic"] },
-  { id: "ufuq-look", group: "appearance", title: "مشهد الحديقة", keywords: ["الحديقة", "حديقة", "زهور", "نخل", "قمر", "بسيط", "garden"] },
+  { id: "ufuq-look", group: "appearance", title: "مشهد الحديقة", keywords: ["الحديقة", "حديقة", "زهور", "ورد", "بستان", "بستان الذكر", "نخل", "قمر", "بسيط", "garden"] },
   { id: "ufuq-palette", group: "appearance", title: "النهار والليل", keywords: ["نهار", "ليل", "داكن", "فاتح", "ليلي", "المغرب", "الفجر", "أفق"] },
   { id: "garden-live", group: "appearance", title: "حديقة حيّة", keywords: ["حركة", "الحديقة", "بطارية", "تحريك", "يراعات", "فراشات"] },
   { id: "theme", group: "appearance", title: "السمة", keywords: ["ثيم", "لون", "داكن", "فاتح", "ليلي", "theme", "dark", "light"] },

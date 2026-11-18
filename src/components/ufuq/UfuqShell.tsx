@@ -237,7 +237,8 @@ function UfuqTabBar() {
 export function UfuqShell() {
   const location = useLocation();
   const [paletteOpen, setPaletteOpen] = React.useState(false);
-  const garden = useNoorStore((s) => (s.prefs.ufuqLook ?? "garden") === "garden");
+  const look = useNoorStore((s) => s.prefs.ufuqLook ?? "garden");
+  const garden = look !== "plain";
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -265,7 +266,7 @@ export function UfuqShell() {
       </a>
       {garden ? (
         <React.Suspense fallback={null}>
-          <GardenBackdrop />
+          <GardenBackdrop bed={look === "bustan"} />
         </React.Suspense>
       ) : (
         <div className="u-horizon" aria-hidden="true" />

@@ -87,7 +87,7 @@ export function AppearanceGroup() {
                 onChange={(value) => setPrefs({ ufuqPalette: value })}
               />
             </SettingsRow>
-            {(prefs.ufuqLook ?? "garden") === "garden" ? (
+            {(prefs.ufuqLook ?? "garden") !== "plain" ? (
               <ToggleRow
                 id="garden-live"
                 title="حديقة حيّة"

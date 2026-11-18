@@ -14,7 +14,8 @@ import {
   moonPhase,
   seededRandom,
 } from "@/components/ufuq/garden/gardenMath";
-import { GardenOverlay, MOON_AT } from "@/components/ufuq/garden/gardenOverlay";
+import { GardenOverlay } from "@/components/ufuq/garden/gardenOverlay";
+import { MoonLayer, MOON_IN_FILM } from "@/components/ufuq/garden/gardenMoon";
 import { normalizeUfuqLook, normalizeUfuqPalette, resolveUfuqPalette, UFUQ_GARDEN_META_COLORS } from "@/lib/design";
 import { applyUfuqDesign } from "@/hooks/useApplyTheme";
 import { searchSettings } from "@/lib/settingsCatalog";
@@ -76,7 +77,8 @@ describe("the garden grows", () => {
   });
 
   it("steps aside where there is no canvas", () => {
-    expect(GardenOverlay.create(document.createElement("canvas"), "night", "/garden/moon.jpg")).toBeNull();
+    expect(GardenOverlay.create(document.createElement("canvas"), "night")).toBeNull();
+    expect(MoonLayer.create(document.createElement("canvas"), "/garden/moon.jpg", () => {})).toBeNull();
   });
 
   it("lights more fireflies with more remembrance", () => {
@@ -119,9 +121,14 @@ describe("the filmed garden", () => {
     expect(readme).toContain("Mixkit Stock Video Free License");
   });
 
-  it("keeps the moon in open sky", () => {
-    expect(MOON_AT.y).toBeGreaterThan(0.34);
-    expect(MOON_AT.x).toBeLessThan(0.5);
+  it("puts the moon in the band of sky the fronds sweep across, behind them", () => {
+    expect(MOON_IN_FILM.y).toBeGreaterThan(0.12);
+    expect(MOON_IN_FILM.y).toBeLessThan(0.3);
+    const moon = read("src/components/ufuq/garden/gardenMoon.ts");
+    // Masked by the film's own pixels, frame by frame.
+    expect(moon).toContain("getImageData");
+    expect(moon).toContain('"destination-in"');
+    expect(read("src/components/ufuq/garden/GardenBackdrop.tsx")).toContain("requestVideoFrameCallback");
   });
 });
 
