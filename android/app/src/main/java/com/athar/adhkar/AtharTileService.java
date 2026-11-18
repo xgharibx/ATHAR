@@ -1,5 +1,6 @@
 package com.athar.adhkar;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Build;
@@ -44,6 +45,8 @@ public abstract class AtharTileService extends TileService {
         }
     }
 
+    /** Before Android 14 this Intent form is the only one there is. */
+    @SuppressLint("StartActivityAndCollapseDeprecated")
     @SuppressWarnings("deprecation")
     private void startActivityAndCollapseCompat(Intent intent) {
         startActivityAndCollapse(intent);
