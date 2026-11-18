@@ -401,6 +401,23 @@
       } catch(e) {}
     })();
     </script>
+    <!-- The «أفق» design paints from the first frame (src/lib/design.ts). -->
+    <script id="design-bootstrap">
+    (function(){
+      try {
+        var raw = localStorage.getItem("athar_design_v1");
+        var hint = raw && JSON.parse(raw);
+        if (!hint || hint.design !== "ufuq") return;
+        var dark = hint.palette === "night" || (hint.palette !== "day" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var root = document.documentElement;
+        root.setAttribute("data-design", "ufuq");
+        root.setAttribute("data-ufuq-palette", dark ? "night" : "day");
+        root.classList.add(dark ? "dark" : "light");
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", dark ? "#0a0d13" : "#f5f1e8");
+      } catch (e) {}
+    })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,0 +1,1103 @@
+/*
+ * «أُفُق» — the second design (src/lib/design.ts).
+ *
+ * Every rule here is scoped under <html data-design="ufuq">; the classic
+ * design never sees any of it.
+ *
+ * The idea, in four lines:
+ *   1. Paper and ink. Opaque surfaces on a warm page (نهار) or a deep night
+ *      sky (ليل). One precious accent, never more.
+ *   2. Type does the work. IBM Plex Sans Arabic for everything you operate,
+ *      a classical Naskh for everything you recite.
+ *   3. Glass only where it belongs: the floating navigation that sits above
+ *      the content, never the content itself.
+ *   4. Quiet motion: short springs, no glow, no stars, no particles.
+ */
+/* IBM Plex Sans Arabic (SIL OFL 1.1), bundled so the design works offline.
+   Only the Arabic and Latin subsets in woff2: nothing else is ever needed. */
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../../node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-400-normal.woff2") format("woff2");
+  unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC;
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../../node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../../node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-500-normal.woff2") format("woff2");
+  unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC;
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../../node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-500-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../../node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-600-normal.woff2") format("woff2");
+  unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC;
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../../node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../../node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-700-normal.woff2") format("woff2");
+  unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC;
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../../node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+/* ─────────────────────────── Tokens ─────────────────────────── */
+
+:root[data-design="ufuq"] {
+  --u-font-ui: "IBM Plex Sans Arabic", -apple-system, "SF Arabic", "Segoe UI", Roboto, sans-serif;
+  --u-font-text: "Noto Naskh Arabic", "Amiri", "IBM Plex Sans Arabic", serif;
+
+  /* نهار — warm paper, ink, malachite and brass */
+  --bg: #f5f1e8;
+  --bg-deep: #f5f1e8;
+  --fg: #1c1a16;
+  --muted: rgba(28, 26, 22, 0.68);
+  --muted-2: rgba(28, 26, 22, 0.5);
+  /* Fills are warm sand, never grey: paper tinted, not shaded. */
+  --card: rgba(132, 104, 62, 0.07);
+  --card-2: rgba(132, 104, 62, 0.115);
+  --stroke: rgba(70, 56, 36, 0.12);
+  --accent: #1d5a48;
+  --accent-2: #a27838;
+  --on-accent: #ffffff;
+  --on-ok: #ffffff;
+  --ok: #2e7a58;
+  --danger: #b0442f;
+  --shadow: 0 1px 2px rgba(28, 26, 22, 0.05), 0 10px 30px rgba(28, 26, 22, 0.06);
+
+  --u-surface: #fffdf9;
+  --u-surface-2: #fbf8f1;
+  --u-raised: #ffffff;
+  --u-hairline: rgba(28, 26, 22, 0.09);
+  --u-ink: #1c1a16;
+  --u-gold: #a27838;
+  --u-gold-soft: rgba(162, 120, 56, 0.12);
+  --u-accent-soft: rgba(29, 90, 72, 0.09);
+  --u-shadow-card: 0 1px 1px rgba(28, 26, 22, 0.03), 0 6px 22px rgba(28, 26, 22, 0.05);
+  --u-shadow-float: 0 1px 1px rgba(28, 26, 22, 0.04), 0 18px 44px rgba(28, 26, 22, 0.14);
+  --u-glass: rgba(255, 253, 249, 0.72);
+  --u-glass-stroke: rgba(28, 26, 22, 0.08);
+
+  --u-radius-card: 22px;
+  --u-radius-inner: 14px;
+  --u-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Tailwind's scale, retuned: tighter, concentric corners and soft shadows. */
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 0.95rem;
+  --radius-3xl: 1.375rem;
+  --radius-4xl: 1.75rem;
+  --shadow-sm: 0 1px 2px rgba(28, 26, 22, 0.06);
+  --shadow-md: 0 4px 14px rgba(28, 26, 22, 0.07);
+  --shadow-lg: 0 10px 28px rgba(28, 26, 22, 0.08);
+  --shadow-xl: 0 16px 40px rgba(28, 26, 22, 0.1);
+  --shadow-2xl: 0 22px 56px rgba(28, 26, 22, 0.14);
+  --shadow-glow: var(--u-shadow-card);
+
+  --font-arabic: var(--u-font-ui);
+  color-scheme: light;
+}
+
+/* ليل — a clear night: deep blue-black, warm ivory text, champagne and sage */
+:root[data-design="ufuq"][data-ufuq-palette="night"] {
+  --bg: #0a0d13;
+  --bg-deep: #0a0d13;
+  --fg: #ede7da;
+  --muted: rgba(237, 231, 218, 0.7);
+  --muted-2: rgba(237, 231, 218, 0.5);
+  --card: rgba(237, 231, 218, 0.05);
+  --card-2: rgba(237, 231, 218, 0.085);
+  --stroke: rgba(237, 231, 218, 0.1);
+  --accent: #d8b678;
+  --accent-2: #8fc0a6;
+  --on-accent: #17120a;
+  --on-ok: #08140e;
+  --ok: #7ccaa1;
+  --danger: #f08b77;
+  --shadow: 0 14px 36px rgba(0, 0, 0, 0.4);
+
+  --u-surface: #11161f;
+  --u-surface-2: #151b26;
+  --u-raised: #19202c;
+  --u-hairline: rgba(237, 231, 218, 0.08);
+  --u-ink: #ede7da;
+  --u-gold: #d8b678;
+  --u-gold-soft: rgba(216, 182, 120, 0.13);
+  --u-accent-soft: rgba(216, 182, 120, 0.11);
+  --u-shadow-card: 0 0 0 1px rgba(237, 231, 218, 0.02), 0 12px 32px rgba(0, 0, 0, 0.28);
+  --u-shadow-float: 0 20px 50px rgba(0, 0, 0, 0.55);
+  --u-glass: rgba(17, 22, 31, 0.72);
+  --u-glass-stroke: rgba(237, 231, 218, 0.1);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.4);
+  --shadow-2xl: 0 22px 56px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+/* ─────────────────────────── Base ─────────────────────────── */
+
+:root[data-design="ufuq"] body {
+  font-family: var(--u-font-ui);
+  background: var(--bg);
+  color: var(--fg);
+  font-feature-settings: "kern" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+:root[data-design="ufuq"] ::selection {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* Arabic is cursive: spacing letters apart breaks the script. */
+:root[data-design="ufuq"] :is(.tracking-wide, .tracking-wider, .tracking-widest, .uppercase) {
+  letter-spacing: 0;
+}
+
+/* What you recite is set in a classical Naskh; what you operate in Plex. The
+   per-person choice of Amiri or Hafs (Settings → القرآن) still wins. */
+:root[data-design="ufuq"] :is(.arabic-text, .dhikr-flow, .quran-text) {
+  font-family: var(--u-font-text);
+}
+
+:root[data-design="ufuq"] :focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: 2px;
+}
+
+/* ─────────────────────────── Surfaces ─────────────────────────── */
+
+/* Content sits on opaque paper. Glass is kept for the floating navigation. */
+:root[data-design="ufuq"] :is(.glass, .glass-strong) {
+  border: 1px solid var(--u-hairline);
+  box-shadow: var(--u-shadow-card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+:root[data-design="ufuq"] :is(.glass, .glass-strong):not([class*="bg-"]) {
+  background: var(--u-surface);
+}
+
+:root[data-design="ufuq"] .light :is(.glass, .glass-strong):not([class*="bg-"]),
+:root[data-design="ufuq"].light :is(.glass, .glass-strong):not([class*="bg-"]) {
+  background: var(--u-surface);
+}
+
+/* Cards inside cards drop the shadow, so depth stays one level. */
+:root[data-design="ufuq"] :is(.glass, .glass-strong) :is(.glass, .glass-strong) {
+  box-shadow: none;
+}
+:root[data-design="ufuq"] :is(.glass, .glass-strong) :is(.glass, .glass-strong):not([class*="bg-"]) {
+  background: var(--u-surface-2);
+}
+
+/* Classic decoration that has no place on paper. */
+:root[data-design="ufuq"] :is(.shadow-glow, [class*="drop-shadow-"]) {
+  filter: none;
+}
+
+/* ─────────────────────────── App frame ─────────────────────────── */
+
+:root[data-design="ufuq"] {
+  --u-tabbar-h: 64px;
+  --u-tabbar-gap: 12px;
+  --dhikr-fixed-bottom: calc(var(--u-tabbar-h) + var(--u-tabbar-gap) + env(safe-area-inset-bottom, 0px) + 10px);
+}
+
+.u-frame {
+  min-height: 100dvh;
+}
+
+.u-horizon {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 340px;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(120% 90% at 85% -10%, var(--u-gold-soft), transparent 60%),
+    radial-gradient(90% 70% at 10% -20%, var(--u-accent-soft), transparent 65%);
+  opacity: 0.9;
+}
+
+.u-main {
+  position: relative;
+  z-index: 1;
+  margin-inline: auto;
+  width: 100%;
+  max-width: 960px;
+  padding-inline: 16px;
+  padding-bottom: calc(var(--u-tabbar-h) + var(--u-tabbar-gap) * 2 + var(--sab) + 24px);
+}
+
+@media (min-width: 768px) {
+  .u-main {
+    padding-inline: 28px;
+  }
+}
+
+/* Top bar: transparent at rest, frosted once content scrolls beneath it. */
+.u-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding-top: var(--sat);
+  transition: background-color 220ms ease, border-color 220ms ease;
+  border-bottom: 1px solid transparent;
+}
+
+.u-topbar.is-scrolled {
+  background: var(--u-glass);
+  border-bottom-color: var(--u-hairline);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+
+.u-topbar-row {
+  margin-inline: auto;
+  max-width: 960px;
+  height: 52px;
+  padding-inline: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.u-topbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 52vw;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 200ms ease, transform 200ms var(--u-spring);
+}
+
+.u-topbar.is-scrolled .u-topbar-title,
+.u-topbar.is-titled .u-topbar-title {
+  opacity: 1;
+  transform: none;
+}
+
+.u-topbar-start,
+.u-topbar-end {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.u-topbar-end {
+  justify-content: flex-end;
+}
+
+.u-icon-btn {
+  width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--fg);
+  background: transparent;
+  transition: background-color 160ms ease, transform 160ms var(--u-spring);
+}
+
+.u-icon-btn:hover {
+  background: var(--card);
+}
+
+.u-icon-btn:active {
+  transform: scale(0.92);
+}
+
+.u-icon-btn.is-filled {
+  background: var(--u-surface);
+  border: 1px solid var(--u-hairline);
+  box-shadow: var(--u-shadow-card);
+}
+
+/* Floating tab bar — the one glass object in the design. */
+.u-tabbar-wrap {
+  position: fixed;
+  inset-inline: 0;
+  bottom: calc(var(--u-tabbar-gap) + var(--sab));
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  transition: transform 340ms var(--u-spring), opacity 260ms ease;
+}
+
+.u-tabbar-wrap.is-hidden {
+  transform: translateY(140%);
+  opacity: 0;
+}
+
+.u-tabbar {
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: var(--u-tabbar-h);
+  padding: 6px;
+  border-radius: 999px;
+  width: min(420px, calc(100vw - 24px));
+  background: var(--u-glass);
+  border: 1px solid var(--u-glass-stroke);
+  box-shadow: var(--u-shadow-float), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+}
+
+:root[data-ufuq-palette="night"] .u-tabbar {
+  box-shadow: var(--u-shadow-float), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.u-tabbar-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.u-now-playing {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(360px, calc(100vw - 48px));
+  padding: 6px 6px 6px 8px;
+  padding-inline-start: 8px;
+  border-radius: 999px;
+  background: var(--u-glass);
+  border: 1px solid var(--u-glass-stroke);
+  box-shadow: var(--u-shadow-float);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+}
+
+.u-now-playing-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.u-now-playing-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.u-now-playing-text b {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.u-now-playing-text span {
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.u-now-playing .u-icon-btn {
+  width: 34px;
+  height: 34px;
+}
+
+.u-tab {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 200ms ease, transform 160ms var(--u-spring);
+}
+
+.u-tab:active {
+  transform: scale(0.94);
+}
+
+.u-tab[aria-current="page"] {
+  color: var(--accent);
+}
+
+.u-tab-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--u-accent-soft);
+  z-index: -1;
+}
+
+.u-tab-dot {
+  position: absolute;
+  top: 9px;
+  inset-inline-start: calc(50% + 7px);
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--u-gold);
+  box-shadow: 0 0 0 2px var(--u-surface);
+}
+
+/* Full-screen and focus surfaces hide the bar, as they hide the classic one. */
+body:has([role="dialog"][data-state="open"]) .u-tabbar-wrap,
+body.quran-focus-mode .u-tabbar-wrap,
+body.focus-mode .u-tabbar-wrap,
+body.companion-sheet-open .u-tabbar-wrap,
+body.companion-focus .u-tabbar-wrap,
+body.shorts-open .u-tabbar-wrap,
+body:has(.sebha-focus) .u-tabbar-wrap {
+  transform: translateY(140%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.focus-mode .u-topbar,
+body.quran-focus-mode .u-topbar {
+  display: none;
+}
+
+/* ─────────────────────────── Shared pieces ─────────────────────────── */
+
+.u-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-2);
+}
+
+.u-display {
+  font-size: clamp(28px, 7.4vw, 36px);
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+.u-title {
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.u-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 30px 4px 12px;
+}
+
+.u-section-head h2 {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.u-section-head a,
+.u-section-head button {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.u-card {
+  position: relative;
+  background: var(--u-surface);
+  border: 1px solid var(--u-hairline);
+  border-radius: var(--u-radius-card);
+  box-shadow: var(--u-shadow-card);
+}
+
+.u-card-press {
+  transition: transform 180ms var(--u-spring), box-shadow 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.u-card-press:active {
+  transform: scale(0.985);
+}
+
+.u-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding-inline: 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--on-accent);
+  transition: transform 160ms var(--u-spring), filter 160ms ease;
+}
+
+.u-pill-btn:active {
+  transform: scale(0.96);
+}
+
+.u-pill-btn.is-quiet {
+  background: var(--card);
+  color: var(--fg);
+}
+
+.u-hairline {
+  height: 1px;
+  background: var(--u-hairline);
+}
+
+.u-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ─────────────────────────── Home («اليوم») ─────────────────────────── */
+
+.u-home-head {
+  padding: 8px 4px 18px;
+}
+
+.u-home-date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.u-home-date i {
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--muted-2);
+}
+
+/* The horizon: a sky that follows the hour of the coming prayer. */
+.u-sky {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  color: #fff;
+  min-height: 236px;
+  padding: 22px 22px 18px;
+  isolation: isolate;
+  box-shadow: var(--u-shadow-float);
+}
+
+.u-sky::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: var(--u-sky);
+}
+
+.u-sky::after {
+  /* the horizon line and the sun or moon above it */
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 150px;
+  height: 150px;
+  border-radius: 999px;
+  inset-inline-start: 18%;
+  bottom: 42px;
+  background: radial-gradient(circle, var(--u-sky-orb) 0 34%, transparent 70%);
+  opacity: 0.85;
+}
+
+.u-sky[data-phase="fajr"] {
+  --u-sky: linear-gradient(170deg, #1b2350 0%, #3b3f7a 42%, #b8758a 82%, #e8b08c 100%);
+  --u-sky-orb: rgba(255, 214, 180, 0.55);
+}
+.u-sky[data-phase="dhuhr"] {
+  --u-sky: linear-gradient(175deg, #2c6e9e 0%, #5aa0c8 50%, #a9d3e3 100%);
+  --u-sky-orb: rgba(255, 250, 230, 0.75);
+}
+.u-sky[data-phase="asr"] {
+  --u-sky: linear-gradient(172deg, #3a6d8a 0%, #8ea79a 46%, #e0b46b 100%);
+  --u-sky-orb: rgba(255, 228, 160, 0.7);
+}
+.u-sky[data-phase="maghrib"] {
+  --u-sky: linear-gradient(172deg, #2a1f4a 0%, #7c3f62 40%, #d9715a 78%, #f2b066 100%);
+  --u-sky-orb: rgba(255, 196, 140, 0.7);
+}
+.u-sky[data-phase="isha"] {
+  --u-sky: linear-gradient(176deg, #070b1d 0%, #121a3d 55%, #253064 100%);
+  --u-sky-orb: rgba(235, 232, 255, 0.4);
+}
+
+.u-sky-stars {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 22%, rgba(255, 255, 255, 0.8), transparent 60%),
+    radial-gradient(1px 1px at 30% 12%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1.4px 1.4px at 68% 18%, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(1px 1px at 82% 34%, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(1px 1px at 52% 30%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1.2px 1.2px at 90% 10%, rgba(255, 255, 255, 0.7), transparent 60%);
+}
+
+.u-sky-label {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.82;
+}
+
+.u-sky-name {
+  font-size: 44px;
+  line-height: 1.05;
+  font-weight: 700;
+  margin-top: 6px;
+  letter-spacing: -0.01em;
+}
+
+.u-sky-time {
+  font-size: 15px;
+  font-weight: 500;
+  opacity: 0.88;
+  margin-top: 6px;
+}
+
+.u-sky-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.u-sky-track {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.u-sky-slot {
+  padding: 8px 2px 6px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.72;
+}
+
+.u-sky-slot b {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.u-sky-slot.is-next {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+}
+
+.u-sky-slot.is-past {
+  opacity: 0.5;
+}
+
+/* Today's path */
+.u-path {
+  padding: 4px 0;
+}
+
+.u-path-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: start;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.u-path-row + .u-path-row {
+  border-top: 1px solid var(--u-hairline);
+}
+
+.u-path-row:active {
+  background: var(--card);
+}
+
+.u-ring {
+  --p: 0;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(closest-side, var(--u-surface) 80%, transparent 81% 100%),
+    conic-gradient(var(--accent) calc(var(--p) * 1%), var(--card-2) 0);
+  color: var(--accent);
+}
+
+.u-ring.is-done {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.u-path-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.u-path-sub {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Ayah of the day */
+.u-verse {
+  padding: 26px 22px 20px;
+  text-align: center;
+  background:
+    radial-gradient(100% 80% at 50% 0%, var(--u-gold-soft), transparent 70%),
+    var(--u-surface);
+}
+
+.u-verse-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--u-gold);
+}
+
+.u-verse-mark::before,
+.u-verse-mark::after {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.u-verse-text {
+  margin-top: 16px;
+  font-family: "Amiri Quran", "UthmanicHafs", "Amiri", serif;
+  font-size: 24px;
+  line-height: 2.05;
+  color: var(--fg);
+  text-wrap: balance;
+}
+
+.u-verse-ref {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Collections strip */
+.u-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 2px 4px 6px;
+  margin-inline: -16px;
+  padding-inline: 16px;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 16px;
+  scrollbar-width: none;
+}
+
+.u-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.u-collection {
+  flex: 0 0 auto;
+  width: 138px;
+  scroll-snap-align: start;
+  padding: 14px;
+  text-align: start;
+}
+
+.u-collection-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  background: var(--card);
+}
+
+.u-collection-title {
+  margin-top: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  min-height: 2.7em;
+}
+
+.u-collection-bar {
+  margin-top: 10px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.u-collection-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+/* Bento grid */
+.u-bento {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .u-bento {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.u-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 112px;
+  padding: 16px;
+  text-align: start;
+}
+
+.u-tile.is-wide {
+  grid-column: span 2;
+}
+
+.u-tile-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--u-accent-soft);
+}
+
+.u-tile-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 14px;
+}
+
+.u-tile-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.u-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.u-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.u-foot {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--muted-2);
+  line-height: 1.9;
+}
+
+/* ─────────────────────────── Explore ─────────────────────────── */
+
+.u-explore-group {
+  overflow: hidden;
+}
+
+.u-explore-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 13px 16px;
+  text-align: start;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.u-explore-row + .u-explore-row {
+  border-top: 1px solid var(--u-hairline);
+}
+
+.u-explore-row:active {
+  background: var(--card);
+}
+
+.u-explore-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--u-accent-soft);
+}
+
+.u-explore-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.u-explore-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+/* ─────────────────────────── Existing screens, re-dressed ─────────────────────────── */
+
+/* Settings already speaks in grouped rows; give it the paper material. */
+:root[data-design="ufuq"] .settings-section-card {
+  background: var(--u-surface);
+  border-color: var(--u-hairline);
+  box-shadow: var(--u-shadow-card);
+  border-radius: var(--u-radius-card);
+}
+
+:root[data-design="ufuq"] .settings-search-box {
+  background: var(--u-surface);
+  border-color: var(--u-hairline);
+}
+
+/* The top bar already has a back button. */
+:root[data-design="ufuq"] .settings-back button {
+  display: none;
+}
+
+/* Dialogs and sheets */
+:root[data-design="ufuq"] [role="dialog"] :is(.glass, .glass-strong):not([class*="bg-"]) {
+  background: var(--u-raised);
+}
+
+/* Reduced motion: no springs, no slides. */
+:root[data-design="ufuq"].reduce-motion :is(.u-tabbar-wrap, .u-tab, .u-card-press, .u-icon-btn, .u-topbar-title) {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-design="ufuq"] :is(.u-tabbar-wrap, .u-tab, .u-card-press, .u-icon-btn, .u-topbar-title) {
+    transition: none;
+  }
+}
+
+.u-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding-inline: 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 500;
+  background: var(--u-surface);
+  border: 1px solid var(--u-hairline);
+  transition: transform 160ms var(--u-spring), background-color 160ms ease;
+}
+
+.u-chip:active {
+  transform: scale(0.96);
+  background: var(--card);
+}

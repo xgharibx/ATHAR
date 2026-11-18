@@ -19,6 +19,7 @@ import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { UpdatePill } from "@/components/layout/UpdatePill";
 import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
+import { UfuqShell } from "@/components/ufuq/UfuqShell";
 
 /**
  * The header's hamburger drawer, hidden at the owner's request.
@@ -434,7 +435,17 @@ function MobileSidebarContent(props: { onNavigate?: () => void }) {
   return <SidebarContent mobile onNavigate={props.onNavigate} />;
 }
 
+/**
+ * Two frames for the same pages: the classic one below, or «أفق» (the new
+ * design, src/components/ufuq/UfuqShell.tsx) when the person has chosen it in
+ * Settings. The classic frame is unchanged.
+ */
 export function AppShell() {
+  const ufuq = useNoorStore((s) => s.prefs.designMode === "ufuq");
+  return ufuq ? <UfuqShell /> : <ClassicAppShell />;
+}
+
+function ClassicAppShell() {
   const location = useLocation();
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
