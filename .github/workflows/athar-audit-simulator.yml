@@ -31,10 +31,15 @@ jobs:
           ./gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest
       - name: Launch Android emulator
         run: |
-          sdkmanager "emulator" "system-images;android-35;google_apis;x86_64"
+          sdk_root="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          sdkmanager_path=$(find "$sdk_root/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)
+          test -x "$sdkmanager_path"
+          export PATH="$sdk_root/platform-tools:$(dirname "$sdkmanager_path"):$PATH"
+          echo "$sdk_root/platform-tools" >> "$GITHUB_PATH"
+          "$sdkmanager_path" "emulator" "system-images;android-35;google_apis;x86_64"
           printf 'no\n' | avdmanager create avd -n athar-qa -k 'system-images;android-35;google_apis;x86_64' -d pixel_6
           if [ ! -w /dev/kvm ]; then sudo chgrp "$(id -gn)" /dev/kvm && sudo chmod g+rw /dev/kvm; fi
-          "$ANDROID_HOME/emulator/emulator" -avd athar-qa -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          "$sdk_root/emulator/emulator" -avd athar-qa -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
           timeout 180 adb wait-for-device
           for attempt in {1..90}; do
             if [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then
@@ -93,6 +98,7 @@ jobs:
           retention-days: 7
 
   ios:
+    if: github.event_name == 'workflow_dispatch' || github.event.action == 'opened'
     runs-on: macos-26
     timeout-minutes: 40
     steps:
@@ -144,4 +150,5 @@ jobs:
           path: ${{ runner.temp }}/ios-qa
           if-no-files-found: warn
           retention-days: 7
+
 
