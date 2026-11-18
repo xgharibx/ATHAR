@@ -225,10 +225,11 @@ export function applyUfuqDesign(palette: UfuqPalette | undefined, look: UfuqLook
   root.classList.add(resolved === "night" ? "dark" : "light");
   root.dataset.design = "ufuq";
   root.dataset.ufuqPalette = resolved;
-  root.dataset.ufuqLook = look;
+  // «بستان الذِّكر» is the garden with a flower bed: same palettes, same frame.
+  root.dataset.ufuqLook = look === "plain" ? "plain" : "garden";
   root.style.removeProperty("--accent");
   applyAccentForeground(root);
-  const color = look === "garden" ? UFUQ_GARDEN_META_COLORS[resolved] : UFUQ_META_COLORS[resolved];
+  const color = look !== "plain" ? UFUQ_GARDEN_META_COLORS[resolved] : UFUQ_META_COLORS[resolved];
   setMetaThemeColor(color);
   return color;
 }

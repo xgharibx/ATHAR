@@ -142,7 +142,7 @@ function useGroupSummaries(): Record<SettingsGroupId, string> {
     appearance: prefs.designMode === "ufuq"
       ? [
         "أُفُق",
-        (prefs.ufuqLook ?? "garden") === "garden" ? "الحديقة" : "بسيط",
+        { garden: "الحديقة", live: "الحديقة الحيّة", plain: "بسيط" }[prefs.ufuqLook ?? "garden"],
         prefs.ufuqPalette === "day" ? "نهار" : prefs.ufuqPalette === "night" ? "ليل" : prefs.ufuqPalette === "time" ? "حسب الوقت" : "حسب الهاتف",
       ].join(" · ")
       : `الكلاسيكي · ${themeLabel(prefs.theme)}`,

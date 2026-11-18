@@ -87,10 +87,10 @@ export function AppearanceGroup() {
                 onChange={(value) => setPrefs({ ufuqPalette: value })}
               />
             </SettingsRow>
-            {(prefs.ufuqLook ?? "garden") === "garden" ? (
+            {(prefs.ufuqLook ?? "garden") !== "plain" ? (
               <ToggleRow
                 id="garden-live"
-                title="حديقة حيّة"
+                title="حركة المشهد"
                 hint="مشهد مصوَّر حيّ: نخيل وعشب وزهر يتمايل، ويراعات ليلًا. أطفئه ليبقى صورة ثابتة توفّر البطارية"
                 checked={prefs.gardenLive !== false}
                 onChange={(on) => setPrefs({ gardenLive: on })}
@@ -217,7 +217,7 @@ export function AppearanceGroup() {
         {!ufuq && prefs.theme === "hadiqa" ? (
           <ToggleRow
             id="garden-live"
-            title="حديقة حيّة"
+            title="حركة المشهد"
             hint="مشهد مصوَّر حيّ: نخيل وعشب وزهر يتمايل، ويراعات ليلًا. أطفئه ليبقى صورة ثابتة توفّر البطارية"
             checked={prefs.gardenLive !== false}
             onChange={(on) => setPrefs({ gardenLive: on })}

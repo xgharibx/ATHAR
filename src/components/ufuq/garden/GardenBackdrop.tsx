@@ -3,18 +3,21 @@
  * is on, or of the classic design with its «حديقة الليل» theme.
  *
  *   still   a photograph of the scene, painted at once and kept when motion
- *           is reduced, «حديقة حيّة» is off, or the phone will not autoplay;
+ *           is reduced, «حركة المشهد» is off, or the phone will not autoplay;
  *   film    the scene itself, a seamless 10-second loop composed from real
  *           clips (tools/garden-footage), played silently by the phone's
  *           video decoder;
- *   lights  the moon in tonight's real phase and fireflies (or sunlit motes)
- *           that grow in number with the day's remembrance;
+ *   moon    inside the scene, tonight's real phase, hidden frame by frame
+ *           behind the palm fronds that sweep across it;
+ *   lights  fireflies (or sunlit motes) that grow in number with the day's
+ *           remembrance;
  *   veil    a soft band across the middle, where the page is read.
  */
 import * as React from "react";
 import { useLocation } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
 import { GardenOverlay, type OverlayMode } from "@/components/ufuq/garden/gardenOverlay";
+import { MoonLayer } from "@/components/ufuq/garden/gardenMoon";
 import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
 import { lightsFor } from "@/components/ufuq/garden/gardenMath";
 
@@ -53,6 +56,9 @@ export function GardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {})
   const live = livePref && !systemReduced;
 
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const stillRef = React.useRef<HTMLImageElement>(null);
+  const moonCanvasRef = React.useRef<HTMLCanvasElement>(null);
+  const moonRef = React.useRef<MoonLayer | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const overlayRef = React.useRef<GardenOverlay | null>(null);
   const layerRef = React.useRef<HTMLDivElement>(null);
@@ -92,7 +98,7 @@ export function GardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {})
   React.useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const overlay = GardenOverlay.create(canvas, initial.current.mode, `${base}garden/moon.jpg`);
+    const overlay = GardenOverlay.create(canvas, initial.current.mode);
     if (!overlay) return;
     overlayRef.current = overlay;
     overlay.setCount(initial.current.count);
@@ -122,6 +128,70 @@ export function GardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {})
       overlayRef.current = null;
     };
   }, [base]);
+
+  // The Moon: redrawn on each new frame of the film (or once from the still),
+  // masked by the fronds in that very frame.
+  React.useEffect(() => {
+    const canvas = moonCanvasRef.current;
+    if (!canvas) return;
+    const media = () => {
+      const video = videoRef.current;
+      if (video && video.readyState >= 2 && !video.paused) return video;
+      const still = stillRef.current;
+      return still && still.complete && still.naturalWidth ? still : null;
+    };
+    const moon = MoonLayer.create(canvas, `${base}garden/moon.jpg`, () => moon?.draw(media()));
+    if (!moon) return;
+    moonRef.current = moon;
+    const layout = () => {
+      moon.layout(window.innerWidth, window.innerHeight);
+      moon.draw(media());
+    };
+    layout();
+    window.addEventListener("resize", layout);
+    return () => {
+      window.removeEventListener("resize", layout);
+      moonRef.current = null;
+    };
+  }, [base]);
+
+  React.useEffect(() => {
+    const moon = moonRef.current;
+    if (!moon) return;
+    moon.setVisible(mode === "night");
+    if (mode !== "night") return;
+    const video = videoRef.current;
+    const still = stillRef.current;
+    const media = () => (video && video.readyState >= 2 && !video.paused ? video : still && still.complete ? still : null);
+    let stopped = false;
+    let handle = 0;
+    type FrameVideo = HTMLVideoElement & {
+      requestVideoFrameCallback?: (cb: () => void) => number;
+      cancelVideoFrameCallback?: (id: number) => void;
+    };
+    const v = video as FrameVideo | null;
+    const tick = () => {
+      if (stopped) return;
+      moon.draw(media());
+      if (v?.requestVideoFrameCallback) handle = v.requestVideoFrameCallback(tick);
+      else handle = window.setTimeout(tick, 42);
+    };
+    const redraw = () => moon.draw(media());
+    still?.addEventListener("load", redraw);
+    if (live && v) {
+      if (v.requestVideoFrameCallback) handle = v.requestVideoFrameCallback(tick);
+      else handle = window.setTimeout(tick, 42);
+      v.addEventListener("playing", redraw);
+    }
+    redraw();
+    return () => {
+      stopped = true;
+      still?.removeEventListener("load", redraw);
+      v?.removeEventListener("playing", redraw);
+      if (v?.cancelVideoFrameCallback) v.cancelVideoFrameCallback(handle);
+      else window.clearTimeout(handle);
+    };
+  }, [mode, live]);
 
   React.useEffect(() => {
     const overlay = overlayRef.current;
@@ -158,7 +228,7 @@ export function GardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {})
   return (
     <>
       <div ref={layerRef} className="u-garden-scene" aria-hidden="true">
-        <img className="u-garden-still" src={still} alt="" decoding="async" />
+        <img ref={stillRef} className="u-garden-still" src={still} alt="" decoding="async" />
         <video
           key={mode}
           ref={videoRef}
@@ -175,6 +245,7 @@ export function GardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {})
           onPlaying={() => setFilmReady(true)}
           onEmptied={() => setFilmReady(false)}
         />
+        <canvas ref={moonCanvasRef} className="u-garden-moon" />
       </div>
       <canvas ref={canvasRef} className="u-garden" aria-hidden="true" />
       <div className={`u-garden-veil ${location.pathname === "/" ? "is-light" : ""}`} aria-hidden="true" />

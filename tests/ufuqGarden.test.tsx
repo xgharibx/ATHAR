@@ -14,7 +14,9 @@ import {
   moonPhase,
   seededRandom,
 } from "@/components/ufuq/garden/gardenMath";
-import { GardenOverlay, MOON_AT } from "@/components/ufuq/garden/gardenOverlay";
+import { GardenOverlay } from "@/components/ufuq/garden/gardenOverlay";
+import { MoonLayer, MOON_IN_FILM } from "@/components/ufuq/garden/gardenMoon";
+import { FLOWER_STAGES, flowerVariants, mix, paintFlowerHead } from "@/components/ufuq/garden/gardenSprites";
 import { normalizeUfuqLook, normalizeUfuqPalette, resolveUfuqPalette, UFUQ_GARDEN_META_COLORS } from "@/lib/design";
 import { applyUfuqDesign } from "@/hooks/useApplyTheme";
 import { searchSettings } from "@/lib/settingsCatalog";
@@ -76,7 +78,8 @@ describe("the garden grows", () => {
   });
 
   it("steps aside where there is no canvas", () => {
-    expect(GardenOverlay.create(document.createElement("canvas"), "night", "/garden/moon.jpg")).toBeNull();
+    expect(GardenOverlay.create(document.createElement("canvas"), "night")).toBeNull();
+    expect(MoonLayer.create(document.createElement("canvas"), "/garden/moon.jpg", () => {})).toBeNull();
   });
 
   it("lights more fireflies with more remembrance", () => {
@@ -89,6 +92,31 @@ describe("the garden grows", () => {
     const home = read("src/components/ufuq/UfuqHome.tsx");
     expect(home).toContain("غِراسَها: سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر");
     expect(home).toContain("رواه الترمذي (٣٤٦٢)، وحسّنه الألباني");
+  });
+});
+
+describe("the live garden", () => {
+  it("mixes colours for light and shade", () => {
+    expect(mix("#000000", "#ffffff", 0.5)).toBe("#808080");
+    expect(mix("#102030", "#102030", 0.7)).toBe("#102030");
+    expect(mix("#ff0000", "#0000ff", 2)).toBe("#0000ff");
+  });
+
+  it("opens each flower over several stages, with roses in more than one colour", () => {
+    expect(FLOWER_STAGES).toBeGreaterThanOrEqual(8);
+    expect(flowerVariants("rose")).toBeGreaterThan(1);
+    // No canvas here: painting quietly gives nothing rather than throwing.
+    expect(() => paintFlowerHead("rose", 0, 0.5, 40, "night", 2)).not.toThrow();
+  });
+
+  it("draws real plants, not shapes: palm fronds of leaflets, rose petals, the real Moon", () => {
+    const engine = read("src/components/ufuq/garden/GardenEngine.ts");
+    for (const used of ["paintFrond", "paintPalmTrunk", "paintPomegranate", "paintCypress", "paintFlowerHead", "paintRealMoon"]) {
+      expect(engine).toContain(used);
+    }
+    // A flower earned by a tasbeeh grows: the stem rises, then the bud opens.
+    expect(engine).toContain("const opening = clamp01((age - 0.8) / 2.6)");
+    expect(read("src/components/ufuq/UfuqShell.tsx")).toContain('look === "live" ? <LiveGardenBackdrop /> : <GardenBackdrop />');
   });
 });
 
@@ -119,9 +147,14 @@ describe("the filmed garden", () => {
     expect(readme).toContain("Mixkit Stock Video Free License");
   });
 
-  it("keeps the moon in open sky", () => {
-    expect(MOON_AT.y).toBeGreaterThan(0.34);
-    expect(MOON_AT.x).toBeLessThan(0.5);
+  it("puts the moon in the band of sky the fronds sweep across, behind them", () => {
+    expect(MOON_IN_FILM.y).toBeGreaterThan(0.12);
+    expect(MOON_IN_FILM.y).toBeLessThan(0.3);
+    const moon = read("src/components/ufuq/garden/gardenMoon.ts");
+    // Masked by the film's own pixels, frame by frame.
+    expect(moon).toContain("getImageData");
+    expect(moon).toContain('"destination-in"');
+    expect(read("src/components/ufuq/garden/GardenBackdrop.tsx")).toContain("requestVideoFrameCallback");
   });
 });
 
@@ -183,12 +216,12 @@ describe("garden settings", () => {
         </MemoryRouter>,
       );
     });
-    expect(container.textContent).toContain("حديقة حيّة");
+    expect(container.textContent).toContain("حركة المشهد");
     expect(container.textContent).toContain("الوقت");
     const plain = Array.from(container.querySelectorAll<HTMLButtonElement>('[role="radio"]')).find((b) => b.textContent?.includes("بسيط"))!;
     await act(async () => plain.click());
     expect(useNoorStore.getState().prefs.ufuqLook).toBe("plain");
-    expect(container.textContent).not.toContain("حديقة حيّة");
+    expect(container.textContent).not.toContain("حركة المشهد");
     await act(async () => root.unmount());
   });
 });

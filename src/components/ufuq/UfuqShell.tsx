@@ -17,6 +17,10 @@ import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 import { IconExplore, IconPrayer, IconQuran, IconTasbeeh, IconToday } from "@/components/ufuq/UfuqIcons";
 import { isUfuqTabRoot, ufuqTabFor, ufuqTitleFor, UFUQ_TABS, type UfuqTabId } from "@/components/ufuq/ufuqNav";
 
+const LiveGardenBackdrop = React.lazy(() =>
+  import("@/components/ufuq/garden/LiveGardenBackdrop").then((m) => ({ default: m.LiveGardenBackdrop })),
+);
+
 const GardenBackdrop = React.lazy(() =>
   import("@/components/ufuq/garden/GardenBackdrop").then((m) => ({ default: m.GardenBackdrop })),
 );
@@ -237,7 +241,8 @@ function UfuqTabBar() {
 export function UfuqShell() {
   const location = useLocation();
   const [paletteOpen, setPaletteOpen] = React.useState(false);
-  const garden = useNoorStore((s) => (s.prefs.ufuqLook ?? "garden") === "garden");
+  const look = useNoorStore((s) => s.prefs.ufuqLook ?? "garden");
+  const garden = look !== "plain";
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -265,7 +270,7 @@ export function UfuqShell() {
       </a>
       {garden ? (
         <React.Suspense fallback={null}>
-          <GardenBackdrop />
+          {look === "live" ? <LiveGardenBackdrop /> : <GardenBackdrop />}
         </React.Suspense>
       ) : (
         <div className="u-horizon" aria-hidden="true" />
