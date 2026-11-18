@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Athar</string>
+    <string name="next_phrase">Next</string>
+    <string name="reset_done">Counter reset</string>
+    <string name="of_target">of %1$d</string>
+</resources>

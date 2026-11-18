@@ -200,6 +200,8 @@ public class AtharActivity extends BridgeActivity {
         // The user is likely heading to the home screen — make sure every
         // widget repaints with the freshest data the web app just synced.
         WidgetUpdater.updateAll(this);
+        // And Athar on a Wear OS watch.
+        WearSync.sendPrayer(this);
     }
 
     private static String readRoute(Intent intent) {

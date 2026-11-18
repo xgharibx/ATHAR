@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { AdhanAlarmCard } from "@/components/settings/AdhanAlarmCard";
+import { requestMindfulHealth } from "@/lib/mindfulMinutes";
 import { PrayerSilenceCard } from "@/components/settings/PrayerSilenceCard";
 import { Slider } from "@/components/ui/Slider";
 import { Input } from "@/components/ui/Input";
@@ -1374,6 +1375,29 @@ export function SettingsPage() {
                 setReminders={setReminders}
                 platform={Capacitor.getPlatform() as "ios" | "android"}
               />
+            ) : null}
+            {isNative && Capacitor.getPlatform() === "ios" ? (
+              <div className="mt-4 rounded-2xl border border-(--stroke) bg-(--card) p-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold">دقائق ذهنية في تطبيق الصحة</div>
+                  <p className="mt-0.5 text-[11px] leading-5 opacity-65">
+                    تُحفظ جلسات التسبيح (دقيقة فأكثر) كـ«دقائق ذهنية» في تطبيق الصحة. أثر لا يقرأ بياناتك الصحية.
+                  </p>
+                </div>
+                <Switch
+                  aria-label="دقائق ذهنية في تطبيق الصحة"
+                  checked={prefs.healthMindful === true}
+                  onCheckedChange={async (on) => {
+                    if (!on) { setPrefs({ healthMindful: false }); return; }
+                    if (await requestMindfulHealth()) {
+                      setPrefs({ healthMindful: true });
+                      toast.success("ستُحفظ جلسات التسبيح في تطبيق الصحة");
+                    } else {
+                      toast.error("اسمح لأثر بالكتابة في «الدقائق الذهنية» من تطبيق الصحة");
+                    }
+                  }}
+                />
+              </div>
             ) : null}
             {isNative ? (
               <div className="mt-4 rounded-2xl border border-(--stroke) bg-(--card) p-3 flex items-center justify-between gap-3">
