@@ -40,7 +40,7 @@ export const UFUQ_PALETTES: ReadonlyArray<{ id: UfuqPalette; label: string }> = 
 ];
 
 export const UFUQ_LOOKS: ReadonlyArray<{ id: UfuqLook; label: string; hint: string }> = [
-  { id: "garden", label: "الحديقة", hint: "حديقة تنمو مع ذكرك: نخيل وزهر وقمر حقيقي" },
+  { id: "garden", label: "الحديقة", hint: "حديقة حقيقية مصوَّرة وقمر الليلة بطَوره، تُضيئها يراعاتُ ذكرك" },
   { id: "plain", label: "بسيط", hint: "ورق هادئ بلا حركة، أخفّ على البطارية" },
 ];
 

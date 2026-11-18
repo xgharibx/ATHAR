@@ -39,18 +39,6 @@ export function moonIllumination(phase: number): number {
   return (1 - Math.cos(2 * Math.PI * phase)) / 2;
 }
 
-/**
- * The breeze at a point and moment: two slow waves travelling across the
- * garden plus a quicker flutter, so neighbouring blades move together but
- * never in lockstep. Roughly −1 … 1.
- */
-export function windAt(x: number, t: number): number {
-  return (
-    Math.sin(t * 0.8 + x * 0.011) * 0.55 +
-    Math.sin(t * 1.9 + x * 0.027 + 1.3) * 0.28 +
-    Math.sin(t * 4.3 + x * 0.09) * 0.08
-  );
-}
 
 /**
  * Flowers in today's garden. A garden always blooms (the base), and every
@@ -62,12 +50,11 @@ export function bloomTarget(tasbeehToday: number, dhikrToday: number): number {
   return Math.min(64, 14 + Math.floor(Math.sqrt(deeds) * 2.2));
 }
 
-export function easeOutBack(x: number): number {
-  const c1 = 1.70158;
-  const c3 = c1 + 1;
-  const v = Math.min(1, Math.max(0, x));
-  return 1 + c3 * Math.pow(v - 1, 3) + c1 * Math.pow(v - 1, 2);
+/** Fireflies for the day's growth: a few always, more with every remembrance. */
+export function lightsFor(blooms: number): number {
+  return Math.round(6 + (Math.max(14, blooms) - 14) * 0.7);
 }
+
 
 /** Night in the garden: after Maghrib (or Isha) until Fajr. */
 export function isNightByNextPrayer(nextPrayerAr: string | null | undefined, hour: number): boolean {

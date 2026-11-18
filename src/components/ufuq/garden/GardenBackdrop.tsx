@@ -1,64 +1,101 @@
 /**
- * Mounts the living garden (GardenEngine) behind every page — of «أفق» while
- * the «الحديقة» look is on, or of the classic design with its «حديقة الليل»
- * theme — and keeps it in step with the palette, today's growth, the scroll
- * position and the person's finger.
+ * «الحديقة»: real footage behind every page — of «أفق» while the garden look
+ * is on, or of the classic design with its «حديقة الليل» theme.
+ *
+ *   still   a photograph of the scene, painted at once and kept when motion
+ *           is reduced, «حديقة حيّة» is off, or the phone will not autoplay;
+ *   film    the scene itself, a seamless 10-second loop composed from real
+ *           clips (tools/garden-footage), played silently by the phone's
+ *           video decoder;
+ *   lights  the moon in tonight's real phase and fireflies (or sunlit motes)
+ *           that grow in number with the day's remembrance;
+ *   veil    a soft band across the middle, where the page is read.
  */
 import * as React from "react";
 import { useLocation } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
-import { GardenEngine, type GardenMode } from "@/components/ufuq/garden/GardenEngine";
+import { GardenOverlay, type OverlayMode } from "@/components/ufuq/garden/gardenOverlay";
 import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
+import { lightsFor } from "@/components/ufuq/garden/gardenMath";
+
+export type GardenMode = OverlayMode;
 
 function currentMode(): GardenMode {
   return document.documentElement.dataset.ufuqPalette === "night" ? "night" : "day";
+}
+
+function subscribePalette(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-ufuq-palette"] });
+  return () => observer.disconnect();
 }
 
 function prefersReducedMotion(): boolean {
   return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
 }
 
+function subscribeMotion(onChange: () => void) {
+  const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  mq?.addEventListener?.("change", onChange);
+  return () => mq?.removeEventListener?.("change", onChange);
+}
+
 export function GardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {}) {
   const location = useLocation();
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  const bgRef = React.useRef<HTMLCanvasElement>(null);
-  const engineRef = React.useRef<GardenEngine | null>(null);
+  const base = import.meta.env.BASE_URL ?? "/";
   const growth = useGardenGrowth();
   const livePref = useNoorStore((s) => s.prefs.gardenLive !== false && !s.prefs.reduceMotion);
-  const [systemReduced, setSystemReduced] = React.useState(prefersReducedMotion);
-  const [paletteMode, setMode] = React.useState<GardenMode>(currentMode);
+  // The palette lives on <html> («الوقت» turns it at Maghrib and Fajr).
+  const paletteMode = React.useSyncExternalStore(subscribePalette, currentMode, (): GardenMode => "day");
+  const systemReduced = React.useSyncExternalStore(subscribeMotion, prefersReducedMotion, () => false);
+  const [filmReady, setFilmReady] = React.useState(false);
   const mode = forcedMode ?? paletteMode;
   const live = livePref && !systemReduced;
 
-  // The palette lives on <html>; follow it, including «الوقت» turning at Maghrib.
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const overlayRef = React.useRef<GardenOverlay | null>(null);
+  const layerRef = React.useRef<HTMLDivElement>(null);
+
+  // The film: play while live and visible; otherwise the still stays.
   React.useEffect(() => {
-    const observer = new MutationObserver(() => setMode(currentMode()));
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-ufuq-palette"] });
-    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-    const onMotion = () => setSystemReduced(prefersReducedMotion());
-    mq?.addEventListener?.("change", onMotion);
-    return () => {
-      observer.disconnect();
-      mq?.removeEventListener?.("change", onMotion);
+    const video = videoRef.current;
+    if (!video) return;
+    if (!live) {
+      video.pause();
+      return;
+    }
+    let cancelled = false;
+    const tryPlay = () => {
+      if (cancelled || document.hidden) return;
+      void video.play().catch(() => {
+        // Autoplay refused (low-power mode, a WebView policy): keep the still
+        // and try again on the next touch.
+        const retry = () => {
+          window.removeEventListener("pointerdown", retry);
+          void video.play().catch(() => {});
+        };
+        window.addEventListener("pointerdown", retry, { once: true, passive: true });
+      });
     };
-  }, []);
+    const onVisible = () => (document.hidden ? video.pause() : tryPlay());
+    tryPlay();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [live, mode]);
 
-  const initial = React.useRef({ mode, live, ...growth });
-
+  // Moon and lights.
+  const initial = React.useRef({ mode, live, count: lightsFor(growth.blooms) });
   React.useEffect(() => {
     const canvas = canvasRef.current;
-    const bgCanvas = bgRef.current;
-    if (!canvas || !bgCanvas) return;
-    const engine = GardenEngine.create(bgCanvas, canvas, {
-      mode: initial.current.mode,
-      blooms: initial.current.blooms,
-      palmFruit: initial.current.palmFruit,
-      treeFruit: initial.current.treeFruit,
-      live: initial.current.live,
-    });
-    if (!engine) return;
-    engineRef.current = engine;
-
+    if (!canvas) return;
+    const overlay = GardenOverlay.create(canvas, initial.current.mode, `${base}garden/moon.jpg`);
+    if (!overlay) return;
+    overlayRef.current = overlay;
+    overlay.setCount(initial.current.count);
     let size = { w: 0, h: 0 };
     const resize = () => {
       const w = window.innerWidth;
@@ -66,63 +103,79 @@ export function GardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {})
       // The on-screen keyboard shrinks the window; the garden stays put.
       if (w === size.w && h < size.h && h > size.h * 0.55) return;
       size = { w, h };
-      for (const el of [canvas, bgCanvas]) {
-        el.style.width = `${w}px`;
-        el.style.height = `${h}px`;
-      }
-      engine.resize(w, h);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      overlay.resize(w, h);
     };
     resize();
-    engine.setScroll(window.scrollY);
-    engine.start();
-
-    const onVisible = () => (document.hidden ? engine.stop() : engine.start());
-    const onScroll = () => engine.setScroll(window.scrollY);
-    let lastX = 0;
-    let lastT = 0;
-    const onMove = (e: PointerEvent) => {
-      const now = performance.now();
-      const dt = Math.max(16, now - lastT);
-      const v = (e.clientX - lastX) / dt;
-      lastX = e.clientX;
-      lastT = now;
-      if (Math.abs(v) > 0.08 && dt < 120) engine.poke(e.clientX, v * 1.4);
-    };
-    const onDown = (e: PointerEvent) => {
-      lastX = e.clientX;
-      lastT = performance.now();
-    };
+    if (initial.current.live) overlay.start();
+    const onVisible = () => (document.hidden ? overlay.stop() : overlay.start());
+    const onDown = (e: PointerEvent) => overlay.touch(e.clientX, e.clientY);
     window.addEventListener("resize", resize);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       window.removeEventListener("resize", resize);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onDown);
       document.removeEventListener("visibilitychange", onVisible);
-      engine.destroy();
-      engineRef.current = null;
+      overlay.destroy();
+      overlayRef.current = null;
     };
-  }, []);
+  }, [base]);
 
   React.useEffect(() => {
-    engineRef.current?.setOptions({
-      mode,
-      live,
-      blooms: growth.blooms,
-      palmFruit: growth.palmFruit,
-      treeFruit: growth.treeFruit,
-    });
-  }, [mode, live, growth.blooms, growth.palmFruit, growth.treeFruit]);
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+    overlay.setMode(mode);
+    overlay.setCount(lightsFor(growth.blooms));
+    if (live && !document.hidden) overlay.start();
+    else overlay.stop();
+  }, [mode, live, growth.blooms]);
 
-  // The garden frames the page: clear sky above, flowers below, and a soft
-  // veil across the middle where the reading happens (lighter on «اليوم»).
+  // A little depth: the scene drifts up a few pixels as the page scrolls.
+  React.useEffect(() => {
+    const layer = layerRef.current;
+    if (!layer || !live) return;
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const shift = Math.min(40, window.scrollY * 0.04);
+        layer.style.transform = `translate3d(0, ${-shift}px, 0) scale(1.06)`;
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [live]);
+
+  const still = `${base}garden/${mode}.jpg`;
+  const film = `${base}garden/${mode}.mp4`;
+
   return (
     <>
-      <canvas ref={bgRef} className="u-garden" aria-hidden="true" />
+      <div ref={layerRef} className="u-garden-scene" aria-hidden="true">
+        <img className="u-garden-still" src={still} alt="" decoding="async" />
+        <video
+          key={mode}
+          ref={videoRef}
+          className={`u-garden-film ${filmReady && live ? "is-ready" : ""}`}
+          src={film}
+          poster={still}
+          muted
+          loop
+          playsInline
+          autoPlay={live}
+          preload={live ? "auto" : "none"}
+          disablePictureInPicture
+          disableRemotePlayback
+          onPlaying={() => setFilmReady(true)}
+          onEmptied={() => setFilmReady(false)}
+        />
+      </div>
       <canvas ref={canvasRef} className="u-garden" aria-hidden="true" />
       <div className={`u-garden-veil ${location.pathname === "/" ? "is-light" : ""}`} aria-hidden="true" />
     </>
