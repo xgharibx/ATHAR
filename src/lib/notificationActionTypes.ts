@@ -2,23 +2,37 @@ import { Capacitor } from "@capacitor/core";
 
 export const PRAYER_ACTION_TYPE_ID = "PRAYER_ACTIONS";
 export const REMINDER_ACTION_TYPE_ID = "REMINDER_ACTIONS";
+export const ADHKAR_ACTION_TYPE_ID = "ADHKAR_ACTIONS";
 export const CUSTOM_REMINDER_ACTION_TYPE_ID = "CUSTOM_REMINDER_ACTIONS";
 
+/**
+ * The buttons under Athar's notifications. All but «افتح» act without
+ * opening the app: on iPhone `foreground: false`, on Android the patched
+ * library sends them to NotificationActionReceiver (androidBackgroundActions
+ * in capacitor.config.ts).
+ */
 export const NOTIFICATION_ACTION_TYPES = [
   {
     id: PRAYER_ACTION_TYPE_ID,
-    actions: [{ id: "mark_prayed", title: "تمت الصلاة ✓" }],
+    actions: [{ id: "mark_prayed", title: "صلّيتُ ✓", foreground: false }],
   },
   {
     id: REMINDER_ACTION_TYPE_ID,
-    actions: [{ id: "snooze_60", title: "تأجيل التذكير" }],
+    actions: [{ id: "snooze_60", title: "ذكّرني بعد ساعة", foreground: false }],
+  },
+  {
+    id: ADHKAR_ACTION_TYPE_ID,
+    actions: [
+      { id: "done", title: "قرأتُها ✓", foreground: false },
+      { id: "snooze_60", title: "بعد ساعة", foreground: false },
+    ],
   },
   {
     id: CUSTOM_REMINDER_ACTION_TYPE_ID,
     actions: [
-      { id: "done", title: "تم ✓" },
-      { id: "snooze", title: "تأجيل التذكير" },
-      { id: "open", title: "افتح" },
+      { id: "done", title: "تمّ ✓", foreground: false },
+      { id: "snooze", title: "ذكّرني لاحقًا", foreground: false },
+      { id: "open", title: "افتح", foreground: true },
     ],
   },
 ];

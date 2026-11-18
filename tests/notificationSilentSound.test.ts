@@ -97,13 +97,13 @@ afterEach(() => {
 });
 
 describe("silent native notification sound payloads", () => {
-  it("uses a neutral snooze label when reminder snooze durations can vary", () => {
+  it("names the snooze: an hour for fixed reminders, «later» where the duration varies", () => {
     const reminderSnooze = NOTIFICATION_ACTION_TYPES.find((type) => type.id === REMINDER_ACTION_TYPE_ID)?.actions[0];
     const customSnooze = NOTIFICATION_ACTION_TYPES.find((type) => type.id === CUSTOM_REMINDER_ACTION_TYPE_ID)
       ?.actions.find((action) => action.id === "snooze");
 
-    expect(reminderSnooze?.title).toBe("تأجيل التذكير");
-    expect(customSnooze?.title).toBe("تأجيل التذكير");
+    expect(reminderSnooze?.title).toBe("ذكّرني بعد ساعة");
+    expect(customSnooze?.title).toBe("ذكّرني لاحقًا");
   });
 
   it("omits sound from iOS prayer follow-up and daily Hadith notifications", () => {
@@ -115,7 +115,7 @@ describe("silent native notification sound payloads", () => {
       { includeDailyHadith: true, now: new Date(2026, 9, 2, 7, 0, 0) },
     );
     const quietNotifications = notifications.filter((notification) =>
-      notification.title === "أثر — تذكير لطيف" || notification.title === "أثر — حديث اليوم ﷺ",
+      String(notification.title).startsWith("هل صلّيت") || notification.title === "حديث اليوم ﷺ",
     );
 
     expect(quietNotifications).toHaveLength(2);
@@ -142,10 +142,10 @@ describe("silent native notification sound payloads", () => {
     await syncReminders(reminders, { Fajr: "08:00" }, undefined, { Fajr: "08:05" });
 
     const notifications = scheduledNotifications();
-    expect(notifications.find((notification) => notification.title === "أثر — حديث اليوم ﷺ"))
+    expect(notifications.find((notification) => notification.title === "حديث اليوم ﷺ"))
       .toMatchObject({ schedule: { at: new Date(2026, 9, 2, 8, 0, 0) } });
-    expect(Object.hasOwn(notifications.find((notification) => notification.title === "أثر — حديث اليوم ﷺ")!, "sound")).toBe(false);
-    expect(notifications.some((notification) => notification.title === "أثر — الأذان")).toBe(false);
+    expect(Object.hasOwn(notifications.find((notification) => notification.title === "حديث اليوم ﷺ")!, "sound")).toBe(false);
+    expect(notifications.some((notification) => String(notification.title).startsWith("صلاة "))).toBe(false);
   });
 
   it("marks date-specific prayer notifications with their intended local wall time", () => {
@@ -157,9 +157,9 @@ describe("silent native notification sound payloads", () => {
       { includeDailyHadith: true, now: new Date(2026, 9, 2, 7, 0, 0) },
     );
     const wallClockNotifications = notifications.filter((notification) =>
-      notification.title === "أثر — الأذان" ||
-      notification.title === "أثر — تذكير لطيف" ||
-      notification.title === "أثر — حديث اليوم ﷺ",
+      String(notification.title).startsWith("صلاة ") ||
+      String(notification.title).startsWith("هل صلّيت") ||
+      notification.title === "حديث اليوم ﷺ",
     );
 
     expect(wallClockNotifications).toHaveLength(3);
@@ -186,7 +186,7 @@ describe("silent native notification sound payloads", () => {
     const tomorrowAlarm = scheduledNotifications().find((notification) =>
       (notification.extra as { dateISO?: string; prayerName?: string } | undefined)?.dateISO === "2026-10-03" &&
       (notification.extra as { prayerName?: string } | undefined)?.prayerName === "Fajr" &&
-      notification.title === "أثر — الأذان",
+      String(notification.title).startsWith("صلاة "),
     );
     expect(tomorrowAlarm).toBeDefined();
 
@@ -235,11 +235,11 @@ describe("silent native notification sound payloads", () => {
       { channelId: "quiet", soundFile: "" },
       { now: new Date(2026, 2, 5, 12, 0, 0) },
     );
-    expect(notifications.find((item) => item.title === "أثر — الأذان"))
+    expect(notifications.find((item) => String(item.title).startsWith("صلاة ")))
       .toMatchObject({ channelId: "adhan", sound: "adhan_ahmad_al_nafees.mp3" });
-    expect(notifications.find((item) => item.title === "أثر — الإفطار"))
+    expect(notifications.find((item) => item.title === "الإفطار"))
       .toMatchObject({ channelId: "quiet", sound: "" });
-    expect(notifications.find((item) => item.title === "أثر — الإفطار")?.extra)
+    expect(notifications.find((item) => item.title === "الإفطار")?.extra)
       .toMatchObject({
         atharWallClockOnce: true,
         atharWallClockDateISO: "2026-03-05",

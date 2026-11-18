@@ -101,7 +101,7 @@ index e112480..85e50d1 100644
          fun fromMatchString(matchString: String): DateMatch {
              val date = DateMatch()
 diff --git a/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.kt b/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.kt
-index 72c31a7..473cd79 100644
+index 72c31a7..5c997bc 100644
 --- a/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.kt
 +++ b/node_modules/@capacitor/local-notifications/android/src/main/kotlin/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.kt
 @@ -123,7 +123,11 @@ class LocalNotificationManager(
@@ -159,18 +159,69 @@ index 72c31a7..473cd79 100644
          }
  
          val group = localNotification.group
-@@ -196,7 +213,9 @@ class LocalNotificationManager(
+@@ -194,9 +211,20 @@ class LocalNotificationManager(
+                 mBuilder.setSubText(localNotification.summaryText)
+             }
          }
++        // Athar: the summary names the kind of alert in the header («أثر • الصلاة»).
++        if (!localNotification.groupSummary && !localNotification.summaryText.isNullOrEmpty()) {
++            mBuilder.setSubText(localNotification.summaryText)
++        }
  
-         mBuilder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+-        mBuilder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
 -        mBuilder.setOnlyAlertOnce(true)
++        // Athar: prayer and adhkar alerts hold nothing private, so the lock screen
++        // shows them in full; anything else stays private.
++        mBuilder.setVisibility(
++            if (extraJson?.optString("visibility") == "public") NotificationCompat.VISIBILITY_PUBLIC
++            else NotificationCompat.VISIBILITY_PRIVATE
++        )
 +        // Athar: a new occurrence of a recurring reminder must alert even when the
 +        // previous one is still in the shade; only silent notifications stay quiet.
 +        mBuilder.setOnlyAlertOnce(explicitSilence)
  
          mBuilder.setSmallIcon(localNotification.resolveSmallIcon(context, getDefaultSmallIcon(context)))
          mBuilder.setLargeIcon(localNotification.resolveLargeIcon(context))
-@@ -318,8 +337,20 @@ class LocalNotificationManager(
+@@ -250,14 +278,31 @@ class LocalNotificationManager(
+         val actionTypeId = localNotification.actionTypeId
+         if (actionTypeId != null) {
+             val actionGroup = storage.getActionGroup(actionTypeId)
++            // Athar: buttons listed in `androidBackgroundActions` go to the app's
++            // `androidActionReceiver` and act without opening the app.
++            val backgroundActions = config.getArray("androidBackgroundActions")?.toSet() ?: emptySet()
++            val actionReceiver = config.getString("androidActionReceiver")
+             for (notificationAction in actionGroup) {
+-                val actionIntent = buildIntent(localNotification, notificationAction.id)
+-                val actionPendingIntent = PendingIntent.getActivity(
+-                    context,
+-                    id + (notificationAction.id?.hashCode() ?: 0),
+-                    actionIntent,
+-                    flags
+-                )
++                val inBackground = actionReceiver != null && notificationAction.id?.let { it in backgroundActions } == true && !notificationAction.isInput()
++                val actionPendingIntent = if (inBackground) {
++                    val broadcast = Intent().setClassName(context, actionReceiver!!)
++                    broadcast.putExtra(NOTIFICATION_INTENT_KEY, localNotification.id)
++                    broadcast.putExtra(ACTION_INTENT_KEY, notificationAction.id)
++                    broadcast.putExtra(NOTIFICATION_OBJ_INTENT_KEY, localNotification.source)
++                    PendingIntent.getBroadcast(
++                        context,
++                        id + (notificationAction.id?.hashCode() ?: 0),
++                        broadcast,
++                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
++                    )
++                } else {
++                    PendingIntent.getActivity(
++                        context,
++                        id + (notificationAction.id?.hashCode() ?: 0),
++                        buildIntent(localNotification, notificationAction.id),
++                        flags
++                    )
++                }
+                 val actionBuilder = NotificationCompat.Action.Builder(
+                     R.drawable.ic_transparent,
+                     notificationAction.title,
+@@ -318,8 +363,20 @@ class LocalNotificationManager(
              // diverts both to an immediate catch-up fire instead. Reachable only with a
              // still-future `at`, so the interval below is always positive.
              if (schedule.isRepeating()) {
@@ -432,6 +483,94 @@ index 52def58..fb82726 100644
              alarmManager.set(AlarmManager.RTC, trigger, pendingIntent)
          }
          val sdf = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
+index 7d4cee8..efbf8f7 100644
+--- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
++++ b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
+@@ -95,6 +95,11 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
+ 
+         data["notification"] = makeNotificationRequestJSObject(originalNotificationRequest)
+ 
++        // Athar: buttons that act without opening the app. Kept for the app,
++        // and a snooze is queued right here, so both work even when iOS never
++        // starts the web view.
++        AtharNotificationActions.record(actionId: actionId, request: originalNotificationRequest)
++
+         self.plugin?.notifyListeners("localNotificationActionPerformed", data: data, retainUntilConsumed: true)
+     }
+ 
+@@ -155,3 +160,71 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
+ 
+     }
+ }
++
++/// Athar: notification buttons handled without the app on screen
++/// (src/lib/notificationActionQueue.ts reads the queue when Athar opens).
++enum AtharNotificationActions {
++    static let queueKey = "athar_notification_actions_v1"
++    static let backgroundActions: Set<String> = ["mark_prayed", "snooze_60", "snooze", "done"]
++    private static let reminderSnoozeIds: [String: Int] = [
++        "morning": 9111, "evening": 9112, "dailyWird": 9113, "khatma": 9114, "tasbeeh": 9115,
++    ]
++    private static let customSnoozeMinutes: Set<Int> = [5, 10, 15, 30, 60]
++
++    static func record(actionId: String, request: UNNotificationRequest) {
++        guard backgroundActions.contains(actionId) else { return }
++        var extra = request.content.userInfo["cap_extra"] as? [String: Any] ?? [:]
++        if !JSONSerialization.isValidJSONObject(extra) { extra = [:] }
++        let handled = (actionId == "snooze_60" || actionId == "snooze") && snooze(actionId, request, extra)
++        let item: [String: Any] = [
++            "id": UUID().uuidString,
++            "actionId": actionId,
++            "extra": extra,
++            "title": request.content.title,
++            "body": request.content.body,
++            "handled": handled,
++            "at": Date().timeIntervalSince1970 * 1000,
++        ]
++        guard let data = try? JSONSerialization.data(withJSONObject: item),
++              let text = String(data: data, encoding: .utf8) else { return }
++        var queue = UserDefaults.standard.stringArray(forKey: queueKey) ?? []
++        queue.append(text)
++        UserDefaults.standard.set(Array(queue.suffix(50)), forKey: queueKey)
++    }
++
++    /// The same snooze the app would schedule: the same id, so it is replaced, not doubled.
++    private static func snooze(_ actionId: String, _ request: UNNotificationRequest, _ extra: [String: Any]) -> Bool {
++        guard let content = request.content.mutableCopy() as? UNMutableNotificationContent else { return false }
++        let identifier: String
++        let minutes: Int
++        if actionId == "snooze_60" {
++            guard let key = extra["reminderKey"] as? String, let id = reminderSnoozeIds[key] else { return false }
++            identifier = String(id)
++            minutes = 60
++        } else {
++            guard let reminderId = extra["reminderId"] as? String else { return false }
++            let wanted = (extra["snoozeMinutes"] as? NSNumber)?.intValue ?? 10
++            minutes = customSnoozeMinutes.contains(wanted) ? wanted : 10
++            let fireAt = Int64((Date().timeIntervalSince1970 * 1000).rounded()) + Int64(minutes) * 60_000
++            let owner = extra["accountOwner"] as? String ?? "local"
++            var allowed = CharacterSet.alphanumerics
++            allowed.insert(charactersIn: "-_.!~*'()")
++            let ownerPart = owner == "local" ? "" : "\(owner.addingPercentEncoding(withAllowedCharacters: allowed) ?? owner):"
++            identifier = String(fnv1a("cr:\(ownerPart)\(reminderId):\(fireAt)"))
++        }
++        content.sound = nil
++        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(minutes * 60), repeats: false)
++        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: identifier, content: content, trigger: trigger))
++        return true
++    }
++
++    /// numericIdFor() in src/lib/customReminderNotifications.ts.
++    private static func fnv1a(_ text: String) -> UInt32 {
++        var hash: UInt32 = 2_166_136_261
++        for unit in text.utf16 {
++            hash ^= UInt32(unit)
++            hash = hash &* 16_777_619
++        }
++        return hash % 0x7fff_ffff
++    }
++}
 diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift
 index a9ac9bd..e6fb745 100644
 --- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsPlugin.swift

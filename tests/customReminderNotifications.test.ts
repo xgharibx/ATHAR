@@ -467,6 +467,7 @@ describe("scheduleCustomNotification (native bridge)", () => {
       types: [
         { id: "PRAYER_ACTIONS" },
         { id: "REMINDER_ACTIONS" },
+        { id: "ADHKAR_ACTIONS" },
         { id: CUSTOM_REMINDER_ACTION_TYPE_ID },
       ],
     });

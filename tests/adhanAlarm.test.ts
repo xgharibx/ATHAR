@@ -45,7 +45,7 @@ function reminders(adhanAlarm?: Reminders["adhanAlarm"]): Reminders {
 
 const lastPlan = () => (mocks.configure.mock.calls.at(-1)?.[0] as { plan: PrayerTopUpPlan }).plan;
 const scheduled = () => (mocks.schedule.mock.calls.at(-1)?.[0] as { notifications: Array<{ channelId?: string; extra?: { prayerName?: string; dateISO?: string }; title: string }> }).notifications;
-const adhanFor = (prayer: string) => scheduled().find((n) => n.title === "أثر — الأذان" && n.extra?.prayerName === prayer && n.extra?.dateISO === "2026-10-03");
+const adhanFor = (prayer: string) => scheduled().find((n) => String(n.title).startsWith("صلاة ") && n.extra?.prayerName === prayer && n.extra?.dateISO === "2026-10-03");
 
 beforeEach(() => {
   vi.useFakeTimers();

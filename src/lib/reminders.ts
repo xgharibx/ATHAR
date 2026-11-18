@@ -20,6 +20,7 @@ import {
   type PrayerTopUpPlan,
 } from "@/lib/prayerTopUp";
 import {
+  ADHKAR_ACTION_TYPE_ID,
   PRAYER_ACTION_TYPE_ID,
   REMINDER_ACTION_TYPE_ID,
   registerNotificationActionTypes,
@@ -294,6 +295,8 @@ function dailyPhrase(phrases: string[]): string {
 
 /** Returns true when the Gregorian date falls in Ramadan (Hijri month 9). */
 import { isRamadan } from "@/lib/ramadan";
+import { adhanLine, notificationTime, premiumStyle, PUBLIC_VISIBILITY, styledBody, TIME_PLACEHOLDER } from "@/lib/notificationStyle";
+import { applyBackgroundAction, BACKGROUND_NOTIFICATION_ACTIONS, watchNotificationActions } from "@/lib/notificationActionQueue";
 export { isRamadan };
 
 const DEFAULT_PRAYER_ALERTS: PrayerAlertPreferences = {
@@ -576,7 +579,7 @@ function buildReminderNotifications(
       enabled: reminders.morningEnabled,
       id: REMINDER_IDS.morning,
       key: "morning",
-      title: "أثر — تذكير الصباح",
+      title: "أذكار الصباح",
       body: morningBody,
       hhmm: reminders.morningTime,
       extra: { route: "/c/morning" },
@@ -587,7 +590,7 @@ function buildReminderNotifications(
       enabled: reminders.eveningEnabled,
       id: REMINDER_IDS.evening,
       key: "evening",
-      title: "أثر — تذكير المساء",
+      title: "أذكار المساء",
       body: eveningBody,
       hhmm: reminders.eveningTime,
       extra: { route: "/c/evening" },
@@ -597,7 +600,7 @@ function buildReminderNotifications(
       enabled: reminders.dailyWirdEnabled,
       id: REMINDER_IDS.dailyWird,
       key: "dailyWird",
-      title: "أثر — وردك اليومي",
+      title: "وردك اليومي",
       body: dailyPhrase(DAILY_WIRD_PHRASES),
       hhmm: reminders.dailyWirdTime,
       extra: { route: "/quran" },
@@ -607,7 +610,7 @@ function buildReminderNotifications(
       enabled: reminders.khatmaEnabled,
       id: REMINDER_IDS.khatma,
       key: "khatma",
-      title: "أثر — خطة الختمة",
+      title: "خطة الختمة",
       body: dailyPhrase(KHATMA_PHRASES),
       hhmm: reminders.khatmaTime,
       extra: { route: "/quran/plans" },
@@ -617,7 +620,7 @@ function buildReminderNotifications(
       enabled: reminders.tasbeehEnabled,
       id: REMINDER_IDS.tasbeeh,
       key: "tasbeeh",
-      title: "أثر — تسبيح واستغفار",
+      title: "تسبيح واستغفار",
       body: dailyPhrase(TASBEEH_PHRASES),
       hhmm: reminders.tasbeehTime,
       extra: { route: "/sebha" },
@@ -637,15 +640,18 @@ function buildReminderNotifications(
         ? { at }
         : { at, repeats: true, every: "day" }
       : { on: { ...reminderTime, second: 0 } };
+    const adhkar = plan.key === "morning" || plan.key === "evening";
     return [{
       id: plan.id,
       title: plan.title,
-      body: plan.body,
+      ...styledBody(plan.key === "dailyWird" || plan.key === "khatma" ? "quran" : "adhkar", plan.body),
       channelId: audio.channelId,
       ...notificationSound(audio.soundFile),
-      actionTypeId: REMINDER_ACTION_TYPE_ID,
+      // Morning and evening adhkar can be marked as read from the notification.
+      actionTypeId: adhkar ? ADHKAR_ACTION_TYPE_ID : REMINDER_ACTION_TYPE_ID,
       extra: {
         ...plan.extra,
+        ...PUBLIC_VISIBILITY,
         reminderKey: plan.key,
         reminderTime: configuredReminderTime,
         title: plan.title,
@@ -666,10 +672,14 @@ function buildReminderNotifications(
 export type PrayerNotificationDay = { dateISO: string; timings: PrayerNotificationTimings };
 
 /** One prayer's Adhan notification, apart from its id, time and date. */
-function prayerAdhanContent(prayerName: PrayerTimingName, audio: NotificationAudioConfig) {
+function prayerAdhanContent(prayerName: PrayerTimingName, audio: NotificationAudioConfig, hhmm?: string) {
+  // «صلاة الفجر» / «الصلاة خيرٌ من النوم · ٤:٣٢ ص». The phone fills in {time}
+  // for the days it queues by itself.
+  const body = `${adhanLine(prayerName)} · ${hhmm ? notificationTime(hhmm) : TIME_PLACEHOLDER}`;
   return {
-    title: "أثر — الأذان",
-    body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
+    title: `صلاة ${PRAYER_LABELS[prayerName]}`,
+    body,
+    ...premiumStyle("prayer", body, { timeSensitive: true }),
     channelId: audio.channelId,
     ...notificationSound(audio.soundFile),
     smallIcon: REMINDER_NOTIFICATION_ICON,
@@ -706,7 +716,7 @@ export function buildPrayerTopUpPlanForSync(
       baseId: PRAYER_NOTIFICATION_IDS[prayerName],
       notification: {
         ...prayerAdhanContent(prayerName, ringsAsAlarm && alarm ? alarm.quiet : audio),
-        extra: { prayerName, atharTopUp: true, accountOwner: owner },
+        extra: { prayerName, atharTopUp: true, accountOwner: owner, ...PUBLIC_VISIBILITY },
       },
     };
   }
@@ -780,14 +790,15 @@ export function buildPrayerNotificationsForDays(
       const at = dateAtLocalTime(day.dateISO, day.timings[prayerName] ?? "");
       if (!at) return [];
 
-      const extra = { prayerName, dateISO: day.dateISO, ...wallClockNotificationExtra(at) };
+      const extra = { prayerName, dateISO: day.dateISO, ...wallClockNotificationExtra(at), ...PUBLIC_VISIBILITY };
       const followUpAt = new Date(at.getTime() + 30 * 60_000);
       const prayerWasLogged = options.prayerLog?.[day.dateISO]?.[prayerName] === true;
       const shouldScheduleFollowUp = nearTerm && !prayerWasLogged && followUpAt.getTime() > now.getTime() + 30_000;
       const followUp = {
         id: notificationIdForDate(PRAYER_FOLLOWUP_IDS[prayerName], day.dateISO),
-        title: "أثر — تذكير لطيف",
+        title: `هل صلّيت ${PRAYER_LABELS[prayerName]}؟`,
         body: PRAYER_FOLLOWUP_PHRASES[prayerName],
+        ...premiumStyle("prayer", PRAYER_FOLLOWUP_PHRASES[prayerName]),
         channelId: quiet.channelId,
         ...notificationSound(quiet.soundFile),
         smallIcon: REMINDER_NOTIFICATION_ICON,
@@ -806,7 +817,7 @@ export function buildPrayerNotificationsForDays(
 
       const main = {
         id: notificationIdForDate(PRAYER_NOTIFICATION_IDS[prayerName], day.dateISO),
-        ...prayerAdhanContent(prayerName, options.alarmPrayers?.includes(prayerName) ? quiet : audio),
+        ...prayerAdhanContent(prayerName, options.alarmPrayers?.includes(prayerName) ? quiet : audio, day.timings[prayerName]),
         schedule: withAndroidDozeDelivery({ at }),
         extra,
       };
@@ -854,8 +865,8 @@ function buildRamadanNotifications(
     if (suhoorAt.getTime() > now.getTime() + 30_000) {
       notifications.push({
         id: notificationIdForDate(RAMADAN_IDS.suhoor, day.dateISO),
-        title: "أثر — السحور",
-        body: dailyPhrase(SUHOOR_PHRASES),
+        title: "السحور",
+        ...styledBody("ramadan", dailyPhrase(SUHOOR_PHRASES)),
         channelId: audio.channelId,
         ...notificationSound(audio.soundFile),
         smallIcon: REMINDER_NOTIFICATION_ICON,
@@ -871,8 +882,8 @@ function buildRamadanNotifications(
   if (iftarAt && iftarAt.getTime() > now.getTime() + 30_000) {
     notifications.push({
       id: notificationIdForDate(RAMADAN_IDS.iftar, day.dateISO),
-      title: "أثر — الإفطار",
-      body: dailyPhrase(IFTAR_PHRASES),
+      title: "الإفطار",
+      ...styledBody("ramadan", dailyPhrase(IFTAR_PHRASES)),
       channelId: iftarAudio.channelId,
       ...notificationSound(iftarAudio.soundFile),
       smallIcon: REMINDER_NOTIFICATION_ICON,
@@ -900,8 +911,8 @@ function buildDailyHadithNotification(
   if (!fajrAt || fajrAt.getTime() <= now.getTime() + 30_000) return null;
   return {
     id: notificationIdForDate(DAILY_HADITH_ID, day.dateISO),
-    title: "أثر — حديث اليوم ﷺ",
-    body: dailyPhrase(DAILY_HADITH_FAJR_PHRASES),
+    title: "حديث اليوم ﷺ",
+    ...styledBody("hadith", dailyPhrase(DAILY_HADITH_FAJR_PHRASES)),
     channelId: audio.channelId,
     ...notificationSound(audio.soundFile),
     smallIcon: REMINDER_NOTIFICATION_ICON,
@@ -1374,24 +1385,11 @@ export async function registerNotificationDeepLinkListener(
     const handleAction = (action: PendingAction) => {
       const extra = action.extra;
 
-      // N9: "تمت الصلاة" action button — log the prayer directly from the
-      // notification shade without opening/navigating the app.
-      if (action.actionId === MARK_PRAYED_ACTION_ID) {
-        void applyNotificationAction(action);
-        return;
-      }
-
-      // N10: "ذكرني بعد ساعة" — reschedule a one-off copy under this reminder's
-      // dedicated snooze ID, without touching the recurring daily schedule.
-      if (action.actionId === SNOOZE_ACTION_ID) {
-        void applyNotificationAction(action);
-        return;
-      }
-
-      // Custom (user- and AI-created) reminders carry their own action set —
-      // see CUSTOM_REMINDER_ACTION_TYPE_ID in customReminderNotifications.ts.
-      if (action.actionId === "snooze" || action.actionId === "done") {
-        void applyNotificationAction(action);
+      // «صلّيتُ», «تمّ» and the snoozes act without opening the app: the phone
+      // keeps each press in a queue (and schedules a snooze itself), so apply
+      // the queue, which holds this one, rather than the press twice.
+      if (action.actionId && BACKGROUND_NOTIFICATION_ACTIONS.has(action.actionId)) {
+        void applyBackgroundAction({ ...action, actionId: action.actionId }, applyNotificationAction);
         return;
       }
 
@@ -1404,7 +1402,10 @@ export async function registerNotificationDeepLinkListener(
     // supplies the router-aware handler, so a warm tap cannot be received by
     // both a buffering listener and a live listener.
     nativeNotificationActionHandler = handleAction;
+    // Presses made while the app was closed, or while it is open on Android.
+    const stopWatching = await watchNotificationActions(applyNotificationAction);
     cleanup = () => {
+      stopWatching();
       if (nativeNotificationActionHandler === handleAction) nativeNotificationActionHandler = null;
     };
   } else if (typeof navigator !== "undefined" && navigator.serviceWorker) {
@@ -1438,7 +1439,11 @@ export async function registerNotificationDeepLinkListener(
     // Apply BEFORE navigating: this is the cold-start path, and it used to
     // read only the route — the whole reason tapping "اتممت الصلاة" on a
     // closed app recorded nothing.
-    await applyNotificationAction(pending);
+    if (pending.actionId && BACKGROUND_NOTIFICATION_ACTIONS.has(pending.actionId) && Capacitor.isNativePlatform()) {
+      await applyBackgroundAction({ ...pending, actionId: pending.actionId }, applyNotificationAction);
+    } else {
+      await applyNotificationAction(pending);
+    }
     const actionHandledWithoutNavigation = [MARK_PRAYED_ACTION_ID, SNOOZE_ACTION_ID, "snooze", "done"]
       .includes(pending.actionId ?? "");
     const route = getAccountScopedNotificationRoute(pending.extra, pending.route);

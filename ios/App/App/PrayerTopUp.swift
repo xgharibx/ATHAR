@@ -166,7 +166,12 @@ enum PrayerTopUp {
 
                 let content = UNMutableNotificationContent()
                 content.title = notification["title"] as? String ?? ""
-                content.body = notification["body"] as? String ?? ""
+                // The Adhan names its own time: "{time}" in the app's template.
+                content.body = (notification["body"] as? String ?? "").replacingOccurrences(of: "{time}", with: displayTime(hhmm))
+                if let thread = notification["threadIdentifier"] as? String { content.threadIdentifier = thread }
+                if #available(iOS 15.0, *), notification["interruptionLevel"] as? String == "timeSensitive" {
+                    content.interruptionLevel = .timeSensitive
+                }
                 if let sound = notification["sound"] as? String, !sound.isEmpty {
                     content.sound = resolveSound(sound)
                 }
@@ -187,6 +192,20 @@ enum PrayerTopUp {
             }
         }
         return result
+    }
+
+    /// "04:32" → "٤:٣٢ ص" (src/lib/notificationStyle.ts formats the same way).
+    static func displayTime(_ hhmm: String) -> String {
+        let parts = hhmm.split(separator: ":").compactMap { Int($0.prefix(2)) }
+        guard parts.count >= 2 else { return "" }
+        let hour = parts[0]
+        let twelve = hour % 12 == 0 ? 12 : hour % 12
+        let digits = String(format: "%d:%02d", twelve, parts[1])
+        let arabic = String(digits.map { char -> Character in
+            guard let value = char.wholeNumberValue else { return char }
+            return Character(UnicodeScalar(0x0660 + value)!)
+        })
+        return "\(arabic) \(hour < 12 ? "ص" : "م")"
     }
 
     private static func dateKey(_ date: Date, _ calendar: Calendar) -> String {
