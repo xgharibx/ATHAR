@@ -5,10 +5,11 @@
  * by word as you recite from memory, then grade yourself; a session summary
  * shows mastery at the end.
  *
- * Where the platform supports speech recognition (Chrome / Android browser),
- * a live voice mode (تجريبي) follows your recitation and reveals each word
- * as you say it. Recognition is provided by the browser or operating system
- * and may process audio outside this device; Athar does not save recordings.
+ * Live voice mode follows your recitation and reveals each word as you say
+ * it, then moves to the next ayah by itself. In the iPhone and Android apps
+ * it uses the phone's own speech recognition (on the iPhone itself when it
+ * supports Arabic there); in a browser, the browser's. Athar does not save
+ * recordings.
  */
 import { Select } from "@/components/ui/Pickers";
 import * as React from "react";
@@ -19,35 +20,9 @@ import { loadQuranDB } from "@/data/quranLoad";
 import type { QuranDB } from "@/data/quranTypes";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
+import { createRecitationFollower } from "@/lib/recitationFollower";
+import { normalizeArabic, speechAvailable, startSpeechStream } from "@/lib/voiceTasbeeh";
 
-
-/** Strip tashkeel + normalize letters so voice matching ignores vocalisation. */
-function normalizeArabic(s: string): string {
-  return s
-    .replace(/[\p{M}\u0640\uFEFF]/gu, "")
-    .replace(/[أإآٱ]/g, "ا")
-    .replace(/ة/g, "ه")
-    .replace(/ى/g, "ي")
-    .replace(/[^ء-ي ]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-type SR = {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  start(): void;
-  stop(): void;
-  onresult: ((ev: { resultIndex: number; results: ArrayLike<{ 0: { transcript: string }; isFinal: boolean }> }) => void) | null;
-  onend: (() => void) | null;
-  onerror: (() => void) | null;
-};
-
-function getSpeechRecognition(): (new () => SR) | null {
-  const w = window as unknown as { SpeechRecognition?: new () => SR; webkitSpeechRecognition?: new () => SR };
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
-}
 
 type AyahResult = "perfect" | "hinted" | "missed";
 
@@ -65,12 +40,18 @@ export function TasmeePage() {
   const [finished, setFinished] = React.useState(false);
 
   const [voiceOn, setVoiceOn] = React.useState(false);
-  const recRef = React.useRef<SR | null>(null);
+  const stopListeningRef = React.useRef<(() => void) | null>(null);
+  const [voiceStarting, setVoiceStarting] = React.useState(false);
   const sessionIdRef = React.useRef(0);
   const gradedVerseRef = React.useRef<string | null>(null);
   const quranLoadRequestRef = React.useRef(0);
   const missedTimerRef = React.useRef<number | null>(null);
-  const voiceSupported = React.useMemo(() => getSpeechRecognition() !== null, []);
+  const [voiceSupported, setVoiceSupported] = React.useState(false);
+  React.useEffect(() => {
+    let alive = true;
+    void speechAvailable().then((ok) => { if (alive) setVoiceSupported(ok); });
+    return () => { alive = false; };
+  }, []);
 
   const loadQuran = React.useCallback(async () => {
     const requestId = ++quranLoadRequestRef.current;
@@ -95,8 +76,11 @@ export function TasmeePage() {
   const words = React.useMemo(() => ayah.split(/\s+/).filter(Boolean), [ayah]);
 
   const stopVoice = React.useCallback(() => {
-    try { recRef.current?.stop(); } catch { /* already stopped */ }
-    recRef.current = null;
+    if (autoNextTimerRef.current !== null) window.clearTimeout(autoNextTimerRef.current);
+    autoNextTimerRef.current = null;
+    const stopListening = stopListeningRef.current;
+    stopListeningRef.current = null;
+    stopListening?.();
     setVoiceOn(false);
   }, []);
 
@@ -130,41 +114,61 @@ export function TasmeePage() {
   revealedRef.current = revealed;
   const wordsRef = React.useRef<string[]>([]);
   wordsRef.current = words;
+  const gradeAndNextRef = React.useRef(gradeAndNext);
+  const usedHintRef = React.useRef(usedHint);
+  React.useEffect(() => {
+    gradeAndNextRef.current = gradeAndNext;
+    usedHintRef.current = usedHint;
+  });
+  const autoNextTimerRef = React.useRef<number | null>(null);
 
-  const startVoice = React.useCallback(() => {
-    const Ctor = getSpeechRecognition();
-    if (!Ctor) return;
-    const rec = new Ctor();
-    rec.lang = "ar-SA";
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.onresult = (ev) => {
-      let spoken = "";
-      for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        spoken += " " + ev.results[i][0].transcript;
-      }
-      const spokenWords = normalizeArabic(spoken).split(" ").filter(Boolean);
-      // Greedy alignment with a 2-word lookahead from the reveal pointer.
-      let pointer = revealedRef.current;
-      const target = wordsRef.current.map(normalizeArabic);
-      for (const sw of spokenWords) {
-        if (pointer >= target.length) break;
-        const window = target.slice(pointer, pointer + 3);
-        const hit = window.findIndex((t) => t === sw || (t.length > 3 && (t.includes(sw) || sw.includes(t))));
-        if (hit >= 0) pointer += hit + 1;
-      }
-      if (pointer > revealedRef.current) setRevealed(pointer);
-    };
-    rec.onerror = () => stopVoice();
-    rec.onend = () => setVoiceOn(false);
+  const startVoice = React.useCallback(async () => {
+    if (stopListeningRef.current || voiceStarting) return;
+    setVoiceStarting(true);
+    const follower = createRecitationFollower();
+    // The surah's words, as the recogniser would write them, help it hear them.
+    const hints = (surah?.ayahs ?? []).slice(ayahIdx, ayahIdx + 100)
+      .map((text) => text.split(/\s+/).map(normalizeArabic).filter(Boolean).join(" "));
+    let explained = false;
     try {
-      rec.start();
-      recRef.current = rec;
+      stopListeningRef.current = await startSpeechStream({
+        hints,
+        onTranscript: (event) => {
+          const next = follower.push(event.segment, event.text, event.final === true, wordsRef.current, revealedRef.current);
+          if (next > revealedRef.current) {
+            revealedRef.current = next;
+            setRevealed(next);
+            // Recited to the end: on to the next ayah by itself.
+            if (next >= wordsRef.current.length) {
+              if (autoNextTimerRef.current !== null) window.clearTimeout(autoNextTimerRef.current);
+              autoNextTimerRef.current = window.setTimeout(() => {
+                autoNextTimerRef.current = null;
+                gradeAndNextRef.current(usedHintRef.current ? "hinted" : "perfect");
+              }, 700);
+            }
+          }
+        },
+        onState: (state) => {
+          if (state === "denied") {
+            explained = true;
+            toast.error("اسمح بالميكروفون والتعرّف على الكلام لتفعيل المتابعة الصوتية");
+            stopVoice();
+          } else if (state === "error" || state === "unavailable") {
+            explained = true;
+            toast.error("توقفت المتابعة الصوتية، حاول مرة أخرى");
+            stopVoice();
+          }
+        },
+      });
       setVoiceOn(true);
     } catch {
-      toast.error("تعذّر تشغيل الميكروفون");
+      if (!explained) toast.error("تعذّر تشغيل الميكروفون");
+    } finally {
+      setVoiceStarting(false);
     }
-  }, [stopVoice]);
+  }, [ayahIdx, stopVoice, surah, voiceStarting]);
+
+
 
   const startSession = () => {
     sessionIdRef.current += 1;
@@ -223,7 +227,7 @@ export function TasmeePage() {
           )}
           <p className="text-[11px] leading-6 text-(--muted-2)">
             {voiceSupported
-              ? "🎙️ جهازك يدعم المتابعة الصوتية الحية (تجريبي): فعِّل الميكروفون أثناء الجلسة وستنكشف الكلمات كلما تلوتَها. يعتمد التعرف على خدمة المتصفح أو النظام وقد تُعالَج الأصوات خارج الجهاز؛ أثر لا يحفظ تسجيلات صوتية."
+              ? "🎙️ المتابعة الصوتية الحية متاحة: فعِّل الميكروفون أثناء الجلسة وستنكشف الكلمات كلما تلوتَها، وتنتقل إلى الآية التالية وحدك. يتم التعرف على الكلام على جهازك متى دعمه، وإلا عبر خدمة النظام أو المتصفح؛ أثر لا يحفظ تسجيلات صوتية."
               : "المتابعة الصوتية غير متاحة على هذا الجهاز — وضع الكشف اليدوي يعمل بشكل كامل."}
           </p>
         </div>
@@ -291,8 +295,9 @@ export function TasmeePage() {
           {/* Voice mode */}
           {voiceSupported ? (
             <button type="button"
-              onClick={() => (voiceOn ? stopVoice() : startVoice())}
+              onClick={() => (voiceOn ? stopVoice() : void startVoice())}
               aria-pressed={voiceOn}
+              disabled={voiceStarting}
               className={[
                 "flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-bold transition",
                 voiceOn
@@ -301,7 +306,7 @@ export function TasmeePage() {
               ].join(" ")}
             >
               {voiceOn ? <Mic className="h-4 w-4 animate-pulse" aria-hidden="true" /> : <MicOff className="h-4 w-4" aria-hidden="true" />}
-              {voiceOn ? "يستمع… اتلُ وستنكشف الكلمات" : "متابعة صوتية حيّة (تجريبي)"}
+              {voiceStarting ? "جارٍ التحضير…" : voiceOn ? "يستمع… اتلُ وستنكشف الكلمات" : "متابعة صوتية حيّة"}
             </button>
           ) : null}
 
