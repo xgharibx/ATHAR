@@ -8,6 +8,7 @@ import { toast, Toaster } from "react-hot-toast";
 import "@/lib/validationConfig";
 import App from "./App";
 import "./styles/globals.css";
+import "./styles/ufuq.css";
 import "./pwa";
 import { installAppShellBehaviour } from "@/lib/appShellBehaviour";
 import { loadStoreIdentity } from "@/lib/storeIdentity";

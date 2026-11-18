@@ -55,7 +55,14 @@ export function SearchPage() {
   const { data: quranData } = useQuranDB();
   const { data: libraryData } = useIslamicLibraryDB();
   const navigate = useNavigate();
-  const [q, setQ] = React.useState("");
+  // «اكتشف» in the new design opens this page with ?q= already typed.
+  const [q, setQ] = React.useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get("q") ?? "";
+    } catch {
+      return "";
+    }
+  });
   useScrollRestoration();
   const [searchTab, setSearchTab] = React.useState<"adhkar" | "quran" | "library" | "hadith">("adhkar");
   const [recentSearches, setRecentSearches] = React.useState<string[]>(() => loadRecent());

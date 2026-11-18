@@ -55,7 +55,15 @@ function S({ children }: { children: React.ReactNode }) {
 }
 
 const loadHomeRoute = () => import("@/pages/Home").then((m) => ({ default: m.HomePage }));
-const HomePage = React.lazy(loadHomeRoute);
+const ClassicHomePage = React.lazy(loadHomeRoute);
+const UfuqHomePage = React.lazy(() => import("@/components/ufuq/UfuqHome"));
+const ExplorePage = React.lazy(() => import("@/pages/Explore"));
+
+/** «اليوم» in the new design, the classic home otherwise. */
+function HomePage() {
+  const ufuq = useNoorStore((s) => s.prefs.designMode === "ufuq");
+  return ufuq ? <UfuqHomePage /> : <ClassicHomePage />;
+}
 const CategoryPage = React.lazy(() => import("@/pages/Category").then((m) => ({ default: m.CategoryPage })));
 const SearchPage = React.lazy(() => import("@/pages/Search").then((m) => ({ default: m.SearchPage })));
 const FavoritesPage = React.lazy(() => import("@/pages/Favorites").then((m) => ({ default: m.FavoritesPage })));
@@ -591,6 +599,7 @@ function AppContent() {
           <Route index element={<S><HomePage /></S>} />
           <Route path="c/:id" element={<S><CategoryPage /></S>} />
           <Route path="search" element={<S><SearchPage /></S>} />
+          <Route path="explore" element={<S><ExplorePage /></S>} />
           <Route path="favorites" element={<S><FavoritesPage /></S>} />
           <Route path="shorts" element={<S><ShortsPage /></S>} />
           <Route path="quran" element={<S><QuranPage /></S>} />

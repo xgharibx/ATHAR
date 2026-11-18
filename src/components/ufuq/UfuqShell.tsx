@@ -1,0 +1,258 @@
+/**
+ * The frame of «أفق»: a quiet top bar, the page, and one floating glass tab
+ * bar. It replaces the classic header, sidebar, starry background, bottom bar
+ * and floating buttons while the new design is on (see AppShell).
+ */
+import * as React from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronRight, Pause, Play, Radio, Search, Settings2, X } from "lucide-react";
+import { vibrate } from "@/lib/haptics";
+import { OfflineBanner } from "@/components/ui/OfflineBanner";
+import { UpdatePill } from "@/components/layout/UpdatePill";
+import { getRadioState, stopRadio, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
+import { useNoorStore } from "@/store/noorStore";
+import { useTodayKey } from "@/hooks/useTodayKey";
+import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
+import { IconExplore, IconPrayer, IconQuran, IconTasbeeh, IconToday } from "@/components/ufuq/UfuqIcons";
+import { isUfuqTabRoot, ufuqTabFor, ufuqTitleFor, UFUQ_TABS, type UfuqTabId } from "@/components/ufuq/ufuqNav";
+
+const CommandPalette = React.lazy(() =>
+  import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette })),
+);
+
+const TAB_ICONS: Record<UfuqTabId, (props: { active?: boolean; size?: number }) => React.ReactElement> = {
+  today: IconToday,
+  quran: IconQuran,
+  prayer: IconPrayer,
+  tasbeeh: IconTasbeeh,
+  explore: IconExplore,
+};
+
+function useScrolled(threshold = 8) {
+  const [scrolled, setScrolled] = React.useState(false);
+  React.useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > threshold);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [threshold]);
+  return scrolled;
+}
+
+/** Hide the bar while reading down a page; bring it back on the way up. */
+function useHideOnScroll() {
+  const [hidden, setHidden] = React.useState(false);
+  React.useEffect(() => {
+    let last = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const delta = y - last;
+        if (delta > 48 && y > 160) setHidden(true);
+        else if (delta < -24 || y < 80) setHidden(false);
+        last = y;
+        ticking = false;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return hidden;
+}
+
+function UfuqTopBar({ onSearch }: { onSearch: () => void }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const scrolled = useScrolled();
+  const root = isUfuqTabRoot(location.pathname);
+  const isHome = location.pathname === "/";
+  const title = ufuqTitleFor(location.pathname);
+
+  return (
+    <header className={`u-topbar ${scrolled ? "is-scrolled" : ""}`}>
+      <div className="u-topbar-row">
+        <div className="u-topbar-start">
+          {root ? (
+            <UpdatePill />
+          ) : (
+            <button
+              type="button"
+              className="u-icon-btn"
+              aria-label="رجوع"
+              onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
+            >
+              <ChevronRight size={22} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+        <div className="u-topbar-title" aria-hidden={isHome && !scrolled ? "true" : undefined}>
+          {title}
+        </div>
+        <div className="u-topbar-end">
+          <button type="button" className="u-icon-btn" aria-label="بحث" onClick={onSearch}>
+            <Search size={19} aria-hidden="true" />
+          </button>
+          <NavLink to="/settings" className="u-icon-btn" aria-label="الإعدادات">
+            <Settings2 size={19} aria-hidden="true" />
+          </NavLink>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function useRadio() {
+  const [state, setState] = React.useState(getRadioState);
+  React.useEffect(() => subscribeRadio(() => setState(getRadioState())), []);
+  return state;
+}
+
+/** While the Quran radio plays, a small strip rides above the tab bar. */
+function NowPlaying() {
+  const radio = useRadio();
+  const active = radio.playing || radio.loading;
+  const station = radio.stations[radio.stationIdx]?.label ?? "راديو القرآن";
+  return (
+    <AnimatePresence>
+      {active ? (
+        <motion.div
+          key="now-playing"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 12 }}
+          transition={{ type: "spring", stiffness: 420, damping: 34 }}
+          className="u-now-playing"
+          role="region"
+          aria-label="راديو القرآن"
+        >
+          <span className="u-now-playing-icon" aria-hidden="true"><Radio size={15} /></span>
+          <span className="u-now-playing-text">
+            <b>راديو القرآن</b>
+            <span>{radio.loading ? "جارٍ الاتصال…" : station}</span>
+          </span>
+          <button type="button" className="u-icon-btn" aria-label={radio.playing ? "إيقاف مؤقت" : "تشغيل"} onClick={() => toggleRadio()}>
+            {radio.playing ? <Pause size={17} aria-hidden="true" /> : <Play size={17} aria-hidden="true" />}
+          </button>
+          <button type="button" className="u-icon-btn" aria-label="إغلاق الراديو" onClick={() => stopRadio()}>
+            <X size={17} aria-hidden="true" />
+          </button>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+function UfuqTabBar() {
+  const location = useLocation();
+  const hiddenByScroll = useHideOnScroll();
+  const current = ufuqTabFor(location.pathname);
+  const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
+  const khatmaDays = useNoorStore((s) => s.khatmaDays);
+  const khatmaDone = useNoorStore((s) => s.khatmaDone);
+  const today = useTodayKey();
+  const quranDue = Boolean(
+    khatmaStartISO && khatmaDays && isKhatmaDateWithinPlan(today, khatmaStartISO, khatmaDays) && !khatmaDone?.[today],
+  );
+  const prevPath = React.useRef(location.pathname);
+  React.useEffect(() => {
+    if (prevPath.current !== location.pathname) {
+      prevPath.current = location.pathname;
+      vibrate(6);
+    }
+  }, [location.pathname]);
+
+  return (
+    <div className={`u-tabbar-wrap ${hiddenByScroll ? "is-hidden" : ""}`}>
+      <div className="u-tabbar-stack">
+        <NowPlaying />
+        <nav className="u-tabbar" aria-label="التنقل الرئيسي">
+          {UFUQ_TABS.map((tab) => {
+            const active = tab.id === current;
+            const Icon = TAB_ICONS[tab.id];
+            return (
+              <NavLink
+                key={tab.id}
+                to={tab.path}
+                end={tab.path === "/"}
+                className="u-tab"
+                aria-current={active ? "page" : undefined}
+                aria-label={tab.id === "quran" && quranDue ? `${tab.label} — ورد اليوم لم يكتمل` : tab.label}
+                tabIndex={hiddenByScroll ? -1 : undefined}
+              >
+                {active ? (
+                  <motion.span
+                    layoutId="u-tab-pill"
+                    className="u-tab-pill"
+                    transition={{ type: "spring", stiffness: 520, damping: 40 }}
+                  />
+                ) : null}
+                <Icon active={active} size={23} />
+                <span aria-hidden="true">{tab.label}</span>
+                {tab.id === "quran" && quranDue && !active ? <span className="u-tab-dot" aria-hidden="true" /> : null}
+              </NavLink>
+            );
+          })}
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+export function UfuqShell() {
+  const location = useLocation();
+  const [paletteOpen, setPaletteOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((prev) => !prev);
+      }
+    };
+    globalThis.addEventListener("keydown", handler);
+    return () => globalThis.removeEventListener("keydown", handler);
+  }, []);
+
+  React.useEffect(() => {
+    const title = ufuqTitleFor(location.pathname);
+    document.title = location.pathname === "/" ? "أثر" : `${title} — أثر`;
+  }, [location.pathname]);
+
+  return (
+    <div className="u-frame">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-100 focus:px-4 focus:py-2 focus:rounded-full focus:bg-(--accent) focus:text-(--on-accent) focus:text-sm focus:font-semibold"
+      >
+        انتقل إلى المحتوى الرئيسي
+      </a>
+      <div className="u-horizon" aria-hidden="true" />
+      <OfflineBanner />
+      {paletteOpen ? (
+        <React.Suspense fallback={null}>
+          <CommandPalette open={paletteOpen} setOpen={setPaletteOpen} />
+        </React.Suspense>
+      ) : null}
+      <UfuqTopBar onSearch={() => setPaletteOpen(true)} />
+      <main id="main-content" tabIndex={-1} aria-label="المحتوى الرئيسي" className="u-main focus:outline-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="route-page-wrapper"
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
+      </main>
+      <UfuqTabBar />
+    </div>
+  );
+}

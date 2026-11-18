@@ -8,7 +8,9 @@ import { changeAppIcon, currentAppIcon, type AppIconName } from "@/lib/appIcon";
 import { arNum } from "@/lib/formatNumber";
 import { clamp, cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/Slider";
-import { SettingsRow, SettingsSection, ToggleRow } from "@/components/settings/SettingsUI";
+import { Segmented, SettingsRow, SettingsSection, ToggleRow } from "@/components/settings/SettingsUI";
+import { DesignPicker } from "@/components/settings/DesignPicker";
+import { UFUQ_PALETTES } from "@/lib/design";
 import { usePlatform } from "@/components/settings/settingsHooks";
 
 const APP_ICON_CHOICES: Array<{ id: AppIconName; label: string; colors: [string, string] }> = [
@@ -31,6 +33,7 @@ export function AppearanceGroup() {
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const resetPrefs = useNoorStore((s) => s.resetPrefs);
   const platform = usePlatform();
+  const ufuq = prefs.designMode === "ufuq";
   const [appIcon, setAppIcon] = React.useState<AppIconName | null>(null);
   const [iconBusy, setIconBusy] = React.useState(false);
 
@@ -54,6 +57,28 @@ export function AppearanceGroup() {
 
   return (
     <>
+      <SettingsSection
+        title="التصميم"
+        footer={ufuq
+          ? "«أُفُق» له ألوانه وخطه وتنقّله. سمتك في التصميم الكلاسيكي محفوظة وتعود كما هي متى رجعت إليه."
+          : "تصميمان لنفس أثر: كل محتواك وتقدّمك وإعداداتك يبقى كما هو أيًّا كان اختيارك."}
+      >
+        <SettingsRow id="design" title="تصميم التطبيق">
+          <DesignPicker />
+        </SettingsRow>
+        {ufuq ? (
+          <SettingsRow id="ufuq-palette" icon={<Palette size={17} />} title="الألوان">
+            <Segmented
+              label="ألوان أُفُق"
+              value={prefs.ufuqPalette ?? "auto"}
+              options={UFUQ_PALETTES.map((p) => ({ value: p.id, label: p.label }))}
+              onChange={(value) => setPrefs({ ufuqPalette: value })}
+            />
+          </SettingsRow>
+        ) : null}
+      </SettingsSection>
+
+      {!ufuq ? (
       <SettingsSection title="السمة">
         <SettingsRow id="theme" icon={<Palette size={17} />} title="سمة التطبيق" value={themeLabel(prefs.theme)}>
           <div className="settings-themes" role="radiogroup" aria-label="سمة التطبيق">
@@ -103,7 +128,11 @@ export function AppearanceGroup() {
             </div>
           }
         />
-        {platform !== "web" && appIcon ? (
+      </SettingsSection>
+      ) : null}
+
+      {platform !== "web" && appIcon ? (
+        <SettingsSection title="الأيقونة">
           <SettingsRow id="app-icon" icon={<Smartphone size={17} />} title="أيقونة التطبيق" hint="شكل أثر على الشاشة الرئيسية">
             <div className="flex flex-wrap gap-2.5" role="radiogroup" aria-label="أيقونة التطبيق">
               {APP_ICON_CHOICES.map((icon) => (
@@ -126,8 +155,8 @@ export function AppearanceGroup() {
               ))}
             </div>
           </SettingsRow>
-        ) : null}
-      </SettingsSection>
+        </SettingsSection>
+      ) : null}
 
       <SettingsSection title="النص">
         <SettingsRow id="text-size" icon={<Type size={17} />} title="حجم النص" value={`${arNum(Math.round(prefs.fontScale * 100))}٪`}>
@@ -162,7 +191,8 @@ export function AppearanceGroup() {
         />
       </SettingsSection>
 
-      <SettingsSection title="المؤثرات">
+      <SettingsSection title={ufuq ? "الحركة" : "المؤثرات"}>
+        {!ufuq ? (<>
         <ToggleRow
           id="effects"
           icon={<Sparkles size={17} />}
@@ -183,6 +213,7 @@ export function AppearanceGroup() {
           checked={prefs.clearReading}
           onChange={(on) => setPrefs({ clearReading: on })}
         />
+        </>) : null}
         <ToggleRow
           title="تقليل الحركة"
           hint="حركة أقل للأجهزة الأبطأ ولمن تزعجه الحركة"

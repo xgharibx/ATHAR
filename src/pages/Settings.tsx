@@ -37,6 +37,8 @@ import { PrivacyGroup } from "@/components/settings/groups/PrivacyGroup";
 import { DataGroup } from "@/components/settings/groups/DataGroup";
 import { AboutGroup } from "@/components/settings/groups/AboutGroup";
 import { APP_VERSION } from "@/lib/appVersion";
+import { DesignInvite } from "@/components/settings/DesignPicker";
+import { resolveUfuqPalette } from "@/lib/design";
 import "@/styles/settings.css";
 
 const GROUP_ICONS: Record<SettingsGroupId, React.ReactNode> = {
@@ -72,7 +74,10 @@ function QuickSwitches() {
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const reminders = useNoorStore((s) => s.reminders);
   const setReminders = useNoorStore((s) => s.setReminders);
-  const dark = isDarkTheme(prefs.theme);
+  const ufuq = prefs.designMode === "ufuq";
+  const dark = ufuq
+    ? resolveUfuqPalette(prefs.ufuqPalette, Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches)) === "night"
+    : isDarkTheme(prefs.theme);
   const vibrating = prefs.enableHaptics && prefs.hapticStrength !== "off";
 
   const chip = (active: boolean) => cn(
@@ -86,7 +91,7 @@ function QuickSwitches() {
         type="button"
         aria-pressed={dark}
         className={chip(dark)}
-        onClick={() => setPrefs({ theme: nightModeTheme(prefs.theme, !dark) })}
+        onClick={() => setPrefs(ufuq ? { ufuqPalette: dark ? "day" : "night" } : { theme: nightModeTheme(prefs.theme, !dark) })}
       >
         <Moon size={13} aria-hidden="true" />
         الوضع الليلي
@@ -133,7 +138,9 @@ function useGroupSummaries(): Record<SettingsGroupId, string> {
     reminders: reminders.enabled ? (dailyOn ? `${arNum(dailyOn)} مفعّلة` : "لا تذكير مفعّل") : "متوقفة",
     quran: getReciter(prefs.quranReciter ?? "Alafasy_128kbps")?.label ?? "",
     tasbeeh: `الهدف ${arNum(sebhaTarget)}${prefs.enableHaptics && prefs.hapticStrength !== "off" ? " · مع الاهتزاز" : ""}`,
-    appearance: themeLabel(prefs.theme),
+    appearance: prefs.designMode === "ufuq"
+      ? `أُفُق · ${prefs.ufuqPalette === "day" ? "نهار" : prefs.ufuqPalette === "night" ? "ليل" : "حسب الهاتف"}`
+      : `الكلاسيكي · ${themeLabel(prefs.theme)}`,
     home: `${arNum(shownCards)} من ${arNum(order.length)} بطاقات`,
     privacy: Capacitor.isNativePlatform() ? (prefs.biometricLock ? "القفل مفعّل" : "القفل متوقف") : "الذكاء الاصطناعي",
     data: "النسخ الاحتياطي والمسح",
@@ -146,6 +153,7 @@ function SettingsHome() {
   const [query, setQuery] = React.useState("");
   const results = React.useMemo(() => searchSettings(query), [query]);
   const summaries = useGroupSummaries();
+  const classicInviteHidden = useNoorStore((s) => s.prefs.designMode === "ufuq");
   const searching = query.trim().length > 0;
 
   return (
@@ -191,6 +199,7 @@ function SettingsHome() {
         )
       ) : (
         <>
+          {!classicInviteHidden ? <DesignInvite /> : null}
           <AccountPanel />
           <SettingsSection>
             {SETTINGS_GROUPS.slice(0, 4).map((group) => (

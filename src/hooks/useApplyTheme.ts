@@ -5,6 +5,13 @@ import { isAccountStorageOwnerTransitionInProgress } from "@/lib/accountStorageS
 import { getAccessibleAccentForeground, isSupportedOpaqueAccentColor } from "@/lib/accentContrast";
 import { getSamaPhase, SAMA_PHASE_COLORS } from "@/lib/samaTheme";
 import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
+import {
+  rememberDesignForFirstPaint,
+  resolveUfuqPalette,
+  UFUQ_META_COLORS,
+  type DesignMode,
+  type UfuqPalette,
+} from "@/lib/design";
 
 /** Pure helpers exported for unit tests so they can be exercised without a
  *  jsdom environment. Kept side-effect-free on import. */
@@ -196,6 +203,32 @@ function apply(theme: NoorTheme): string {
 }
 
 /**
+ * The «أفق» design: its own palette instead of the classic theme. The base
+ * light/dark class still goes on <html> so components that adapt to light
+ * or dark keep doing so; everything else comes from src/styles/ufuq.css.
+ * Exported for tests.
+ */
+export function applyUfuqDesign(palette: UfuqPalette | undefined): string {
+  const root = document.documentElement;
+  const resolved = resolveUfuqPalette(palette, Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches));
+  root.classList.remove(...ALL_THEME_CLASSES);
+  root.classList.add(resolved === "night" ? "dark" : "light");
+  root.dataset.design = "ufuq";
+  root.dataset.ufuqPalette = resolved;
+  root.style.removeProperty("--accent");
+  applyAccentForeground(root);
+  const color = UFUQ_META_COLORS[resolved];
+  setMetaThemeColor(color);
+  return color;
+}
+
+function clearUfuqDesign() {
+  const root = document.documentElement;
+  delete root.dataset.design;
+  delete root.dataset.ufuqPalette;
+}
+
+/**
  * Sync theme and motion preferences to <html> + PWA chrome.
  */
 export function useApplyTheme() {
@@ -208,8 +241,27 @@ export function useApplyTheme() {
   const uiLanguage = useNoorStore((s) => s.prefs.uiLanguage);
   const transparentMode = useNoorStore((s) => s.prefs.transparentMode);
   const clearReading = useNoorStore((s) => s.prefs.clearReading);
+  const designMode: DesignMode = useNoorStore((s) => s.prefs.designMode) ?? "classic";
+  const ufuqPalette = useNoorStore((s) => s.prefs.ufuqPalette);
 
   useEffect(() => {
+    if (useNoorStore.persist.hasHydrated() && !isAccountStorageOwnerTransitionInProgress()) {
+      rememberDesignForFirstPaint(designMode, ufuqPalette ?? "auto");
+    }
+    if (designMode !== "ufuq") return;
+    // «أفق» replaces the classic theme while it is on; the classic choice is
+    // kept untouched in prefs.theme for when the person switches back.
+    document.body.classList.remove("transparent-mode");
+    applyUfuqDesign(ufuqPalette);
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    const onChange = () => applyUfuqDesign(ufuqPalette);
+    mq?.addEventListener?.("change", onChange);
+    return () => mq?.removeEventListener?.("change", onChange);
+  }, [designMode, ufuqPalette]);
+
+  useEffect(() => {
+    if (designMode === "ufuq") return;
+    clearUfuqDesign();
     const activeTheme = resolveAvailableTheme(theme);
     const color = apply(activeTheme);
     if (activeTheme !== theme && useNoorStore.persist.hasHydrated() && !isAccountStorageOwnerTransitionInProgress()) {
@@ -253,17 +305,23 @@ export function useApplyTheme() {
         window.clearInterval(timer);
       };
     }
-  }, [theme, setPrefs, transparentMode]);
+  }, [theme, setPrefs, transparentMode, designMode]);
 
   useEffect(() => {
     const root = document.documentElement;
+    // «أفق» keeps its own curated accent so its palette stays balanced.
+    if (designMode === "ufuq") {
+      root.style.removeProperty("--accent");
+      applyAccentForeground(root);
+      return;
+    }
     if (customAccent && isSupportedOpaqueAccentColor(customAccent)) {
       root.style.setProperty("--accent", customAccent);
     } else {
       root.style.removeProperty("--accent");
     }
     applyAccentForeground(root);
-  }, [customAccent, theme]);
+  }, [customAccent, theme, designMode, ufuqPalette]);
 
   useEffect(() => {
     const root = document.documentElement;

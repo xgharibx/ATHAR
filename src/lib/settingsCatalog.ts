@@ -28,7 +28,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   { id: "reminders", title: "التذكيرات", description: "الأذكار والورد والختمة" },
   { id: "quran", title: "القرآن", description: "القارئ والخط والترجمة" },
   { id: "tasbeeh", title: "التسبيح", description: "الاهتزاز والهدف اليومي" },
-  { id: "appearance", title: "المظهر", description: "السمة والألوان والنص" },
+  { id: "appearance", title: "المظهر", description: "التصميم والسمة والنص" },
   { id: "home", title: "الصفحة الرئيسية", description: "البطاقات وترتيبها" },
   { id: "privacy", title: "الخصوصية والأمان", description: "قفل التطبيق والذكاء الاصطناعي" },
   { id: "data", title: "البيانات", description: "النسخ الاحتياطي والمسح" },
@@ -83,6 +83,8 @@ export const SETTINGS_ITEMS: readonly SettingsItem[] = [
   { id: "health", group: "tasbeeh", title: "دقائق ذهنية في تطبيق الصحة", keywords: ["الصحة", "Apple Health", "health", "mindful"] },
 
   // المظهر
+  { id: "design", group: "appearance", title: "تصميم التطبيق", keywords: ["تصميم", "التصميم الجديد", "أفق", "الكلاسيكي", "القديم", "شكل التطبيق", "design", "new design", "classic"] },
+  { id: "ufuq-palette", group: "appearance", title: "ألوان أُفُق", keywords: ["نهار", "ليل", "داكن", "فاتح", "ليلي", "أفق"] },
   { id: "theme", group: "appearance", title: "السمة", keywords: ["ثيم", "لون", "داكن", "فاتح", "ليلي", "theme", "dark", "light"] },
   { id: "accent", group: "appearance", title: "لون مخصّص", keywords: ["لون", "accent", "color"] },
   { id: "app-icon", group: "appearance", title: "أيقونة التطبيق", keywords: ["أيقونة", "icon"] },
