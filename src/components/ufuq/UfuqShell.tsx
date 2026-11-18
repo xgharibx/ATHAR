@@ -17,6 +17,10 @@ import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 import { IconExplore, IconPrayer, IconQuran, IconTasbeeh, IconToday } from "@/components/ufuq/UfuqIcons";
 import { isUfuqTabRoot, ufuqTabFor, ufuqTitleFor, UFUQ_TABS, type UfuqTabId } from "@/components/ufuq/ufuqNav";
 
+const GardenBackdrop = React.lazy(() =>
+  import("@/components/ufuq/garden/GardenBackdrop").then((m) => ({ default: m.GardenBackdrop })),
+);
+
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
@@ -64,20 +68,47 @@ function useHideOnScroll() {
   return hidden;
 }
 
+/**
+ * Athar's own mark — the fingerprint with «أثر» across it, taken from the
+ * app icon — and its line, «همسة تطمئن قلبك، وتترك أثرًا».
+ */
+function UfuqBrand() {
+  const base = import.meta.env.BASE_URL ?? "/";
+  return (
+    <NavLink to="/" className="u-brand" aria-label="أثر — همسة تطمئن قلبك، وتترك أثرًا">
+      <span
+        className="u-brand-mark"
+        aria-hidden="true"
+        style={{
+          ["--u-brand-print" as string]: `url("${base}brand/athar-print.png")`,
+          ["--u-brand-word" as string]: `url("${base}brand/athar-word.png")`,
+        }}
+      >
+        <span className="u-brand-print" />
+        <span className="u-brand-word" />
+      </span>
+      <span className="u-brand-slogan" aria-hidden="true">
+        همسة تطمئن قلبك،
+        <br />
+        وتترك أثرًا
+      </span>
+    </NavLink>
+  );
+}
+
 function UfuqTopBar({ onSearch }: { onSearch: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const scrolled = useScrolled();
   const root = isUfuqTabRoot(location.pathname);
-  const isHome = location.pathname === "/";
   const title = ufuqTitleFor(location.pathname);
 
   return (
-    <header className={`u-topbar ${scrolled ? "is-scrolled" : ""}`}>
+    <header className={`u-topbar ${scrolled ? "is-scrolled" : ""} ${root ? "is-root" : ""}`}>
       <div className="u-topbar-row">
         <div className="u-topbar-start">
           {root ? (
-            <UpdatePill />
+            <UfuqBrand />
           ) : (
             <button
               type="button"
@@ -89,10 +120,11 @@ function UfuqTopBar({ onSearch }: { onSearch: () => void }) {
             </button>
           )}
         </div>
-        <div className="u-topbar-title" aria-hidden={isHome && !scrolled ? "true" : undefined}>
-          {title}
+        <div className="u-topbar-title" aria-hidden={root ? "true" : undefined}>
+          {root ? null : title}
         </div>
         <div className="u-topbar-end">
+          <UpdatePill />
           <button type="button" className="u-icon-btn" aria-label="بحث" onClick={onSearch}>
             <Search size={19} aria-hidden="true" />
           </button>
@@ -205,6 +237,7 @@ function UfuqTabBar() {
 export function UfuqShell() {
   const location = useLocation();
   const [paletteOpen, setPaletteOpen] = React.useState(false);
+  const garden = useNoorStore((s) => (s.prefs.ufuqLook ?? "garden") === "garden");
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -230,7 +263,13 @@ export function UfuqShell() {
       >
         انتقل إلى المحتوى الرئيسي
       </a>
-      <div className="u-horizon" aria-hidden="true" />
+      {garden ? (
+        <React.Suspense fallback={null}>
+          <GardenBackdrop />
+        </React.Suspense>
+      ) : (
+        <div className="u-horizon" aria-hidden="true" />
+      )}
       <OfflineBanner />
       {paletteOpen ? (
         <React.Suspense fallback={null}>

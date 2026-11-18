@@ -15,8 +15,15 @@
 
 export type DesignMode = "classic" | "ufuq";
 
-/** «أفق» has two palettes, plus following the phone's light/dark setting. */
-export type UfuqPalette = "auto" | "day" | "night";
+/**
+ * «أفق» has a day and a night palette, chosen outright or followed: from the
+ * phone's light/dark setting («الهاتف»), or from the prayer times («الوقت»):
+ * night from Maghrib until Fajr.
+ */
+export type UfuqPalette = "auto" | "time" | "day" | "night";
+
+/** The look inside «أفق»: quiet paper, or the living garden. */
+export type UfuqLook = "plain" | "garden";
 
 export type UfuqResolvedPalette = "day" | "night";
 
@@ -26,15 +33,27 @@ export const DESIGN_MODES: ReadonlyArray<{ id: DesignMode; label: string; hint: 
 ];
 
 export const UFUQ_PALETTES: ReadonlyArray<{ id: UfuqPalette; label: string }> = [
-  { id: "auto", label: "حسب الهاتف" },
+  { id: "auto", label: "الهاتف" },
+  { id: "time", label: "الوقت" },
   { id: "day", label: "نهار" },
   { id: "night", label: "ليل" },
+];
+
+export const UFUQ_LOOKS: ReadonlyArray<{ id: UfuqLook; label: string; hint: string }> = [
+  { id: "garden", label: "الحديقة", hint: "حديقة تنمو مع ذكرك: نخيل وزهر وقمر حقيقي" },
+  { id: "plain", label: "بسيط", hint: "ورق هادئ بلا حركة، أخفّ على البطارية" },
 ];
 
 /** Page colour of each palette: the browser chrome and system bars follow it. */
 export const UFUQ_META_COLORS: Record<UfuqResolvedPalette, string> = {
   day: "#f5f1e8",
   night: "#0a0d13",
+};
+
+/** The garden's sky at the top of the screen, under the status bar. */
+export const UFUQ_GARDEN_META_COLORS: Record<UfuqResolvedPalette, string> = {
+  day: "#5e97dc",
+  night: "#010207",
 };
 
 /** Read by index.html before the app loads, so the right design paints first. */
@@ -45,18 +64,27 @@ export function normalizeDesignMode(value: unknown): DesignMode {
 }
 
 export function normalizeUfuqPalette(value: unknown): UfuqPalette {
-  return value === "day" || value === "night" ? value : "auto";
+  return value === "day" || value === "night" || value === "time" ? value : "auto";
 }
 
-export function resolveUfuqPalette(palette: UfuqPalette | undefined, systemPrefersDark: boolean): UfuqResolvedPalette {
+export function normalizeUfuqLook(value: unknown): UfuqLook {
+  return value === "plain" ? "plain" : "garden";
+}
+
+export function resolveUfuqPalette(
+  palette: UfuqPalette | undefined,
+  systemPrefersDark: boolean,
+  nightByPrayerTime = false,
+): UfuqResolvedPalette {
   if (palette === "day") return "day";
   if (palette === "night") return "night";
+  if (palette === "time") return nightByPrayerTime ? "night" : "day";
   return systemPrefersDark ? "night" : "day";
 }
 
-export function rememberDesignForFirstPaint(design: DesignMode, palette: UfuqPalette): void {
+export function rememberDesignForFirstPaint(design: DesignMode, palette: UfuqPalette, look: UfuqLook = "garden"): void {
   try {
-    globalThis.localStorage?.setItem(DESIGN_BOOTSTRAP_STORAGE_KEY, JSON.stringify({ design, palette }));
+    globalThis.localStorage?.setItem(DESIGN_BOOTSTRAP_STORAGE_KEY, JSON.stringify({ design, palette, look }));
   } catch {
     // Storage can be disabled; the persisted preference remains authoritative.
   }

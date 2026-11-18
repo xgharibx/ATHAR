@@ -1101,3 +1101,344 @@ body.quran-focus-mode .u-topbar {
   transform: scale(0.96);
   background: var(--card);
 }
+
+/* ─────────────────────────── Brand ─────────────────────────── */
+
+.u-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.u-brand-mark {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 6px color-mix(in srgb, var(--bg) 70%, transparent));
+}
+
+.u-brand-print,
+.u-brand-word {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.u-brand-print {
+  -webkit-mask-image: var(--u-brand-print);
+  mask-image: var(--u-brand-print);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--u-gold) 82%, #fff 18%), var(--u-gold));
+}
+
+.u-brand-word {
+  -webkit-mask-image: var(--u-brand-word);
+  mask-image: var(--u-brand-word);
+  background: var(--fg);
+}
+
+.u-brand-slogan {
+  font-size: 10.5px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.u-topbar.is-root .u-topbar-row {
+  height: 60px;
+}
+
+/* ─────────────────────────── «الحديقة» ─────────────────────────── */
+
+/* Day: light with deep blue — a clear sky over the garden. */
+:root[data-design="ufuq"][data-ufuq-look="garden"] {
+  --bg: #dbe9f7;
+  --bg-deep: #dbe9f7;
+  --fg: #0e1f3d;
+  --muted: rgba(14, 31, 61, 0.68);
+  --muted-2: rgba(14, 31, 61, 0.5);
+  --card: rgba(14, 31, 61, 0.06);
+  --card-2: rgba(14, 31, 61, 0.1);
+  --stroke: rgba(14, 31, 61, 0.12);
+  --accent: #1d4a9a;
+  --accent-2: #3f8a5a;
+  --on-accent: #ffffff;
+  --ok: #2e7b55;
+  --danger: #b2392b;
+  --u-surface: rgba(255, 255, 255, 0.93);
+  --u-surface-2: rgba(244, 248, 253, 0.94);
+  --u-raised: #ffffff;
+  --u-hairline: rgba(14, 31, 61, 0.09);
+  --u-ink: #0e1f3d;
+  --u-gold: #9a6c22;
+  --u-gold-soft: rgba(154, 108, 34, 0.14);
+  --u-accent-soft: rgba(29, 74, 154, 0.1);
+  --u-glass: rgba(255, 255, 255, 0.6);
+  --u-glass-stroke: rgba(255, 255, 255, 0.7);
+  --u-shadow-card: 0 1px 1px rgba(14, 31, 61, 0.04), 0 10px 30px rgba(14, 31, 61, 0.1);
+  --u-shadow-float: 0 18px 48px rgba(14, 31, 61, 0.22);
+}
+
+/* Night: deep dark, moonlight and fireflies. */
+:root[data-design="ufuq"][data-ufuq-look="garden"][data-ufuq-palette="night"] {
+  --bg: #010207;
+  --bg-deep: #010207;
+  --fg: #eaeef7;
+  --muted: rgba(234, 238, 247, 0.7);
+  --muted-2: rgba(234, 238, 247, 0.5);
+  --card: rgba(234, 238, 247, 0.06);
+  --card-2: rgba(234, 238, 247, 0.1);
+  --stroke: rgba(234, 238, 247, 0.11);
+  --accent: #e3cf9c;
+  --accent-2: #8cc9a6;
+  --on-accent: #12100a;
+  --on-ok: #08140e;
+  --ok: #86cfa6;
+  --danger: #f28b78;
+  --u-surface: rgba(9, 13, 25, 0.86);
+  --u-surface-2: rgba(16, 22, 38, 0.88);
+  --u-raised: #10172a;
+  --u-hairline: rgba(234, 238, 247, 0.08);
+  --u-ink: #eaeef7;
+  --u-gold: #e3cf9c;
+  --u-gold-soft: rgba(227, 207, 156, 0.14);
+  --u-accent-soft: rgba(227, 207, 156, 0.12);
+  --u-glass: rgba(6, 10, 22, 0.55);
+  --u-glass-stroke: rgba(234, 238, 247, 0.1);
+  --u-shadow-card: 0 0 0 1px rgba(234, 238, 247, 0.02), 0 14px 34px rgba(0, 0, 0, 0.45);
+  --u-shadow-float: 0 22px 54px rgba(0, 0, 0, 0.6);
+}
+
+.u-garden-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  --veil: color-mix(in srgb, var(--bg) 66%, transparent);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 13%,
+    var(--veil) 30%,
+    var(--veil) 66%,
+    transparent 86%
+  );
+  transition: opacity 400ms ease;
+}
+
+.u-garden-veil.is-light {
+  --veil: color-mix(in srgb, var(--bg) 30%, transparent);
+}
+
+.u-garden {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+
+/* The page reads the sky, not a card, at the very top. */
+:root[data-ufuq-look="garden"] .u-home-date,
+:root[data-ufuq-look="garden"] .u-brand-slogan {
+  color: color-mix(in srgb, var(--fg) 78%, transparent);
+}
+
+:root[data-ufuq-look="garden"] :is(.u-display, .u-home-date, .u-brand-slogan, .u-section-head, .u-foot, .u-sky, .settings-section-title, .settings-section-footer) {
+  text-shadow: 0 1px 12px color-mix(in srgb, var(--bg) 60%, transparent);
+}
+
+/* The prayer hero opens onto the real sky instead of painting its own. */
+:root[data-ufuq-look="garden"] .u-sky {
+  color: var(--fg);
+  box-shadow: none;
+  background: transparent;
+  padding-inline: 6px;
+  min-height: 0;
+}
+
+:root[data-ufuq-look="garden"] .u-sky::before,
+:root[data-ufuq-look="garden"] .u-sky::after,
+:root[data-ufuq-look="garden"] .u-sky .u-sky-stars {
+  display: none;
+}
+
+:root[data-ufuq-look="garden"] .u-sky-name {
+  font-size: 54px;
+}
+
+:root[data-ufuq-look="garden"] .u-sky-count,
+:root[data-ufuq-look="garden"] .u-sky-slot.is-next {
+  background: var(--u-glass);
+  border-color: var(--u-glass-stroke);
+}
+
+:root[data-ufuq-look="garden"] .u-sky-slot {
+  opacity: 0.85;
+}
+
+:root[data-ufuq-look="garden"] .u-sky-slot.is-past {
+  opacity: 0.5;
+}
+
+/* Today's growth in the garden */
+.u-growth {
+  padding: 18px 18px 16px;
+}
+
+.u-growth-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.u-growth-count {
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.u-growth-fruits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.u-growth-fruit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--card);
+  color: var(--muted);
+}
+
+.u-growth-fruit.is-on {
+  background: var(--u-accent-soft);
+  color: var(--accent);
+}
+
+.u-growth-hadith {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--u-hairline);
+  font-size: 13.5px;
+  line-height: 1.95;
+  color: var(--fg);
+}
+
+.u-growth-hadith cite {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-style: normal;
+  color: var(--muted-2);
+}
+
+/* Settings: choosing the look */
+.ufuq-look-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.design-mock-garden {
+  background: linear-gradient(180deg, #5e97dc 0%, #bcd8f2 55%, #e6f1fb 72%);
+  position: relative;
+}
+
+.design-mock-garden.is-night {
+  background: linear-gradient(180deg, #010207 0%, #071026 60%, #10203d 72%);
+}
+
+.design-mock-garden .dm-ground {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 30%;
+  background:
+    radial-gradient(14px 10px at 20% 30%, #f28cb1 40%, transparent 42%),
+    radial-gradient(10px 8px at 55% 45%, #ffffff 40%, transparent 42%),
+    radial-gradient(12px 10px at 80% 25%, #e2455c 40%, transparent 42%),
+    linear-gradient(180deg, #3f8f4a, #2a6236);
+  border-radius: 40% 40% 0 0 / 18% 18% 0 0;
+}
+
+.design-mock-garden.is-night .dm-ground {
+  background:
+    radial-gradient(8px 8px at 30% 20%, rgba(255, 246, 190, 0.9) 30%, transparent 60%),
+    radial-gradient(8px 8px at 70% 40%, rgba(255, 246, 190, 0.8) 30%, transparent 60%),
+    linear-gradient(180deg, #123423, #04100a);
+}
+
+.design-mock-garden .dm-moon {
+  position: absolute;
+  top: 18%;
+  left: 18%;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #fff6e0;
+  box-shadow: 0 0 14px rgba(230, 236, 255, 0.6);
+}
+
+.design-mock-garden .dm-palm {
+  position: absolute;
+  bottom: 22%;
+  left: 8%;
+  width: 4px;
+  height: 46%;
+  border-radius: 3px;
+  background: #8a6b4a;
+  transform: rotate(8deg);
+  transform-origin: bottom;
+}
+
+.design-mock-garden .dm-palm::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: -12px;
+  width: 28px;
+  height: 14px;
+  border-radius: 50% 50% 10% 10%;
+  background: #3f8a4c;
+}
+
+.design-mock-garden.is-night .dm-palm,
+.design-mock-garden.is-night .dm-palm::before {
+  background: #10301f;
+}
+
+.design-mock-garden .dm-cypress {
+  position: absolute;
+  bottom: 22%;
+  right: 8%;
+  width: 10px;
+  height: 52%;
+  border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%;
+  background: #2f6b45;
+}
+
+.design-mock-garden.is-night .dm-cypress {
+  background: #0d2619;
+}
+
+/* At the end of «اليوم», the page opens onto the whole garden. */
+.u-garden-window {
+  height: 34vh;
+  min-height: 180px;
+}

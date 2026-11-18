@@ -205,11 +205,11 @@ describe("the switch in Settings", () => {
     const root = await render("/settings/appearance", <SettingsPage />, "/settings/:group?");
     const radio = () => Array.from(container!.querySelectorAll<HTMLButtonElement>('[role="radio"]')).find((b) => b.textContent?.includes("أُفُق"))!;
     expect(container!.textContent).toContain("سمة التطبيق");
-    expect(container!.textContent).not.toContain("حسب الهاتف");
+    expect(container!.textContent).not.toContain("النهار والليل");
 
     await act(async () => radio().click());
     expect(useNoorStore.getState().prefs.designMode).toBe("ufuq");
-    expect(container!.textContent).toContain("حسب الهاتف");
+    expect(container!.textContent).toContain("النهار والليل");
     expect(container!.textContent).not.toContain("سمة التطبيق");
     expect(container!.textContent).not.toContain("خلفية النجوم");
 

@@ -9,7 +9,7 @@ import { arNum } from "@/lib/formatNumber";
 import { clamp, cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/Slider";
 import { Segmented, SettingsRow, SettingsSection, ToggleRow } from "@/components/settings/SettingsUI";
-import { DesignPicker } from "@/components/settings/DesignPicker";
+import { DesignPicker, UfuqLookPicker } from "@/components/settings/DesignPicker";
 import { UFUQ_PALETTES } from "@/lib/design";
 import { usePlatform } from "@/components/settings/settingsHooks";
 
@@ -67,14 +67,33 @@ export function AppearanceGroup() {
           <DesignPicker />
         </SettingsRow>
         {ufuq ? (
-          <SettingsRow id="ufuq-palette" icon={<Palette size={17} />} title="الألوان">
-            <Segmented
-              label="ألوان أُفُق"
-              value={prefs.ufuqPalette ?? "auto"}
-              options={UFUQ_PALETTES.map((p) => ({ value: p.id, label: p.label }))}
-              onChange={(value) => setPrefs({ ufuqPalette: value })}
-            />
-          </SettingsRow>
+          <>
+            <SettingsRow id="ufuq-look" title="المشهد">
+              <UfuqLookPicker />
+            </SettingsRow>
+            <SettingsRow
+              id="ufuq-palette"
+              icon={<Palette size={17} />}
+              title="النهار والليل"
+              hint={prefs.ufuqPalette === "time" ? "يحلّ الليل بعد المغرب ويعود النهار بعد الفجر" : undefined}
+            >
+              <Segmented
+                label="النهار والليل"
+                value={prefs.ufuqPalette ?? "auto"}
+                options={UFUQ_PALETTES.map((p) => ({ value: p.id, label: p.label }))}
+                onChange={(value) => setPrefs({ ufuqPalette: value })}
+              />
+            </SettingsRow>
+            {(prefs.ufuqLook ?? "garden") === "garden" ? (
+              <ToggleRow
+                id="garden-live"
+                title="حديقة حيّة"
+                hint="الريح في العشب والنخل، والفراشات نهارًا واليراعات ليلًا. أطفئها لتوفير البطارية"
+                checked={prefs.gardenLive !== false}
+                onChange={(on) => setPrefs({ gardenLive: on })}
+              />
+            ) : null}
+          </>
         ) : null}
       </SettingsSection>
 

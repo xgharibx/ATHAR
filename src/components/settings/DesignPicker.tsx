@@ -6,7 +6,7 @@ import * as React from "react";
 import toast from "react-hot-toast";
 import { ArrowLeft, Check } from "lucide-react";
 import { useNoorStore } from "@/store/noorStore";
-import { DESIGN_MODES, type DesignMode } from "@/lib/design";
+import { DESIGN_MODES, UFUQ_LOOKS, type DesignMode, type UfuqLook } from "@/lib/design";
 import { cn } from "@/lib/utils";
 import { vibrate } from "@/lib/haptics";
 
@@ -84,5 +84,51 @@ export function DesignInvite() {
       </span>
       <ArrowLeft size={16} className="shrink-0 opacity-50" aria-hidden="true" />
     </button>
+  );
+}
+
+function GardenPreview({ night }: { night: boolean }) {
+  return (
+    <span className={cn("design-mock design-mock-garden", night && "is-night")} aria-hidden="true">
+      {night ? <span className="dm-moon" /> : null}
+      <span className="dm-palm" />
+      <span className="dm-cypress" />
+      <span className="dm-ground" />
+    </span>
+  );
+}
+
+/** Inside «أفق»: the living garden, or plain paper. */
+export function UfuqLookPicker() {
+  const look: UfuqLook = useNoorStore((s) => s.prefs.ufuqLook) ?? "garden";
+  const setPrefs = useNoorStore((s) => s.setPrefs);
+  const night = typeof document !== "undefined" && document.documentElement.dataset.ufuqPalette === "night";
+  return (
+    <div className="ufuq-look-picker" role="radiogroup" aria-label="المشهد">
+      {UFUQ_LOOKS.map((option) => {
+        const active = look === option.id;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => {
+              if (active) return;
+              setPrefs({ ufuqLook: option.id });
+              vibrate(10);
+            }}
+            className={cn("design-choice", active && "is-active")}
+          >
+            {option.id === "garden" ? <GardenPreview night={night} /> : <UfuqPreview />}
+            <span className="design-choice-label">
+              <span className="design-choice-check" aria-hidden="true">{active ? <Check size={12} strokeWidth={3} /> : null}</span>
+              {option.label}
+            </span>
+            <span className="design-choice-hint">{option.hint}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
