@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🌌 توسع الكون — The Expansion of the Universe
 // "وَالسَّمَاءَ بَنَيْنَاهَا بِأَيْدٍ وَإِنَّا لَمُوسِعُونَ"
@@ -22,7 +23,7 @@ export default function UniverseExpansionVisual({ className }: MiracleVisualProp
     // ResizeObserver handles canvas sizing below
 
     // Generate stars that expand outward
-    const stars = Array.from({ length: 600 }, () => ({
+    const stars = Array.from({ length: particleCount(600) }, () => ({
       angle: Math.random() * Math.PI * 2,
       baseDistance: Math.random() * 0.3 + 0.05,
       speed: Math.random() * 0.3 + 0.1,
@@ -133,18 +134,18 @@ export default function UniverseExpansionVisual({ className }: MiracleVisualProp
       ctx.arc(cx, cy, 15, 0, Math.PI * 2);
       ctx.fill();
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

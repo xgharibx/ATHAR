@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // ⚙️ وَأَنزَلْنَا الْحَدِيدَ فِيهِ بَأْسٌ شَدِيدٌ — Iron Sent Down from Stars
 // Al-Hadid 57:25 — iron "sent down" — forged in supernovae
@@ -131,19 +132,19 @@ export default function IronFromStarsVisual({ className }: MiracleVisualProps) {
       ctx.fillStyle = 'rgba(200,180,150,0.3)';
       ctx.fillText(phaseNames[phase], w * 0.5, h * 0.9);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

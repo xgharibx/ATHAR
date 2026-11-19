@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // الحجة الكونية الكلامية — Kalam Cosmological Argument
 // Cinematic: a Big Bang flash erupts and an expanding universe of particles
@@ -27,7 +28,7 @@ export default function KalamCosmologicalVisual({ className }: MiracleVisualProp
     let animId = 0;
     let time = 0;
 
-    const stars = Array.from({ length: 220 }, () => {
+    const stars = Array.from({ length: particleCount(220) }, () => {
       const ang = Math.random() * Math.PI * 2;
       const speed = Math.random() * 0.35 + 0.05;
       return {
@@ -90,12 +91,12 @@ export default function KalamCosmologicalVisual({ className }: MiracleVisualProp
         ctx.fill();
       }
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -103,7 +104,7 @@ export default function KalamCosmologicalVisual({ className }: MiracleVisualProp
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

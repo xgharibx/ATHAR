@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 📜 يَوْمَ نَطْوِي السَّمَاءَ كَطَيِّ السِّجِلِّ — Universe Folding
 // Al-Anbiya 21:104 — spacetime folded like a scroll (كطي السجل)
@@ -21,7 +22,7 @@ export default function UniverseFateVisual({ className }: MiracleVisualProps) {
 
     // Stars
     type Star = { x: number; y: number; size: number; alpha: number; color: string };
-    const stars: Star[] = Array.from({ length: 300 }, () => ({
+    const stars: Star[] = Array.from({ length: particleCount(300) }, () => ({
       x: Math.random(), y: Math.random(),
       size: Math.random() * 1.8 + 0.3,
       alpha: Math.random() * 0.7 + 0.2,
@@ -35,7 +36,7 @@ export default function UniverseFateVisual({ className }: MiracleVisualProps) {
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       const cyclePos = (time % (CYCLE * 0.007)) / (CYCLE * 0.007); // 0-1
 
       // Background
@@ -180,19 +181,19 @@ export default function UniverseFateVisual({ className }: MiracleVisualProps) {
         ctx.textAlign = 'center'; ctx.fillText(label, dotX, dotY + 12 * dpr);
       });
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

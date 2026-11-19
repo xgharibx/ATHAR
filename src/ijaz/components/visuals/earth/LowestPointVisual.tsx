@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // Visualizes the Quranic reference to the "lowest point on earth" (Dead Sea region) —
 // modern geography confirms the Dead Sea depression is the lowest land point.
@@ -301,18 +302,18 @@ export default function LowestPointVisual({ className }: MiracleVisualProps) {
       ctx.fillStyle = lpGlow;
       ctx.fill();
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

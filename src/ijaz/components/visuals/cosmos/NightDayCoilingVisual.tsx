@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // 🌃 يُكَوِّرُ اللَّيْلَ عَلَى النَّهَارِ — Night Coiling on Day
 // Az-Zumar 39:5 — yuk-awwiru: to coil/wrap like a turban
@@ -87,19 +88,19 @@ export default function NightDayCoilingVisual({ className }: MiracleVisualProps)
       ctx.fillText('يُكَوِّرُ اللَّيْلَ عَلى النَّهَارِ', w * 0.5, h * 0.88);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

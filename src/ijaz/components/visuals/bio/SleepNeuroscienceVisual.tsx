@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // 😴 اللَّهُ يَتَوَفَّى الْأَنفُسَ — Sleep as Minor Death
 // Az-Zumar 39:42 — soul taken at death & in sleep (wafah)
@@ -71,7 +72,7 @@ export default function SleepNeuroscienceVisual({ className }: MiracleVisualProp
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       // Deep dark sleep background
       const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
@@ -162,19 +163,19 @@ export default function SleepNeuroscienceVisual({ className }: MiracleVisualProp
       ctx.fillText('وَفَاة صُغْرَى', w * 0.5, h * 0.1);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

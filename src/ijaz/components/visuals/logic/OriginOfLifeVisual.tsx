@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // ⚗️ نشأة الحياة معضلة معلومات — Origin of Life is an information problem
 // Odometer count-up to 10^164 + amino-acid particles that try to assemble and collapse.
@@ -29,11 +30,11 @@ function Odometer() {
       const p = Math.min(1, (ts - start) / dur);
       const eased = 1 - Math.pow(1 - p, 3);
       setExp(Math.round(eased * 164));
-      if (p < 1) raf = requestAnimationFrame(loop);
-      else { start = 0; setTimeout(() => { raf = requestAnimationFrame(loop); }, 1400); }
+      if (p < 1) raf = visualFrame(loop);
+      else { start = 0; setTimeout(() => { raf = visualFrame(loop); }, 1400); }
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    raf = visualFrame(loop);
+    return () => cancelVisualFrame(raf);
   }, []);
   return (
     <span className="font-mono font-bold text-2xl text-white tabular-nums">
@@ -124,19 +125,19 @@ export default function OriginOfLifeVisual({ className }: MiracleVisualProps) {
         ctx.shadowBlur = 0;
       });
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

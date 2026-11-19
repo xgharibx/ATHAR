@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // Visualizes the Quranic reference to wind as a means of pollination —
 // modern botany confirms wind carries pollen between plants.
@@ -33,7 +34,7 @@ export default function WindPollinationVisual({ className }: MiracleVisualProps)
     }));
 
     // Pollen particles
-    const pollenParticles = Array.from({ length: 80 }, () => ({
+    const pollenParticles = Array.from({ length: particleCount(80) }, () => ({
       x: Math.random(),
       y: 0.3 + Math.random() * 0.4,
       size: 1.5 + Math.random() * 2.5,
@@ -55,7 +56,7 @@ export default function WindPollinationVisual({ className }: MiracleVisualProps)
     }));
 
     // Ground vegetation (grass blades)
-    const grass = Array.from({ length: 60 }, () => ({
+    const grass = Array.from({ length: particleCount(60) }, () => ({
       x: Math.random(),
       height: 10 + Math.random() * 25,
       phase: Math.random() * Math.PI * 2,
@@ -241,18 +242,18 @@ export default function WindPollinationVisual({ className }: MiracleVisualProps)
       // Limit particles
       while (pollenParticles.length > 150) pollenParticles.shift();
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 💧 الحياة من الماء — Life from Water
 // "وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ"
@@ -22,7 +23,7 @@ export default function LifeFromWaterVisual({ className }: MiracleVisualProps) {
     // ResizeObserver handles canvas sizing below
 
     // Water molecules
-    const molecules = Array.from({ length: 80 }, () => ({
+    const molecules = Array.from({ length: particleCount(80) }, () => ({
       x: Math.random(),
       y: Math.random(),
       vx: (Math.random() - 0.5) * 0.001,
@@ -158,18 +159,18 @@ export default function LifeFromWaterVisual({ className }: MiracleVisualProps) {
         ctx.fill();
       });
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 export default function LightningThunderVisual({ className }: MiracleVisualProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -29,7 +30,7 @@ export default function LightningThunderVisual({ className }: MiracleVisualProps
       return pts;
     };
 
-    const rain = Array.from({ length: 80 }, () => ({
+    const rain = Array.from({ length: particleCount(80) }, () => ({
       x: Math.random(), y: Math.random(),
       speed: 0.004 + Math.random() * 0.006, len: 5 + Math.random() * 10,
     }));
@@ -86,18 +87,18 @@ export default function LightningThunderVisual({ className }: MiracleVisualProps
       ctx.fillText('وَيُسَبِّحُ الرَّعْدُ بِحَمْدِهِ', w * 0.5, h * 0.91);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr; canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

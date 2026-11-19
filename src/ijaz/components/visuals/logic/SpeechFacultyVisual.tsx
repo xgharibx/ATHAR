@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // Visualizes the Quranic reference to the faculty of speech being given by Allah —
 // modern neuroscience has identified Broca's and Wernicke's areas as language centers.
@@ -284,18 +285,18 @@ export default function SpeechFacultyVisual({ className }: MiracleVisualProps) {
         ctx.fillText(fl.letter, fl.x * w, fl.y * h);
       }
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

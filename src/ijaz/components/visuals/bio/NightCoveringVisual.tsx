@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🌙 وَجَعَلْنَا اللَّيْلَ لِبَاسًا — Night as a Biological Covering
 // لِبَاسًا = a garment/cloak that envelops — exactly how darkness works biologically
@@ -19,7 +20,7 @@ export default function NightCoveringVisual({ className }: MiracleVisualProps) {
     let animId: number;
     let time = 0;
 
-    const stars = Array.from({ length: 300 }, () => ({
+    const stars = Array.from({ length: particleCount(300) }, () => ({
       x: Math.random(), y: Math.random(),
       size: Math.pow(Math.random(), 3) * 2.2 + 0.3,
       alpha: Math.random() * 0.6 + 0.2,
@@ -44,7 +45,7 @@ export default function NightCoveringVisual({ className }: MiracleVisualProps) {
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       // Deep night bg
       const bg = ctx.createLinearGradient(0, 0, 0, h);
@@ -237,19 +238,19 @@ export default function NightCoveringVisual({ className }: MiracleVisualProps) {
       ctx.fillText('لباس، غطاء، ستر', earthCx, earthCy - earthR * 1.5 + 18 * dpr);
       ctx.restore();
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

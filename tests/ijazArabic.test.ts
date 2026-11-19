@@ -9,6 +9,8 @@ import { miracles, miracleNumber } from "@/ijaz/data/miracles";
 import { EVIDENCE_AR } from "@/ijaz/data/evidenceAr";
 import { MIRACLE, PROOF, arabicTags, authorAr, discoveryYear, verseRefAr } from "@/ijaz/lib/utils";
 import { countAr } from "@/lib/arabicCount";
+import { MERGED_INTO, REMOVED, canonicalSlug } from "@/ijaz/data/aliases";
+import { getMiracleBySlug } from "@/ijaz/data/miracles";
 
 describe("ijaz in Arabic", () => {
   it("gives every scientific-evidence card an Arabic title and description", () => {
@@ -23,7 +25,9 @@ describe("ijaz in Arabic", () => {
 
   it("has no orphan translations", () => {
     const keys = new Set(miracles.flatMap((m) => m.scientificEvidence.map((_, i) => `${m.slug}#${i}`)));
-    for (const k of Object.keys(EVIDENCE_AR)) expect(keys.has(k), k).toBe(true);
+    // Keys of merged-away entries are fine: their cards moved with them.
+    const gone = (k: string) => canonicalSlug(k.split("#")[0]!) !== k.split("#")[0];
+    for (const k of Object.keys(EVIDENCE_AR)) expect(keys.has(k) || gone(k), k).toBe(true);
   });
 
   it("writes the Arabic fields with Arabic digits", () => {
@@ -58,5 +62,37 @@ describe("ijaz in Arabic", () => {
     expect(home).not.toContain("10<sup>50</sup>");
     expect(home).not.toContain("1/10^26");
     expect(home).not.toMatch(/titleEn/);
+  });
+});
+
+
+describe("merged duplicates", () => {
+  it("keeps one entry per miracle and sends the old addresses to it", () => {
+    const slugs = new Set(miracles.map((m) => m.slug));
+    for (const [from, to] of Object.entries(MERGED_INTO)) {
+      expect(slugs.has(from), from).toBe(false);
+      expect(slugs.has(to), to).toBe(true);
+      expect(getMiracleBySlug(from)?.slug).toBe(to);
+    }
+    for (const r of REMOVED) {
+      expect(slugs.has(r)).toBe(false);
+      expect(getMiracleBySlug(r)).toBeUndefined();
+      expect(canonicalSlug(r)).toBe("");
+    }
+  });
+
+  it("carries the merged entries' verses into the one that remains", () => {
+    const embryo = getMiracleBySlug("embryology-stages")!;
+    expect(embryo.verses.some((v) => v.surahNumber === 22 && v.ayahNumber === 5)).toBe(true);
+    const verses = embryo.verses.map((v) => `${v.surahNumber}:${v.ayahNumber}`);
+    expect(new Set(verses).size).toBe(verses.length);
+  });
+
+  it("never links a miracle to itself or to one that is gone", () => {
+    const ids = new Set(miracles.map((m) => m.id));
+    for (const m of miracles) for (const r of m.relatedMiracleIds) {
+      expect(r).not.toBe(m.id);
+      expect(ids.has(r), `${m.slug} → ${r}`).toBe(true);
+    }
   });
 });

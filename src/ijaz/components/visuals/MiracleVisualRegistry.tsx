@@ -1,4 +1,5 @@
-import { ComponentType, lazy, Suspense } from 'react';
+import { ComponentType, lazy, Suspense, useEffect, useRef } from 'react';
+import { setStageVisible } from './frameGovernor';
 
 export interface MiracleVisualProps {
   className?: string;
@@ -118,10 +119,35 @@ export function getMiracleVisual(miracleId: string): ComponentType<MiracleVisual
 
 export default function MiracleVisual({ miracleId, className }: { miracleId: string; className?: string }) {
   const VisualComponent = visualMap[miracleId];
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  // Tells the frame governor when this stage is on screen, so the animation
+  // sleeps once you scroll past it.
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    let visible = true;
+    setStageVisible(true);
+    const io = new IntersectionObserver(([entry]) => {
+      const now = !!entry?.isIntersecting;
+      if (now !== visible) {
+        visible = now;
+        setStageVisible(now);
+      }
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      if (visible) setStageVisible(false);
+    };
+  }, [miracleId]);
+
   if (!VisualComponent) return null;
   return (
-    <Suspense fallback={null}>
-      <VisualComponent className={className} />
-    </Suspense>
+    <div ref={stageRef} className="w-full h-full">
+      <Suspense fallback={null}>
+        <VisualComponent className={className} />
+      </Suspense>
+    </div>
   );
 }

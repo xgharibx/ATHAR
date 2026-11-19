@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // Visualizes the Quranic miracle that iron was "sent down" from space —
 // modern science confirms iron originates from supernovae explosions.
@@ -22,7 +23,7 @@ export default function IronSentDownVisual({ className }: MiracleVisualProps) {
     // ResizeObserver handles canvas sizing below
 
     // Stars
-    const stars = Array.from({ length: 180 }, () => ({
+    const stars = Array.from({ length: particleCount(180) }, () => ({
       x: Math.random(),
       y: Math.random(),
       r: Math.random() * 1.5 + 0.5,
@@ -226,11 +227,11 @@ export default function IronSentDownVisual({ className }: MiracleVisualProps) {
         ctx.fillText('Fe', px * w - 6, py * h + 4);
       }
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -239,7 +240,7 @@ export default function IronSentDownVisual({ className }: MiracleVisualProps) {
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

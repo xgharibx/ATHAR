@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // ⛈️ أَلَمْ تَرَ أَنَّ اللَّهَ يُزْجِي سَحَابًا — Cumulonimbus Formation
 // An-Nur 24:43 — 4 precise stages: drive → gather → stack → rain+hail
@@ -21,7 +22,7 @@ export default function CloudFormationVisual({ className }: MiracleVisualProps) 
 
     // Rain drops
     type Raindrop = { x: number; y: number; speed: number; length: number; alpha: number };
-    const raindrops: Raindrop[] = Array.from({ length: 120 }, () => ({
+    const raindrops: Raindrop[] = Array.from({ length: particleCount(120) }, () => ({
       x: Math.random(), y: Math.random(),
       speed: Math.random() * 0.006 + 0.008, length: Math.random() * 14 + 8, alpha: Math.random() * 0.5 + 0.2,
     }));
@@ -36,7 +37,7 @@ export default function CloudFormationVisual({ className }: MiracleVisualProps) 
     // Cloud particles
     type CloudParticle = { x: number; y: number; r: number; alpha: number; vx: number; vy: number };
     let particles: CloudParticle[] = [];
-    const PARTICLE_COUNT = 200;
+    const PARTICLE_COUNT = particleCount(200);
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       particles.push({
         x: Math.random(), y: Math.random() * 0.4 + 0.1,
@@ -48,7 +49,7 @@ export default function CloudFormationVisual({ className }: MiracleVisualProps) 
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       // Sky gradient
       const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
@@ -165,19 +166,19 @@ export default function CloudFormationVisual({ className }: MiracleVisualProps) 
       ctx.beginPath(); ctx.moveTo(w * 0.12, cloudBotY); ctx.lineTo(w * 0.22, cloudBotY); ctx.stroke();
       ctx.setLineDash([]);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

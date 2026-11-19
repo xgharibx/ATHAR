@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🌍 شكل الأرض — Earth's Egg Shape (دحاها)
 // "وَالْأَرْضَ بَعْدَ ذَٰلِكَ دَحَاهَا"
@@ -23,7 +24,7 @@ export default function EarthShapeVisual({ className }: MiracleVisualProps) {
     // ResizeObserver handles canvas sizing below
 
     // Stars
-    const stars = Array.from({ length: 200 }, () => ({
+    const stars = Array.from({ length: particleCount(200) }, () => ({
       x: Math.random(),
       y: Math.random(),
       size: Math.random() * 1.5 + 0.3,
@@ -184,18 +185,18 @@ export default function EarthShapeVisual({ className }: MiracleVisualProps) {
       ctx.font = '8px Tajawal';
       ctx.fillText('(مبيض النعامة)', eggX, eggY + 42);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

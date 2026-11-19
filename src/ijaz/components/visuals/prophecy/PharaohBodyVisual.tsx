@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // Visualizes the Quranic prophecy about Pharaoh's body being preserved —
 // modern archaeology confirms the mummy of Ramesses II was preserved.
@@ -35,7 +36,7 @@ export default function PharaohBodyVisual({ className }: MiracleVisualProps) {
     }));
 
     // Golden dust particles
-    const dustParticles = Array.from({ length: 150 }, () => ({
+    const dustParticles = Array.from({ length: particleCount(150) }, () => ({
       x: Math.random(),
       y: Math.random(),
       size: 0.5 + Math.random() * 2,
@@ -49,7 +50,7 @@ export default function PharaohBodyVisual({ className }: MiracleVisualProps) {
     let waveTimer = 0;
 
     // Sand particles (time flowing effect)
-    const sandParticles = Array.from({ length: 60 }, () => ({
+    const sandParticles = Array.from({ length: particleCount(60) }, () => ({
       x: 0.35 + Math.random() * 0.3,
       y: -Math.random() * 0.2,
       speed: 0.001 + Math.random() * 0.002,
@@ -232,18 +233,18 @@ export default function PharaohBodyVisual({ className }: MiracleVisualProps) {
         ctx.strokeRect(w - 10 - cornerSize + offset, h - 10 - cornerSize + offset, cornerSize - offset * 2, cornerSize - offset * 2);
       }
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

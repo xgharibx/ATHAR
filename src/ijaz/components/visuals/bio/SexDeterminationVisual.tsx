@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 export default function SexDeterminationVisual({ className }: MiracleVisualProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -79,18 +80,18 @@ export default function SexDeterminationVisual({ className }: MiracleVisualProps
       ctx.fillText('خَلَقَ الزَّوْجَيْنِ مِن نُطْفَةٍ إِذَا تُمْنَى', w * 0.5, h * 0.91);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr; canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // Visualizes the Quranic mention of clouds having immense weight —
 // modern science confirms cumulus clouds can weigh hundreds of thousands of tons.
@@ -33,7 +34,7 @@ export default function CloudsWeightVisual({ className }: MiracleVisualProps) {
     }));
 
     // Rain drops
-    const raindrops = Array.from({ length: 120 }, () => ({
+    const raindrops = Array.from({ length: particleCount(120) }, () => ({
       x: 0.1 + Math.random() * 0.8,
       y: 0.4 + Math.random() * 0.2,
       speed: 0.004 + Math.random() * 0.006,
@@ -233,11 +234,11 @@ export default function CloudsWeightVisual({ className }: MiracleVisualProps) {
       ctx.fillStyle = mist;
       ctx.fillRect(0, h * 0.85, w, h * 0.15);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -246,7 +247,7 @@ export default function CloudsWeightVisual({ className }: MiracleVisualProps) {
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

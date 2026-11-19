@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // Visualizes the Quranic reference to skin containing pain receptors —
 // modern science confirms that nerve endings in the skin are responsible for pain sensation.
@@ -38,7 +39,7 @@ export default function SkinPainReceptorsVisual({ className }: MiracleVisualProp
     const signals: { x: number; y: number; targetX: number; targetY: number; progress: number; speed: number; active: boolean }[] = [];
 
     // Cellular texture dots
-    const cells = Array.from({ length: 200 }, () => ({
+    const cells = Array.from({ length: particleCount(200) }, () => ({
       x: Math.random(),
       y: 0.3 + Math.random() * 0.65,
       r: Math.random() * 3 + 1,
@@ -217,18 +218,18 @@ export default function SkinPainReceptorsVisual({ className }: MiracleVisualProp
       ctx.fillStyle = `rgba(255,51,102,${pulseGlobal * 0.05})`;
       ctx.fillRect(0, h * 0.35, w, h * 0.4);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

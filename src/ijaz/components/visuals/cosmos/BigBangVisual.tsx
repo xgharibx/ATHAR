@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 💥 الانفجار العظيم — The Big Bang + Cosmic Smoke (دُخَان)
 // "ثُمَّ اسْتَوَىٰ إِلَى السَّمَاءِ وَهِيَ دُخَانٌ"
@@ -22,7 +23,7 @@ export default function BigBangVisual({ className }: MiracleVisualProps) {
     // ResizeObserver handles canvas sizing below
 
     // Smoke particles
-    const smokeParticles = Array.from({ length: 300 }, () => ({
+    const smokeParticles = Array.from({ length: particleCount(300) }, () => ({
       angle: Math.random() * Math.PI * 2,
       speed: Math.random() * 2 + 0.5,
       size: Math.random() * 40 + 15,
@@ -34,10 +35,30 @@ export default function BigBangVisual({ className }: MiracleVisualProps) {
       r: Math.floor(180 + Math.random() * 75),
       g: Math.floor(100 + Math.random() * 80),
       b: Math.floor(50 + Math.random() * 50),
+      sprite: null as unknown as HTMLCanvasElement,
     }));
+    // One small puff image per particle colour (radial falloff 1 → 0.4 → 0).
+    const puffs = new Map<string, HTMLCanvasElement>();
+    for (const p of smokeParticles) {
+      const key = `${p.r >> 4},${p.g >> 4},${p.b >> 4}`;
+      let sprite = puffs.get(key);
+      if (!sprite) {
+        sprite = document.createElement('canvas');
+        sprite.width = sprite.height = 64;
+        const sc = sprite.getContext('2d')!;
+        const g = sc.createRadialGradient(32, 32, 0, 32, 32, 32);
+        g.addColorStop(0, `rgba(${p.r}, ${p.g}, ${p.b}, 1)`);
+        g.addColorStop(0.5, `rgba(${p.r}, ${p.g}, ${p.b}, 0.4)`);
+        g.addColorStop(1, `rgba(${p.r}, ${p.g}, ${p.b}, 0)`);
+        sc.fillStyle = g;
+        sc.fillRect(0, 0, 64, 64);
+        puffs.set(key, sprite);
+      }
+      p.sprite = sprite;
+    }
 
     // Bright explosion sparks
-    const sparks = Array.from({ length: 200 }, () => ({
+    const sparks = Array.from({ length: particleCount(200) }, () => ({
       angle: Math.random() * Math.PI * 2,
       speed: Math.random() * 5 + 2,
       size: Math.random() * 3 + 1,
@@ -88,14 +109,13 @@ export default function BigBangVisual({ className }: MiracleVisualProps) {
         const fadeout = dist > p.maxDist * 0.8 ? (p.maxDist - dist) / (p.maxDist * 0.2) : 1;
         const alpha = p.opacity * fadein * Math.max(0, fadeout);
 
-        const grad = ctx.createRadialGradient(x, y, 0, x, y, p.size * (1 + dist));
-        grad.addColorStop(0, `rgba(${p.r}, ${p.g}, ${p.b}, ${alpha})`);
-        grad.addColorStop(0.5, `rgba(${p.r}, ${p.g}, ${p.b}, ${alpha * 0.4})`);
-        grad.addColorStop(1, `rgba(${p.r}, ${p.g}, ${p.b}, 0)`);
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(x, y, p.size * (1 + dist), 0, Math.PI * 2);
-        ctx.fill();
+        // A soft puff drawn once per particle colour, then stamped: the
+        // same look as a fresh radial gradient per frame, without building one.
+        const r = p.size * (1 + dist);
+        if (alpha <= 0.003 || r <= 0) return;
+        ctx.globalAlpha = Math.min(1, alpha);
+        ctx.drawImage(p.sprite, x - r, y - r, r * 2, r * 2);
+        ctx.globalAlpha = 1;
       });
 
       // Bright sparks flying outward
@@ -132,19 +152,19 @@ export default function BigBangVisual({ className }: MiracleVisualProps) {
       ctx.arc(cx, cy, coreSize * 3, 0, Math.PI * 2);
       ctx.fill();
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // ⛰️ وَالْجِبَالَ أَوْتَادًا — Mountains as Pegs (Isostasy)
 // An-Naba 78:7 — mountains described as stakes/pegs
@@ -153,19 +154,19 @@ export default function MountainsStabilityVisual({ className }: MiracleVisualPro
       ctx.fillText('وَالْجِبَالَ أَوْتَادًا', w * 0.5, h * 0.87);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

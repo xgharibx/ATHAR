@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // ⚖️ Quran Word Balance — Perfect numerical symmetry of paired concepts
 // حياة/موت=145 | دنيا/آخرة=115 | ملائكة/شياطين=88 | الرجل/المرأة=24 | اليوم=365
@@ -26,7 +27,7 @@ export default function QuranWordBalanceVisual({ className }: MiracleVisualProps
     ];
 
     // Stars
-    const stars = Array.from({ length: 250 }, () => ({
+    const stars = Array.from({ length: particleCount(250) }, () => ({
       x: Math.random(), y: Math.random(), size: Math.random() * 1.5 + 0.3, alpha: Math.random() * 0.5 + 0.2,
       twinkle: Math.random() * Math.PI * 2, speed: Math.random() + 0.5,
     }));
@@ -39,7 +40,7 @@ export default function QuranWordBalanceVisual({ className }: MiracleVisualProps
     const draw = () => {
       time += 0.006;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       // Background
       ctx.fillStyle = '#04020e'; ctx.fillRect(0, 0, w, h);
@@ -180,19 +181,19 @@ export default function QuranWordBalanceVisual({ className }: MiracleVisualProps
         ctx.shadowBlur = 0;
       }
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

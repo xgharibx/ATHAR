@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 📖 إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ — Quran Preservation (الحجر 9)
 // ULTIMATE: a central radiant Quran emits Arabic-letter rain and is wrapped in a
@@ -28,7 +29,7 @@ export default function QuranPreservationVisual({ className }: MiracleVisualProp
 
     const arabicChars = 'ابتثجحخدذرزسشصضطظعغفقكلمنهوي';
     type Drop = { x: number; y: number; char: string; alpha: number; speed: number; size: number };
-    const drops: Drop[] = Array.from({ length: 60 }, () => ({
+    const drops: Drop[] = Array.from({ length: particleCount(60) }, () => ({
       x: Math.random(), y: Math.random(),
       char: arabicChars[Math.floor(Math.random() * arabicChars.length)],
       alpha: Math.random() * 0.18 + 0.04,
@@ -164,18 +165,18 @@ export default function QuranPreservationVisual({ className }: MiracleVisualProp
       ctx.fillText('وَإِنَّا لَهُ لَحَافِظُونَ', w * 0.5, h * 0.92);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr; canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // 🐜 قَالَتْ نَمْلَةٌ — Ant Communication & Female Grammar
 // An-Naml 27:18 — feminine verb for ant → all workers are female (XX)
@@ -88,7 +89,7 @@ export default function AntCommunicationVisual({ className }: MiracleVisualProps
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       // Background — earth soil
       const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
@@ -194,19 +195,19 @@ export default function AntCommunicationVisual({ className }: MiracleVisualProps
       ctx.fillStyle = 'rgba(200,180,100,0.6)';
       ctx.fillText('♀ قَالَتْ: بصيغة المؤنث', warnAnt.x * w + 28, warnAnt.y * h + 12);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🌍 سَقْفًا مَّحْفُوظًا — Atmosphere as Protected Ceiling
 // Al-Anbiya 21:32 — sky = roof + protected/guarding (mahfuz)
@@ -26,7 +27,7 @@ export default function AtmosphereCeilingVisual({ className }: MiracleVisualProp
 
     // Stars
     type Star = { x: number; y: number; size: number; alpha: number };
-    const stars: Star[] = Array.from({ length: 250 }, () => ({
+    const stars: Star[] = Array.from({ length: particleCount(250) }, () => ({
       x: Math.random(), y: Math.random() * 0.35,
       size: Math.random() * 1.4 + 0.2, alpha: Math.random() * 0.6 + 0.15,
     }));
@@ -50,7 +51,7 @@ export default function AtmosphereCeilingVisual({ className }: MiracleVisualProp
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       // Space background
       ctx.fillStyle = '#000a1a'; ctx.fillRect(0, 0, w, h);
@@ -152,19 +153,19 @@ export default function AtmosphereCeilingVisual({ className }: MiracleVisualProp
       ctx.fillText('سَقْفًا مَّحْفُوظًا', w * 0.5, h * 0.28);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (
