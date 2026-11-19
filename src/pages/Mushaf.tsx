@@ -6,7 +6,7 @@ import {
   ChevronDown, Copy, Share2, VolumeX, Volume2, X, Pencil,
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Mic2, Repeat2,
   Eye, EyeOff, CheckCircle2, Languages, Search, WholeWord,
-  ArrowUpRight, Settings, Info, Shuffle,
+  Settings, Shuffle, BookOpenText, Palette, ArrowUpRight,
   Radio, Timer, Download,
   Image as ImageIcon, MessageCircle, Loader2,
 } from "lucide-react";
@@ -57,6 +57,8 @@ import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 // IDB-cached builder in quranLoad share the exact same shape.
 import type { PageItem } from "@/data/pageIndexBuilder";
 import { arNum } from "@/lib/formatNumber";
+import { countAr, AYAH, type CountForms } from "@/lib/arabicCount";
+import "@/styles/mushafReader.css";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
 
 /**
@@ -187,6 +189,47 @@ function buildPageIndex(
 }
 
 // ── Component ─────────────────────────────────────────────────
+/** A switch in the reader's settings: neutral when off, the accent when on. */
+function SheetSwitch({ label, hint, checked, onChange }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} className="mushaf-set-row is-switch" onClick={() => onChange(!checked)}>
+      <span className="min-w-0 text-right">
+        <span className="block">{label}</span>
+        {hint ? <span className="mushaf-set-hint">{hint}</span> : null}
+      </span>
+      <span className={`mushaf-switch${checked ? " is-on" : ""}`} aria-hidden="true"><i /></span>
+    </button>
+  );
+}
+
+/** Page colours of the Mushaf, each with a preview and an Arabic name. */
+const MUSHAF_PAGE_THEMES = [
+  { id: "default", label: "حسب السمة", swatch: "linear-gradient(135deg, #f4ecd8 50%, #1e1b2e 50%)" },
+  { id: "parchment", label: "رَقّ", swatch: "#f0e6c8" },
+  { id: "sepia", label: "عتيق", swatch: "#c8a97a" },
+  { id: "dawn", label: "فجر", swatch: "#3a2440" },
+  { id: "midnight", label: "ليلي", swatch: "#0d1b2a" },
+  { id: "ocean", label: "بحري", swatch: "#0f2238" },
+  { id: "forest", label: "غابة", swatch: "#12301a" },
+  { id: "rose", label: "وردي", swatch: "#3a1220" },
+  { id: "desert", label: "صحراوي", swatch: "#3a2610" },
+] as const;
+
+const MUSHAF_TEXT_COLORS = [
+  { color: "#000000", label: "أسود" },
+  { color: "#1a1208", label: "حبر" },
+  { color: "#2d3557", label: "نيلي" },
+  { color: "#1a3a1a", label: "أخضر" },
+  { color: "#5c2a00", label: "بنّي" },
+  { color: "#c9a227", label: "ذهبي" },
+  { color: "#e8d8c8", label: "فاتح" },
+  { color: "#ffffff", label: "أبيض" },
+] as const;
+
+const AUDIO_FILE: CountForms = { one: "ملف صوتي واحد", two: "ملفّان صوتيان", few: "ملفات صوتية", many: "ملفًا صوتيًا" };
+
+const HL_LABELS: Record<string, string> = { gold: "ذهبي", green: "أخضر", blue: "أزرق", red: "أحمر", pink: "وردي" };
+
 export function MushafPage() {
   const navigate = useNavigate();
   const { page: pageParam } = useParams<{ page?: string }>();
@@ -490,7 +533,8 @@ export function MushafPage() {
     }
   }, [pageItems, selectedItem]);
 
-  // Auto-select ayah when navigating from ?surah=X&ayah=Y deeplinks.
+  const [arrivedKey, setArrivedKey] = React.useState<string | null>(null);
+  // Mark the ayah reached from ?surah=X&ayah=Y deeplinks.
   // Keyed on params + page so the selection fires every time the user lands on
   // a new surah/ayah deep-link (the previous one-shot ref made subsequent
   // deeplinks silently no-op).
@@ -500,7 +544,13 @@ export function MushafPage() {
     const item = items.find(
       (i) => i.surahId === surahParam && (i.displayAyah === ayahParam || i.originalAyah === ayahParam)
     );
-    if (item) setSelectedItem(item);
+    // Arriving at an ayah from a link lights it softly for a moment; it is not
+    // "selected", so the page stays readable and no action bar covers it.
+    if (item) {
+      setArrivedKey(`${item.surahId}:${item.displayAyah}`);
+      const timer = window.setTimeout(() => setArrivedKey(null), 3200);
+      return () => window.clearTimeout(timer);
+    }
   }, [surahParam, ayahParam, currentPage, pageIndex]);
 
   // Q9: Per-ayah reveal in memorization mode (must be before handleAyahTap)
@@ -730,7 +780,6 @@ export function MushafPage() {
 
 
   // Q15: Surah info panel
-  const [showSurahInfo, setShowSurahInfo] = React.useState(false);
 
   // Settings sheet
   const [showSettings, setShowSettings] = React.useState(false);
@@ -1529,10 +1578,10 @@ export function MushafPage() {
       const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
       const urls = items.map((item) => everyAyahUrl(reciter, item.surahId, item.originalAyah));
       const { saved, evicted } = await saveRecitationsOffline(urls, (done, total) => setCacheProgress({ done, total }));
-      const reclaimed = evicted > 0 ? " · أُزيل " + evicted + " ملفًا صوتيًا أقدم لإفساح مساحة" : "";
+      const reclaimed = evicted > 0 ? ` · أُزيل ${countAr(evicted, AUDIO_FILE)} أقدم لإفساح مساحة` : "";
       if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
-      else if (saved === items.length) toast.success("✓ تم تخزين " + saved + " ملفًا صوتيًا للاستماع دون إنترنت" + reclaimed);
-      else toast("تم تخزين " + saved + " من " + items.length + " ملفًا صوتيًا" + reclaimed, { icon: "⚠️" });
+      else if (saved === items.length) toast.success(`تم تخزين ${countAr(saved, AUDIO_FILE)} للاستماع دون إنترنت${reclaimed}`);
+      else toast(`تم تخزين ${toArabicNumeral(saved)} من ${countAr(items.length, AUDIO_FILE)}${reclaimed}`, { icon: "⚠️" });
     } catch { toast.error("تعذر التحميل"); }
     finally { setCacheProgress(null); }
   }, [playableItems, prefs.quranReciter]);
@@ -1573,10 +1622,10 @@ export function MushafPage() {
           (done, total) => setBulkDownloadProgress({ done, total, label }),
           `اكتمل تنزيل ${successLabel}`,
         );
-        const reclaimed = evicted > 0 ? " · أُزيل " + evicted + " ملفًا صوتيًا أقدم لإفساح مساحة" : "";
+        const reclaimed = evicted > 0 ? ` · أُزيل ${countAr(evicted, AUDIO_FILE)} أقدم لإفساح مساحة` : "";
         if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
-        else if (saved === items.length) toast.success("✓ تم تخزين " + successLabel + " كاملة (" + saved + " آية) للاستماع دون إنترنت" + reclaimed);
-        else toast("تم تخزين " + saved + " من " + items.length + " آية في " + label + reclaimed, { icon: "⚠️" });
+        else if (saved === items.length) toast.success(`تم تخزين ${successLabel} كاملة (${countAr(saved, AYAH)}) للاستماع دون إنترنت${reclaimed}`);
+        else toast(`تم تخزين ${toArabicNumeral(saved)} من ${countAr(items.length, AYAH)} في ${label}${reclaimed}`, { icon: "⚠️" });
       } catch { toast.error("تعذر التحميل"); }
       finally { setBulkDownloadProgress(null); }
     },
@@ -1627,10 +1676,10 @@ export function MushafPage() {
       );
       setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: saved === items.length ? "done" : "partial" }));
       const name = QURAN_RECITERS.find((r) => r.id === reciterId)?.label ?? reciterId;
-      const reclaimed = evicted > 0 ? " · أُزيل " + evicted + " ملفًا صوتيًا أقدم لإفساح مساحة" : "";
+      const reclaimed = evicted > 0 ? ` · أُزيل ${countAr(evicted, AUDIO_FILE)} أقدم لإفساح مساحة` : "";
       if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
       else if (saved === items.length) toast.success("✓ تم تحميل الصفحة لـ " + name + reclaimed);
-      else toast("تم تخزين " + saved + " من " + items.length + " آية للقارئ " + name + reclaimed, { icon: "⚠️" });
+      else toast(`تم تخزين ${toArabicNumeral(saved)} من ${countAr(items.length, AYAH)} للقارئ ${name}${reclaimed}`, { icon: "⚠️" });
     } catch {
       setReciterDownloadProgress((prev) => { const upd = { ...prev }; delete upd[reciterId]; return upd; });
     }
@@ -1833,24 +1882,17 @@ export function MushafPage() {
           <div className="mushaf-chrome-surah-name">{pageSurahName || pageSurahEnglish}</div>
           <div className="mushaf-chrome-meta">صفحة {toArabicNumeral(currentPage)} · الجزء {toArabicNumeral(pageJuz)}</div>
         </div>
-        {/* Focus / reading mode */}
         <button type="button"
-          className="mushaf-chrome-icon-btn"
-          aria-label="وضع القراءة"
-          onClick={(e) => { e.stopPropagation(); if (chromeTimer.current) clearTimeout(chromeTimer.current); chromeTimer.current = null; setShowChrome(false); }}
-        >
-          <EyeOff size={15} aria-hidden="true" />
-        </button>
-        <button type="button"
-          className={`mushaf-chrome-icon-btn${tajweedMode ? " active" : ""}`}
-          aria-label={tajweedMode ? "إيقاف التجويد" : "تشغيل التجويد"}
+          className={`mushaf-chrome-icon-btn has-caption${tajweedMode ? " active" : ""}`}
+          aria-label={tajweedMode ? "إيقاف التجويد الملوّن" : "تشغيل التجويد الملوّن"}
+          aria-pressed={tajweedMode}
           onClick={(e) => { e.stopPropagation(); setTajweedMode((v) => !v); }}
-          title={tajweedMode ? "إيقاف التجويد" : "تشغيل التجويد"}
         >
-          <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1 }}>ت</span>
+          <Palette size={16} aria-hidden="true" />
+          <span className="mushaf-chrome-caption" aria-hidden="true">التجويد</span>
         </button>
         <button type="button"
-          className={`mushaf-chrome-icon-btn${memorizationMode ? " active" : ""}`}
+          className={`mushaf-chrome-icon-btn has-caption${memorizationMode ? " active" : ""}`}
           aria-label={memorizationMode ? "إيقاف وضع الحفظ" : "تشغيل وضع الحفظ"}
           aria-pressed={memorizationMode}
           onClick={(e) => {
@@ -1859,25 +1901,27 @@ export function MushafPage() {
             if (memorizationMode) setRevealedItems(new Set());
             flashChrome();
           }}
-          title={memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ — اضغط على الآيات لكشفها"}
         >
           {memorizationMode ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+          <span className="mushaf-chrome-caption" aria-hidden="true">الحفظ</span>
         </button>
         <button type="button"
-          className={`mushaf-chrome-icon-btn${wbwMode ? " active" : ""}`}
-          aria-label={wbwMode ? "إيقاف الترجمة الفورية للكلمات" : "تشغيل الترجمة الفورية للكلمات"}
+          className={`mushaf-chrome-icon-btn has-caption${wbwMode ? " active" : ""}`}
+          aria-label={wbwMode ? "إيقاف معاني الكلمات" : "تشغيل معاني الكلمات"}
+          aria-pressed={wbwMode}
           onClick={(e) => { e.stopPropagation(); setWbwMode((v) => !v); setActiveWord(null); }}
-          title={wbwMode ? "إيقاف الترجمة الفورية للكلمات" : "تشغيل الترجمة الفورية للكلمات — انقر أي كلمة لمعناها"}
         >
           <WholeWord size={16} aria-hidden="true" />
+          <span className="mushaf-chrome-caption" aria-hidden="true">المعاني</span>
         </button>
         {/* Settings (font size, tajweed & all reading options live here) */}
         <button type="button"
-          className={`mushaf-chrome-icon-btn${showSettings ? " active" : ""}`}
-          aria-label="إعدادات"
+          className={`mushaf-chrome-icon-btn has-caption${showSettings ? " active" : ""}`}
+          aria-label="إعدادات القراءة"
           onClick={(e) => { e.stopPropagation(); setShowSettings((v) => !v); }}
         >
           <Settings size={16} aria-hidden="true" />
+          <span className="mushaf-chrome-caption" aria-hidden="true">الإعدادات</span>
         </button>
         {/* More actions */}
         {SHOW_MUSHAF_MORE && (
@@ -2078,11 +2122,12 @@ export function MushafPage() {
                       >
                         <span
                           ref={isPlaying ? (el: HTMLSpanElement | null) => { playingSpanRef.current = el; } : undefined}
-                          className={`mushaf-ayah-span${isSel ? " selected" : ""}${hl ? ` hl-${hl}` : ""}${isSearchMatch ? " search-match" : ""}${isPlaying ? " playing" : ""}`}
+                          className={`mushaf-ayah-span${isSel ? " selected" : ""}${hl ? ` hl-${hl}` : ""}${isSearchMatch ? " search-match" : ""}${isPlaying ? " playing" : ""}${arrivedKey === k ? " arrived" : ""}`}
                           translate="no"
                           style={{
                             // Q16: Focus dimming
-                            opacity: selectedItem && !isSel ? 0.3 : 1,
+                            // Soft enough that the page still reads around the chosen ayah.
+                            opacity: selectedItem && !isSel ? 0.55 : 1,
                             transition: "opacity 0.18s",
                             ...(hl && !isSel ? {
                               background: HL_COLORS[hl].bg,
@@ -2209,10 +2254,10 @@ export function MushafPage() {
           <button type="button"
             className={`mushaf-action-btn${playingKey === selKey ? " active" : ""}`}
             onClick={() => playAyah(selectedItem.surahId, selectedItem.originalAyah, selectedItem.displayAyah)}
-            aria-label="تلاوة"
+            aria-label={playingKey === selKey ? "إيقاف الاستماع" : "استمع إلى الآية"}
           >
             {playingKey === selKey ? <VolumeX size={18} aria-hidden="true" /> : <Volume2 size={18} aria-hidden="true" />}
-            <span>تلاوة</span>
+            <span>{playingKey === selKey ? "إيقاف" : "استمع"}</span>
           </button>
           <button type="button"
             className={`mushaf-action-btn${loopEnabled ? " active" : ""}`}
@@ -2231,7 +2276,8 @@ export function MushafPage() {
                   className={`mushaf-hl-swatch${selHL === c ? " active" : ""}`}
                   style={{ background: HL_COLORS[c].swatch }}
                   onClick={(e) => { e.stopPropagation(); setQuranHighlight(selectedItem.surahId, selectedItem.displayAyah, selHL === c ? null : c); }}
-                  aria-label={c}
+                  aria-label={`تظليل ${HL_LABELS[c] ?? c}`}
+                  aria-pressed={selHL === c}
                 />
               ))}
             </div>
@@ -2246,10 +2292,10 @@ export function MushafPage() {
               }
               setNoteSheetOpen(true);
             }}
-            aria-label="تدبّر"
+            aria-label={notes[selKey] ? "تدبّرك لهذه الآية" : "اكتب تدبّرك لهذه الآية"}
           >
             <Pencil size={18} aria-hidden="true" />
-            <span>تدبّر</span>
+            <span>تدبّري</span>
           </button>
           <button type="button" className="mushaf-action-btn" onClick={() => setShareSheetOpen(true)} aria-label="مشاركة">
             <Share2 size={18} aria-hidden="true" />
@@ -2267,7 +2313,7 @@ export function MushafPage() {
             }}
           >
             <MessageCircle size={18} aria-hidden="true" />
-            <span>أثر</span>
+            <span>اسأل أثر</span>
           </button>
           {/* Q11: Inline tafsir */}
           <button type="button"
@@ -2275,7 +2321,7 @@ export function MushafPage() {
             aria-label="تفسير"
             onClick={(e) => { e.stopPropagation(); setTafsirItem(selectedItem); setSelectedItem(null); }}
           >
-            <ArrowUpRight size={18} aria-hidden="true" />
+            <BookOpenText size={18} aria-hidden="true" />
             <span>تفسير</span>
           </button>
           <button type="button"
@@ -2812,250 +2858,163 @@ export function MushafPage() {
               <span className="mushaf-sheet-title">إعدادات القراءة</span>
               <button type="button" aria-label="إغلاق" className="mushaf-icon-close" onClick={() => setShowSettings(false)}><X size={16} aria-hidden="true" /></button>
             </div>
-            {/* Font scale */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs opacity-55 shrink-0">الخط</span>
-              <button type="button" aria-label="تصغير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(-0.1)}><ZoomOut size={14} aria-hidden="true" /></button>
-              <span className="text-xs opacity-60 tabular-nums w-10 text-center">{toArabicNumeral(Math.round(fontScale * 100))}٪</span>
-              <button type="button" aria-label="تكبير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} aria-hidden="true" /></button>
-            </div>
-            {/* Translation picker hidden on request (2026-08-24). */}
-            {/* Q11-B: Inline Tafseer */}
-            <div className="mb-3 p-3 rounded-2xl border"
-              style={{
-                background: inlineTafseer ? "color-mix(in srgb, var(--accent) 8%, transparent)" : "var(--card)",
-                borderColor: inlineTafseer ? "color-mix(in srgb, var(--accent) 30%, transparent)" : "var(--stroke)",
-              }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-base" aria-hidden="true">📖</span>
-                  <div>
-                    <div className="text-xs font-semibold" style={inlineTafseer ? { color: "var(--accent)" } : {}}>عرض التفسير</div>
-                    <div className="text-[10px] opacity-45">تفسير تحت كل آية</div>
-                  </div>
-                </div>
-                <button type="button"
-                  onClick={() => setInlineTafseer((v) => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${inlineTafseer ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
-                  role="switch" aria-checked={inlineTafseer}
-                >
-                  <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${inlineTafseer ? "right-1" : "right-7"}`} />
-                </button>
+            {/* ── الخط والعرض ── */}
+            <div className="mushaf-set-section">
+              <div className="mushaf-set-title">الخط والعرض</div>
+              <div className="mushaf-set-row">
+                <span>حجم الخط</span>
+                <span className="flex items-center gap-2">
+                  <button type="button" aria-label="تصغير الخط" className="mushaf-set-step" onClick={() => bumpFont(-0.1)}><ZoomOut size={15} aria-hidden="true" /></button>
+                  <span className="text-xs tabular-nums w-11 text-center">{toArabicNumeral(Math.round(fontScale * 100))}٪</span>
+                  <button type="button" aria-label="تكبير الخط" className="mushaf-set-step" onClick={() => bumpFont(0.1)}><ZoomIn size={15} aria-hidden="true" /></button>
+                </span>
               </div>
-              {inlineTafseer && (
-                <div className="flex gap-1.5 p-1 rounded-xl bg-black/20 border border-(--stroke) overflow-x-auto no-scrollbar">
+              <div className="mushaf-set-row is-stack">
+                <span>طريقة التصفّح</span>
+                <span className="mushaf-seg" role="radiogroup" aria-label="طريقة التصفّح">
+                  {([["page", "صفحة بعد صفحة"], ["scroll", "تمرير متّصل"]] as const).map(([v, label]) => (
+                    <button key={v} type="button" role="radio" aria-checked={(prefs.quranScrollMode ?? "page") === v} className={(prefs.quranScrollMode ?? "page") === v ? "is-on" : ""} onClick={() => setPrefs({ quranScrollMode: v })}>{label}</button>
+                  ))}
+                </span>
+              </div>
+              <div className="mushaf-set-row is-stack">
+                <span>شكل الصفحة</span>
+                <span className="mushaf-seg" role="radiogroup" aria-label="شكل الصفحة">
+                  {([[true, "بسيطة"], [false, "بإطار مزخرف"]] as const).map(([v, label]) => (
+                    <button key={label} type="button" role="radio" aria-checked={(prefs.mushafCleanMode ?? true) === v} className={(prefs.mushafCleanMode ?? true) === v ? "is-on" : ""} onClick={() => setPrefs({ mushafCleanMode: v })}>{label}</button>
+                  ))}
+                </span>
+              </div>
+            </div>
+
+            {/* ── الألوان ── */}
+            <div className="mushaf-set-section">
+              <div className="mushaf-set-title">الألوان</div>
+              <div className="mushaf-set-label">لون الصفحة</div>
+              <div className="mushaf-swatches" role="radiogroup" aria-label="لون الصفحة">
+                {MUSHAF_PAGE_THEMES.map((t) => {
+                  const on = (prefs.quranTheme ?? "default") === t.id;
+                  return (
+                    <button key={t.id} type="button" role="radio" aria-checked={on} className={on ? "is-on" : ""} onClick={() => setPrefs({ quranTheme: t.id })}>
+                      <i style={{ background: t.swatch }} aria-hidden="true" />
+                      <span>{t.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mushaf-set-label mt-3">
+                لون الخط
+                {tajweedMode ? <span className="opacity-60"> · مع التجويد تبقى ألوان أحكامه</span> : null}
+              </div>
+              <div className="mushaf-swatches is-small" role="radiogroup" aria-label="لون الخط">
+                <button type="button" role="radio" aria-checked={!prefs.mushafTextColor} className={!prefs.mushafTextColor ? "is-on" : ""} onClick={() => setPrefs({ mushafTextColor: undefined })}>
+                  <i style={{ background: "linear-gradient(135deg, #1a1208 50%, #f4ecd8 50%)" }} aria-hidden="true" />
+                  <span>تلقائي</span>
+                </button>
+                {MUSHAF_TEXT_COLORS.map(({ color, label }) => {
+                  const on = prefs.mushafTextColor === color;
+                  return (
+                    <button key={color} type="button" role="radio" aria-checked={on} className={on ? "is-on" : ""} onClick={() => setPrefs({ mushafTextColor: color })}>
+                      <i style={{ background: color }} aria-hidden="true" />
+                      <span>{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── مساعدات القراءة ── */}
+            <div className="mushaf-set-section">
+              <div className="mushaf-set-title">مساعدات القراءة</div>
+              <SheetSwitch label="التجويد الملوّن" hint="تلوين أحكام التجويد في النص" checked={tajweedMode} onChange={(v) => setTajweedMode(v)} />
+              <SheetSwitch
+                label="وضع الحفظ"
+                hint="تُخفى الآيات، وتكشف كلًّا منها بلمسة لتراجع حفظك"
+                checked={memorizationMode}
+                onChange={(v) => { setMemorizationMode(v); if (!v) setRevealedItems(new Set()); }}
+              />
+              <SheetSwitch label="معاني الكلمات" hint="المس أي كلمة لترى معناها" checked={wbwMode} onChange={(v) => { setWbwMode(v); setActiveWord(null); }} />
+              <SheetSwitch label="التفسير تحت كل آية" hint={inlineTafseer ? `من ${getTafsirLabel(inlineTafseerSource)}` : "تفسير مختصر يظهر تحت الآيات"} checked={inlineTafseer} onChange={(v) => setInlineTafseer(v)} />
+              {inlineTafseer ? (
+                <div className="mushaf-seg is-scroll mt-1" role="radiogroup" aria-label="كتاب التفسير">
                   {TAFSIR_EDITIONS.map(({ slug, label }) => (
-                    <button type="button"
-                      key={slug}
-                      onClick={() => setInlineTafseerSource(slug)}
-                      className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                        inlineTafseerSource === slug
-                          ? "bg-accent-20 text-(--accent) border border-accent-30"
-                          : "opacity-50 hover:opacity-80"
-                      }`}
-                    >
-                      {label}
+                    <button key={slug} type="button" role="radio" aria-checked={inlineTafseerSource === slug} className={inlineTafseerSource === slug ? "is-on" : ""} onClick={() => setInlineTafseerSource(slug)}>{label}</button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            {/* ── التلاوة ── */}
+            <div className="mushaf-set-section">
+              <div className="mushaf-set-title">التلاوة</div>
+              <button type="button" className="mushaf-set-row is-link" onClick={() => { setShowSettings(false); setShowReciterSheet(true); }}>
+                <span className="flex items-center gap-2"><Mic2 size={15} aria-hidden="true" /> القارئ</span>
+                <span className="flex items-center gap-1 font-semibold" style={{ color: "var(--ms-accent)" }}>
+                  {QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي"}
+                  <ChevronLeft size={15} aria-hidden="true" />
+                </span>
+              </button>
+              <SheetSwitch label="تكرار الآية" hint={loopEnabled ? (loopCount === -1 ? "تُكرَّر حتى توقفها" : `تُكرَّر ${toArabicNumeral(loopCount)} مرات`) : "لتثبيت الحفظ بالاستماع"} checked={loopEnabled} onChange={(v) => setLoopEnabled(v)} />
+              {loopEnabled ? (
+                <div className="mushaf-seg is-scroll" role="radiogroup" aria-label="عدد مرات التكرار">
+                  {([2, 3, 5, 7, 10, -1] as number[]).map((n) => (
+                    <button key={n} type="button" role="radio" aria-checked={loopCount === n} className={loopCount === n ? "is-on" : ""} onClick={() => setLoopCount(n)}>
+                      {n === -1 ? "بلا توقّف" : `${toArabicNumeral(n)} مرات`}
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
-
-            {/* Reciter */}
-            <button type="button" className="mushaf-btn-secondary w-full mb-3" onClick={() => { setShowSettings(false); setShowReciterSheet(true); }}>
-              <Mic2 size={14} aria-hidden="true" />
-              {QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي"}
-            </button>
-            {/* Playback speed and volume controls hidden on request
-                (2026-08-24). Playback still honours the stored values —
-                only the UI is gone, so nothing regresses for existing users. */}
-            {/* Q4: Loop count */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs opacity-50">تكرار الآية</span>
-                <button type="button"
-                  onClick={() => setLoopEnabled((v) => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${loopEnabled ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
-                  role="switch" aria-checked={loopEnabled}
-                >
-                  <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${loopEnabled ? "right-1" : "right-7"}`} />
-                </button>
-              </div>
-              {loopEnabled && (
-                <div className="flex gap-1 flex-wrap">
-                  {([2, 3, 5, 7, 10, -1] as number[]).map((n) => (
-                    <button type="button"
-                      key={n}
-                      onClick={() => setLoopCount(n)}
-                      aria-label={n === -1 ? "تكرار لا نهائي" : `تكرار ${n} مرات`}
-                      aria-pressed={loopCount === n}
-                      className={`px-2.5 py-1 rounded-xl text-xs border transition ${loopCount === n ? "bg-accent-20 border-accent-30 text-(--accent)" : "bg-(--card) border-(--stroke) opacity-65"}`}
-                    >{n === -1 ? "∞" : `${n}×`}</button>
-                  ))}
-                </div>
-              )}
-            </div>
-            {/* Q8: Auto-advance */}
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs opacity-65">تقدم تلقائي للآية التالية</span>
-              <button type="button"
-                onClick={() => setAutoAdvance((v) => !v)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${autoAdvance ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
-                role="switch" aria-checked={autoAdvance}
-              >
-                <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${autoAdvance ? "right-1" : "right-7"}`} />
-              </button>
-            </div>
-            {/* Q5: Range loop */}
-            {autoAdvance && (
-              <div className="mb-3 p-3 rounded-2xl bg-(--card) border border-(--stroke)">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs opacity-65">تكرار نطاق</span>
-                  <button type="button"
-                    onClick={() => {
-                      const on = !loopRange;
+              ) : null}
+              <SheetSwitch label="المتابعة إلى الآية التالية" hint="تنتقل التلاوة وحدها من آية إلى التي تليها" checked={autoAdvance} onChange={(v) => setAutoAdvance(v)} />
+              {autoAdvance ? (
+                <>
+                  <SheetSwitch
+                    label="تكرار مقطع من الصفحة"
+                    hint="من آية إلى آية، مرة بعد مرة"
+                    checked={loopRange}
+                    onChange={(on) => {
                       setLoopRange(on);
                       if (on) { setLoopRangeStartIdx(0); setLoopRangeEndIdx(Math.max(0, playableItems.length - 1)); }
                     }}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${loopRange ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
-                    role="switch" aria-checked={loopRange}
-                  >
-                    <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${loopRange ? "right-1" : "right-7"}`} />
-                  </button>
-                </div>
-                {loopRange && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[11px] opacity-45 shrink-0">من</span>
-                    <input type="number" min={0} max={playableItems.length - 1} value={loopRangeStartIdx}
-                      aria-label="بداية التكرار"
-                      onChange={(e) => setLoopRangeStartIdx(Math.max(0, Math.min(playableItems.length - 1, Number(e.target.value))))}
-                      className="w-12 rounded-xl bg-(--card) border border-(--stroke) px-1.5 py-1 text-xs text-center" />
-                    <span className="text-[11px] opacity-45 shrink-0">إلى</span>
-                    <input type="number" min={loopRangeStartIdx} max={playableItems.length - 1} value={loopRangeEndIdx}
-                      aria-label="نهاية التكرار"
-                      onChange={(e) => setLoopRangeEndIdx(Math.max(loopRangeStartIdx, Math.min(playableItems.length - 1, Number(e.target.value))))}
-                      className="w-12 rounded-xl bg-(--card) border border-(--stroke) px-1.5 py-1 text-xs text-center" />
-                    <span className="text-[11px] opacity-35 shrink-0">/ {playableItems.length}</span>
-                  </div>
-                )}
-              </div>
-            )}
-            {/* Q15: Surah info */}
-            <div className="mt-1">
-              <button type="button"
-                onClick={() => setShowSurahInfo((v) => !v)}
-                aria-expanded={showSurahInfo}
-                aria-controls="mushaf-surah-info"
-                className="flex items-center gap-1.5 text-xs opacity-55 hover:opacity-90 transition mb-2"
-              >
-                <Info size={13} aria-hidden="true" />
-                <span>معلومات السورة</span>
-              </button>
-              {showSurahInfo && lastItem && (
-                <div id="mushaf-surah-info" className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-(--card) border border-(--stroke) text-center text-sm">
-                  {[
-                    ["السورة", lastItem.surahName],
-                    ["الاسم بالإنجليزية", pageSurahEnglish || ""],
-                    ["النوع", getSurahRevelationLabel(lastItem.surahId)],
-                    ["الجزء", String(getSurahJuz(lastItem.surahId))],
-                    ["عدد الآيات", arNum((quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0))],
-                    ["وقت القراءة", `~${arNum(Math.max(1, Math.ceil((quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0) / 8)))} دقيقة`],
-                    ["رقم السورة", toArabicNumeral(lastItem.surahId)],
-                    ["الصفحة", toArabicNumeral(currentPage)],
-                    ["من أصل", toArabicNumeral(totalPages)],
-                  ].map(([label, val]) => (
-                    <div key={label}>
-                      <div className="text-[11px] opacity-50 mb-1">{label}</div>
-                      <div className="font-semibold text-xs arabic-text">{val}</div>
+                  />
+                  {loopRange && playableItems.length ? (
+                    <div className="mushaf-set-row">
+                      <span className="flex items-center gap-2">
+                        من الآية
+                        <select aria-label="بداية المقطع" value={loopRangeStartIdx} onChange={(e) => { const v = Number(e.target.value); setLoopRangeStartIdx(v); if (v > loopRangeEndIdx) setLoopRangeEndIdx(v); }} className="mushaf-set-select">
+                          {playableItems.map((it, i) => <option key={i} value={i}>{toArabicNumeral(it.displayAyah)}</option>)}
+                        </select>
+                        إلى
+                        <select aria-label="نهاية المقطع" value={loopRangeEndIdx} onChange={(e) => setLoopRangeEndIdx(Math.max(loopRangeStartIdx, Number(e.target.value)))} className="mushaf-set-select">
+                          {playableItems.map((it, i) => (i >= loopRangeStartIdx ? <option key={i} value={i}>{toArabicNumeral(it.displayAyah)}</option> : null))}
+                        </select>
+                      </span>
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
+
+            {/* ── عن السورة ── */}
+            {lastItem ? (
+              <div className="mushaf-set-section">
+                <div className="mushaf-set-title">عن سورة {lastItem.surahName}</div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  {([
+                    ["نزولها", getSurahRevelationLabel(lastItem.surahId)],
+                    ["ترتيبها", toArabicNumeral(lastItem.surahId)],
+                    ["آياتها", toArabicNumeral(quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0)],
+                    ["الجزء", toArabicNumeral(getSurahJuz(lastItem.surahId))],
+                    ["قراءتها", `نحو ${toArabicNumeral(Math.max(1, Math.ceil((quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0) / 8)))} د`],
+                    ["الصفحة", `${toArabicNumeral(currentPage)} من ${toArabicNumeral(totalPages)}`],
+                  ] as const).map(([label, val]) => (
+                    <div key={label} className="mushaf-set-fact">
+                      <span>{label}</span>
+                      <b>{val}</b>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-
-            {/* ── M3: Page theme ─────────────────────────── */}
-            <div className="mt-3 mb-3">
-              <div className="text-xs opacity-50 mb-1.5">لون صفحة المصحف</div>
-              <div className="flex gap-1 flex-wrap">
-                {(["default", "sepia", "midnight", "parchment", "forest", "rose", "ocean", "desert", "dawn"] as const).map((t) => (
-                  <button type="button"
-                    key={t}
-                    onClick={() => setPrefs({ quranTheme: t })}
-                    className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${prefs.quranTheme === t ? "bg-accent-15 border-accent-35 text-(--accent)" : "bg-(--card) border-(--stroke) opacity-65"}`}
-                  >{{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق", forest: "🌲 غابة", rose: "🌹 وردي", ocean: "🌊 بحر", desert: "🏜️ صحراء", dawn: "🌅 فجر" }[t]}</button>
-                ))}
               </div>
-            </div>
-
-            {/* ── M3b: Reading layout + Scroll mode (combined into ONE row) ── */}
-            <div className="mt-1 mb-3 grid grid-cols-2 gap-2">
-              <div className="flex rounded-xl border border-(--stroke) bg-(--card) p-0.5">
-                <button type="button"
-                  onClick={() => setPrefs({ mushafCleanMode: true })}
-                  aria-pressed={(prefs.mushafCleanMode ?? true)}
-                  title="قراءة مريحة"
-                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-(--accent)" : "text-(--muted) hover:bg-(--card-2)"}`}
-                >📖 مريحة</button>
-                <button type="button"
-                  onClick={() => setPrefs({ mushafCleanMode: false })}
-                  aria-pressed={!(prefs.mushafCleanMode ?? true)}
-                  title="إطار زخرفي"
-                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${!(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-(--accent)" : "text-(--muted) hover:bg-(--card-2)"}`}
-                >🌺 إطار</button>
-              </div>
-              <div className="flex rounded-xl border border-(--stroke) bg-(--card) p-0.5">
-                <button type="button"
-                  onClick={() => setPrefs({ quranScrollMode: "page" })}
-                  aria-pressed={(prefs.quranScrollMode ?? "page") === "page"}
-                  title="صفحة صفحة"
-                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${(prefs.quranScrollMode ?? "page") === "page" ? "bg-accent-15 border-accent-35 text-(--accent)" : "text-(--muted) hover:bg-(--card-2)"}`}
-                >📄 صفحة</button>
-                <button type="button"
-                  onClick={() => setPrefs({ quranScrollMode: "scroll" })}
-                  aria-pressed={prefs.quranScrollMode === "scroll"}
-                  title="تمرير متصل"
-                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${prefs.quranScrollMode === "scroll" ? "bg-accent-15 border-accent-35 text-(--accent)" : "text-(--muted) hover:bg-(--card-2)"}`}
-                >📜 تمرير</button>
-              </div>
-            </div>
-
-            {/* ── M4: Font / text colour ────────────────────── */}
-            <div className="mt-1 mb-3">
-              <div className="text-xs opacity-50 mb-1.5 flex items-center gap-1.5">
-                لون الخط
-                {tajweedMode && <span className="text-[10px] opacity-70" style={{ color: "#d97706" }}>· التجويد يلوّن الحركات</span>}
-              </div>
-              <div className="flex gap-1.5 flex-wrap items-center">
-                <button type="button"
-                  onClick={() => setPrefs({ mushafTextColor: undefined })}
-                  className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${
-                    !prefs.mushafTextColor ? "bg-accent-15 border-accent-35 text-(--accent)" : "bg-(--card) border-(--stroke) opacity-65"
-                  }`}
-                >افتراضي</button>
-                {([
-                  { color: "#000000", label: "أسود" },
-                  { color: "#1a1208", label: "حبر" },
-                  { color: "#2d3557", label: "نيلي" },
-                  { color: "#1a3a1a", label: "أخضر" },
-                  { color: "#5c2a00", label: "بني" },
-                  { color: "#c9a227", label: "ذهبي" },
-                  { color: "#e8d8c8", label: "فاتح" },
-                  { color: "#ffffff", label: "أبيض" },
-                ] as const).map(({ color, label }) => (
-                  <button type="button"
-                    key={color}
-                    title={label}
-                    aria-label={label}
-                    onClick={() => setPrefs({ mushafTextColor: color })}
-                    className={`w-7 h-7 rounded-full border-2 transition shrink-0 ${
-                      prefs.mushafTextColor === color ? "border-(--accent) scale-110" : "border-transparent"
-                    }`}
-                    style={{ background: color, boxShadow: "0 0 0 1px rgba(0,0,0,0.18)" }}
-                  />
-                ))}
-              </div>
-            </div>
+            ) : null}
 
           </FocusManagedDialog>
         </>
