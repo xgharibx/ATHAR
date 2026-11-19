@@ -28,7 +28,6 @@ import { shareText } from "@/lib/shareTargets";
 import { getHomeAdhkarAction } from "@/lib/homeTimeActions";
 import { trackUxEvent } from "@/lib/uxMetrics";
 import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
-import { lightsFor } from "@/components/ufuq/garden/gardenMath";
 import { PRAYER_KEYS, skyPhaseFor, ufuqClock, ufuqGreeting, untilLabel } from "@/components/ufuq/ufuqTime";
 
 function dailyIndex(key: string, length: number): number {
@@ -214,7 +213,7 @@ function TodayPath({ sections }: { sections: Section[] }) {
 }
 
 /** In the garden: what today's remembrance has planted, and why. */
-function GardenGrowthCard({ live }: { live: boolean }) {
+function GardenGrowthCard() {
   const navigate = useNavigate();
   const growth = useGardenGrowth();
   const planted = Math.max(0, growth.planted);
@@ -224,36 +223,20 @@ function GardenGrowthCard({ live }: { live: boolean }) {
         <span className="u-growth-count u-num">{arNum(planted)}</span>
         <span className="flex-1 min-w-0">
           <span className="block text-[15px] font-semibold">
-            {live
-              ? planted === 0 ? "حديقتك تنتظر غرسك" : planted === 1 ? "زهرة غرستها اليوم" : planted === 2 ? "زهرتان غرستهما اليوم" : planted <= 10 ? "زهرات غرستها اليوم" : "زهرة غرستها اليوم"
-              : planted === 0 ? "غِراس اليوم تنتظرك" : planted === 1 ? "غرسة غرستها اليوم" : planted === 2 ? "غرستان غرستهما اليوم" : planted <= 10 ? "غرسات غرستها اليوم" : "غرسة غرستها اليوم"}
+            {planted === 0 ? "حديقتك تنتظر غرسك" : planted === 1 ? "زهرة غرستها اليوم" : planted === 2 ? "زهرتان غرستهما اليوم" : planted <= 10 ? "زهرات غرستها اليوم" : "زهرة غرستها اليوم"}
           </span>
-          <span className="block text-[12.5px] text-(--muted) mt-0.5">
-            {live ? "كل تسبيحة وذكر تُنبت زهرة في الحديقة خلفك" : "كل تسبيحة وذكر غَرسٌ في الجنة، ويُضيء يراعةً في حديقتك ليلًا"}
-          </span>
+          <span className="block text-[12.5px] text-(--muted) mt-0.5">كل تسبيحة وذكر تُنبت زهرة في الحديقة خلفك</span>
         </span>
         <button type="button" className="u-pill-btn" onClick={() => navigate("/sebha")}>سبِّح</button>
       </div>
-      {live ? (
-        <div className="u-growth-fruits">
-          <span className={`u-growth-fruit ${growth.palmFruit ? "is-on" : ""}`}>
-            {growth.palmFruit ? `النخلة تُثمر · ${arNum(growth.streak)} أيام متتالية` : "النخلة تُثمر بعد ٣ أيام متتالية"}
-          </span>
-          <span className={`u-growth-fruit ${growth.treeFruit ? "is-on" : ""}`}>
-            {growth.treeFruit ? "الرمّان أثمر: أتممت وِردك" : "الرمّان يُثمر حين تُتمّ وِردك"}
-          </span>
-        </div>
-      ) : (
       <div className="u-growth-fruits">
-        <span className="u-growth-fruit is-on">{`يراعات حديقتك الليلة: ${arNum(lightsFor(growth.blooms))}`}</span>
-        <span className={`u-growth-fruit ${growth.streak > 0 ? "is-on" : ""}`}>
-          {growth.streak > 1 ? `مواظبتك: ${arNum(growth.streak)} أيام متتالية` : "ابدأ سلسلة مواظبتك اليوم"}
+        <span className={`u-growth-fruit ${growth.palmFruit ? "is-on" : ""}`}>
+          {growth.palmFruit ? `النخلة تُثمر · ${arNum(growth.streak)} أيام متتالية` : "النخلة تُثمر بعد ٣ أيام متتالية"}
         </span>
         <span className={`u-growth-fruit ${growth.treeFruit ? "is-on" : ""}`}>
-          {growth.treeFruit ? "أتممت وِرد القرآن اليوم" : "وِرد القرآن لم يكتمل بعد"}
+          {growth.treeFruit ? "الرمّان أثمر: أتممت وِردك" : "الرمّان يُثمر حين تُتمّ وِردك"}
         </span>
       </div>
-      )}
       <blockquote className="u-growth-hadith">
         «…وأخبِرْهم أنّ الجنةَ طيّبةُ التُّربة، عذبةُ الماء، وأنّها قِيعان، وأنّ غِراسَها: سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر»
         <cite>رواه الترمذي (٣٤٦٢)، وحسّنه الألباني</cite>
@@ -356,7 +339,7 @@ export function UfuqHome() {
   const hour = useCurrentHour();
   const prayer = usePrayerTimes();
   const sections = React.useMemo(() => data?.db.sections ?? [], [data]);
-  const look = useNoorStore((s) => s.prefs.ufuqLook ?? "garden");
+  const look = useNoorStore((s) => s.prefs.ufuqLook ?? "live");
   const garden = look !== "plain";
 
   const hijri = React.useMemo(() => {
@@ -407,7 +390,7 @@ export function UfuqHome() {
           <div className="u-section-head">
             <h2>حديقتك</h2>
           </div>
-          <GardenGrowthCard live={look === "live"} />
+          <GardenGrowthCard />
         </>
       ) : null}
 

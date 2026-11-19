@@ -409,9 +409,10 @@
         var hint = raw && JSON.parse(raw);
         if (!hint || hint.design !== "ufuq") return;
         var hour = new Date().getHours();
-        var dark = hint.palette === "night"
-          || (hint.palette === "time" && (hour >= 18 || hour < 5))
-          || (hint.palette !== "day" && hint.palette !== "time" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var palette = hint.palette || "night";
+        var dark = palette === "night"
+          || (palette === "time" && (hour >= 18 || hour < 5))
+          || (palette === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
         var garden = hint.look !== "plain";
         var root = document.documentElement;
         root.setAttribute("data-design", "ufuq");

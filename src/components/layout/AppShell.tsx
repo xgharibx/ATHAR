@@ -22,8 +22,8 @@ import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { UfuqShell } from "@/components/ufuq/UfuqShell";
 
 /** «حديقة الليل»: the living night garden, loaded only when that theme is on. */
-const GardenBackdrop = React.lazy(() =>
-  import("@/components/ufuq/garden/GardenBackdrop").then((m) => ({ default: m.GardenBackdrop })),
+const LiveGardenBackdrop = React.lazy(() =>
+  import("@/components/ufuq/garden/LiveGardenBackdrop").then((m) => ({ default: m.LiveGardenBackdrop })),
 );
 
 /**
@@ -575,7 +575,7 @@ function ClassicAppShell() {
       {prefs.theme === "hadiqa" ? (
         <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden="true">
           <React.Suspense fallback={null}>
-            <GardenBackdrop forcedMode="night" />
+            <LiveGardenBackdrop forcedMode="night" />
           </React.Suspense>
         </div>
       ) : (

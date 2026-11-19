@@ -8,14 +8,12 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   bloomTarget,
-  lightsFor,
   isNightByNextPrayer,
   moonIllumination,
   moonPhase,
   seededRandom,
 } from "@/components/ufuq/garden/gardenMath";
-import { GardenOverlay } from "@/components/ufuq/garden/gardenOverlay";
-import { MoonLayer, MOON_IN_FILM } from "@/components/ufuq/garden/gardenMoon";
+import { GardenEngine } from "@/components/ufuq/garden/GardenEngine";
 import { FLOWER_STAGES, flowerVariants, mix, paintFlowerHead } from "@/components/ufuq/garden/gardenSprites";
 import { normalizeUfuqLook, normalizeUfuqPalette, resolveUfuqPalette, UFUQ_GARDEN_META_COLORS } from "@/lib/design";
 import { applyUfuqDesign } from "@/hooks/useApplyTheme";
@@ -78,14 +76,8 @@ describe("the garden grows", () => {
   });
 
   it("steps aside where there is no canvas", () => {
-    expect(GardenOverlay.create(document.createElement("canvas"), "night")).toBeNull();
-    expect(MoonLayer.create(document.createElement("canvas"), "/garden/moon.jpg", () => {})).toBeNull();
-  });
-
-  it("lights more fireflies with more remembrance", () => {
-    expect(lightsFor(bloomTarget(0, 0))).toBeGreaterThan(0);
-    expect(lightsFor(bloomTarget(100, 10))).toBeGreaterThan(lightsFor(bloomTarget(0, 0)));
-    expect(lightsFor(64)).toBeLessThanOrEqual(48);
+    const opts = { mode: "night" as const, blooms: 14, palmFruit: false, treeFruit: false, live: true };
+    expect(GardenEngine.create(document.createElement("canvas"), document.createElement("canvas"), opts)).toBeNull();
   });
 
   it("quotes the hadith of the seedlings of Paradise with its source", () => {
@@ -116,57 +108,34 @@ describe("the live garden", () => {
     }
     // A flower earned by a tasbeeh grows: the stem rises, then the bud opens.
     expect(engine).toContain("const opening = clamp01((age - 0.8) / 2.6)");
-    expect(read("src/components/ufuq/UfuqShell.tsx")).toContain('look === "live" ? <LiveGardenBackdrop /> : <GardenBackdrop />');
+    expect(read("src/components/ufuq/UfuqShell.tsx")).toContain("<LiveGardenBackdrop />");
   });
 });
 
-describe("the filmed garden", () => {
-  const size = (p: string) => readFileSync(resolve(process.cwd(), p)).byteLength;
-
-  it("ships a film and a still for each scene, and the Moon, within budget", () => {
-    for (const scene of ["night", "day"]) {
-      expect(size(`public/garden/${scene}.mp4`)).toBeLessThan(4.5 * 1024 * 1024);
-      expect(size(`public/garden/${scene}.jpg`)).toBeLessThan(300 * 1024);
+describe("the filmed garden is retired", () => {
+  it("ships no footage, only NASA's Moon for the drawn sky", () => {
+    for (const file of ["night.mp4", "day.mp4", "night.jpg", "day.jpg"]) {
+      expect(existsSync(resolve(process.cwd(), `public/garden/${file}`))).toBe(false);
     }
-    expect(size("public/garden/moon.jpg")).toBeLessThan(80 * 1024);
+    expect(existsSync(resolve(process.cwd(), "src/components/ufuq/garden/GardenBackdrop.tsx"))).toBe(false);
+    expect(readFileSync(resolve(process.cwd(), "public/garden/moon.jpg")).byteLength).toBeLessThan(80 * 1024);
   });
 
-  it("plays silently, inline and in a loop, with the still behind it", () => {
-    const backdrop = read("src/components/ufuq/garden/GardenBackdrop.tsx");
-    for (const attr of ["muted", "loop", "playsInline", "disablePictureInPicture", "poster={still}"]) {
-      expect(backdrop).toContain(attr);
-    }
-    expect(backdrop).toContain("u-garden-still");
-    // Autoplay may be refused: keep the still and retry on the next touch.
-    expect(backdrop).toContain('window.addEventListener("pointerdown", retry');
-  });
-
-  it("documents where every clip comes from", () => {
-    const readme = read("tools/garden-footage/README.md");
-    for (const id of ["4148", "4621", "1178", "1168", "1187", "SVS 5048"]) expect(readme).toContain(id);
-    expect(readme).toContain("Mixkit Stock Video Free License");
-  });
-
-  it("puts the moon in the band of sky the fronds sweep across, behind them", () => {
-    expect(MOON_IN_FILM.y).toBeGreaterThan(0.12);
-    expect(MOON_IN_FILM.y).toBeLessThan(0.3);
-    const moon = read("src/components/ufuq/garden/gardenMoon.ts");
-    // Masked by the film's own pixels, frame by frame.
-    expect(moon).toContain("getImageData");
-    expect(moon).toContain('"destination-in"');
-    expect(read("src/components/ufuq/garden/GardenBackdrop.tsx")).toContain("requestVideoFrameCallback");
+  it("gives anyone who had it the drawn garden instead", () => {
+    expect(normalizeUfuqLook("garden")).toBe("live");
   });
 });
 
 describe("the look and the brand", () => {
-  it("defaults to the garden inside «أفق»", () => {
-    expect(normalizeUfuqLook(undefined)).toBe("garden");
+  it("defaults to the garden, at night, inside «أفق»", () => {
+    expect(normalizeUfuqLook(undefined)).toBe("live");
+    expect(normalizeUfuqPalette(undefined)).toBe("night");
     expect(normalizeUfuqLook("plain")).toBe("plain");
     expect(normalizeUfuqPalette("time")).toBe("time");
   });
 
   it("marks the look on <html> and tints the bars with the garden's sky", () => {
-    const color = applyUfuqDesign("night", "garden");
+    const color = applyUfuqDesign("night", "live");
     expect(document.documentElement.dataset.ufuqLook).toBe("garden");
     expect(color).toBe(UFUQ_GARDEN_META_COLORS.night);
     expect(read("index.html")).toContain('root.setAttribute("data-ufuq-look"');
@@ -184,7 +153,7 @@ describe("the look and the brand", () => {
     expect(read("src/styles/globals.css")).not.toContain("ufuq-look");
     const shell = read("src/components/layout/AppShell.tsx");
     expect(shell).toContain('prefs.theme === "hadiqa"');
-    expect(shell).toContain('<GardenBackdrop forcedMode="night" />');
+    expect(shell).toContain('<LiveGardenBackdrop forcedMode="night" />');
   });
 });
 
@@ -193,7 +162,7 @@ describe("garden settings", () => {
   afterEach(() => {
     container?.remove();
     container = null;
-    useNoorStore.getState().setPrefs({ designMode: "classic", ufuqLook: "garden", gardenLive: true });
+    useNoorStore.getState().setPrefs({ designMode: "classic", ufuqLook: "live", gardenLive: true });
   });
 
   it("is found by search", () => {
