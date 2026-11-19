@@ -701,6 +701,7 @@ export type CompanionErrorKind =
   | "blocked"     // 400 content-block
   | "offline"     // network/DNS/CORS — couldn't reach proxy
   | "server"      // proxy reached but returned 5xx
+  | "unavailable" // the service itself is down (its key was refused)
   | "abort"       // user cancelled
   | "other";
 
@@ -741,9 +742,30 @@ function classifyDuck(err: { name?: string; status?: number; message?: string })
   return { kind: null, status, message };
 }
 
+/** The error type the server put in its error body, if any. */
+function serverErrorType(err: unknown): string | null {
+  const body = (err as { error?: { error?: { type?: unknown }; type?: unknown } } | null)?.error;
+  const type = body?.error?.type ?? (typeof body?.type === "string" && body.type !== "error" ? body.type : undefined);
+  return typeof type === "string" ? type : null;
+}
+
+/** Shown when the service itself is down; retrying soon will not help. */
+export const SERVICE_DOWN_MESSAGE = "خدمة «اسأل أثر» متوقفة مؤقتًا من جهتنا، ونعمل على إعادتها. جرّب بعد قليل.";
+
 export function describeError(err: unknown): CompanionError {
   if (isAbort(err)) {
     return { kind: "abort", message: "تم الإلغاء قبل أن يكتمل الرد.", detail: "user-cancelled" };
+  }
+
+  const serverType = serverErrorType(err);
+  if (serverType === "service_unavailable") {
+    return { kind: "unavailable", message: SERVICE_DOWN_MESSAGE, detail: "service-unavailable" };
+  }
+  if (serverType === "overloaded_error") {
+    return { kind: "server", message: "الخدمة مشغولة الآن — أعد المحاولة بعد لحظات.", detail: "overloaded" };
+  }
+  if (serverType === "api_error" && !(err as { status?: number })?.status) {
+    return { kind: "server", message: "تعذَّر إكمال الجواب هذه المرة — أعد المحاولة.", detail: "stream-error" };
   }
 
   // Try the SDK instance check first — the canonical path.
@@ -867,7 +889,15 @@ export type StreamCallbacks = {
    *  structured tool_use blocks the model emitted (e.g. create_reminder).
    *  Used by the UI to dispatch store actions without parsing tool markdown. */
   onToolCalls?: (calls: PersistedToolCall[]) => void | Promise<void>;
+  /** The step the server is on while it prepares the reply. */
+  onStage?: (stage: CompanionStage) => void;
+  /** Questions the server suggests asking next, on the same topic. */
+  onFollowUps?: (items: string[]) => void;
 };
+
+/** What the server is doing while the reader waits (sent as `athar_status`). */
+export type CompanionStage = "gathering" | "searching" | "writing" | "verifying";
+const STAGES: readonly CompanionStage[] = ["gathering", "searching", "writing", "verifying"];
 
 /** Build the supplemental retrieval block for the user's last message.
  *  Await the local index on a cold start so the first answer is grounded too.
@@ -961,6 +991,16 @@ export async function streamCompanionReply(
       for await (const event of stream) {
         if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
           emit(sanitizer.push(event.delta.text));
+          continue;
+        }
+        // Athar's own events: the step being worked on, and suggested
+        // follow-up questions. Older servers never send them.
+        const own = event as unknown as { type?: string; stage?: unknown; items?: unknown };
+        if (own.type === "athar_status" && STAGES.includes(own.stage as CompanionStage)) {
+          cb.onStage?.(own.stage as CompanionStage);
+        } else if (own.type === "athar_followups" && Array.isArray(own.items)) {
+          const items = own.items.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, 3);
+          if (items.length > 0) cb.onFollowUps?.(items);
         }
       }
       return stream.finalMessage();

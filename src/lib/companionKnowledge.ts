@@ -321,7 +321,7 @@ export function detectMood(text: string): string {
 
 /* ─── Verification ─────────────────────────────────────────────────── */
 
-const SURAH_RE = /(?:سورة|سورت)\s+([\u0621-\u064A]+(?:\s+[\u0621-\u064A]+)?)\s*[:\s]\s*([٠-٩0-9]+)/g;
+const SURAH_RE = /(?:سورة|سورت)\s+([\u0621-\u064A]+(?:\s+[\u0621-\u064A]+)?)\s*[:\s]\s*([٠-٩0-9]+)(?:\s*[-–]\s*([٠-٩0-9]+))?/g;
 const ARABIC_TO_NUM: Record<string, number> = { "٠":0,"١":1,"٢":2,"٣":3,"٤":4,"٥":5,"٦":6,"٧":7,"٨":8,"٩":9 };
 function toNum(s: string): number {
   s = s.trim();
@@ -754,12 +754,20 @@ export async function verifyAnswerAsync(text: string): Promise<VerificationRepor
   while ((m = SURAH_RE.exec(text))) {
     const surahName = (m[1] ?? "").trim();
     const ayah = toNum(m[2] ?? "0");
+    // A passage of several verses ("البقرة: ١٨٣-١٨٥", as the server writes a
+    // verified range) is compared with all of them together.
+    const lastAyah = m[3] ? Math.max(ayah, Math.min(toNum(m[3]), ayah + 20)) : ayah;
     const sid = SURAH_NUM[surahName];
     if (!sid) continue;
     const map = await buildQuranVerses();
     if (!map) continue;
-    const key = `${sid}:${ayah}`;
-    const expected = map.get(key);
+    const key = lastAyah > ayah ? `${sid}:${ayah}-${lastAyah}` : `${sid}:${ayah}`;
+    const parts: string[] = [];
+    for (let n = ayah; n <= lastAyah; n += 1) {
+      const verse = map.get(`${sid}:${n}`);
+      if (verse) parts.push(verse);
+    }
+    const expected = parts.length === lastAyah - ayah + 1 ? parts.join(" ") : undefined;
     if (expected) citedAyahs.push({ key, expected });
     if (!expected) {
       flags.push(`referenced verse سورة ${surahName}:${ayah} but no such ayah in local mushaf`);

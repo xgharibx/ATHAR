@@ -14,36 +14,33 @@
  *  - Onboarding micro-question after the first welcome so the AI adapts fast
  */
 import * as React from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Sparkles, Send, History, Plus, Pencil, Check, Copy, X as XIcon,
   Search, Pin, Share2, Image as ImageIcon,
-  MessageSquareQuote, Download, Star, Trash2,
+  MessageSquareQuote, Download, Star, Trash2, SlidersHorizontal, RotateCcw, SquarePen,
 } from "lucide-react";
+import { ReplyContent } from "@/components/companion/ReplyContent";
+import { replyToPlainText } from "@/lib/companionEvidence";
+import { followUpsFor } from "@/lib/companionFollowUps";
 import { toast } from "react-hot-toast";
-import ReactMarkdown from "react-markdown";
-import { isTrustedSourceUrl } from "@/lib/companionSources";
-import remarkGfm from "remark-gfm";
-import type { Components } from "react-markdown";
 import Fuse from "fuse.js";
 import { toPng } from "html-to-image";
 import { getInternalAppRoute } from "@/lib/internalAppRoute";
 import { Switch } from "@/components/ui/Switch";
 
 import {
-  ROUTE_LABELS,
   buildCompanionContext,
   buildWeeklyReflectionPrompt,
   clearMemory,
   isCompanionReady,
   streamCompanionReply,
+  type CompanionError,
   type CompanionMessage,
+  type CompanionStage,
   type PersistedToolCall,
   type VerificationReport,
 } from "@/lib/companionAI";
-import {
-  splitIntoSegments,
-} from "@/lib/companionBlocks";
 import {
   exportConversationText,
   groupConversationsByRecency,
@@ -193,11 +190,11 @@ function CompanionStatusChip({ state, onRefresh }: {
     <button
       type="button"
       onClick={onRefresh}
-      className="flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[10.5px] font-semibold text-amber-300 hover:opacity-100 transition"
+      className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[10.5px] font-semibold text-amber-500 hover:opacity-100 transition"
       title={state.reason}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-      <span>الذكاء غير متاح</span>
+      <span>متوقف مؤقتًا</span>
     </button>
   );
 }
@@ -239,6 +236,12 @@ export function CompanionPage() {
   const [streamingText, setStreamingText] = React.useState<string | null>(null);
   const [followUps, setFollowUps] = React.useState<string[]>([]);
   const [verification, setVerification] = React.useState<VerificationReport | null>(null);
+  /** The step the server reports while the reader waits. */
+  const [stages, setStages] = React.useState<CompanionStage[]>([]);
+  /** The last failed question, shown in the chat with a way to send it again. */
+  const [failure, setFailure] = React.useState<{ question: string; error: CompanionError } | null>(null);
+  const [showSettings, setShowSettings] = React.useState(false);
+  const serverFollowUpsRef = React.useRef<string[]>([]);
 
   const [profile, setProfile] = React.useState<CompanionProfile>(() => loadProfile());
   const [showOnboarding, setShowOnboarding] = React.useState(false);
@@ -393,35 +396,8 @@ export function CompanionPage() {
     }).then(refreshHistory);
   }, [messages, refreshHistory]);
 
-  const generateFollowUps = React.useCallback((lastUser: string, reply: string): string[] => {
-    const text = `${lastUser} ${reply}`;
-    const lower = text.toLowerCase();
-    const candidates: Array<[RegExp, string]> = [
-      [/صبر|ابتلاء|همّ|حزن|مصيبة/, "ادعُ لي بالصبر على الابتلاء"],
-      [/شكر|حمد|سعادة|فرح/, "اقترح لي أذكارًا للشكر"],
-      [/استغفر|توبة|ذنب|مقصّر/, "علّمني بابًا من أبواب التوبة العمليّة"],
-      [/آية|تدبر|قرآن|سورة/, "اقترح آية قصيرة عن حالي"],
-      [/صلاة|ركوع|سجود|إمام/, "علِّمني دعاءً يقال بعد الصلاة"],
-      [/سبح|تسبيح|ذكر|استغفار/, "ما أفضل صيغ التسبيح الآن؟"],
-      [/موت|ميت|فقد|فقدت/, "ادعُ لي ولأهلي ولمن فقدتهم"],
-      [/قلق|خوف|همّ|ضيق|أرق/, "اقترح دعاءً يصرف الهم"],
-      [/دراسة|امتحان|دراسة|عمل/, "ادعُ لي بالتيسير والتوفيق"],
-      [/زواج|خطبة|زوجه/, "اقترح دعاءً للتوفيق في أمر الزواج"],
-      [/رزق|مال|عمل/, "ما أفضل دعاء لتوسعة الرزق؟"],
-      [/ابن|بنت|ولد|أطفال/, "علّمني كيف أعلّم أطفالي الصلاة"],
-      [/بر|أم|أب|والدين/, "ما فضل بر الوالدين عمليًا؟"],
-    ];
-    const matches = candidates.filter(([re]) => re.test(lower)).map(([, q]) => q);
-    const fallbacks = ["اقترح آية قصيرة عن حالي", "علِّمني دعاءً مأثورًا اليومي", "ادعُ لي ولأهلي"];
-    const out: string[] = [];
-    for (const q of [...matches, ...fallbacks]) {
-      if (!out.includes(q)) out.push(q);
-      if (out.length === 3) break;
-    }
-    return out;
-  }, []);
 
-  const send = React.useCallback(async (text: string, consentApproved = false) => {
+  const send = React.useCallback(async (text: string, consentApproved = false, base?: CompanionMessage[]) => {
     const trimmed = text.trim();
     if (!trimmed || busyRef.current) return;
     if (!isCompanionReady()) {
@@ -436,7 +412,7 @@ export function CompanionPage() {
     busyRef.current = true;
     const controller = new AbortController();
     abortRef.current = controller;
-    const history: CompanionMessage[] = [...messages, { role: "user", content: trimmed }];
+    const history: CompanionMessage[] = [...(base ?? messages), { role: "user", content: trimmed }];
     // Ensure the conversation id exists synchronously (not only via the
     // debounced "save full conversation" effect below) so the very first
     // streamed chunk can already be checkpointed for partial-stream recovery.
@@ -450,6 +426,9 @@ export function CompanionPage() {
     setStreamingText("");
     setFollowUps([]);
     setVerification(null);
+    setStages([]);
+    setFailure(null);
+    serverFollowUpsRef.current = [];
 
     let acc = "";
     let done = false;
@@ -473,17 +452,17 @@ export function CompanionPage() {
             setMessages((m) => [...m, { role: "assistant", content: withIds }]);
             setVerification(report);
             setStreamingText(null);
+            setStages([]);
             clearPartialStream();
-            setFollowUps(generateFollowUps(trimmed, fullText));
+            setFollowUps(followUpsFor(serverFollowUpsRef.current, trimmed));
           },
+          onStage: (next) => setStages((cur) => (cur.includes(next) ? cur : [...cur, next])),
+          onFollowUps: (items) => { serverFollowUpsRef.current = items; },
           onError: (err) => {
-            // Show a diagnostic toast + update the health chip so the user
-            // can see that AI is offline + retry when ready.
-            const msg = err?.message ?? "حدث خطأ غير متوقع";
-            toast.error(msg, { duration: 4500 });
-            if (err?.kind === "offline" || err?.kind === "no-proxy") {
-              setAiHealth({ status: "unreachable", at: Date.now(), reason: err.detail ?? err.kind, latencyMs: 0 });
-            } else if (err?.kind === "server") {
+            // The failure stays in the chat, under the question, with a way
+            // to send it again; the header chip shows the service is down.
+            if (err.kind !== "abort") setFailure({ question: trimmed, error: err });
+            if (err.kind === "offline" || err.kind === "no-proxy" || err.kind === "server" || err.kind === "unavailable") {
               setAiHealth({ status: "unreachable", at: Date.now(), reason: err.detail ?? err.kind, latencyMs: 0 });
             }
             if (acc.trim()) {
@@ -491,6 +470,7 @@ export function CompanionPage() {
               setPartialStopped(true);
             }
             setStreamingText(null);
+            setStages([]);
             clearPartialStream();
           },
           onToolCalls: async (calls: PersistedToolCall[]) => {
@@ -551,7 +531,15 @@ export function CompanionPage() {
         clearPartialStream();
       }
     }
-  }, [generateFollowUps, messages]);
+  }, [messages]);
+
+  /** Sends the failed question again, in place of the one already shown. */
+  const retryFailed = () => {
+    if (!failure) return;
+    const last = messages[messages.length - 1];
+    const base = last?.role === "user" && last.content === failure.question ? messages.slice(0, -1) : messages;
+    void send(failure.question, false, base);
+  };
 
   const approveAiSharing = React.useCallback(() => {
     const message = pendingConsentMessage;
@@ -645,7 +633,8 @@ export function CompanionPage() {
     try {
       const node = document.createElement("div");
       node.style.cssText = "padding:32px;background:linear-gradient(160deg,#0f3a2e,#1f6049);color:#fff;font-family:'Noto Naskh Arabic',serif;direction:rtl;width:520px;border-radius:24px;line-height:1.9;box-shadow:0 10px 60px rgba(0,0,0,.45)";
-      node.innerHTML = `<div style="font-size:22px;font-weight:700;color:#a7f3d0;margin-bottom:14px">✨ أثر</div><div style="font-size:18px;white-space:pre-wrap">${text.replace(/</g, "&lt;")}</div><div style="margin-top:18px;font-size:12px;opacity:.6">athark.org</div>`;
+      const plain = replyToPlainText(text).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      node.innerHTML = `<div style="font-size:22px;font-weight:700;color:#a7f3d0;margin-bottom:14px">✨ أثر</div><div style="font-size:18px;white-space:pre-wrap">${plain}</div><div style="margin-top:18px;font-size:12px;opacity:.6">athark.org</div>`;
       document.body.appendChild(node);
       const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2 });
       document.body.removeChild(node);
@@ -695,11 +684,19 @@ export function CompanionPage() {
               <h1 className="flex items-center gap-2 text-lg font-bold text-(--fg)">
                 أثر
               </h1>
-              <CompanionStatusChip state={aiHealth} onRefresh={refreshAiHealth} />
+              {aiHealth.status === "unreachable" ? <CompanionStatusChip state={aiHealth} onRefresh={refreshAiHealth} /> : null}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {messages.length > 0 && !isBusy ? (
+            <button type="button"
+              onClick={startNewChat}
+              aria-label="محادثة جديدة"
+              className="rounded-xl border border-(--stroke) bg-(--card) p-2.5 hover:bg-(--card-2) transition">
+              <SquarePen className="h-4 w-4" aria-hidden="true" />
+            </button>
+          ) : null}
           <button type="button"
             onClick={() => setShowPins(true)}
             aria-label="الإجابات المثبَّتة"
@@ -718,26 +715,22 @@ export function CompanionPage() {
             <History className="h-4 w-4" aria-hidden="true" />
           </button>
           <button type="button"
-            onClick={() => { clearMemory(); toast("تم مسح الذاكرة", { icon: "🧹" }); }}
-            aria-label="مسح الذاكرة"
+            onClick={() => setShowSettings(true)}
+            aria-label="إعدادات أثر"
             className="rounded-xl border border-(--stroke) bg-(--card) p-2.5 hover:bg-(--card-2) transition">
-            <Sparkles className="h-4 w-4 opacity-70" aria-hidden="true" />
+            <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       </div>
 
-      <div className="mt-2 stack-y-2 rounded-2xl border border-(--stroke) bg-(--card) p-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-(--fg)">تخصيص الردود بسياقي الشخصي</p>
-          </div>
-          <Switch
-            aria-label="تخصيص الردود بسياقي الشخصي"
-            checked={profile.includePersonalContext}
-            onCheckedChange={(checked) => setProfile(updateProfile({ includePersonalContext: checked }))}
-          />
-        </div>
-      </div>
+      <CompanionSettingsSheet
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        profile={profile}
+        onProfileChange={(patch: Partial<CompanionProfile>) => setProfile(updateProfile(patch))}
+        onEditProfile={() => { setShowSettings(false); setShowOnboarding(true); }}
+        onClearMemory={() => { clearMemory(); toast("مُسحت ذاكرة الأسئلة", { icon: "🧹" }); }}
+      />
 
       {/* History slide-over */}
       {showHistory ? (
@@ -1048,7 +1041,25 @@ export function CompanionPage() {
         {streamingText !== null ? (
           streamingText
             ? <MessageBubble role="assistant" text={streamingText} streaming tokens={countTokens(streamingText)} />
-            : <ThinkingIndicator onStop={stop} />
+            : <ThinkingIndicator stages={stages} onStop={stop} />
+        ) : null}
+        {failure && !isBusy ? (
+          <div role="alert" className="flex items-start gap-3 rounded-2xl border border-amber-500/35 bg-amber-500/10 p-3.5">
+            <span aria-hidden="true" className="mt-0.5 text-base">⚠️</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px] leading-6 text-(--fg)">{failure.error.message}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button type="button" onClick={retryFailed}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-(--accent) px-3 py-1.5 text-xs font-bold text-black/80 active:scale-95 transition">
+                  <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> أعد المحاولة
+                </button>
+                <button type="button" onClick={() => setFailure(null)}
+                  className="rounded-xl border border-(--stroke) px-3 py-1.5 text-xs text-(--muted) hover:text-(--fg) transition">
+                  إخفاء
+                </button>
+              </div>
+            </div>
+          </div>
         ) : null}
         {verification?.flagged && streamingText === null ? (
           <div role="status" className="flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
@@ -1218,9 +1229,110 @@ function OnboardingCard({ onDone, onSkip, initial }: { onDone: (p: Partial<Compa
   );
 }
 
+/* ─── Settings sheet ─────────────────────────────────────────────────────── */
+
+/**
+ * What used to sit on the page itself (the personal-context switch) and
+ * behind an unlabelled icon (wiping the question memory in one tap), in one
+ * place: what «أثر» may know about you, editing what you told it, and
+ * forgetting it — with a confirmation, since it cannot be undone.
+ */
+export function CompanionSettingsSheet(props: {
+  open: boolean;
+  onClose: () => void;
+  profile: CompanionProfile;
+  onProfileChange: (patch: Partial<CompanionProfile>) => void;
+  onEditProfile: () => void;
+  onClearMemory: () => void;
+}) {
+  // Mounted only while open, so a half-made confirmation never outlives it.
+  return props.open ? <SettingsSheetBody {...props} /> : null;
+}
+
+function SettingsSheetBody(props: Parameters<typeof CompanionSettingsSheet>[0]) {
+  const [confirmClear, setConfirmClear] = React.useState(false);
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center" dir="rtl">
+      <button type="button" aria-label="إغلاق" onClick={props.onClose} className="absolute inset-0 bg-black/55 backdrop-blur-sm" />
+      <div
+        role="dialog"
+        aria-label="إعدادات أثر"
+        className="relative w-full max-w-lg rounded-t-3xl border border-(--stroke) bg-(--bg) p-4 shadow-2xl"
+        style={{ paddingBottom: "calc(var(--sab, 0px) + 16px)" }}
+      >
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-(--stroke)" aria-hidden="true" />
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-(--fg)">إعدادات أثر</h2>
+          <button type="button" onClick={props.onClose} aria-label="إغلاق" className="rounded-lg p-1.5 hover:bg-(--card-2) transition">
+            <XIcon className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="stack-y-2">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card) p-3">
+            <div className="min-w-0">
+              <p className="text-[13px] font-semibold text-(--fg)">تخصيص الردود بسياقي الشخصي</p>
+              <p className="mt-0.5 text-[11.5px] leading-5 text-(--muted-2)">ورد اليوم وأذكارك وسلسلتك، ليقترح ما يناسب يومك.</p>
+            </div>
+            <Switch
+              aria-label="تخصيص الردود بسياقي الشخصي"
+              checked={props.profile.includePersonalContext}
+              onCheckedChange={(checked) => props.onProfileChange({ includePersonalContext: checked })}
+            />
+          </div>
+
+          <button type="button" onClick={props.onEditProfile}
+            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-(--stroke) bg-(--card) p-3 text-start transition hover:bg-(--card-2)">
+            <span className="min-w-0">
+              <span className="block text-[13px] font-semibold text-(--fg)">عرِّف أثر بنفسك</span>
+              <span className="mt-0.5 block text-[11.5px] text-(--muted-2)">
+                {props.profile.greetingName ? `${props.profile.greetingName} · ` : ""}{LEVEL_LABEL[props.profile.level]}
+              </span>
+            </span>
+            <Pencil className="h-4 w-4 shrink-0 text-(--muted)" aria-hidden="true" />
+          </button>
+
+          <div className="rounded-2xl border border-(--stroke) bg-(--card) p-3">
+            <p className="text-[13px] font-semibold text-(--fg)">ذاكرة الأسئلة</p>
+            <p className="mt-0.5 text-[11.5px] leading-5 text-(--muted-2)">يتذكّر أثر عناوين أسئلتك الأخيرة ليفهم سياقك. محفوظة على جهازك فقط.</p>
+            {confirmClear ? (
+              <div className="mt-2 flex items-center gap-2">
+                <button type="button"
+                  onClick={() => { props.onClearMemory(); setConfirmClear(false); }}
+                  className="rounded-xl bg-red-500/15 px-3 py-1.5 text-xs font-bold text-red-500 transition hover:bg-red-500/25">
+                  نعم، امسحها
+                </button>
+                <button type="button" onClick={() => setConfirmClear(false)} className="rounded-xl px-3 py-1.5 text-xs text-(--muted)">
+                  إلغاء
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setConfirmClear(true)}
+                className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-(--stroke) px-3 py-1.5 text-xs text-(--muted) transition hover:text-red-500">
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> مسح الذاكرة
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Thinking indicator with stop button + speaking state ──────────────── */
 
-function ThinkingIndicator({ onStop }: { onStop: () => void }) {
+/** What the reader is told at each step the server reports. */
+const STAGE_STEPS: Array<{ stage: CompanionStage; label: string }> = [
+  { stage: "gathering", label: "يجمع الأدلة من القرآن والسنة" },
+  { stage: "searching", label: "يراجع المصادر الموثوقة" },
+  { stage: "writing", label: "يكتب الجواب" },
+  { stage: "verifying", label: "يتحقق من الآيات والأحاديث" },
+];
+
+export function ThinkingIndicator({ stages, onStop }: { stages: CompanionStage[]; onStop: () => void }) {
+  // Steps the server has reached. "searching" only shows when a search runs.
+  const steps = STAGE_STEPS.filter((step) => stages.includes(step.stage));
+  const current = steps[steps.length - 1];
   return (
     <div className="relative overflow-hidden rounded-2xl border border-accent-35 bg-linear-to-br from-accent-15 via-(--card) to-(--card) px-4 py-3.5 shadow-[0_0_24px_-6px_var(--accent)]">
       {/* Sweeping gradient stripe */}
@@ -1245,8 +1357,8 @@ function ThinkingIndicator({ onStop }: { onStop: () => void }) {
             <Sparkles className="relative h-4 w-4 text-emerald-100" aria-hidden="true" />
           </span>
           <div className="flex flex-col">
-            <span className="text-[11px] font-bold text-(--fg)">
-              يفكّر معك الآن
+            <span className="text-[12px] font-bold text-(--fg)" aria-live="polite">
+              {current ? `${current.label}…` : "يقرأ سؤالك…"}
             </span>
             <span className="text-[10px] text-(--muted-2) flex items-center gap-1">
               <span
@@ -1269,6 +1381,16 @@ function ThinkingIndicator({ onStop }: { onStop: () => void }) {
           إيقاف
         </button>
       </div>
+      {steps.length > 1 ? (
+        <ol className="relative mt-2.5 flex flex-wrap gap-x-3 gap-y-1 ps-[52px] text-[10.5px] text-(--muted-2)">
+          {steps.slice(0, -1).map((step) => (
+            <li key={step.stage} className="flex items-center gap-1">
+              <Check className="h-3 w-3 text-(--accent)" aria-hidden="true" />
+              {step.label}
+            </li>
+          ))}
+        </ol>
+      ) : null}
       <style>{`@keyframes athar-orb-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } } @keyframes athar-pulse { 0%, 100% { opacity: 0.3; transform: scale(0.85) } 50% { opacity: 1; transform: scale(1.1) } } @keyframes athar-thinking-sweep { 0% { transform: translateX(-100%) } 100% { transform: translateX(300%) } }`}</style>
     </div>
   );
@@ -1288,8 +1410,8 @@ function MessageBubble(props: {
   const isUser = props.role === "user";
   const [copied, setCopied] = React.useState(false);
   const copy = React.useCallback(async () => {
-    try { await writeClipboard(props.text); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
-  }, [props.text]);
+    try { await writeClipboard(isUser ? props.text : replyToPlainText(props.text)); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
+  }, [props.text, isUser]);
 
   if (isUser) {
     return (
@@ -1321,8 +1443,6 @@ function MessageBubble(props: {
             <button type="button" onClick={props.onShare} className="flex items-center gap-1 hover:text-(--fg) transition" aria-label="مشاركة كصورة">
               <ImageIcon className="h-3 w-3" aria-hidden="true" /> صورة
             </button>
-            <span className="opacity-30">·</span>
-            <ReminderFooterLink />
           </div>
         ) : null}
       </div>
@@ -1344,29 +1464,6 @@ function navigateRoute(route: string) {
 }
 
 /* ─── Bubble content: pre-split into text / callout / action segments ─── */
-
-const CALLOUT_STYLES: Record<string, { border: string; bg: string; label: string; icon: string; accent: string }> = {
-  verse: { border: "border-sky-400/50", bg: "bg-sky-500/10", label: "آية", icon: "📖", accent: "text-sky-200" },
-  hadith: { border: "border-emerald-400/50", bg: "bg-emerald-500/10", label: "حديث", icon: "📜", accent: "text-emerald-200" },
-  dua: { border: "border-rose-400/50", bg: "bg-rose-500/10", label: "دعاء", icon: "🤲", accent: "text-rose-200" },
-  tip: { border: "border-amber-400/50", bg: "bg-amber-500/10", label: "نصيحة", icon: "💡", accent: "text-amber-200" },
-  warn: { border: "border-red-400/50", bg: "bg-red-500/10", label: "تنبيه", icon: "⚠️", accent: "text-red-200" },
-  info: { border: "border-violet-400/50", bg: "bg-violet-500/10", label: "معلومة", icon: "ℹ️", accent: "text-violet-200" },
-  cite: { border: "border-cyan-400/50", bg: "bg-cyan-500/10", label: "مرجع", icon: "🔗", accent: "text-cyan-200" },
-};
-
-function CalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; children: React.ReactNode }) {
-  const style = CALLOUT_STYLES[kind];
-  return (
-    <div className={["my-2 overflow-hidden rounded-2xl border", style.border, style.bg].join(" ")}>
-      <div className={["flex items-center gap-1.5 px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-wider", style.accent].join(" ")}>
-        <span aria-hidden="true">{style.icon}</span>
-        <span>{style.label}</span>
-      </div>
-      <div className="arabic-text px-3 pb-3 pt-1 text-[15.5px] leading-8 text-(--fg) whitespace-pre-wrap">{children}</div>
-    </div>
-  );
-}
 
 /* ─── AI-created custom reminder chip ──────────────────────────────────── */
 
@@ -1553,28 +1650,6 @@ function ReminderFooterLink() {
   );
 }
 
-function ActionButton({ route, children }: { route: string; children: React.ReactNode }) {
-  const label = ROUTE_LABELS[route] ?? route;
-  return (
-    <button
-      type="button"
-      onClick={() => navigateRoute(route)}
-      className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-2xl border border-accent-35 bg-linear-to-br from-emerald-500/15 to-teal-500/10 px-3.5 py-2.5 text-start text-sm font-semibold text-emerald-100 shadow-xs transition hover:border-emerald-400/60 hover:from-emerald-500/25 hover:to-teal-500/15 active:scale-[0.99]"
-    >
-      <span className="flex items-center gap-2">
-        <span className="grid h-7 w-7 place-items-center rounded-xl bg-emerald-500/30 text-emerald-100">
-          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-        </span>
-        <span>{children}</span>
-      </span>
-      <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-emerald-300/80">
-        <span>{label}</span>
-        <span className="transition group-hover:-translate-x-0.5">←</span>
-      </span>
-    </button>
-  );
-}
-
 /** Resolves a parsed reminder chip back to its live store entry. Prefers the
  *  real store id (round-tripped via companionReminderBlocks.ts) so two
  *  reminders sharing a title can never resolve to the wrong one; falls back
@@ -1591,28 +1666,11 @@ function resolveActualReminderPage(r: ParsedReminderView | undefined) {
 }
 
 function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: boolean; tokens?: number }) {
-  const segments = React.useMemo(() => splitIntoSegments(text), [text]);
   const reminders = React.useMemo(() => (streaming ? [] : parseReminderToolCallsPage(text)), [text, streaming]);
   const navigate = useNavigate();
   return (
     <>
-      {segments.map((seg, i) => {
-        if (seg.kind === "callout") {
-          return (
-            <CalloutBlock key={`c-${i}`} kind={seg.calloutKind}>
-              {seg.text}
-            </CalloutBlock>
-          );
-        }
-        if (seg.kind === "action") {
-          return <ActionButton key={`a-${i}`} route={seg.route}>{seg.label}</ActionButton>;
-        }
-        return (
-          <ReactMarkdown key={`t-${i}`} remarkPlugins={[remarkGfm]} components={markdownComponents}>
-            {seg.text}
-          </ReactMarkdown>
-        );
-      })}
+      <ReplyContent text={text} onNavigate={navigateRoute} />
       {!streaming && reminders.length > 0 ? (
         <div className="mt-2 stack-y-1.5">
           {reminders.map((r) => (
@@ -1685,43 +1743,6 @@ function countTokens(text: string): number {
   if (!trimmed) return 0;
   return trimmed.split(/\s+/).length;
 }
-
-const markdownComponents: Components = {
-  a: ({ href, children }) => {
-    const to = href ?? "";
-    const safeRoute = getInternalAppRoute(to);
-    if (safeRoute) {
-      return (
-        <Link to={safeRoute} className="mx-0.5 inline-block rounded-lg bg-accent-15 px-2 py-0.5 text-xs font-semibold text-(--accent) underline-offset-2 hover:underline">
-          {children}
-        </Link>
-      );
-    }
-    // Only links to the trusted source list are clickable; anything else the
-    // model writes is shown as plain text.
-    if (!isTrustedSourceUrl(to)) return <span>{children}</span>;
-    return (
-      <a href={to} target="_blank" rel="noopener noreferrer" className="text-(--accent) underline underline-offset-2">
-        {children}
-      </a>
-    );
-  },
-  h1: ({ children }) => <h3 className="mb-2 mt-3 text-base font-bold text-(--fg) first:mt-0">{children}</h3>,
-  h2: ({ children }) => <h4 className="mb-2 mt-3 text-[15px] font-bold text-(--fg) first:mt-0">{children}</h4>,
-  h3: ({ children }) => <h5 className="mb-1.5 mt-2 text-[14px] font-bold text-(--accent) first:mt-0">{children}</h5>,
-  p: ({ children }) => <p className="mb-2 last:mb-0 leading-7">{children}</p>,
-  strong: ({ children }) => <strong className="font-bold text-(--fg)">{children}</strong>,
-  em: ({ children }) => <em className="italic text-(--accent)">{children}</em>,
-  ul: ({ children }) => <ul className="mb-2.5 me-5 list-disc stack-y-1.5 last:mb-0 marker:text-(--accent)">{children}</ul>,
-  ol: ({ children }) => <ol className="mb-2.5 me-5 list-decimal stack-y-1.5 last:mb-0 marker:text-(--accent) marker:font-bold">{children}</ol>,
-  li: ({ children }) => <li className="leading-7">{children}</li>,
-  blockquote: ({ children }) => (
-    <blockquote className="my-2.5 rounded-xl border-s-4 border-accent-35 bg-accent-8 ps-3 pe-2 py-2 text-(--muted)">{children}</blockquote>
-  ),
-  code: ({ children }) => <code className="rounded-sm bg-(--card-2) px-1 py-0.5 font-mono text-[12px]" dir="ltr">{children}</code>,
-  pre: ({ children }) => <pre className="my-2 overflow-x-auto rounded-lg bg-(--card-2) p-3 text-xs leading-6" dir="ltr">{children}</pre>,
-  hr: () => <hr className="my-3 border-(--stroke)" />,
-};
 
 /* ─── Conversation history grouping + export helpers (in lib) ────────────── */
 
@@ -1993,16 +2014,18 @@ function HistoryItem(props: {
 function PinnedReplyCard({ pin, onDelete }: { pin: PinnedReply; onDelete: () => void }) {
   const [copied, setCopied] = React.useState(false);
   const copy = async () => {
-    try { await writeClipboard(pin.text); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
+    try { await writeClipboard(replyToPlainText(pin.text)); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
   };
   const share = async () => {
     try {
-      await shareOrCopy(pin.text, { title: "أثر" });
+      await shareOrCopy(replyToPlainText(pin.text), { title: "أثر" });
     } catch { /* user cancelled */ }
   };
   return (
     <div className="rounded-2xl border border-amber-300/30 bg-linear-to-br from-amber-500/10 via-(--card)/40 to-(--card)/40 backdrop-blur-xl p-3">
-      <p className="whitespace-pre-wrap text-[12.5px] leading-6 text-(--fg) line-clamp-6">{pin.text}</p>
+      <div className="max-h-72 overflow-hidden text-[13px] leading-6 text-(--fg) [mask-image:linear-gradient(to_bottom,black_80%,transparent)]">
+        <ReplyContent text={pin.text} size="compact" onNavigate={navigateRoute} />
+      </div>
       <div className="mt-2 flex items-center gap-1 text-[11px] text-(--muted-2)">
         <button type="button" onClick={copy} className="flex items-center gap-1 hover:text-(--fg) transition" aria-label="نسخ">
           {copied ? <Check className="h-3 w-3 text-(--ok)" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}

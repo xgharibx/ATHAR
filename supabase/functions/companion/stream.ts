@@ -35,6 +35,8 @@ export type StreamState = {
   /** Closing events of text blocks, held until the reply has been finalized. */
   heldStops: string[];
   released: boolean;
+  /** Called once, when the finished reply starts being verified. */
+  onVerify?: () => void;
 };
 
 export function newStreamState(): StreamState {
@@ -49,6 +51,7 @@ export function newStreamState(): StreamState {
 async function releaseReply(state: StreamState, finalize: Finalize): Promise<string> {
   if (state.released || state.texts.size === 0) return "";
   state.released = true;
+  state.onVerify?.();
   const indexes = Array.from(state.texts.keys()).sort((a, b) => a - b);
   const raw = indexes.map((index) => state.texts.get(index) ?? "").filter((text) => text.trim()).join(BLOCK_SEPARATOR);
   const text = await finalize(raw);
@@ -87,10 +90,11 @@ export async function guardSseEvent(raw: string, finalize: Finalize, state: Stre
   return `${raw}\n\n`;
 }
 
-export function guardSseStream(upstream: ReadableStream<Uint8Array>, finalize: Finalize): ReadableStream<Uint8Array> {
+export function guardSseStream(upstream: ReadableStream<Uint8Array>, finalize: Finalize, onVerify?: () => void): ReadableStream<Uint8Array> {
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   const state = newStreamState();
+  state.onVerify = onVerify;
   let buffer = "";
   const reader = upstream.getReader();
   return new ReadableStream<Uint8Array>({
