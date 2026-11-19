@@ -120,6 +120,18 @@ const IjazRefute        = React.lazy(() => import("@/ijaz/pages/IjazRefute"));
 const IjazTimeline      = React.lazy(() => import("@/ijaz/pages/IjazTimeline"));
 const IjazVerseExplorer = React.lazy(() => import("@/ijaz/pages/IjazVerseExplorer"));
 const IjazSearch        = React.lazy(() => import("@/ijaz/pages/IjazSearch"));
+const ListenHomePage = React.lazy(() => import("@/pages/listen/ListenHome").then((m) => ({ default: m.ListenHomePage })));
+const ListenReciterPage = React.lazy(() => import("@/pages/listen/ListenReciter").then((m) => ({ default: m.ListenReciterPage })));
+const ListenRecitersPage = React.lazy(() => import("@/pages/listen/ListenReciter").then((m) => ({ default: m.ListenRecitersPage })));
+const ListenStatsPage = React.lazy(() => import("@/pages/listen/ListenStats").then((m) => ({ default: m.ListenStatsPage })));
+const ListenSurahPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenSurahPage })));
+const ListenGoldenPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenGoldenPage })));
+const ListenQiyamIndexPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenQiyamIndexPage })));
+const ListenQiyamPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenQiyamPage })));
+const ListenTawasheehPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenTawasheehPage })));
+const ListenAlbumPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenAlbumPage })));
+const ListenFavoritesPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenFavoritesPage })));
+const ListenPlaylistPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenPlaylistPage })));
 
 export default function App() {
   const accountScope = useCloudSync();
@@ -604,6 +616,18 @@ function AppContent() {
           <Route path="shorts" element={<S><ShortsPage /></S>} />
           <Route path="quran" element={<S><QuranPage /></S>} />
           <Route path="quran/plans" element={<S><QuranPlansPage /></S>} />
+          <Route path="listen" element={<S><ListenHomePage /></S>} />
+          <Route path="listen/reciters" element={<S><ListenRecitersPage /></S>} />
+          <Route path="listen/reciter/:id" element={<S><ListenReciterPage /></S>} />
+          <Route path="listen/surah/:n" element={<S><ListenSurahPage /></S>} />
+          <Route path="listen/golden" element={<S><ListenGoldenPage /></S>} />
+          <Route path="listen/qiyam" element={<S><ListenQiyamIndexPage /></S>} />
+          <Route path="listen/qiyam/:id" element={<S><ListenQiyamPage /></S>} />
+          <Route path="listen/tawasheeh" element={<S><ListenTawasheehPage /></S>} />
+          <Route path="listen/album/:id" element={<S><ListenAlbumPage /></S>} />
+          <Route path="listen/favorites" element={<S><ListenFavoritesPage /></S>} />
+          <Route path="listen/playlist/:id" element={<S><ListenPlaylistPage /></S>} />
+          <Route path="listen/stats" element={<S><ListenStatsPage /></S>} />
           <Route path="qadaa" element={<S><QadaaPage /></S>} />
           <Route path="wird" element={<S><WirdPage /></S>} />
           <Route path="muhasaba" element={<S><MuhasabaPage /></S>} />

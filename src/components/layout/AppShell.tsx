@@ -16,6 +16,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { LogoMark } from "@/components/brand/LogoMark";
 import { GardenOrnaments } from "@/components/brand/GardenOrnaments";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
+import { ListenMiniPlayer } from "@/components/listen/MiniPlayer";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { UpdatePill } from "@/components/layout/UpdatePill";
 import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
@@ -516,6 +517,8 @@ function ClassicAppShell() {
       "/": "الرئيسية",
       "/quran": "القرآن الكريم",
       "/quran/plans": "خطط التلاوة",
+      "/listen": "السماع",
+      "/listen/stats": "أثر سماعك",
       "/sebha": "السبحة الرقمية",
       "/companion": "أثر — رفيقك الذكي",
       "/library/sharh": "الموسوعة الحديثية",
@@ -602,6 +605,9 @@ function ClassicAppShell() {
       <React.Suspense fallback={null}>
         <QuranRadioFab drawerOpen={drawerOpen} />
       </React.Suspense>
+
+      {/* «السماع»: what is playing, above the bottom bar */}
+      <ListenMiniPlayer />
 
       {/* Top Bar */}
       <header ref={topBarRef} className="sticky top-0 z-30" style={{ paddingTop: "var(--sat)" }}>

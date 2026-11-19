@@ -27,6 +27,7 @@ import { arNum } from "@/lib/formatNumber";
 import { shareText } from "@/lib/shareTargets";
 import { getHomeAdhkarAction } from "@/lib/homeTimeActions";
 import { trackUxEvent } from "@/lib/uxMetrics";
+import { ListenEntry } from "@/components/listen/ListenEntry";
 import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
 import { PRAYER_KEYS, skyPhaseFor, ufuqClock, ufuqGreeting, untilLabel } from "@/components/ufuq/ufuqTime";
 
@@ -393,6 +394,11 @@ export function UfuqHome() {
           <GardenGrowthCard />
         </>
       ) : null}
+
+      <div className="u-section-head">
+        <h2>السماع</h2>
+      </div>
+      <ListenEntry />
 
       <div className="u-section-head">
         <h2>من كتاب الله</h2>

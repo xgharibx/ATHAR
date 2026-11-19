@@ -17,6 +17,7 @@ import {
   CalendarCheck,
   Scale,
   TimerReset,
+  Headphones,
 } from "lucide-react";
 
 import { useStartupReady } from "@/hooks/useStartupReady";
@@ -244,6 +245,22 @@ function HomeRadioButton() {
       {radio.playing && (
         <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0" style={{ background: "var(--ok)" }} />
       )}
+    </button>
+  );
+}
+
+/** «السماع», next to the radio: the whole Quran in the voices of the world's reciters. */
+function HomeListenButton() {
+  const navigate = useNavigate();
+  return (
+    <button type="button"
+      onClick={() => navigate("/listen")}
+      aria-label="السماع: القرآن كاملًا بأصوات القرّاء"
+      className="press-effect inline-flex items-center gap-1.5 px-3 h-9 rounded-2xl border transition-all shrink-0"
+      style={{ background: "color-mix(in srgb, var(--accent) 14%, var(--card))", borderColor: "color-mix(in srgb, var(--accent) 40%, transparent)", color: "var(--accent)" }}
+    >
+      <Headphones size={14} aria-hidden="true" className="shrink-0" />
+      <span className="text-xs font-semibold whitespace-nowrap">السماع</span>
     </button>
   );
 }
@@ -1023,6 +1040,7 @@ export function HomePage() {
                 ) : null}
                 <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:sebha"); navigate("/sebha"); }}>السبحة</Button>
                 <HomeRadioButton />
+                <HomeListenButton />
                 <button type="button"
                   onClick={onRandom}
                   aria-label="ذكر عشوائي"

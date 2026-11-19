@@ -14,7 +14,7 @@ import type { MediaSessionAction, MediaSessionPlaybackState, MetadataOptions } f
  * and only the current owner can update or release it, so the recitation and
  * the radio never overwrite each other's controls.
  */
-export type MediaOwner = "quran" | "radio";
+export type MediaOwner = "quran" | "radio" | "listen";
 export type MediaHandlers = Partial<Record<Extract<MediaSessionAction, "play" | "pause" | "stop" | "nexttrack" | "previoustrack">, () => void>>;
 export type NowPlaying = { title: string; artist?: string; album?: string };
 

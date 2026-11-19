@@ -274,6 +274,9 @@ export function CommandPalette(props: Props) {
                     <Item onSelect={() => go("/asma")} icon={<span className="text-base" aria-hidden="true">✨</span>}>أسماء الله الحسنى</Item>
                     <Item onSelect={() => go("/duas")} icon={<span className="text-base" aria-hidden="true">🤲</span>}>الأدعية المأثورة</Item>
                     <Item onSelect={() => go("/library")} icon={<span className="text-base" aria-hidden="true">📚</span>}>صحيح مسلم والجوامع</Item>
+                    <Item onSelect={() => go("/listen")} icon={<span className="text-base" aria-hidden="true">🎧</span>}>السماع: القرآن بأصوات القرّاء</Item>
+                    <Item onSelect={() => go("/listen/qiyam")} icon={<span className="text-base" aria-hidden="true">🌙</span>}>قيام الليل في الحرمين</Item>
+                    <Item onSelect={() => go("/listen/tawasheeh")} icon={<span className="text-base" aria-hidden="true">🎙️</span>}>التواشيح والابتهالات</Item>
                     <Item onSelect={() => go("/quran-vocab")} icon={<span className="text-base" aria-hidden="true">📖</span>}>مفردات القرآن</Item>
                     <Item onSelect={() => go("/stories")} icon={<span className="text-base" aria-hidden="true">🕌</span>}>قصص الأنبياء</Item>
                     <Item onSelect={() => go("/prayer-guide")} icon={<span className="text-base" aria-hidden="true">🧎</span>}>كيفية الصلاة</Item>

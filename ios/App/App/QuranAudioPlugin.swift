@@ -20,6 +20,10 @@ import UIKit
  *       screen shows a live broadcast; next and previous change station
  *   pause() / resume() / stop() / next() / previous()
  *   setRate({ rate }) / setVolume({ volume })
+ *   position()  resolves { index, positionMs, durationMs, playing } for the
+ *       listening section's progress bar and the verses that follow the reciter
+ *   seek({ positionMs, index? })  jump within the current track (or to another)
+ *   items may carry "album"; play may carry "startPositionMs" (resume where you left off)
  *   download({ urls, maxBytes })  saves verses for offline listening,
  *       reporting "downloadProgress" { done, total }; resolves { saved, failed, evicted }
  *   clearDownloads() / downloadedBytes()
@@ -40,6 +44,8 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "next", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "previous", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setRate", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "position", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "seek", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setVolume", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "download", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "downloadedBytes", returnType: CAPPluginReturnPromise),
@@ -51,6 +57,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let url: URL
         let title: String
         let artist: String
+        let album: String?
     }
 
     private enum Repeat: String {
@@ -200,7 +207,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         var info: [String: Any] = [
             MPMediaItemPropertyTitle: verse.title,
             MPMediaItemPropertyArtist: verse.artist,
-            MPMediaItemPropertyAlbumTitle: live ? "إذاعة القرآن الكريم · أثر" : "القرآن الكريم · أثر",
+            MPMediaItemPropertyAlbumTitle: verse.album ?? (live ? "إذاعة القرآن الكريم · أثر" : "القرآن الكريم · أثر"),
             MPNowPlayingInfoPropertyIsLiveStream: live,
             MPNowPlayingInfoPropertyPlaybackRate: player.timeControlStatus == .playing ? Double(rate) : 0,
             MPNowPlayingInfoPropertyDefaultPlaybackRate: Double(rate),
@@ -233,6 +240,14 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             if self.player.timeControlStatus == .paused { self.player.play() } else { self.player.pause() }
         }
         on(commands.nextTrackCommand) { [weak self] in self?.skip(by: 1) }
+        // Scrubbing on the lock screen, for long tracks (a whole surah, a night prayer).
+        commands.changePlaybackPositionCommand.isEnabled = !live
+        let scrub = commands.changePlaybackPositionCommand.addTarget { [weak self] event in
+            guard let self, let event = event as? MPChangePlaybackPositionCommandEvent else { return .commandFailed }
+            self.player.seek(to: CMTime(seconds: event.positionTime, preferredTimescale: 1000)) { _ in self.updateNowPlaying() }
+            return .success
+        }
+        remoteTargets.append((commands.changePlaybackPositionCommand, scrub))
         on(commands.previousTrackCommand) { [weak self] in self?.skip(by: -1) }
     }
 
@@ -290,7 +305,8 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
                 id: entry["id"] as? String ?? link,
                 url: url,
                 title: entry["title"] as? String ?? "القرآن الكريم",
-                artist: entry["artist"] as? String ?? ""
+                artist: entry["artist"] as? String ?? "",
+                album: entry["album"] as? String
             ))
         }
         guard !parsed.isEmpty else {
@@ -302,6 +318,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let volume = Float(call.getDouble("volume") ?? 1)
         let repeatMode = Repeat(rawValue: call.getString("repeat") ?? "none") ?? .none
         let live = call.getBool("live") ?? false
+        let startPositionMs = max(0, call.getDouble("startPositionMs") ?? 0)
 
         DispatchQueue.main.async {
             do {
@@ -321,7 +338,47 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             self.active = true
             self.addRemoteCommands()
             self.loadQueue(at: start)
+            if startPositionMs > 0 {
+                self.player.seek(to: CMTime(seconds: startPositionMs / 1000, preferredTimescale: 1000))
+            }
             self.player.playImmediately(atRate: self.rate)
+            call.resolve()
+        }
+    }
+
+    /// Where the player is: the listening section's progress bar polls this while it is open.
+    @objc func position(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            guard self.active, let item = self.player.currentItem else {
+                call.resolve(["index": -1, "positionMs": 0, "durationMs": 0, "playing": false])
+                return
+            }
+            let elapsed = item.currentTime().seconds
+            let duration = item.duration.seconds
+            call.resolve([
+                "index": self.currentIndex,
+                "positionMs": elapsed.isFinite ? Int(elapsed * 1000) : 0,
+                "durationMs": duration.isFinite ? Int(duration * 1000) : 0,
+                "playing": self.player.timeControlStatus == .playing,
+            ])
+        }
+    }
+
+    @objc func seek(_ call: CAPPluginCall) {
+        let positionMs = max(0, call.getDouble("positionMs") ?? 0)
+        let index = call.getInt("index")
+        DispatchQueue.main.async {
+            guard self.active else {
+                call.resolve()
+                return
+            }
+            if let index, index != self.currentIndex, self.verses.indices.contains(index) {
+                self.loadQueue(at: index)
+                self.player.playImmediately(atRate: self.rate)
+            }
+            self.player.seek(to: CMTime(seconds: positionMs / 1000, preferredTimescale: 1000)) { _ in
+                self.updateNowPlaying()
+            }
             call.resolve()
         }
     }
