@@ -1,14 +1,16 @@
 /**
- * HadithMemo — Phase 7D
- * Flip-card memorization with SM-2 spaced repetition for Nawawi 40.
+ * «احفظ الحديث»: flip cards with spaced repetition. Cards come from any book
+ * (added from the reader) or from the two forties here; each rating shows
+ * when the card will come back.
  * Route: /hadith/memo
  */
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, BrainCircuit, CheckCircle, ChevronLeft, ChevronRight, Copy, Share2 } from "lucide-react";
+import { ArrowRight, BrainCircuit, Check, CheckCircle, ChevronLeft, ChevronRight, Copy, Plus, Share2 } from "lucide-react";
 import { useHadithPack, loadHadithPack } from "@/data/useHadithBook";
-import { HADITH_BOOKS_STATIC, type HadithItem, type HadithPack } from "@/data/hadithTypes";
-import { splitHadithText } from "@/lib/hadithText";
+import { HADITH_BOOKS_STATIC, MEMO_MASTERED_DAYS, hadithRef, nextMemoCard, type HadithItem, type HadithPack } from "@/data/hadithTypes";
+import { CARD, DAY, countAr, type CountForms } from "@/lib/arabicCount";
+import { cleanHadithText, splitHadithText } from "@/lib/hadithText";
 import { useShallow } from "zustand/react/shallow";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
@@ -23,12 +25,26 @@ import { arNum } from "@/lib/formatNumber";
 /* ------------------------------------------------------------------ */
 
 const RATING_LABELS: { rating: 0 | 1 | 2 | 3; label: string; color: string; bg: string }[] = [
-  { rating: 0, label: "مجدداً", color: "#ef4444", bg: "#ef444422" },
+  { rating: 0, label: "نسيته", color: "#ef4444", bg: "#ef444422" },
   { rating: 1, label: "صعب",   color: "#f59e0b", bg: "#f59e0b22" },
   { rating: 2, label: "جيد",   color: "#3b82f6", bg: "#3b82f622" },
   { rating: 3, label: "سهل",   color: "#10b981", bg: "#10b98122" },
 ];
 
+
+const TIMES: CountForms = { one: "مرة واحدة", two: "مرتين", few: "مرات", many: "مرة" };
+
+/** «اليوم»، «غدًا»، «بعد يومين»، «بعد ٥ أيام». */
+function inDays(days: number): string {
+  if (days <= 0) return "اليوم";
+  if (days === 1) return "غدًا";
+  if (days === 2) return "بعد يومين";
+  return `بعد ${countAr(days, DAY)}`;
+}
+
+function daysUntil(iso: string, todayIso: string): number {
+  return Math.round((Date.parse(`${iso}T00:00:00`) - Date.parse(`${todayIso}T00:00:00`)) / 86400000);
+}
 
 function todayISO() {
   const d = new Date();
@@ -110,7 +126,8 @@ type DeckCard = { bookKey: string; item: HadithItem };
 export function HadithMemoPage() {
   const navigate = useNavigate();
   useScrollRestoration();
-  const { data: nawawi } = useHadithPack("nawawi"); // the "add" tab browses Nawawi 40
+  const [deckBook, setDeckBook] = useState<"nawawi" | "qudsi">("nawawi");
+  const { data: nawawi } = useHadithPack(deckBook); // the "add" tab browses one of the two forties
   const accentColor = "var(--accent)";
 
   const { hadithMemoCards, addHadithMemoCard, reviewHadithMemo } = useNoorStore(useShallow((s) => ({
@@ -179,8 +196,8 @@ export function HadithMemoPage() {
   const [isFlipped, setIsFlipped] = useState(false);
 
   const addDeck = useMemo<DeckCard[]>(
-    () => (nawawi?.hadiths ?? []).map((item) => ({ bookKey: "nawawi", item })),
-    [nawawi],
+    () => (nawawi?.hadiths ?? []).filter((item) => item.t.trim()).map((item) => ({ bookKey: deckBook, item })),
+    [nawawi, deckBook],
   );
 
   const currentCards = viewMode === "due" ? dueCards : addDeck;
@@ -201,10 +218,14 @@ export function HadithMemoPage() {
     setCardIndex((i) => Math.min(i + 1, currentCards.length - 1));
   };
 
-  const doneCount = allCards.filter(({ bookKey, item }) => {
+  const masteredCount = allCards.filter(({ bookKey, item }) => {
     const c = hadithMemoCards[`${bookKey}:${item.n}`];
-    return c && c.due > today;
+    return c && c.interval >= MEMO_MASTERED_DAYS;
   }).length;
+  const nextDue = useMemo(() => {
+    const upcoming = Object.values(hadithMemoCards).map((c) => c.due).filter((d) => d > today).sort();
+    return upcoming[0] ? daysUntil(upcoming[0], today) : null;
+  }, [hadithMemoCards, today]);
 
   return (
     <div dir="rtl" className="relative min-h-screen-safe overflow-hidden pb-24 page-enter">
@@ -218,37 +239,39 @@ export function HadithMemoPage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <BrainCircuit size={19} aria-hidden="true" style={{ color: accentColor }} />
-                <h1 className="text-lg font-bold">بطاقات الحفظ</h1>
+                <h1 className="text-lg font-bold">احفظ الحديث</h1>
               </div>
-              <div className="text-xs opacity-55 mt-1">احفظ بالتكرار المتباعد — من أي كتاب</div>
+              <div className="text-xs opacity-60 mt-1 leading-5">تعود البطاقة إليك قبل أن تنساها، فيثبت الحديث بأقل تكرار.</div>
             </div>
           </div>
         </Card>
       </div>
 
       {/* Stats row */}
+      {Object.keys(hadithMemoCards).length > 0 && (
       <div className="relative z-10 mx-4 mt-4 mb-4 grid grid-cols-3 gap-3">
         {[
-          { val: allCards.length, label: "مضافة" },
-          { val: dueCards.length, label: "للمراجعة" },
-          { val: doneCount, label: "محفوظة" },
+          { val: allCards.length, label: "في بطاقاتك" },
+          { val: dueCards.length, label: "للمراجعة اليوم" },
+          { val: masteredCount, label: "أتقنتها" },
         ].map(({ val, label }) => (
           <div
             key={label}
             className="relative overflow-hidden rounded-3xl py-3 text-center glass"
           >
             <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-            <p className="text-xl font-bold font-arabic" style={{ color: accentColor }}>{val}</p>
+            <p className="text-xl font-bold font-arabic" style={{ color: accentColor }}>{arNum(val)}</p>
             <p className="text-[10px] text-(--muted)">{label}</p>
           </div>
         ))}
       </div>
+      )}
 
       {/* Tab bar */}
       <div
         role="tablist" aria-orientation="horizontal"
         aria-label="وضع البطاقات"
-        className="relative z-10 mx-4 mb-5 flex overflow-hidden rounded-2xl glass"
+        className="relative z-10 mx-4 mt-4 mb-5 flex overflow-hidden rounded-2xl glass"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);
@@ -272,7 +295,7 @@ export function HadithMemoPage() {
               : { color: "var(--muted)" }
             }
           >
-            {t === "due" ? `مراجعة اليوم (${dueCards.length})` : "إضافة بطاقات"}
+            {t === "due" ? `مراجعة اليوم${dueCards.length ? ` (${arNum(dueCards.length)})` : ""}` : "أضف من الأربعين"}
           </button>
         ))}
       </div>
@@ -280,17 +303,43 @@ export function HadithMemoPage() {
       <div id="hadith-memo-content">
       {/* All reviewed today */}
       {viewMode === "due" && dueCards.length === 0 && (
-        <div className="relative z-10 flex flex-col items-center gap-4 py-16">
-          <CheckCircle size={48} aria-hidden="true" style={{ color: accentColor }} />
-          <p className="text-base font-bold font-arabic text-(--fg)">أحسنت! أنهيت مراجعة اليوم</p>
-          <p className="text-sm text-(--muted) font-arabic">ارجع غداً لمراجعة جديدة</p>
+        <div className="relative z-10 flex flex-col items-center gap-3 px-8 py-14 text-center">
+          {allCards.length === 0 && Object.keys(hadithMemoCards).length === 0 ? (
+            <>
+              <BrainCircuit size={44} aria-hidden="true" style={{ color: accentColor }} />
+              <p className="text-base font-bold font-arabic text-(--fg)">لم تضف بطاقات بعد</p>
+              <p className="text-sm text-(--muted) font-arabic leading-7">ابدأ بأحاديث من الأربعين النووية أو القدسية، أو أضف أي حديث من زر البطاقة في صفحته.</p>
+            </>
+          ) : (
+            <>
+              <CheckCircle size={44} aria-hidden="true" style={{ color: accentColor }} />
+              <p className="text-base font-bold font-arabic text-(--fg)">أحسنت، أنهيت مراجعة اليوم</p>
+              <p className="text-sm text-(--muted) font-arabic">
+                {nextDue != null ? `المراجعة القادمة ${inDays(nextDue)}` : "لا مراجعة قادمة"}
+              </p>
+            </>
+          )}
           <button type="button"
             onClick={() => { setViewMode("add"); setCardIndex(0); setIsFlipped(false); }}
             className="mt-2 rounded-2xl px-6 py-2.5 text-sm font-arabic font-bold press-effect"
             style={{ background: accentColor, color: "var(--on-accent)" }}
           >
-            إضافة المزيد
+            {allCards.length ? "أضف المزيد" : "اختر من الأربعين"}
           </button>
+        </div>
+      )}
+
+      {viewMode === "add" && (
+        <div className="relative z-10 mx-4 mb-4 flex gap-2" role="radiogroup" aria-label="الكتاب">
+          {([["nawawi", "الأربعون النووية"], ["qudsi", "الأربعون القدسية"]] as const).map(([k, label]) => (
+            <button key={k} type="button" role="radio" aria-checked={deckBook === k}
+              onClick={() => { setDeckBook(k); setCardIndex(0); setIsFlipped(false); }}
+              className="flex-1 rounded-2xl border px-3 py-2 text-[13px]"
+              style={deckBook === k ? { background: "color-mix(in srgb, var(--accent) 16%, transparent)", borderColor: "color-mix(in srgb, var(--accent) 40%, transparent)", color: accentColor, fontWeight: 700 } : { background: "var(--card)", borderColor: "var(--stroke)" }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       )}
 
@@ -300,11 +349,11 @@ export function HadithMemoPage() {
           {/* Progress bar */}
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-(--muted) font-arabic" aria-live="polite" aria-atomic="true">
-              {cardIndex + 1} / {currentCards.length}
+              {arNum(cardIndex + 1)} من {countAr(currentCards.length, CARD)}
             </span>
-            {cardState && (
-              <span className="text-[10px] text-(--muted)">
-                تكرار {cardState.reviews} • التالي: {cardState.due}
+            {cardState && cardState.reviews > 0 && (
+              <span className="text-[11px] text-(--muted)">
+                راجعتها {countAr(cardState.reviews, TIMES)}، وموعدها {inDays(daysUntil(cardState.due, today))}
               </span>
             )}
           </div>
@@ -329,7 +378,7 @@ export function HadithMemoPage() {
             front={
               <div dir="rtl">
                 <p className="text-[10px] text-(--muted) mb-2 font-arabic">
-                  {bookTitle(current.bookKey)} · حديث {arNum(current.item.a)} — اضغط للكشف
+                  {hadithRef(bookTitle(current.bookKey), current.item.a)}
                 </p>
                 {isnad ? (
                   <p className="text-sm font-arabic text-(--fg) opacity-60 leading-loose">{isnad}</p>
@@ -338,7 +387,7 @@ export function HadithMemoPage() {
                     {matn.slice(0, 200)}…
                   </p>
                 )}
-                <p className="mt-3 text-[10px] text-center text-(--muted) opacity-50">↺ اضغط للكشف</p>
+                <p className="mt-3 text-[11px] text-center text-(--muted) opacity-70">{isnad ? "تذكّر المتن، ثم اضغط لتراه" : "تذكّر تتمّته، ثم اضغط لتراه"}</p>
               </div>
             }
             back={
@@ -363,23 +412,30 @@ export function HadithMemoPage() {
                 : { background: "var(--card)", border: "1px solid var(--stroke)", color: "var(--fg)" }
               }
             >
-              {isAdded ? "✓ مضافة للبطاقات" : "+ إضافة للحفظ"}
+              <span className="inline-flex items-center gap-1.5">
+                {isAdded ? <Check size={15} aria-hidden="true" /> : <Plus size={15} aria-hidden="true" />}
+                {isAdded ? "في بطاقاتك" : "أضفه إلى بطاقاتك"}
+              </span>
             </button>
           )}
 
           {/* Rating buttons (shown after flip) */}
           {isFlipped && (
             <div className="grid grid-cols-4 gap-2">
-              {RATING_LABELS.map(({ rating, label, color, bg }) => (
-                <button type="button"
-                  key={rating}
-                  onClick={() => handleRate(rating)}
-                  className="rounded-2xl border py-2.5 text-sm font-bold font-arabic transition press-effect"
-                  style={{ background: bg, color, borderColor: color + "44" }}
-                >
-                  {label}
-                </button>
-              ))}
+              {RATING_LABELS.map(({ rating, label, color, bg }) => {
+                const after = nextMemoCard(cardState ?? { interval: 1, ease: 2.5, due: today, reviews: 0 }, rating).interval;
+                return (
+                  <button type="button"
+                    key={rating}
+                    onClick={() => handleRate(rating)}
+                    className="rounded-2xl border py-2 text-sm font-bold font-arabic transition press-effect"
+                    style={{ background: bg, color, borderColor: color + "44" }}
+                  >
+                    <span className="block">{label}</span>
+                    <span className="block text-[10.5px] font-normal opacity-80">{inDays(after)}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -401,7 +457,7 @@ export function HadithMemoPage() {
                 type="button"
                 onClick={async () => {
                   try {
-                    await navigator.clipboard.writeText(current.item.t);
+                    await navigator.clipboard.writeText(cleanHadithText(current.item.t));
                     toast.success("تم النسخ");
                   } catch {
                     toast.error("تعذر النسخ");
@@ -416,7 +472,7 @@ export function HadithMemoPage() {
               <button
                 type="button"
                 onClick={async () => {
-                  const text = `${current.item.t}\n\n• ATHAR أثر — ${bookTitle(current.bookKey)}`;
+                  const text = `${cleanHadithText(current.item.t)}\n\n${hadithRef(bookTitle(current.bookKey), current.item.a)}`;
                   try {
                     if (navigator.share) { await navigator.share({ text }); }
                     else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }

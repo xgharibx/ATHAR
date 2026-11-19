@@ -546,7 +546,7 @@ function ClassicAppShell() {
       "/video-library": "مكتبة الفيديو",
       "/library": "المكتبة الإسلامية",
       "/hadith": "الأحاديث",
-      "/hadith/memo": "مراجعة الأحاديث",
+      "/hadith/memo": "احفظ الحديث",
       "/companions": "الصحابة الكرام",
       "/seerah": "السيرة النبوية",
       "/adhkar/custom": "أذكاري الخاصة",
@@ -615,7 +615,7 @@ function ClassicAppShell() {
       <ListenMiniPlayer />
 
       {/* Top Bar */}
-      <header ref={topBarRef} className="sticky top-0 z-30" style={{ paddingTop: "var(--sat)" }}>
+      <header ref={topBarRef} data-app-topbar="" className="sticky top-0 z-30" style={{ paddingTop: "var(--sat)" }}>
         <div className="mx-auto max-w-[1400px] px-4 pt-3">
           <div className="glass rounded-3xl px-3 py-3 flex items-center justify-between gap-2 overflow-hidden">
             {/* Logo + mobile menu — allowed to shrink at high zoom */}

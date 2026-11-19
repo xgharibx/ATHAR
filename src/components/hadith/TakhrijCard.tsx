@@ -8,7 +8,7 @@ import { ScrollText, Loader2, Info, ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { verdictColor, type DorarTakhrij } from "@/lib/dorarTakhrij";
 import { GradeChip } from "@/components/hadith/GradeChip";
-import { arNum } from "@/lib/formatNumber";
+import { arNum, westernToArabicDigits as arDigits } from "@/lib/formatNumber";
 
 
 export function TakhrijCard({
@@ -50,7 +50,7 @@ export function TakhrijCard({
         {loading && !takhrij && (
           <div className="flex items-center gap-2 py-3 text-xs opacity-55">
             <Loader2 size={14} aria-hidden="true" className="animate-spin" />
-            جارٍ البحث عن التخريج في الدرر السنية…
+            نبحث عن تخريجه في الدرر السنية…
           </div>
         )}
 
@@ -71,10 +71,12 @@ export function TakhrijCard({
               </span>
               <span className="text-xs opacity-60">قاله {takhrij.exact.muhaddith || "المحدث"}</span>
             </div>
-            <div className="text-xs opacity-70 leading-6">
-              الراوي: <span className="font-semibold">{takhrij.exact.narrator}</span>
-              {" · "}المصدر: {takhrij.exact.source} ({takhrij.exact.pageOrNumber})
-            </div>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-xs leading-6">
+              <dt className="opacity-55">الراوي</dt>
+              <dd className="m-0 font-semibold opacity-85">{takhrij.exact.narrator}</dd>
+              <dt className="opacity-55">المصدر</dt>
+              <dd className="m-0 opacity-85">{takhrij.exact.source}{takhrij.exact.pageOrNumber ? `، ${arDigits(takhrij.exact.pageOrNumber)}` : ""}</dd>
+            </dl>
           </div>
         )}
 
@@ -92,7 +94,7 @@ export function TakhrijCard({
               className="w-full flex items-center justify-between gap-2 text-xs font-semibold py-2 opacity-75 hover:opacity-100 transition"
               style={{ color: accentColor }}
             >
-              <span>آراء علماء آخرين ({arNum(takhrij.others.length)})</span>
+              <span>أحكام علماء آخرين عليه ({arNum(takhrij.others.length)})</span>
               <ChevronDown size={15} aria-hidden="true" style={{ transform: showOtherOpinions ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
             </button>
             {showOtherOpinions && (
@@ -106,7 +108,7 @@ export function TakhrijCard({
                       <span className="opacity-60">قاله {o.muhaddith || "المحدث"}</span>
                     </div>
                     <div className="opacity-65 leading-6">
-                      الراوي: {o.narrator} · {o.source} ({o.pageOrNumber})
+                      الراوي: {o.narrator}، {o.source}{o.pageOrNumber ? `، ${arDigits(o.pageOrNumber)}` : ""}
                     </div>
                   </div>
                 ))}
@@ -124,16 +126,16 @@ export function TakhrijCard({
                 style={{ color: accentColor }}
               >
                 <Info size={13} aria-hidden="true" />
-                يتوفر شرح كامل لهذا الحديث — اقرأه هنا
+                له شرح كامل، اقرأه
               </button>
             ) : (
               <p className="text-[11px] opacity-50 leading-5">
-                لا يوجد شرح مفصّل لهذا الحديث بعد في مكتبتنا. تحقّقنا من ذلك — الحكم الشرعي عليه (أعلاه) متاح رغم غياب الشرح.
+                لا يوجد لهذا الحديث شرح مفصّل بعد، وحكمه أعلاه.
               </p>
             )}
           </div>
         )}
-        <p className="text-[10px] opacity-40 mt-2">المصدر: الموسوعة الحديثية — dorar.net</p>
+        <p className="text-[10.5px] opacity-50 mt-2">التخريج من الموسوعة الحديثية في الدرر السنية.</p>
       </div>
     </Card>
   );

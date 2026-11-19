@@ -22,7 +22,8 @@ import {
 } from "@/lib/hadithSharhAPI";
 import { verdictColor } from "@/lib/dorarTakhrij";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
-import { arNum } from "@/lib/formatNumber";
+import { westernToArabicDigits } from "@/lib/formatNumber";
+import { HADITH, countAr } from "@/lib/arabicCount";
 
 
 type View =
@@ -123,7 +124,7 @@ export function HadithSharhPage() {
   }, [view, page, run]);
 
   const share = React.useCallback(async (h: SharhHadith) => {
-    const text = `${h.hadeeth}\n\n${h.attribution} — ${h.grade}\n\nالشرح: ${h.explanation}\n\n• الموسوعة الحديثية hadeethenc.com`;
+    const text = `${h.hadeeth}\n\n${h.attribution} — ${h.grade}\n\nالشرح: ${h.explanation}\n\nمن موسوعة الأحاديث النبوية`;
     try {
       if (navigator.share) await navigator.share({ text });
       else {
@@ -152,9 +153,9 @@ export function HadithSharhPage() {
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </button>
         <div className="min-w-0">
-          <h1 className="text-lg font-bold">الموسوعة الحديثية الميسرة</h1>
+          <h1 className="text-lg font-bold">شروح الأحاديث</h1>
           <p className="truncate text-xs text-(--muted-2)">
-            شرح علمي مُراجع لكل حديث — المصدر: hadeethenc.com
+            شرح ميسّر مُراجَع لكل حديث، من موسوعة الأحاديث النبوية
           </p>
         </div>
       </div>
@@ -183,7 +184,7 @@ export function HadithSharhPage() {
               <div>
                 <div className="text-sm font-semibold">{c.title}</div>
                 <div className="mt-0.5 text-[11px] text-(--muted-2)">
-                  {arNum(Number(c.hadeeths_count))} حديث مشروح
+                  {countAr(Number(c.hadeeths_count), HADITH)} بشرحها
                 </div>
               </div>
               <ChevronLeft className="h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
@@ -208,7 +209,7 @@ export function HadithSharhPage() {
               <div>
                 <div className="text-sm">{c.title}</div>
                 <div className="mt-0.5 text-[11px] text-(--muted-2)">
-                  {arNum(Number(c.hadeeths_count))} حديث
+                  {countAr(Number(c.hadeeths_count), HADITH)}
                 </div>
               </div>
               <ChevronLeft className="h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
@@ -302,12 +303,16 @@ export function HadithSharhPage() {
           {hadith.reference ? (
             <div className="rounded-2xl border border-(--stroke) bg-(--card) p-4">
               <h2 className="mb-1 text-xs font-bold text-(--muted)">المراجع</h2>
-              <p className="whitespace-pre-wrap text-xs leading-6 text-(--muted-2)">{hadith.reference}</p>
+              <p className="whitespace-pre-wrap text-xs leading-6 text-(--muted-2)">{westernToArabicDigits(hadith.reference)}</p>
             </div>
           ) : null}
 
-          <p className="text-center text-[10px] text-(--muted-2)">
-            المحتوى من الموسوعة الحديثية المترجمة (hadeethenc.com) — بإشراف علمي مُراجع
+          <p className="text-center text-[10.5px] text-(--muted-2)">
+            من{" "}
+            <a href="https://hadeethenc.com/ar/home" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+              موسوعة الأحاديث النبوية
+            </a>
+            ، بمراجعة علمية
           </p>
         </article>
       ) : null}

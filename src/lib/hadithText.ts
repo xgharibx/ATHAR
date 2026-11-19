@@ -15,7 +15,19 @@
 // does reliably wrap the actual quoted matn in a literal `"`. So markers are
 // the primary signal when present; a bare quote mark is the fallback when
 // they aren't — covers the large share of hadiths with no colon anywhere.
-export function splitHadithText(text: string): { isnad: string; matn: string } {
+/**
+ * Display cleanup: drops orphan footnote marks «(1)» (the footnotes are not
+ * in this edition) and writes any remaining number, like «[رقم:1907]», in
+ * Arabic digits.
+ */
+export function cleanHadithText(text: string): string {
+  return text
+    .replace(/\s?\(\d{1,2}\)/g, "")
+    .replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[Number(d)]!);
+}
+
+export function splitHadithText(raw: string): { isnad: string; matn: string } {
+  const text = cleanHadithText(raw);
   const QUOTE = "\"";
   const firstQuote = text.indexOf(QUOTE);
   // Only look for markers before the quote, so a "قال" inside the quoted

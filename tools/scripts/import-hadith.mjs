@@ -133,6 +133,16 @@ async function fetchJSON(edition) {
   throw new Error(`All URLs failed for ${edition}`);
 }
 
+/** Arabic chapter titles from public/data/hadith/sections.json, by section id. */
+function readArabicChapterTitles(key) {
+  try {
+    const table = JSON.parse(readFileSync(join(OUT_DIR, "sections.json"), "utf8"));
+    return new Map((table[key] ?? []).map((c) => [c.id, c.t]));
+  } catch {
+    return new Map();
+  }
+}
+
 /** Determine which section a hadith belongs to */
 function getSectionId(hadithnumber, sectionDetail) {
   for (const [sid, detail] of Object.entries(sectionDetail)) {
@@ -159,17 +169,22 @@ async function importBook(book) {
 
   const raw = await fetchJSON(book.edition);
   const { metadata, hadiths: rawHadiths } = raw;
-  const sectionDetail = metadata?.section_detail ?? {};
-  const sectionNames = metadata?.section ?? {};
+  // hadith-api names these "sections" / "section_details" (plural); the
+  // singular keys read here before left every pack without chapters.
+  const sectionDetail = metadata?.section_details ?? metadata?.section_detail ?? {};
+  const sectionNames = metadata?.sections ?? metadata?.section ?? {};
+  // Arabic chapter titles («كتاب الإيمان»…), keyed by the same section ids.
+  const arabicTitles = readArabicChapterTitles(book.key);
 
   // Build sections array, sorted by id
   const sections = Object.entries(sectionNames)
+    .filter(([, title]) => String(title).trim())
     .map(([id, title]) => {
       const sid = parseInt(id, 10);
       const d = sectionDetail[id] ?? {};
       return {
         id: sid,
-        title: String(title),
+        title: arabicTitles.get(sid) ?? String(title),
         first: d.hadithnumber_first ?? d.arabicnumber_first ?? 0,
         last: d.hadithnumber_last ?? d.arabicnumber_last ?? 0,
       };

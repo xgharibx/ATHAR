@@ -22,7 +22,7 @@ import {
 import { adoptDataPacks, exportDataPacks, type NoorPack } from "@/data/packs";
 import { saveCustomReminders } from "@/lib/reminderStorage";
 import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
-import type { HadithMemoCard } from "@/data/hadithTypes";
+import { nextMemoCard, type HadithMemoCard } from "@/data/hadithTypes";
 import type { VideoLibraryProgress } from "@/data/videoLibraryTypes";
 import { foldTopics, channelNameStopwords } from "@/lib/shortsTopics";
 import { parsePrayerKey, parseFastKey, type Madhhab, type PlanMode } from "@/lib/qadaa";
@@ -2469,11 +2469,7 @@ export const useNoorStore = create<NoorState>()(
         set((s) => {
           const card = s.hadithMemoCards[cardKey];
           if (!card) return {};
-          let { interval, ease } = card;
-          if (rating === 0) { interval = 1; ease = Math.max(1.3, ease - 0.2); }
-          else if (rating === 1) { interval = Math.max(1, Math.round(interval * 1.2)); ease = Math.max(1.3, ease - 0.15); }
-          else if (rating === 2) { interval = card.reviews === 0 ? 1 : card.reviews === 1 ? 4 : Math.round(interval * ease); }
-          else { interval = card.reviews === 0 ? 4 : Math.round(interval * ease * 1.3); ease = Math.min(3.0, ease + 0.15); }
+          const { interval, ease } = nextMemoCard(card, rating);
           const due = new Date(); due.setDate(due.getDate() + interval);
           const yyyy = due.getFullYear(), mm = String(due.getMonth() + 1).padStart(2, "0"), dd = String(due.getDate()).padStart(2, "0");
           const updated: HadithMemoCard = { interval, ease, due: `${yyyy}-${mm}-${dd}`, reviews: card.reviews + 1 };

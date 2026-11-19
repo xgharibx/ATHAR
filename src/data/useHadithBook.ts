@@ -9,6 +9,7 @@ import { idbGetHadithPackEntry, idbSetHadithPack } from "@/lib/hadithIDB";
 import { HADITH_BOOKS_STATIC, type HadithBookMeta, type HadithItem, type HadithPack } from "@/data/hadithTypes";
 import { parseHadithIndex, parseHadithPack } from "@/data/hadithSchemas";
 import { publicDataUrl } from "@/data/publicAssetUrl";
+import { withChapters } from "@/data/hadithChapters";
 
 /** Approximate uncompressed file size in MB for each book (Phase 9 - progress UI) */
 export const HADITH_PACK_SIZES_MB: Record<string, number> = {
@@ -38,8 +39,12 @@ export async function loadHadithIndex(): Promise<HadithBookMeta[]> {
   }
 }
 
-/** Load a full hadith pack for a given book key. Tries IDB first, then fetch. */
+/** Load a full hadith pack for a given book key, with its chapters. Tries IDB first, then fetch. */
 export async function loadHadithPack(bookKey: string): Promise<HadithPack> {
+  return withChapters(await loadRawHadithPack(bookKey));
+}
+
+async function loadRawHadithPack(bookKey: string): Promise<HadithPack> {
   // 1. Try IDB cache
   const cachedEntry = await idbGetHadithPackEntry(bookKey);
   let cached: HadithPack | null = null;
@@ -75,6 +80,15 @@ export async function loadHadithPack(bookKey: string): Promise<HadithPack> {
  * expose an error state and be retried.
  */
 export async function loadHadithPackWithProgress(
+  bookKey: string,
+  onProgress: (pct: number) => void,
+  setIsFromCache: (v: boolean) => void,
+): Promise<HadithPack | null> {
+  const pack = await loadRawHadithPackWithProgress(bookKey, onProgress, setIsFromCache);
+  return pack ? withChapters(pack) : pack;
+}
+
+async function loadRawHadithPackWithProgress(
   bookKey: string,
   onProgress: (pct: number) => void,
   setIsFromCache: (v: boolean) => void,

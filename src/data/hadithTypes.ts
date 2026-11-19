@@ -1,4 +1,5 @@
 import { arNum } from "@/lib/formatNumber";
+import { cleanHadithText } from "@/lib/hadithText";
 
 /**
  * Hadith Types — Phase 2 + 11A
@@ -13,6 +14,19 @@ export type HadithMemoCard = {
   due: string;       // ISO date YYYY-MM-DD
   reviews: number;   // total reviews done
 };
+
+/** SM-2 step: the card after a review rated 0 (again) … 3 (easy). Shared by the store and the rating buttons' preview. */
+export function nextMemoCard(card: HadithMemoCard, rating: 0 | 1 | 2 | 3): { interval: number; ease: number } {
+  let { interval, ease } = card;
+  if (rating === 0) { interval = 1; ease = Math.max(1.3, ease - 0.2); }
+  else if (rating === 1) { interval = Math.max(1, Math.round(interval * 1.2)); ease = Math.max(1.3, ease - 0.15); }
+  else if (rating === 2) { interval = card.reviews === 0 ? 1 : card.reviews === 1 ? 4 : Math.round(interval * ease); }
+  else { interval = card.reviews === 0 ? 4 : Math.round(interval * ease * 1.3); ease = Math.min(3.0, ease + 0.15); }
+  return { interval, ease };
+}
+
+/** A card counts as mastered once its next review is three weeks away. */
+export const MEMO_MASTERED_DAYS = 21;
 
 export interface HadithSection {
   id: number;
@@ -86,8 +100,9 @@ export function hadithGradeColor(g: string): string {
  * The matn typically starts after the isnad chain. We try to find a
  * common marker; if not found, return the last portion of the text.
  */
-export function hadithPreview(text: string, maxLen = 140): string {
-  if (!text) return "";
+export function hadithPreview(raw: string, maxLen = 140): string {
+  if (!raw) return "";
+  const text = cleanHadithText(raw);
   // Common matn markers in Arabic hadith texts
   const markers = [" قَالَ:", " قَالَ :", "قال:", "أَنَّ رَسُولَ", "أن رسول الله", "عَنِ النَّبِيِّ"];
   let start = 0;
@@ -102,9 +117,9 @@ export function hadithPreview(text: string, maxLen = 140): string {
   return slice.length > maxLen ? slice.slice(0, maxLen) + "…" : slice;
 }
 
-/** Hadith reference string for display (e.g., "صحيح البخاري • ح١") */
+/** Hadith reference as it is cited: «صحيح البخاري، الحديث ١». */
 export function hadithRef(bookTitle: string, hadithNumber: number | string): string {
-  return `${bookTitle} • ح${arNum(hadithNumber)}`;
+  return `${bookTitle}، الحديث ${arNum(hadithNumber)}`;
 }
 
 /** All supported books with static metadata (used before index.json loads) */

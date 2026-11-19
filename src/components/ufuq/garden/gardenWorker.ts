@@ -18,7 +18,11 @@ export type GardenMessage =
 let engine: GardenEngine | null = null;
 
 self.onmessage = (event: MessageEvent<GardenMessage>) => {
+  // A dedicated worker only hears the page that started it (its messages carry
+  // no origin); anything that names another origin is not ours.
+  if (event.origin && event.origin !== self.location.origin) return;
   const m = event.data;
+  if (!m || typeof m !== "object" || typeof m.type !== "string") return;
   switch (m.type) {
     case "init":
       engine = GardenEngine.create(m.bg, m.fg, m.opts);

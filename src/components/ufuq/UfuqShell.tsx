@@ -112,7 +112,7 @@ function UfuqTopBar({ onSearch }: { onSearch: () => void }) {
   const title = ufuqTitleFor(location.pathname);
 
   return (
-    <header className={`u-topbar ${scrolled ? "is-scrolled" : ""} ${root ? "is-root" : ""}`}>
+    <header data-app-topbar="" className={`u-topbar ${scrolled ? "is-scrolled" : ""} ${root ? "is-root" : ""}`}>
       <div className="u-topbar-row">
         <div className="u-topbar-start">
           {root ? (
