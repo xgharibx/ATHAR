@@ -725,7 +725,7 @@ export function QuranPage() {
                   <div className="text-xs font-semibold" style={{ color: "var(--accent)" }}>متابعة القراءة</div>
                   <div className="text-sm arabic-text opacity-70 truncate mt-0.5">
                     {lastReadSurahName ?? `سورة ${lastRead.surahId}`}
-                    {lastRead.ayahIndex > 0 ? ` · الآية ${toArabicNumeral(lastRead.ayahIndex)}` : ""}
+                    {lastRead.ayahIndex > 0 ? `، الآية ${toArabicNumeral(lastRead.ayahIndex)}` : ""}
                   </div>
                   {continueAyahText ? (
                     <p className="arabic-text text-[12.5px] opacity-55 leading-5 line-clamp-1 mt-0.5" dir="rtl">{continueAyahText}</p>
@@ -879,7 +879,7 @@ export function QuranPage() {
             })}
           </div>
           <div className="text-[10px] opacity-35 mt-2 text-center tabular-nums">
-            {arNum(quranStats.completed)} مكتملة · {arNum((quranStats.started - quranStats.completed))} جاري · {arNum((114 - quranStats.started))} لم تبدأ
+            {arNum(quranStats.completed)} مكتملة، {arNum((quranStats.started - quranStats.completed))} جاري، {arNum((114 - quranStats.started))} لم تبدأ
           </div>
         </div>
       )}

@@ -453,7 +453,7 @@ export function buildContextBlock(ctx: CompanionContext): string {
 
   lines.push(`إنجازات اليوم: أذكار الصباح ${ctx.morningDone ? "✓" : "✗"} | أذكار المساء ${ctx.eveningDone ? "✓" : "✗"} | أذكار النوم ${ctx.sleepDone ? "✓" : "✗"} | أذكار الصلاة ${ctx.prayerDone ? "✓" : "✗"} | تسبيح ${ctx.tasbeehToday} مرة | ورد قرآن ${ctx.ayahsReadToday}/${ctx.dailyGoal} آية.`);
   if (ctx.remainingTodayHints.length > 0) {
-    lines.push(`ما تبقَّى اليوم: ${ctx.remainingTodayHints.join(" • ")}.`);
+    lines.push(`ما تبقَّى اليوم: ${ctx.remainingTodayHints.join("، ")}.`);
   }
   if (ctx.streakDays > 1) lines.push(`السلسلة الحالية: ${ctx.streakDays} يومًا متواصلًا.`);
   if (ctx.lastSurahId) lines.push(`آخر موضع قرأه: سورة رقم ${ctx.lastSurahId}.`);

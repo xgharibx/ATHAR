@@ -243,7 +243,7 @@ export default function EmbryoMudghahVisual({ className }: MiracleVisualProps) {
           <span style={{ color: '#ffaaaa' }}>لَحْمًا</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(160,100,60,0.45)' }}>
-          سورة المؤمنون · الآية ١٤
+          سورة المؤمنون، الآية ١٤
         </p>
       </motion.div>
 

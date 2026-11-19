@@ -132,7 +132,7 @@ export default function DeepOceanDarknessVisual({ className }: MiracleVisualProp
           {' '}إِذَا أَخْرَجَ يَدَهُ لَمْ يَكَادْ يَرَاهَا
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(40,80,140,0.45)' }}>
-          سورة النور · الآية ٤٠
+          سورة النور، الآية ٤٠
         </p>
       </motion.div>
 

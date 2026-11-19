@@ -656,7 +656,7 @@ function ClassicAppShell() {
 
             {/* Action buttons — shrink-0 so they stay visible, hide non-essential ones at high zoom */}
             <div className="flex items-center gap-2 shrink-0">
-              <IconButton aria-label="بحث (Ctrl+K)" aria-keyshortcuts="Control+k" onClick={() => setPaletteOpen(true)}>
+              <IconButton aria-label="بحث" title="بحث (Ctrl+K)" aria-keyshortcuts="Control+k" onClick={() => setPaletteOpen(true)}>
                 <Search size={18} aria-hidden="true" />
               </IconButton>
 

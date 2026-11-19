@@ -13,7 +13,7 @@ const VERSE: Tok[] = [
 
 const MATCHES = [
   { ref: 'يوحنا ١٤:١٦', text: '«معزّيًا آخر»', match: 'παράκλητος Paraklētos = المُعزِّي', color: '#d4a853' },
-  { ref: 'Greek', text: 'περικλυτός (المحمود)', match: 'الأكثر حمدًا · المُمَجَّد', color: '#f472b6' },
+  { ref: 'Greek', text: 'περικλυτός (المحمود)', match: 'الأكثر حمدًا، المُمَجَّد', color: '#f472b6' },
   { ref: 'الصف ٦', text: '“اسمه أحمد”', match: 'أحمد ﷺ = الأكثر حمدًا (= Periklytos)', color: '#2dd4a8' },
 ];
 
@@ -35,7 +35,7 @@ export default function ProphecyBibleVisual({ className }: MiracleVisualProps) {
         initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
         className="relative z-10 font-tajawal text-[11px] tracking-[0.25em]" style={{ color: 'rgba(212,168,83,0.7)' }}
       >
-        إنجيل يوحنا · البشارة بالمُعزِّي
+        إنجيل يوحنا، البشارة بالمُعزِّي
       </motion.p>
 
       {/* ── Unfurling scroll ── */}

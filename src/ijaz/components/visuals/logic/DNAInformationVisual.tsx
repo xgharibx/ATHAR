@@ -188,7 +188,7 @@ export default function DNAInformationVisual({ className }: MiracleVisualProps) 
           <span style={{ color: '#60a5fa' }}>فَعَدَلَكَ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(212,168,83,0.5)' }}>
-          سورة الانفطار · الآيتان ٧–٨
+          سورة الانفطار، الآيتان ٧–٨
         </p>
       </motion.div>
 
@@ -218,7 +218,7 @@ export default function DNAInformationVisual({ className }: MiracleVisualProps) 
           ))}
         </div>
         <p className="text-center text-[9px] font-tajawal mt-2" style={{ color: 'rgba(180,200,190,0.5)' }}>
-          كود شبه مثالي · أفضل ١ في المليون متانة ضد الطفرات (Freeland &amp; Hurst ١٩٩٨)
+          كود شبه مثالي، أفضل ١ في المليون متانة ضد الطفرات (Freeland &amp; Hurst ١٩٩٨)
         </p>
       </motion.div>
     </div>

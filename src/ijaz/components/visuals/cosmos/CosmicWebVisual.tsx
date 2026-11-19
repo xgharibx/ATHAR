@@ -128,7 +128,7 @@ export default function CosmicWebVisual({ className }: MiracleVisualProps) {
           {' '}وَإِنَّا لَمُوسِعُونَ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(100,80,160,0.45)' }}>
-          سورة الذاريات · الآية ٤٧
+          سورة الذاريات، الآية ٤٧
         </p>
       </motion.div>
 

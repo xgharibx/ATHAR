@@ -299,13 +299,13 @@ function buildMinuteContext(timings: PrayerTimings, dayStart: Date): PrayerMinut
 }
 
 const NIGHT_SIXTH_LABELS = [
-  "المغرب · بداية الليل",
+  "المغرب، بداية الليل",
   "ينتهي السدس الأوّل",
   "ينتهي الثلث الأوّل",
   "منتصف الليل",
   "يبدأ الثلث الأخير",
   "يبدأ السدس الأخير",
-  "الفجر · نهاية الليل",
+  "الفجر، نهاية الليل",
 ];
 const NIGHT_SIXTH_FRACTIONS = ["", "١", "٢", "٣", "٤", "٥", ""];
 
@@ -482,7 +482,7 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
       // The last third of the night is the time of tahajjud: one row, not two.
       id: "tahajjud",
       type: "moment",
-      label: "التهجد · الثلث الأخير من الليل",
+      label: "التهجد، الثلث الأخير من الليل",
       timeLabel: formatRange(context.tahajjudStart, beforeMinute(context.nextDayFajrMinutes)),
     },
     {

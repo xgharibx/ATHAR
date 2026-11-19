@@ -200,7 +200,7 @@ export default function CloudFormationVisual({ className }: MiracleVisualProps) 
           <span style={{ color: '#cceeff', textShadow: '0 0 12px rgba(180,220,255,0.7)' }}>يَجْعَلُهُ رُكَامًا</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(100,140,200,0.45)' }}>
-          سورة النور · الآية ٤٣
+          سورة النور، الآية ٤٣
         </p>
       </motion.div>
 

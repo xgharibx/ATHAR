@@ -191,9 +191,9 @@ export default function BlackHolesVisual({ className }: MiracleVisualProps) {
 
       // ── The 3 Arabic word pulses around BH ──────────────────
       const words = [
-        { text: 'الخُنَّس', angle: -Math.PI * 0.6, color: '#ff8844', sub: 'تراجع · انهيار' },
+        { text: 'الخُنَّس', angle: -Math.PI * 0.6, color: '#ff8844', sub: 'تراجع، انهيار' },
         { text: 'الجَوَار', angle: Math.PI * 0.1, color: '#ffcc44', sub: 'جاذبية هائلة' },
-        { text: 'الكُنَّس', angle: Math.PI * 0.75, color: '#aa88ff', sub: 'اختفاء · خفاء' },
+        { text: 'الكُنَّس', angle: Math.PI * 0.75, color: '#aa88ff', sub: 'اختفاء، خفاء' },
       ];
       const wordOrbit = bhR * 2.05;
       words.forEach(({ text, angle, color, sub }) => {
@@ -268,7 +268,7 @@ export default function BlackHolesVisual({ className }: MiracleVisualProps) {
           <span style={{ color: '#aa88ff', textShadow: '0 0 14px rgba(160,120,255,0.7)' }}>الْكُنَّسِ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(200,100,60,0.45)' }}>
-          سورة التكوير · الآيتان ١٥–١٦
+          سورة التكوير، الآيتان ١٥–١٦
         </p>
       </motion.div>
 

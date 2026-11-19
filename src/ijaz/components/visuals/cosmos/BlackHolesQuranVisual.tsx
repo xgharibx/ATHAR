@@ -91,7 +91,7 @@ export default function BlackHolesQuranVisual({ className }: MiracleVisualProps)
       // الخنَّس label
       ctx.font = `bold 11px serif`; ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(180,160,255,0.5)'; ctx.shadowColor = 'rgba(140,100,255,0.3)'; ctx.shadowBlur = 10;
-      ctx.fillText('الخُنَّس · الجَوَارِ · الكُنَّس', w * 0.5, h * 0.91);
+      ctx.fillText('الخُنَّس، الجَوَارِ، الكُنَّس', w * 0.5, h * 0.91);
       ctx.shadowBlur = 0;
 
       animId = visualFrame(draw);
@@ -124,7 +124,7 @@ export default function BlackHolesQuranVisual({ className }: MiracleVisualProps)
           <span style={{ color: '#ccbbff', textShadow: '0 0 14px rgba(180,140,255,0.7)' }}>بِالخُنَّسِ الجَوَارِ الكُنَّسِ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(60,40,100,0.45)' }}>
-          سورة التكوير · الآية ١٥–١٦
+          سورة التكوير، الآية ١٥–١٦
         </p>
       </motion.div>
 

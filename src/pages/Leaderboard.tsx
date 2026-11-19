@@ -521,9 +521,9 @@ export function LeaderboardPage() {
                       <div className="text-sm font-semibold truncate">{r.name}</div>
                       <div className="text-[11px] opacity-60">
                         {r.id === myEntry.id
-                          ? `أنت • انضممت: ${joinedDate || "غير متاح"}`
+                          ? `أنت، انضممت: ${joinedDate || "غير متاح"}`
                           : joinedDate
-                            ? `عضو • انضم: ${joinedDate}`
+                            ? `عضو، انضم: ${joinedDate}`
                             : "عضو"}
                       </div>
                     </div>
@@ -1064,7 +1064,7 @@ function LeaderboardAdminCard(props: {
                         <div className="min-w-0">
                           <div className="text-sm font-medium wrap-break-word">{audit.resolvedAlias}</div>
                           <div className="mt-1 text-[11px] opacity-55 wrap-break-word">
-                            المطلوب: {audit.requestedAlias || "—"} • الحالة: {audit.status}
+                            المطلوب: {audit.requestedAlias || "—"}، الحالة: {audit.status}
                             {audit.reason ? ` • ${audit.reason}` : ""}
                           </div>
                           <div className="mt-1 text-[10px] opacity-45 break-all">{audit.userId}</div>
@@ -1186,7 +1186,7 @@ function LocalFriendsCard(props: {
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{f.alias}</div>
-                  <div className="text-[10px] opacity-50 tabular-nums">ذكر {arNum(f.dhikr)} · قرآن {arNum(f.quran)} · مهام {arNum(f.prayers)}</div>
+                  <div className="text-[10px] opacity-50 tabular-nums">ذكر {arNum(f.dhikr)}، قرآن {arNum(f.quran)}، مهام {arNum(f.prayers)}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">

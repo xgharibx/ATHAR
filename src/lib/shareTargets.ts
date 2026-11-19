@@ -31,7 +31,7 @@ export const STORE_LINKS = {
 // The invite names the store THIS install came from. A Huawei user handed a
 // Play link has nothing to tap, and neither does anyone they forward it to.
 export function appInvite(): string {
-  return `\n\n— تطبيق أثر · أذكار وقرآن\n${storeListingUrl()}`;
+  return `\n\n— تطبيق أثر، أذكار وقرآن\n${storeListingUrl()}`;
 }
 
 /** Append the invitation unless the text already carries it. */

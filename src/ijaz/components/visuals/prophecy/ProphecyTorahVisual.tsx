@@ -15,7 +15,7 @@ const VERSE: Tok[] = [
 const MATCHES = [
   { ref: 'تثنية ١٨:١٨', text: '«نبيًّا مثل موسى»', match: 'محمد ﷺ = نبيٌّ بشريعةٍ مثل موسى', color: '#d4a853' },
   { ref: 'تثنية ١٨:١٨', text: '«من وسط إخوتهم»', match: 'إخوة بني إسرائيل = بنو إسماعيل = العرب', color: '#f472b6' },
-  { ref: 'تثنية ٣٣:٢', text: '«وتلألأ من جبل فاران»', match: 'فاران = مكة · مَهبط الوحي', color: '#2dd4a8' },
+  { ref: 'تثنية ٣٣:٢', text: '«وتلألأ من جبل فاران»', match: 'فاران = مكة، مَهبط الوحي', color: '#2dd4a8' },
 ];
 
 export default function ProphecyTorahVisual({ className }: MiracleVisualProps) {
@@ -36,7 +36,7 @@ export default function ProphecyTorahVisual({ className }: MiracleVisualProps) {
         initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
         className="relative z-10 font-tajawal text-[11px] tracking-[0.25em]" style={{ color: 'rgba(212,168,83,0.7)' }}
       >
-        سِفْر التثنية · التوراة
+        سِفْر التثنية، التوراة
       </motion.p>
 
       {/* ── Unfurling scroll ── */}

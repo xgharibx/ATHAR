@@ -245,7 +245,7 @@ function GardenGrowthCard() {
       </div>
       <div className="u-growth-fruits">
         <span className={`u-growth-fruit ${growth.palmFruit ? "is-on" : ""}`}>
-          {growth.palmFruit ? `النخلة تُثمر · ${arNum(growth.streak)} أيام متتالية` : "النخلة تُثمر بعد ٣ أيام متتالية"}
+          {growth.palmFruit ? `النخلة تُثمر، ${arNum(growth.streak)} أيام متتالية` : "النخلة تُثمر بعد ٣ أيام متتالية"}
         </span>
         <span className={`u-growth-fruit ${growth.treeFruit ? "is-on" : ""}`}>
           {growth.treeFruit ? "الرمّان أثمر: أتممت وِردك" : "الرمّان يُثمر حين تُتمّ وِردك"}
@@ -312,7 +312,7 @@ function ContinueReading() {
         <span className="u-eyebrow block">تابع القراءة</span>
         <span className="block text-[16px] font-semibold mt-0.5">
           {surah ? `سورة ${surah}` : "المصحف"}
-          {page ? <span className="text-(--muted) font-medium"> · صفحة {arNum(page)}</span> : null}
+          {page ? <span className="text-(--muted) font-medium">، صفحة {arNum(page)}</span> : null}
         </span>
         {page ? (
           <span className="u-progress block mt-2.5" aria-hidden="true"><span style={{ width: `${percent}%` }} /></span>

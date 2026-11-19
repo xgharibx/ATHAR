@@ -177,7 +177,7 @@ export default function HumanProportionVisual({ className }: MiracleVisualProps)
           <span style={{ color: '#ddaaff', textShadow: '0 0 14px rgba(200,140,255,0.7)' }}>فِي أَحْسَنِ تَقْوِيمٍ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(80,50,120,0.45)' }}>
-          سورة التين · الآية ٤
+          سورة التين، الآية ٤
         </p>
       </motion.div>
 

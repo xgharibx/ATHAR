@@ -697,7 +697,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                       className="text-[10px] px-2 py-0.5 rounded-full font-medium"
                       style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
                     >
-                      صف {vocabWord.id} • تردد {arNum(vocabWord.frequency)}×
+                      صف {vocabWord.id}، تردد {arNum(vocabWord.frequency)}×
                     </span>
                     <span className="text-[10px] opacity-40">اضغط للتعلم ❬</span>
                   </div>

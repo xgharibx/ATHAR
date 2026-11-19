@@ -251,7 +251,7 @@ export default function HoneyAntibacterialVisual({ className }: MiracleVisualPro
           <span style={{ color: '#ffd060', textShadow: '0 0 14px rgba(255,210,80,0.7)' }}>فِيهِ شِفَاءٌ لِلنَّاسِ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(130,100,30,0.45)' }}>
-          سورة النحل · الآية ٦٩
+          سورة النحل، الآية ٦٩
         </p>
       </motion.div>
 

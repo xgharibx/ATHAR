@@ -227,7 +227,7 @@ export default function AntCommunicationVisual({ className }: MiracleVisualProps
           <span style={{ color: '#ffdd77', textShadow: '0 0 14px rgba(255,220,100,0.7)' }}>مَسَاكِنَكُمْ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(100,160,80,0.45)' }}>
-          سورة النمل · الآية ١٨
+          سورة النمل، الآية ١٨
         </p>
       </motion.div>
 

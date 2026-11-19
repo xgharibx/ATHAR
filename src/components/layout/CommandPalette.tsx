@@ -362,7 +362,7 @@ export function CommandPalette(props: Props) {
                   <Command.Group heading="آيات قرآنية" className="px-2">
                     {ayahResults.map((a) => (
                       <Item key={`${a.surahId}:${a.ayahIndex}`} onSelect={() => go(`/mushaf?surah=${a.surahId}&ayah=${a.ayahIndex}`)} icon={<span className="text-base">🌙</span>}>
-                        <span className="text-[11px] opacity-55 block">{a.surahName} • آية {a.ayahIndex}</span>
+                        <span className="text-[11px] opacity-55 block">{a.surahName}، آية {a.ayahIndex}</span>
                         <span className="text-sm arabic-text line-clamp-2">{a.text.slice(0, 120)}</span>
                       </Item>
                     ))}

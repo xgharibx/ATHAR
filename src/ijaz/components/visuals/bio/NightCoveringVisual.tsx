@@ -269,7 +269,7 @@ export default function NightCoveringVisual({ className }: MiracleVisualProps) {
           <span style={{ color: '#aabbff', textShadow: '0 0 16px rgba(150,170,255,0.8)' }}>لِبَاسًا</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(120,140,220,0.45)' }}>
-          سورة النبأ · الآيتان ٩–١٠
+          سورة النبأ، الآيتان ٩–١٠
         </p>
       </motion.div>
 

@@ -118,7 +118,7 @@ export default function NightDayCoilingVisual({ className }: MiracleVisualProps)
           {' '}وَيُكَوِّرُ النَّهَارَ عَلى اللَّيْلِ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(80,90,160,0.45)' }}>
-          سورة الزمر · الآية ٥
+          سورة الزمر، الآية ٥
         </p>
       </motion.div>
 

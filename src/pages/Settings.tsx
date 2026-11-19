@@ -135,17 +135,17 @@ function useGroupSummaries(): Record<SettingsGroupId, string> {
     .filter(Boolean).length;
   const adhan = PRAYER_SOUND_OPTIONS.find((option) => option.id === reminders.prayerSoundProfile)?.label ?? "";
   return {
-    prayer: [calcMethodLabel(prefs.prayerCalcMethod ?? 5, true), reminders.prayerAlertsEnabled ? `الأذان: ${adhan}` : "الأذان متوقف"].filter(Boolean).join(" · "),
+    prayer: [calcMethodLabel(prefs.prayerCalcMethod ?? 5, true), reminders.prayerAlertsEnabled ? `الأذان: ${adhan}` : "الأذان متوقف"].filter(Boolean).join("، "),
     reminders: reminders.enabled ? (dailyOn ? `${arNum(dailyOn)} مفعّلة` : "لا تذكير مفعّل") : "متوقفة",
     quran: getReciter(prefs.quranReciter ?? "Alafasy_128kbps")?.label ?? "",
-    tasbeeh: `الهدف ${arNum(sebhaTarget)}${prefs.enableHaptics && prefs.hapticStrength !== "off" ? " · مع الاهتزاز" : ""}`,
+    tasbeeh: `الهدف ${arNum(sebhaTarget)}${prefs.enableHaptics && prefs.hapticStrength !== "off" ? "، مع الاهتزاز" : ""}`,
     appearance: prefs.designMode === "ufuq"
       ? [
         "أُفُق",
         { live: "الحديقة الحيّة", plain: "بسيط" }[prefs.ufuqLook ?? "live"],
         prefs.ufuqPalette === "day" ? "نهار" : prefs.ufuqPalette === "night" ? "ليل" : prefs.ufuqPalette === "time" ? "حسب الوقت" : "حسب الهاتف",
       ].join(" · ")
-      : `الكلاسيكي · ${themeLabel(prefs.theme)}`,
+      : `الكلاسيكي، ${themeLabel(prefs.theme)}`,
     home: `${arNum(shownCards)} من ${arNum(order.length)} بطاقات`,
     privacy: Capacitor.isNativePlatform() ? (prefs.biometricLock ? "القفل مفعّل" : "القفل متوقف") : "الذكاء الاصطناعي",
     data: "النسخ الاحتياطي والمسح",

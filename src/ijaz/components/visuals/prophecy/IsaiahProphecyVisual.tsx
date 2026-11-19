@@ -14,7 +14,7 @@ const VERSE: Tok[] = [
 ];
 
 const MATCHES = [
-  { ref: 'Isaiah 42:1', text: '«مختاري الذي سُرّت به نفسي»', match: 'محمد ﷺ = المختار · المصطفى', color: '#d4a853' },
+  { ref: 'Isaiah 42:1', text: '«مختاري الذي سُرّت به نفسي»', match: 'محمد ﷺ = المختار، المصطفى', color: '#d4a853' },
   { ref: 'Isaiah 42:11', text: '«لتهتف ديار قيدار»', match: 'قيدار = ابن إسماعيل = عرب الحجاز (مكة)', color: '#f472b6' },
 ];
 
@@ -36,7 +36,7 @@ export default function IsaiahProphecyVisual({ className }: MiracleVisualProps) 
         initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
         className="relative z-10 font-tajawal text-[11px] tracking-[0.25em]" style={{ color: 'rgba(212,168,83,0.7)' }}
       >
-        سِفْر إشعياء · نحو ٧٠٠ ق.م
+        سِفْر إشعياء، نحو ٧٠٠ ق.م
       </motion.p>
 
       {/* ── Unfurling scroll ── */}

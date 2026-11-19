@@ -385,7 +385,7 @@ export default function SolarApexVisual({ className }: MiracleVisualProps) {
           {' '}ذَٰلِكَ تَقْدِيرُ الْعَزِيزِ الْعَلِيمِ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(255,180,60,0.45)' }}>
-          سورة يس · الآية ٣٨
+          سورة يس، الآية ٣٨
         </p>
       </motion.div>
 

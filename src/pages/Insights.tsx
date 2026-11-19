@@ -738,7 +738,7 @@ export function InsightsPage() {
       const r = await shareImageBlob(blob, {
         filename: "ATHAR-quran-progress.png",
         title: "تقدمي في القرآن",
-        text: `${arNum(quranStats.completed)} سورة مكتملة • ${arNum(overallQuranProgress)}٪ ✨`,
+        text: `${arNum(quranStats.completed)} سورة مكتملة، ${arNum(overallQuranProgress)}٪ ✨`,
       });
       if (r === "downloaded") toast.success("تم تحميل بطاقة التقدم");
       else if (r === "failed") toast.error("تعذّرت المشاركة");
@@ -791,7 +791,7 @@ export function InsightsPage() {
       const r = await shareImageBlob(blob, {
         filename: "ATHAR-progress.png",
         title: "تقدمي في ATHAR",
-        text: `سلسلة ${arNum(streak)} يوم • ${arNum(total)} ذكر ✨`,
+        text: `سلسلة ${arNum(streak)} يوم، ${arNum(total)} ذكر ✨`,
       });
       if (r === "downloaded") toast.success("تم تحميل بطاقة التقدم");
       else if (r === "failed") toast.error("تعذّرت المشاركة");
@@ -1871,7 +1871,7 @@ export function InsightsPage() {
         </div>
         {notifPermission === "granted" && (
           <div className="mt-2 text-[11px] opacity-45 leading-5">
-            آخر تقرير: {arNum(weekTotal)} ذكر • {arNum(quranWeekTotal)} آية • {arNum(prayerLogWeekTotal)} صلاة
+            آخر تقرير: {arNum(weekTotal)} ذكر، {arNum(quranWeekTotal)} آية، {arNum(prayerLogWeekTotal)} صلاة
           </div>
         )}
       </Card>

@@ -190,7 +190,7 @@ export default function QuranPreservationVisual({ className }: MiracleVisualProp
           إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ{' '}
           <span style={{ color: '#bbaaff', textShadow: '0 0 14px rgba(180,150,255,0.7)' }}>وَإِنَّا لَهُ لَحَافِظُونَ</span>
         </p>
-        <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(70,55,120,0.45)' }}>سورة الحجر · الآية ٩</p>
+        <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(70,55,120,0.45)' }}>سورة الحجر، الآية ٩</p>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 1 }}
         className="absolute bottom-0 inset-x-0 z-10 pointer-events-none flex flex-col items-center gap-1.5 pb-3 px-2"

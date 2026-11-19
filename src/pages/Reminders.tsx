@@ -172,7 +172,7 @@ function repeatText(r: CustomReminder): string {
     return `${base} • ${weekdayLabel(r.dayOfWeek)}`;
   }
   if (r.repeat === "monthly" && typeof r.dayOfMonth === "number") {
-    return `${base} • يوم ${r.dayOfMonth}`;
+    return `${base}، يوم ${r.dayOfMonth}`;
   }
   if ((r.repeat === "sunnah_aligned" || r.repeat === "prayer_aligned" || r.repeat === "fasting_aligned") && r.anchorKey) {
     return `${base} • ${ANCHOR_LABELS[r.anchorKey]}`;

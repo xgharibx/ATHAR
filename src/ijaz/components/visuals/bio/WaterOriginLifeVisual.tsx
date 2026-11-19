@@ -232,7 +232,7 @@ export default function WaterOriginLifeVisual({ className }: MiracleVisualProps)
           {' '}ۖ أَفَلَا يُؤْمِنُونَ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(40,100,150,0.45)' }}>
-          سورة الأنبياء · الآية ٣٠
+          سورة الأنبياء، الآية ٣٠
         </p>
       </motion.div>
 

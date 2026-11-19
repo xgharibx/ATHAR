@@ -647,7 +647,7 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
 
       <div>
         <div className="text-xs font-semibold opacity-60 mb-3 uppercase tracking-wide">
-          آخر ٧ أيام · {toArabicIndic(totalThisWeek)} / ٣٥ صلاة
+          آخر ٧ أيام، {toArabicIndic(totalThisWeek)} / ٣٥ صلاة
         </div>
         <div className="flex items-end gap-1.5">
           {weekDays.map((d) => {

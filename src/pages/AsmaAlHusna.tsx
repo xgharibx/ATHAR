@@ -94,7 +94,7 @@ export function AsmaAlHusnaPage() {
                 <h1 className="text-xl font-semibold" style={{ color: "#f59e0b" }}>أسماء الله الحسنى</h1>
                 <div className="text-sm opacity-70 mt-1 tabular-nums">
                   ٩٩ اسمًا من أسماء الله تعالى
-                  {memorizedCount > 0 && ` • حفظ ${memorizedCount}/99 (${pct}%)`}
+                  {memorizedCount > 0 && `، حفظ ${memorizedCount}/99 (${pct}%)`}
                 </div>
               </div>
             </div>
@@ -155,7 +155,7 @@ export function AsmaAlHusnaPage() {
                     border: "1px solid var(--stroke)",
                   }}
                 >
-                  {t === "all" ? `الكل (${ASMA_AL_HUSNA.length})` : t === "memorized" ? `🧠 محفوظة (${memorized.length})` : `❤️ مفضلة (${favorites.length})`}
+                  {t === "all" ? `الكل (${ASMA_AL_HUSNA.length})` : t === "memorized" ? `محفوظة (${memorized.length})` : `مفضلة (${favorites.length})`}
                 </button>
               ))}
             </div>
@@ -278,12 +278,12 @@ export function AsmaAlHusnaPage() {
           ) : tab === "memorized" ? (
             <>
               <span>لم تحفظ أي اسم بعد</span>
-              <span className="text-xs opacity-70">انقر 🧠 على أي اسم لتبدأ</span>
+              <span className="text-xs opacity-70">اضغط زر الحفظ في أي اسم لتبدأ</span>
             </>
           ) : tab === "favorites" ? (
             <>
               <span>لا توجد أسماء مفضلة</span>
-              <span className="text-xs opacity-70">انقر ❤️ على أي اسم لتضيفه</span>
+              <span className="text-xs opacity-70">اضغط زر المفضلة في أي اسم لتضيفه</span>
             </>
           ) : (
             <span>لا توجد نتائج</span>

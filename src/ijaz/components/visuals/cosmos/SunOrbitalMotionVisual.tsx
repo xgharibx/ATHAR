@@ -125,7 +125,7 @@ export default function SunOrbitalMotionVisual({ className }: MiracleVisualProps
           <span style={{ color: '#ffcc66', textShadow: '0 0 12px rgba(240,200,80,0.6)' }}>يَسْبَحُونَ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(120,100,40,0.45)' }}>
-          سورة يس · الآية ٣٨
+          سورة يس، الآية ٣٨
         </p>
       </motion.div>
 

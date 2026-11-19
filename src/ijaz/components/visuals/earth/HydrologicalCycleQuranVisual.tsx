@@ -153,7 +153,7 @@ export default function HydrologicalCycleQuranVisual({ className }: MiracleVisua
           <span style={{ color: '#66aaee', textShadow: '0 0 12px rgba(80,160,240,0.6)' }}>يَنَابِيعَ فِي الْأَرْضِ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(60,100,160,0.45)' }}>
-          سورة الزمر · الآية ٢١
+          سورة الزمر، الآية ٢١
         </p>
       </motion.div>
 

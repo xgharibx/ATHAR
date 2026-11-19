@@ -195,7 +195,7 @@ export default function SleepNeuroscienceVisual({ className }: MiracleVisualProp
           <span style={{ color: '#a070ff', textShadow: '0 0 12px rgba(160,100,255,0.6)' }}>فِي مَنَامِهَا</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(100,80,160,0.45)' }}>
-          سورة الزمر · الآية ٤٢
+          سورة الزمر، الآية ٤٢
         </p>
       </motion.div>
 

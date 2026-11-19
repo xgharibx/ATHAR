@@ -45,7 +45,7 @@ export default function QuranChallengeVisual({ className }: MiracleVisualProps) 
         <p className="text-gold-primary font-arabic text-base leading-relaxed" dir="rtl">
           قُل لَّئِنِ اجْتَمَعَتِ الْإِنسُ وَالْجِنُّ عَلَىٰ أَن يَأْتُوا بِمِثْلِ هَٰذَا الْقُرْآنِ لَا يَأْتُونَ بِمِثْلِهِ
         </p>
-        <p className="text-gray-400 text-[10px] mt-1.5 font-tajawal">سورة الإسراء · الآية ٨٨</p>
+        <p className="text-gray-400 text-[10px] mt-1.5 font-tajawal">سورة الإسراء، الآية ٨٨</p>
       </motion.div>
 
       {/* Self-drawing timeline */}
@@ -110,7 +110,7 @@ export default function QuranChallengeVisual({ className }: MiracleVisualProps) 
       >
         <div className="px-4 py-1.5 rounded-md font-amiri font-bold text-lg tracking-wide"
           style={{ color: '#ef4444', border: '3px solid #ef4444', boxShadow: '0 0 18px rgba(239,68,68,0.35)', textShadow: '0 0 8px rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.05)' }}>
-          لم يُجَب · ١٤٠٠ عام
+          لم يُجَب، ١٤٠٠ عام
         </div>
       </motion.div>
     </div>

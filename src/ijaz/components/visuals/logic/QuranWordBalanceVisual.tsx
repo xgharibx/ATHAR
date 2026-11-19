@@ -213,7 +213,7 @@ export default function QuranWordBalanceVisual({ className }: MiracleVisualProps
           {' '}وَلَوْ كَانَ مِنْ عِنْدِ غَيْرِ اللَّهِ لَوَجَدُوا فِيهِ اخْتِلَافًا كَثِيرًا
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(200,160,60,0.45)' }}>
-          سورة النساء · الآية ٨٢
+          سورة النساء، الآية ٨٢
         </p>
       </motion.div>
 

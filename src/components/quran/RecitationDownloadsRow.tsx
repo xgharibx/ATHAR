@@ -54,7 +54,7 @@ export function RecitationDownloadsRow() {
           <div className="text-sm font-semibold">التلاوات المحمّلة</div>
           <div className="text-[11px] text-(--muted-2)">
             {bytes > 0
-              ? `${formatStorageSize(bytes)} للاستماع دون إنترنت · تُحذف الأقدم تلقائيًا بعد ١ ج.ب`
+              ? `${formatStorageSize(bytes)} للاستماع دون إنترنت، تُحذف الأقدم تلقائيًا بعد ١ ج.ب`
               : "لا توجد تلاوات محمّلة — حمّلها من قائمة المصحف للاستماع دون إنترنت"}
           </div>
         </div>

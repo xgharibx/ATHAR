@@ -185,7 +185,7 @@ export default function MountainsStabilityVisual({ className }: MiracleVisualPro
           {' '}﴿٧﴾
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(80,120,50,0.45)' }}>
-          سورة النبأ · الآيات ٦–٧
+          سورة النبأ، الآيات ٦–٧
         </p>
       </motion.div>
 

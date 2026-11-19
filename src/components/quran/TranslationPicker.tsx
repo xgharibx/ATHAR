@@ -62,7 +62,7 @@ export function TranslationPicker(props: {
   };
 
   const formatCached = (s: TranslationSizeInfo): string | null => {
-    if (s.source.bundled) return "مدمجة · بلا اتصال";
+    if (s.source.bundled) return "مدمجة، بلا اتصال";
     if (!s.cachedAt) return "تحميل أول مرة";
     const ageMs = Date.now() - s.cachedAt;
     const hours = Math.max(1, Math.round(ageMs / (60 * 60 * 1000)));
@@ -83,7 +83,7 @@ export function TranslationPicker(props: {
         </span>
         <div className="min-w-0">
           <div id="tr-picker-heading" className="text-[13px] font-extrabold leading-tight">مصدر الترجمة أسفل الآية</div>
-          <div className="text-[10px] opacity-55 leading-tight">اختر مصدرًا · يُحفظ تلقائيًا ويُستخدم في المصحف وقائمة السور.</div>
+          <div className="text-[10px] opacity-55 leading-tight">اختر مصدرًا، يُحفظ تلقائيًا ويُستخدم في المصحف وقائمة السور.</div>
         </div>
       </div>
 
