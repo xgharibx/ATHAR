@@ -193,10 +193,7 @@ function CompanionStatusChip({ state, onRefresh }: {
       type="button"
       onClick={onRefresh}
       className="flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[10.5px] font-semibold text-amber-300 hover:opacity-100 transition"
-      // The technical reason («Failed to fetch»…) stays in the logs; the person
-      // gets a sentence they can act on.
-      title="تعذّر الوصول إلى خادم الذكاء الآن، اضغط لإعادة المحاولة"
-      data-reason={state.reason}
+      title={state.reason}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
       <span>الذكاء غير متاح</span>

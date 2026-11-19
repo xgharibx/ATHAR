@@ -284,7 +284,7 @@ export function SearchPage() {
                 : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
             )}
           >
-            الأذكار
+            🤲 الأذكار
           </button>
           <button type="button"
             id="search-tab-quran"

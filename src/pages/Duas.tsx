@@ -160,7 +160,7 @@ export function DuasPage() {
                   border: "1px solid var(--stroke)",
                 }}
               >
-                المفضلة ({duaFavorites.length})
+                ❤️ المفضلة ({duaFavorites.length})
               </button>
             </div>
           </div>

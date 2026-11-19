@@ -1480,7 +1480,9 @@ export function HomePage() {
                     }
                     return (
                       <div className="mt-1 text-[11px] opacity-70 tabular-nums">
-                        بقي <span className="font-semibold opacity-90">{toMilestone}</span> لتبلغ <span className="font-semibold opacity-90">{nextMilestone}</span>
+                        التالي: <span className="font-semibold opacity-90">{nextMilestone}</span>
+                        <span aria-hidden="true"> · </span>
+                        متبقي <span className="font-semibold opacity-90">{toMilestone}</span> للوصول إلى {nextMilestone}
                       </div>
                     );
                   })()}
@@ -1597,8 +1599,8 @@ export function HomePage() {
                         </div>
                       </div>
                       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                        <div className="text-xs opacity-70">اضغط للعدّ</div>
-                        <Badge>{done ? "تم" : `بقي ${target - v}`}</Badge>
+                        <div className="text-xs opacity-70">انقر للعدّ</div>
+                        <Badge>{done ? "تم" : `${target - v} متبقّي`}</Badge>
                       </div>
                     </button>
                   );
@@ -1724,7 +1726,7 @@ export function HomePage() {
               }}
               aria-label="آية اليوم — انتقل للمصحف"
             >
-              <div className="text-[10px] font-semibold opacity-40 mb-2 tracking-wide">آية اليوم</div>
+              <div className="text-[10px] font-semibold opacity-40 mb-2 tracking-wide">✨ آية اليوم</div>
               <div
                 className="text-base leading-8 mb-2 text-right"
                 style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}

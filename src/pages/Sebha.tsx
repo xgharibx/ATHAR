@@ -1755,7 +1755,7 @@ function AsmaHusnaCounter({
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <ActivityIcon size={14} className="text-(--accent)" />
         <span className="text-sm font-semibold">أسماء الله الحسنى</span>
-        <span className="text-[10px] opacity-50">اضغط على كل اسم للعدّ</span>
+        <span className="text-[10px] opacity-50">انقر للعدّ على كل اسم</span>
         <div className="ms-auto flex items-center gap-1 rounded-xl border border-(--stroke) bg-(--card) p-0.5">
           {[33, 100, 1000].map((t) => (
             <button key={t} type="button"

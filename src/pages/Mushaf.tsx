@@ -1967,7 +1967,7 @@ export function MushafPage() {
       {/* Q9: Memorization mode banner */}
       {memorizationMode && (
         <div className="mushaf-mem-banner" onClick={(e) => e.stopPropagation()}>
-          <span>وضع الحفظ، اضغط على الآية لكشفها</span>
+          <span>🧠 وضع الحفظ، اضغط على الآية لكشفها</span>
           <span className="mushaf-mem-counter">
             {playableItems.filter((item) => revealedItems.has(`${item.surahId}:${item.displayAyah}`)).length}/{playableItems.length}
           </span>

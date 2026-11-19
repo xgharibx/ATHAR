@@ -357,7 +357,7 @@ export function ProphetStoriesPage() {
             {showBookmarksOnly ? (
             <>
               <span>لا توجد قصص محفوظة</span>
-              <span className="text-xs opacity-70">اضغط زر الحفظ في أي قصة لتجدها هنا</span>
+              <span className="text-xs opacity-70">انقر 🔖 على أي قصة لتحفظها</span>
             </>
           ) : query ? (
             <>
