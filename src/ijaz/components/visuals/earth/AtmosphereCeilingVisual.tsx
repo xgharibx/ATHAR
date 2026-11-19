@@ -184,7 +184,7 @@ export default function AtmosphereCeilingVisual({ className }: MiracleVisualProp
           {' '}وَهُمْ عَنْ آيَاتِهَا مُعْرِضُونَ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(60,100,160,0.45)' }}>
-          سورة الأنبياء · الآية ٣٢
+          سورة الأنبياء، الآية ٣٢
         </p>
       </motion.div>
 

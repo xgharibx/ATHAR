@@ -280,7 +280,7 @@ export default function StarsNavigationVisual({ className }: MiracleVisualProps)
           {' '}فِي ظُلُمَاتِ الْبَرِّ وَالْبَحْرِ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(130,110,50,0.45)' }}>
-          سورة الأنعام · الآية ٩٧
+          سورة الأنعام، الآية ٩٧
         </p>
       </motion.div>
 

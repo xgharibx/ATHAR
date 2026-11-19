@@ -182,7 +182,7 @@ export default function RomanLowestLandVisual({ className }: MiracleVisualProps)
           {' '}وَهُم مِّن بَعْدِ غَلَبِهِمْ سَيَغْلِبُونَ ﴿٣﴾ فِي بِضْعِ سِنِينَ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(140,120,60,0.45)' }}>
-          سورة الروم · الآيات ٢–٤
+          سورة الروم، الآيات ٢–٤
         </p>
       </motion.div>
 

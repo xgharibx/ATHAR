@@ -131,7 +131,7 @@ export default function PairsCreationVisual({ className }: MiracleVisualProps) {
           {' '}لَعَلَّكُمْ تَذَكَّرُونَ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(80,80,150,0.45)' }}>
-          سورة الذاريات · الآية ٤٩
+          سورة الذاريات، الآية ٤٩
         </p>
       </motion.div>
 

@@ -237,8 +237,8 @@ export function QadaaPage() {
                     <div className="text-sm font-medium">{PRAYER_LABELS[k]}</div>
                     <div className="text-[11px] text-(--muted)">
                       متبقٍ {arNum(q.remaining[k])}
-                      {q.quota[k] > 0 ? ` · اليوم ${arNum(Math.min(doneToday, q.quota[k]))}/${arNum(q.quota[k])}` : ""}
-                      {prayedNow ? " · صلّيتَ هذه الصلاة اليوم" : ""}
+                      {q.quota[k] > 0 ? `، اليوم ${arNum(Math.min(doneToday, q.quota[k]))}/${arNum(q.quota[k])}` : ""}
+                      {prayedNow ? "، صلّيتَ هذه الصلاة اليوم" : ""}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -360,8 +360,8 @@ export function QadaaPage() {
           <div key={k} className="flex items-center justify-between text-sm rounded-2xl bg-(--card) px-4 py-2.5">
             <span>{PRAYER_LABELS[k]}</span>
             <span className="text-(--muted) text-xs">
-              عليّ {arNum(q.owed[k])} · قضيتُ {arNum(Math.min(q.owed[k], q.owed[k] - q.remaining[k]))}
-              {q.surplus[k] > 0 ? ` · زيادة نافلة ${arNum(q.surplus[k])}` : ""}
+              عليّ {arNum(q.owed[k])}، قضيتُ {arNum(Math.min(q.owed[k], q.owed[k] - q.remaining[k]))}
+              {q.surplus[k] > 0 ? `، زيادة نافلة ${arNum(q.surplus[k])}` : ""}
             </span>
           </div>
         ))}
@@ -399,7 +399,7 @@ export function QadaaPage() {
                   <div>
                     <div className="text-sm">رمضان {arYear(f.year)} هـ</div>
                     <div className="text-[11px] text-(--muted)">
-                      عليّ {arNum(f.owed)} · متبقٍ {arNum(f.remaining)}
+                      عليّ {arNum(f.owed)}، متبقٍ {arNum(f.remaining)}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -474,7 +474,7 @@ export function QadaaPage() {
       </div>
       {q.madhhab && (
         <p className="text-[11px] text-center text-(--muted)">
-          المذهب: {MADHHAB_LABELS[q.madhhab as Madhhab]} · الأداة تنظّم لك الحساب فقط وليست فتوى. اسأل أهل العلم عن حالتك.
+          المذهب: {MADHHAB_LABELS[q.madhhab as Madhhab]}، الأداة تنظّم لك الحساب فقط وليست فتوى. اسأل أهل العلم عن حالتك.
         </p>
       )}
     </div>

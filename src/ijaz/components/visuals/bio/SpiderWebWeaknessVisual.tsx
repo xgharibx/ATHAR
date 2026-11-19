@@ -135,7 +135,7 @@ export default function SpiderWebWeaknessVisual({ className }: MiracleVisualProp
           {' '}لَوْ كَانُوا يَعْلَمُونَ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(60,100,40,0.45)' }}>
-          سورة العنكبوت · الآية ٤١
+          سورة العنكبوت، الآية ٤١
         </p>
       </motion.div>
 

@@ -746,7 +746,7 @@ function VideoHome({
               >
                 الدورات الإسلامية
               </h1>
-              <p className="text-[11px] opacity-40 mt-1 leading-5">تعلّم بتنظيم · تابع تقدمك · استكشف بلا تشتت</p>
+              <p className="text-[11px] opacity-40 mt-1 leading-5">تعلّم بتنظيم، تابع تقدمك، استكشف بلا تشتت</p>
             </div>
             <button
               type="button"

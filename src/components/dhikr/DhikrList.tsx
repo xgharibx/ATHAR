@@ -645,7 +645,7 @@ export function DhikrList(props: Readonly<{
               <h1 className="text-xl md:text-2xl font-semibold" style={{ color: identity.accent }}>{props.title}</h1>
               <div className="text-sm opacity-70 mt-2 tabular-nums">
                 {hasItems
-                  ? `التقدّم: ${stats.done}/${stats.total} • ${stats.percent}% • ~${Math.max(1, Math.round(props.items.length / 2))} دق`
+                  ? `التقدّم: ${stats.done}/${stats.total}، ${stats.percent}%، ~${Math.max(1, Math.round(props.items.length / 2))} دق`
                   : "0 ذكر"}
               </div>
               {weeklyStats.weeklyCount > 0 && (
@@ -681,7 +681,7 @@ export function DhikrList(props: Readonly<{
               {autoReadActive && (
                 <Button variant="primary" onClick={stopAutoRead} aria-label="إيقاف">
                   <Square size={14} aria-hidden="true" />
-                  إيقاف · {autoReadCountdown}ث
+                  إيقاف، {autoReadCountdown}ث
                 </Button>
               )}
               <Button
@@ -862,7 +862,7 @@ export function DhikrList(props: Readonly<{
           {isDailySectionLocked && midnightLabel && (
             <div className="mt-3 flex items-center gap-1.5 text-[11px] opacity-55">
               <Lock size={11} aria-hidden="true" />
-              <span>يتجدد مع الفجر · متبقّي {midnightLabel}</span>
+              <span>يتجدد مع الفجر، متبقّي {midnightLabel}</span>
             </div>
           )}
         </div>

@@ -169,7 +169,7 @@ export default function PulsarStarsVisual({ className }: MiracleVisualProps) {
           <span style={{ color: '#aaddff', textShadow: '0 0 14px rgba(120,200,255,0.7)' }}>النَّجْمُ الثَّاقِبُ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(60,100,160,0.45)' }}>
-          سورة الطارق · الآيات ١–٣
+          سورة الطارق، الآيات ١–٣
         </p>
       </motion.div>
 

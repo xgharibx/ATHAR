@@ -354,7 +354,7 @@ export function KnowledgeSectionPage({ config }: { config: KnowledgeSectionConfi
             {showBookmarksOnly ? (
               <>
                 <span>لا توجد عناصر محفوظة</span>
-                <span className="text-xs opacity-70">انقر 🔖 على أي بطاقة لتحفظها</span>
+                <span className="text-xs opacity-70">اضغط زر الحفظ في أي بطاقة لتجدها هنا</span>
               </>
             ) : (
               <span>لا توجد نتائج</span>

@@ -137,7 +137,7 @@ export default function PainReceptorsSkinVisual({ className }: MiracleVisualProp
           {' '}بَدَّلْنَاهُمْ جُلُودًا غَيْرَهَا
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(140,70,40,0.45)' }}>
-          سورة النساء · الآية ٥٦
+          سورة النساء، الآية ٥٦
         </p>
       </motion.div>
 

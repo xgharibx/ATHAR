@@ -1488,7 +1488,7 @@ export function SebhaPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="arabic-text text-base font-bold leading-7 truncate">{sebhaCustom.phrase}</div>
-                  <div className="mt-1 text-xs opacity-55">ذكر مخصص · هدف {sebhaCustom.target}</div>
+                  <div className="mt-1 text-xs opacity-55">ذكر مخصص، هدف {sebhaCustom.target}</div>
                 </div>
                 <div className="flex items-center gap-1">
                   <Badge>{Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target)}/{sebhaCustom.target}</Badge>
@@ -1755,7 +1755,7 @@ function AsmaHusnaCounter({
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <ActivityIcon size={14} className="text-(--accent)" />
         <span className="text-sm font-semibold">أسماء الله الحسنى</span>
-        <span className="text-[10px] opacity-50">انقر للعدّ على كل اسم</span>
+        <span className="text-[10px] opacity-50">اضغط على كل اسم للعدّ</span>
         <div className="ms-auto flex items-center gap-1 rounded-xl border border-(--stroke) bg-(--card) p-0.5">
           {[33, 100, 1000].map((t) => (
             <button key={t} type="button"

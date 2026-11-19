@@ -114,7 +114,7 @@ export default function LightningThunderVisual({ className }: MiracleVisualProps
           {' '}وَالْمَلَائِكَةُ مِنْ خِيفَتِهِ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(40,60,120,0.45)' }}>
-          سورة الرعد · الآية ١٣
+          سورة الرعد، الآية ١٣
         </p>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 1 }}

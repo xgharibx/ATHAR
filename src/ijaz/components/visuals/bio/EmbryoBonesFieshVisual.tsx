@@ -131,7 +131,7 @@ export default function EmbryoBonesFieshVisual({ className }: MiracleVisualProps
           <span style={{ color: '#e8b09a', textShadow: '0 0 12px rgba(220,160,120,0.6)' }}>لَحْمًا</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(130,90,50,0.45)' }}>
-          سورة المؤمنون · الآية ١٤
+          سورة المؤمنون، الآية ١٤
         </p>
       </motion.div>
 

@@ -180,7 +180,7 @@ export function SourcesPage() {
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{p.name}</div>
                   <div className="text-xs opacity-60 mt-1">
-                    {p.sections.length} قسم • {new Date(p.importedAt).toLocaleString()}
+                    {p.sections.length} قسم، {new Date(p.importedAt).toLocaleString()}
                   </div>
                 </div>
                 {confirmDeleteId === p.packId ? (

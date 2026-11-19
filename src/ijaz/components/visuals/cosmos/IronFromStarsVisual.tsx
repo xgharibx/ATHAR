@@ -162,7 +162,7 @@ export default function IronFromStarsVisual({ className }: MiracleVisualProps) {
           {' '}فِيهِ بَأْسٌ شَدِيدٌ وَمَنَافِعُ لِلنَّاسِ
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(130,100,50,0.45)' }}>
-          سورة الحديد · الآية ٢٥
+          سورة الحديد، الآية ٢٥
         </p>
       </motion.div>
 

@@ -199,7 +199,7 @@ export default function SubatomicQuranVisual({ className }: MiracleVisualProps) 
           <span style={{ color: '#88ddff', textShadow: '0 0 14px rgba(120,200,255,0.7)' }}>أَصْغَرُ مِن ذَٰلِكَ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(120,150,200,0.45)' }}>
-          سورة سبأ · الآية ٣
+          سورة سبأ، الآية ٣
         </p>
       </motion.div>
 

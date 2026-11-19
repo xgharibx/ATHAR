@@ -284,7 +284,7 @@ export function SearchPage() {
                 : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
             )}
           >
-            🤲 الأذكار
+            الأذكار
           </button>
           <button type="button"
             id="search-tab-quran"
@@ -542,7 +542,7 @@ export function SearchPage() {
           {q.trim() && quranResults.length > 0 && (
             <div className="text-xs opacity-55 tabular-nums">
               {quranResults.filter(r => r.type === "ayah").length} آية
-              {quranResults.filter(r => r.type === "surah").length > 0 && ` · ${quranResults.filter(r => r.type === "surah").length} سورة`}
+              {quranResults.filter(r => r.type === "surah").length > 0 && `، ${quranResults.filter(r => r.type === "surah").length} سورة`}
             </div>
           )}
         </div>

@@ -973,7 +973,7 @@ export function MushafPage() {
       const verses = plan.items.map((item) => ({
         id: `${item.surahId}:${item.displayAyah}`,
         url: everyAyahUrl(reciter, item.surahId, item.originalAyah),
-        title: `${surahName(item.surahId)} · آية ${toArabicNumeral(item.displayAyah)}`,
+        title: `${surahName(item.surahId)}، آية ${toArabicNumeral(item.displayAyah)}`,
         artist: reciterName,
       }));
       const token = ++nativeTokenRef.current;
@@ -1478,7 +1478,7 @@ export function MushafPage() {
           translationAttribution: translation ? (translationAttribution || undefined) : undefined,
           translationDirection: translationSource?.lang === "ur" ? "rtl" : "ltr",
         },
-        title: `${surah} · آية ${toArabicNumeral(selectedItem.displayAyah)}`,
+        title: `${surah}، آية ${toArabicNumeral(selectedItem.displayAyah)}`,
         filename: `athar-${selectedItem.surahId}-${selectedItem.displayAyah}.png`,
       });
       setShareSheetOpen(false);
@@ -1535,7 +1535,7 @@ export function MushafPage() {
     prevPageRef.current = currentPage;
     const juzNum = pageJuz;
     const hizb = firstItem ? getHizbForAyah(firstItem.surahId, firstItem.originalAyah) : 1;
-    setJuzOverlay(`الجزء ${toArabicNumeral(juzNum)} · الحزب ${toArabicNumeral(hizb)}`);
+    setJuzOverlay(`الجزء ${toArabicNumeral(juzNum)}، الحزب ${toArabicNumeral(hizb)}`);
     if (juzOverlayTimer.current) clearTimeout(juzOverlayTimer.current);
     juzOverlayTimer.current = window.setTimeout(() => setJuzOverlay(null), 2600);
   }, [currentPage, pageJuz, firstItem]);
@@ -1578,7 +1578,7 @@ export function MushafPage() {
       const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
       const urls = items.map((item) => everyAyahUrl(reciter, item.surahId, item.originalAyah));
       const { saved, evicted } = await saveRecitationsOffline(urls, (done, total) => setCacheProgress({ done, total }));
-      const reclaimed = evicted > 0 ? ` · أُزيل ${countAr(evicted, AUDIO_FILE)} أقدم لإفساح مساحة` : "";
+      const reclaimed = evicted > 0 ? `، أُزيل ${countAr(evicted, AUDIO_FILE)} أقدم لإفساح مساحة` : "";
       if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
       else if (saved === items.length) toast.success(`تم تخزين ${countAr(saved, AUDIO_FILE)} للاستماع دون إنترنت${reclaimed}`);
       else toast(`تم تخزين ${toArabicNumeral(saved)} من ${countAr(items.length, AUDIO_FILE)}${reclaimed}`, { icon: "⚠️" });
@@ -1622,7 +1622,7 @@ export function MushafPage() {
           (done, total) => setBulkDownloadProgress({ done, total, label }),
           `اكتمل تنزيل ${successLabel}`,
         );
-        const reclaimed = evicted > 0 ? ` · أُزيل ${countAr(evicted, AUDIO_FILE)} أقدم لإفساح مساحة` : "";
+        const reclaimed = evicted > 0 ? `، أُزيل ${countAr(evicted, AUDIO_FILE)} أقدم لإفساح مساحة` : "";
         if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
         else if (saved === items.length) toast.success(`تم تخزين ${successLabel} كاملة (${countAr(saved, AYAH)}) للاستماع دون إنترنت${reclaimed}`);
         else toast(`تم تخزين ${toArabicNumeral(saved)} من ${countAr(items.length, AYAH)} في ${label}${reclaimed}`, { icon: "⚠️" });
@@ -1676,7 +1676,7 @@ export function MushafPage() {
       );
       setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: saved === items.length ? "done" : "partial" }));
       const name = QURAN_RECITERS.find((r) => r.id === reciterId)?.label ?? reciterId;
-      const reclaimed = evicted > 0 ? ` · أُزيل ${countAr(evicted, AUDIO_FILE)} أقدم لإفساح مساحة` : "";
+      const reclaimed = evicted > 0 ? `، أُزيل ${countAr(evicted, AUDIO_FILE)} أقدم لإفساح مساحة` : "";
       if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
       else if (saved === items.length) toast.success("✓ تم تحميل الصفحة لـ " + name + reclaimed);
       else toast(`تم تخزين ${toArabicNumeral(saved)} من ${countAr(items.length, AYAH)} للقارئ ${name}${reclaimed}`, { icon: "⚠️" });
@@ -1720,9 +1720,9 @@ export function MushafPage() {
     // equalizer keeps the web player, and with it these controls).
     if (hasNativeRecitation() && !eqEnabledRef.current) return;
     const info = {
-      title: `${pageSurahName} · آية ${playingKey?.split(":")[1] ?? ""}`,
+      title: `${pageSurahName}، آية ${playingKey?.split(":")[1] ?? ""}`,
       artist: reciterLabel,
-      album: "القرآن الكريم · أثر",
+      album: "القرآن الكريم، أثر",
     };
     if (playingKey) {
       if (currentMediaOwner() !== "quran") {
@@ -1880,7 +1880,7 @@ export function MushafPage() {
         </button>
         <div className="mushaf-chrome-info" onClick={(e) => e.stopPropagation()}>
           <div className="mushaf-chrome-surah-name">{pageSurahName || pageSurahEnglish}</div>
-          <div className="mushaf-chrome-meta">صفحة {toArabicNumeral(currentPage)} · الجزء {toArabicNumeral(pageJuz)}</div>
+          <div className="mushaf-chrome-meta">صفحة {toArabicNumeral(currentPage)}، الجزء {toArabicNumeral(pageJuz)}</div>
         </div>
         <button type="button"
           className={`mushaf-chrome-icon-btn has-caption${tajweedMode ? " active" : ""}`}
@@ -1967,7 +1967,7 @@ export function MushafPage() {
       {/* Q9: Memorization mode banner */}
       {memorizationMode && (
         <div className="mushaf-mem-banner" onClick={(e) => e.stopPropagation()}>
-          <span>🧠 وضع الحفظ · اضغط على الآية لكشفها</span>
+          <span>وضع الحفظ، اضغط على الآية لكشفها</span>
           <span className="mushaf-mem-counter">
             {playableItems.filter((item) => revealedItems.has(`${item.surahId}:${item.displayAyah}`)).length}/{playableItems.length}
           </span>
@@ -2389,7 +2389,7 @@ export function MushafPage() {
             <Mic2 size={12} aria-hidden="true" style={{ opacity: 0.6, flexShrink: 0 }} />
             <span>
               {playingKey
-                ? `▶ يُشغَّل · آية ${playingKey.split(":")[1] ?? ""}`
+                ? `▶ يُشغَّل، آية ${playingKey.split(":")[1] ?? ""}`
                 : (QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي")}
             </span>
             <ChevronDown size={12} aria-hidden="true" style={{ opacity: 0.5, flexShrink: 0 }} />
@@ -2527,7 +2527,7 @@ export function MushafPage() {
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-2">
               <span className="mushaf-sheet-title">
-                مشاركة · {selectedItem.surahName} ﴿{toArabicNumeral(selectedItem.displayAyah)}﴾
+                مشاركة، {selectedItem.surahName} ﴿{toArabicNumeral(selectedItem.displayAyah)}﴾
               </span>
               <button type="button" className="mushaf-icon-close" onClick={() => setShareSheetOpen(false)} aria-label="إغلاق">
                 <X size={16} aria-hidden="true" />
@@ -2573,7 +2573,7 @@ export function MushafPage() {
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-3">
               <span className="mushaf-sheet-title">
-                تدبّر · {selectedItem.surahName} ﴿{toArabicNumeral(selectedItem.displayAyah)}﴾
+                تدبّر، {selectedItem.surahName} ﴿{toArabicNumeral(selectedItem.displayAyah)}﴾
               </span>
               <button type="button"
                 className="mushaf-icon-close"
@@ -2626,7 +2626,7 @@ export function MushafPage() {
                       heading: "تدبّر",
                       reference: `${surah} · ${toArabicNumeral(selectedItem.displayAyah)}`,
                     },
-                    title: `تدبّر · ${surah} ${toArabicNumeral(selectedItem.displayAyah)}`,
+                    title: `تدبّر، ${surah} ${toArabicNumeral(selectedItem.displayAyah)}`,
                     filename: `tadabbur-${selectedItem.surahId}-${selectedItem.displayAyah}.png`,
                   });
                   setNoteSheetOpen(false);
@@ -2904,7 +2904,7 @@ export function MushafPage() {
               </div>
               <div className="mushaf-set-label mt-3">
                 لون الخط
-                {tajweedMode ? <span className="opacity-60"> · مع التجويد تبقى ألوان أحكامه</span> : null}
+                {tajweedMode ? <span className="opacity-60">، مع التجويد تبقى ألوان أحكامه</span> : null}
               </div>
               <div className="mushaf-swatches is-small" role="radiogroup" aria-label="لون الخط">
                 <button type="button" role="radio" aria-checked={!prefs.mushafTextColor} className={!prefs.mushafTextColor ? "is-on" : ""} onClick={() => setPrefs({ mushafTextColor: undefined })}>
@@ -3266,12 +3266,12 @@ export function MushafPage() {
             <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }} aria-hidden="true">📖</div>
             <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.3rem" }}>جلسة قراءة</div>
             <div style={{ fontSize: "0.85rem", opacity: 0.65, marginBottom: sessionSurahCompletedRef.current.size > 0 ? "0.75rem" : "1.25rem" }}>
-              {toArabicNumeral(sessionDurationMin)} دقيقة · {toArabicNumeral(pagesReadRef.current.size)} صفحة
-              {sessionAyahCountRef.current > 0 && <span> · {toArabicNumeral(sessionAyahCountRef.current)} آية</span>}
+              {toArabicNumeral(sessionDurationMin)} دقيقة، {toArabicNumeral(pagesReadRef.current.size)} صفحة
+              {sessionAyahCountRef.current > 0 && <span>، {toArabicNumeral(sessionAyahCountRef.current)} آية</span>}
               {(() => {
                 const todayKey = new Date().toISOString().slice(0, 10);
                 const todayAyahs = quranDailyAyahs?.[todayKey] ?? 0;
-                return todayAyahs > 0 ? <span> · {toArabicNumeral(todayAyahs)} آية اليوم</span> : null;
+                return todayAyahs > 0 ? <span>، {toArabicNumeral(todayAyahs)} آية اليوم</span> : null;
               })()}
             </div>
             {sessionSurahCompletedRef.current.size > 0 && (

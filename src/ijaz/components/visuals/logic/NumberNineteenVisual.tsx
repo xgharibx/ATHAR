@@ -125,7 +125,7 @@ export default function NumberNineteenVisual({ className }: MiracleVisualProps) 
           <span style={{ color: '#bbaaff', textShadow: '0 0 14px rgba(160,140,255,0.7)' }}>وَمَا جَعَلْنَا عِدَّتَهُمْ إِلَّا فِتْنَةً لَّلَّذِينَ كَفَرُوا</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(80,70,140,0.45)' }}>
-          سورة المدثر · الآية ٣٠
+          سورة المدثر، الآية ٣٠
         </p>
       </motion.div>
 

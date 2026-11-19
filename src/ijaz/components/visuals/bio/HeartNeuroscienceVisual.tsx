@@ -251,7 +251,7 @@ export default function HeartNeuroscienceVisual({ className }: MiracleVisualProp
           <span style={{ color: '#ff8888', textShadow: '0 0 14px rgba(255,100,100,0.7)' }}>تَطْمَئِنُّ الْقُلُوبُ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(160,60,80,0.45)' }}>
-          سورة الرعد · الآية ٢٨
+          سورة الرعد، الآية ٢٨
         </p>
       </motion.div>
 

@@ -1073,7 +1073,7 @@ export function HomePage() {
                     </span>
                   )}
                   {quranResumeMeta?.surahName && (
-                    <span className="text-[11px] opacity-45 arabic-text leading-snug max-w-full sm:max-w-56">{quranResumeMeta.surahName} · صفحة {toArabicNumeral(quranResumeMeta.page)}</span>
+                    <span className="text-[11px] opacity-45 arabic-text leading-snug max-w-full sm:max-w-56">{quranResumeMeta.surahName}، صفحة {toArabicNumeral(quranResumeMeta.page)}</span>
                   )}
                 </button>
               )}
@@ -1095,7 +1095,7 @@ export function HomePage() {
           {/* Fixed-height hint text — prevents layout shift when dragging starts */}
           <div className="relative mb-1" style={{ height: "13px" }}>
             {draggingStripId && (
-              <div className="absolute inset-x-0 text-[8px] opacity-40 text-center arabic-text leading-none">اسحب لإعادة الترتيب · ارفع إصبعك للحفظ</div>
+              <div className="absolute inset-x-0 text-[8px] opacity-40 text-center arabic-text leading-none">اسحب لإعادة الترتيب، ارفع إصبعك للحفظ</div>
             )}
             {!draggingStripId && !prefs.homeStripOrder && (
               <div className="absolute inset-x-0 text-[8px] opacity-30 text-center arabic-text leading-none select-none">اسحب يميناً أو يساراً لإعادة ترتيب الأقسام</div>
@@ -1253,7 +1253,7 @@ export function HomePage() {
                       <Dropdown.Label className="px-3 pt-2 text-[11px] font-semibold opacity-45">ملخص سريع</Dropdown.Label>
                       <div className="px-3 pb-2 pt-1 text-[11px] opacity-60 leading-5">
                         أنجزت {DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length} من {DAILY_CHECKLIST_ITEMS.length} اليوم
-                        {smartNow.missedYesterday > 0 ? ` • فاتك ${smartNow.missedYesterday} أمس` : ""}
+                        {smartNow.missedYesterday > 0 ? `، فاتك ${smartNow.missedYesterday} أمس` : ""}
                       </div>
                       <Dropdown.Separator className="my-1 h-px bg-(--card)" />
                       {adaptiveMission.recoveryItem ? (
@@ -1480,9 +1480,7 @@ export function HomePage() {
                     }
                     return (
                       <div className="mt-1 text-[11px] opacity-70 tabular-nums">
-                        التالي: <span className="font-semibold opacity-90">{nextMilestone}</span>
-                        <span aria-hidden="true"> · </span>
-                        متبقي <span className="font-semibold opacity-90">{toMilestone}</span> للوصول إلى {nextMilestone}
+                        بقي <span className="font-semibold opacity-90">{toMilestone}</span> لتبلغ <span className="font-semibold opacity-90">{nextMilestone}</span>
                       </div>
                     );
                   })()}
@@ -1599,8 +1597,8 @@ export function HomePage() {
                         </div>
                       </div>
                       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                        <div className="text-xs opacity-70">انقر للعدّ</div>
-                        <Badge>{done ? "تم" : `${target - v} متبقّي`}</Badge>
+                        <div className="text-xs opacity-70">اضغط للعدّ</div>
+                        <Badge>{done ? "تم" : `بقي ${target - v}`}</Badge>
                       </div>
                     </button>
                   );
@@ -1726,7 +1724,7 @@ export function HomePage() {
               }}
               aria-label="آية اليوم — انتقل للمصحف"
             >
-              <div className="text-[10px] font-semibold opacity-40 mb-2 tracking-wide">✨ آية اليوم</div>
+              <div className="text-[10px] font-semibold opacity-40 mb-2 tracking-wide">آية اليوم</div>
               <div
                 className="text-base leading-8 mb-2 text-right"
                 style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}
@@ -1767,7 +1765,7 @@ export function HomePage() {
                 <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>ختمة القرآن</span>
                 <span className="text-xs tabular-nums opacity-70">
                   {timeline.isUpcoming ? `تبدأ بعد ${arNum(timeline.startsInDays)} يوم` : `تبقى ${arNum(timeline.daysRemaining)} يوم`}
-                  {` · ${arNum(doneCount)}س/${arNum(khatmaDays)}`}
+                  {`، ${arNum(doneCount)}س/${arNum(khatmaDays)}`}
                 </span>
               </div>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}>

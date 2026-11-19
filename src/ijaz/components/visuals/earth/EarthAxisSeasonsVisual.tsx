@@ -139,7 +139,7 @@ export default function EarthAxisSeasonsVisual({ className }: MiracleVisualProps
           <span style={{ color: '#88ccff', textShadow: '0 0 14px rgba(100,180,255,0.7)' }}>وَسَخَّرَ الشَّمْسَ وَالْقَمَرَ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(40,60,120,0.45)' }}>
-          سورة الزمر · الآية ٥
+          سورة الزمر، الآية ٥
         </p>
       </motion.div>
 

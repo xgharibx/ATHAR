@@ -108,7 +108,7 @@ export default function SunMoonLightVisual({ className }: MiracleVisualProps) {
           {' '}وَالْقَمَرَ{' '}
           <span style={{ color: '#aabbff', textShadow: '0 0 14px rgba(150,180,255,0.7)' }}>نُورًا</span>
         </p>
-        <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(60,50,100,0.45)' }}>سورة يونس · الآية ٥</p>
+        <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(60,50,100,0.45)' }}>سورة يونس، الآية ٥</p>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 1 }}
         className="absolute bottom-0 inset-x-0 z-10 pointer-events-none flex flex-col items-center gap-1.5 pb-3 px-2"

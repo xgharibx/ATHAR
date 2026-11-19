@@ -111,7 +111,7 @@ export default function BackboneRibsSpermVisual({ className }: MiracleVisualProp
           يَخْرُجُ{' '}
           <span style={{ color: '#88ccff', textShadow: '0 0 14px rgba(100,180,255,0.7)' }}>مِن بَيْنِ الصُّلْبِ وَالتَّرَائِبِ</span>
         </p>
-        <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(40,80,120,0.45)' }}>سورة الطارق · الآية ٧</p>
+        <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(40,80,120,0.45)' }}>سورة الطارق، الآية ٧</p>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 1 }}
         className="absolute bottom-0 inset-x-0 z-10 pointer-events-none flex flex-col items-center gap-1.5 pb-3 px-2"

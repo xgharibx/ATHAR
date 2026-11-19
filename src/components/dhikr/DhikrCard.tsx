@@ -163,7 +163,7 @@ export function DhikrCard(props: {
         // De7: Left swipe → toggle favorite
         toggleFavorite(sectionId, index, itemId);
         vibrate(10);
-        toast(fav ? "💔 أُزيل من المفضلة" : "❤️ أُضيف إلى المفضلة", { duration: 1500 });
+        toast(fav ? "أُزيل من المفضلة" : "أُضيف إلى المفضلة", { duration: 1500 });
         if (cardRef.current) {
           const el = cardRef.current;
           el.style.transition = "transform 0.12s";
@@ -620,9 +620,9 @@ export function DhikrCard(props: {
             {done
               ? "اكتملت ✨"
               : remaining === 1
-                ? "الأخيرة · اضغط"
+                ? "الأخيرة، اضغط"
                 : remaining > 0
-                  ? `اضغط للعدّ · ${remaining}`
+                  ? `اضغط للعدّ، ${remaining}`
                   : "اضغط للعدّ"}
           </button>
         </div>

@@ -95,7 +95,7 @@ export function PrayerWidget() {
         <div className="mb-3 text-[11px] opacity-55 leading-5">
           {isOnline ? "يتم عرض آخر نسخة محفوظة" : "انقطع الاتصال — يتم عرض آخر مواقيت محفوظة"}
           {sourceLabel ? ` من ${sourceLabel}` : ""}
-          {cachedAtLabel ? ` • آخر تحديث ${cachedAtLabel}` : ""}
+          {cachedAtLabel ? `، آخر تحديث ${cachedAtLabel}` : ""}
           {isOnline ? " — اضغط تحديث للمحاولة الآن." : " — أعد الاتصال ثم اضغط تحديث."}
         </div>
       ) : null}
@@ -175,7 +175,7 @@ export function PrayerWidget() {
       })()}
 
       <Button variant="secondary" className="mt-4 w-full justify-between" onClick={() => navigate("/prayer-times")}>
-        مواقيت الصلاة • القبلة • الإعدادات
+        مواقيت الصلاة، القبلة، الإعدادات
         <ArrowLeft size={16} aria-hidden="true" />
       </Button>
     </Card>

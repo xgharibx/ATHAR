@@ -74,7 +74,7 @@ async function buildSharhIndex(): Promise<Passage[]> {
     const text = [
       `الحديث: ${h.hadeeth ?? ""}`,
       `الشرح: ${h.explanation ?? ""}`,
-      h.hints?.length ? `فوائد: ${h.hints.join(" • ")}` : "",
+      h.hints?.length ? `فوائد: ${h.hints.join("، ")}` : "",
     ].filter(Boolean).join("\n");
     out.push({
       source: `sharh:${h.id}`,
@@ -140,7 +140,7 @@ async function buildProphetStoriesIndex(): Promise<Passage[]> {
       s.title ? `العنوان: ${s.title}` : "",
       s.summary ?? "",
       s.text ?? "",
-      s.lessons?.length ? `الدروس: ${s.lessons.join(" • ")}` : "",
+      s.lessons?.length ? `الدروس: ${s.lessons.join("، ")}` : "",
     ].filter(Boolean).join("\n"),
   }));
 }

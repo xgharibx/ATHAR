@@ -475,7 +475,7 @@ export function QuranPlansPage() {
                   <span className="text-xl w-8 text-center">{preset.emoji}</span>
                   <div className="flex-1">
                     <div className="text-sm font-semibold">{preset.name}</div>
-                    <div className="text-[10px] opacity-50">{preset.subtitle} · حتى {toArabicNumeral(daily)} آية يومياً</div>
+                    <div className="text-[10px] opacity-50">{preset.subtitle}، حتى {toArabicNumeral(daily)} آية يومياً</div>
                   </div>
                   {isActive && (
                     <span className="text-[10px] bg-(--accent) text-(--bg) rounded-full px-2 py-0.5 font-bold shrink-0">

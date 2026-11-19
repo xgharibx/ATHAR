@@ -213,7 +213,7 @@ export default function UniverseFateVisual({ className }: MiracleVisualProps) {
           <span style={{ color: '#ffe0aa', textShadow: '0 0 14px rgba(255,200,100,0.7)' }}>نُعِيدُهُ</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(100,80,160,0.45)' }}>
-          سورة الأنبياء · الآية ١٠٤
+          سورة الأنبياء، الآية ١٠٤
         </p>
       </motion.div>
 

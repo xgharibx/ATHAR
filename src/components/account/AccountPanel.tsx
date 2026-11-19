@@ -156,7 +156,7 @@ export function AccountPanel() {
                       ? sync.error ?? "تعذّرت المزامنة — نعيد المحاولة تلقائيًا"
                       : sync.pending
                         ? "سنحفظ تغييراتك خلال لحظات…"
-                        : `المزامنة تلقائية · آخر مزامنة ${relativeTime(sync.lastSyncedAt)}`}
+                        : `المزامنة تلقائية، آخر مزامنة ${relativeTime(sync.lastSyncedAt)}`}
               </span>
             </div>
             {/* Deliberately quiet: sync is automatic on edit, on focus, on

@@ -167,7 +167,7 @@ export function LibraryItemPage() {
               <div className="text-sm font-semibold" style={{ color: "var(--accent)" }}>افتح القراءة الكاملة بالإسناد</div>
               <div className="text-[11px] opacity-60 mt-0.5">
                 {HADITH_BOOKS_STATIC.find((b) => b.key === hadithLinks[0]!.bookKey)?.title ?? hadithLinks[0]!.bookKey}
-                {" · ح"}{arNum(hadithLinks[0]!.n)}
+                {"، ح"}{arNum(hadithLinks[0]!.n)}
                 {hadithLinks.length > 1 ? ` (+${arNum((hadithLinks.length - 1))} مصادر أخرى)` : ""}
               </div>
             </div>

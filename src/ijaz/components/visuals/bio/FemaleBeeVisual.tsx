@@ -216,7 +216,7 @@ export default function FemaleBeeVisual({ className }: MiracleVisualProps) {
           {' '}… فَ<span style={{ color: '#c4aaff', textShadow: '0 0 14px rgba(180,150,255,0.7)' }}>اسْلُكِي</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(120,200,100,0.45)' }}>
-          سورة النحل · الآيتان ٦٨–٦٩
+          سورة النحل، الآيتان ٦٨–٦٩
         </p>
       </motion.div>
 
@@ -233,7 +233,7 @@ export default function FemaleBeeVisual({ className }: MiracleVisualProps) {
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
             { icon: '♀', label: 'كل العاملات إناث', sub: '100%' },
-            { icon: 'ي', label: 'صيغة مؤنثة', sub: 'اتخذي · كلي · اسلكي' },
+            { icon: 'ي', label: 'صيغة مؤنثة', sub: 'اتخذي، كلي، اسلكي' },
             { icon: '🔬', label: 'تشارلز بتلر ١٦٠٩م', sub: 'بعد القرآن بـ ١٠٠٠ سنة' },
             { icon: '🧬', label: 'كروموسوم XX', sub: 'بيولوجياً إناث' },
           ].map(({ icon, label, sub }) => (

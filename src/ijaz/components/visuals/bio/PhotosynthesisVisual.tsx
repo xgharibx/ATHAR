@@ -206,7 +206,7 @@ export default function PhotosynthesisVisual({ className }: MiracleVisualProps) 
           فَأَخْرَجْنَا بِهِ{' '}
           <span style={{ color: '#88ff88', textShadow: '0 0 14px rgba(80,220,80,0.7)' }}>نَبَاتَ كُلِّ شَيْءٍ</span>
         </p>
-        <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(20,80,20,0.45)' }}>سورة الأنعام · الآية ٩٩</p>
+        <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(20,80,20,0.45)' }}>سورة الأنعام، الآية ٩٩</p>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 1 }}
         className="absolute bottom-0 inset-x-0 z-10 pointer-events-none flex flex-col items-center gap-1.5 pb-3 px-2"

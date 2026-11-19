@@ -205,7 +205,7 @@ export function QiblaPage() {
               {Math.round(qiblaBearing)}°
             </div>
             <div className="text-sm opacity-60">
-              اتجاه القبلة · {formatBearing(qiblaBearing)}
+              اتجاه القبلة، {formatBearing(qiblaBearing)}
             </div>
             {geo.status === "ok" && (
               <div dir="ltr" className="text-[10px] opacity-35 font-mono mt-0.5">
@@ -230,7 +230,7 @@ export function QiblaPage() {
               <div className="flex flex-col items-center gap-1 text-xs text-(--accent) opacity-80 mt-1">
                 <div className="flex items-center justify-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-(--accent) animate-pulse" aria-hidden="true" />
-                  بوصلة نشطة{compass.trueNorth ? " · مصحّحة للشمال الحقيقي" : ""}
+                  بوصلة نشطة{compass.trueNorth ? "، مصحّحة للشمال الحقيقي" : ""}
                 </div>
                 {compassAccuracy != null && (
                   <div className={cn("text-[11px]", hasPoorCompassAccuracy ? "text-(--danger) opacity-90" : "opacity-65")}>

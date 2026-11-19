@@ -176,7 +176,7 @@ export function PremiumShareComposer({ open, onClose, content, title, filename, 
 
   return createPortal(
     <div className="premium-share-backdrop" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <FocusManagedDialog className="premium-share-sheet" aria-label={`مشاركة كصورة · ${title}`} dir="rtl" onClose={onClose}>
+      <FocusManagedDialog className="premium-share-sheet" aria-label={`مشاركة كصورة، ${title}`} dir="rtl" onClose={onClose}>
         <div className="premium-share-handle" aria-hidden="true" />
         <header className="premium-share-header">
           <div className="min-w-0">

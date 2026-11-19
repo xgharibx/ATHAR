@@ -123,7 +123,7 @@ export default function MountainColorsVisual({ className }: MiracleVisualProps) 
           {' '}وَ
           <span style={{ color: '#555566', textShadow: '0 0 14px rgba(80,80,100,0.5)' }}>غَرَابِيبُ سُودٌ</span>
         </p>
-        <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(60,50,30,0.45)' }}>سورة فاطر · الآية ٢٧</p>
+        <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(60,50,30,0.45)' }}>سورة فاطر، الآية ٢٧</p>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 1 }}
         className="absolute bottom-0 inset-x-0 z-10 pointer-events-none flex flex-col items-center gap-1.5 pb-3 px-2"
