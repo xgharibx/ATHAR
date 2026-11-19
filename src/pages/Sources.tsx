@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { addCustomDhikrItem, addPackFromJson, loadPacks, removePack, savePacks, type NoorPack } from "@/data/packs";
 import { useQueryClient } from "@tanstack/react-query";
+import { arNum } from "@/lib/formatNumber";
 
 export function SourcesPage() {
   const { data } = useAdhkarDB();
@@ -26,8 +27,9 @@ export function SourcesPage() {
       const next = [...packs, pack];
       savePacks(next);
       setPacks(next);
-      toast.success("تمت إضافة حزمة بيانات جديدة. أعد فتح الصفحة لرؤية الأقسام.");
-      globalThis.setTimeout(() => globalThis.location.reload(), 500);
+      // The adhkar are read again with the new pack; no reload of the whole app.
+      void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
+      toast.success("أُضيفت الحزمة، وأقسامها الآن في الأذكار.");
     } catch {
       toast.error("تعذر استيراد الملف (صيغة غير مدعومة أو ملف غير صالح)");
     }
@@ -37,8 +39,8 @@ export function SourcesPage() {
     const next = removePack(packId);
     setPacks(next);
     setConfirmDeleteId(null);
-    toast.success("تم الحذف. أعد تحميل الصفحة.");
-    globalThis.setTimeout(() => globalThis.location.reload(), 400);
+    void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
+    toast.success("حُذفت الحزمة.");
   };
 
   const onAddCustomDhikr = () => {
@@ -75,7 +77,7 @@ export function SourcesPage() {
           <label className="inline-flex">
             <input
               type="file"
-              accept="application/json"
+              accept=".json,application/json"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -121,8 +123,9 @@ export function SourcesPage() {
         </div>
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_120px] gap-3">
-          <div className="rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm text-(--fg)">
-            أذكاري
+          {/* Where the dhikr is saved; a label, not a field to type in. */}
+          <div className="flex items-center px-1 text-sm text-(--muted)">
+            يُحفظ في «أذكاري»
           </div>
           <Input
             type="number"
@@ -162,7 +165,7 @@ export function SourcesPage() {
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm font-semibold">حزم البيانات المضافة</div>
-          <div className="text-xs opacity-70">{packs.length} حزمة</div>
+          <div className="text-xs opacity-70">{arNum(packs.length)} حزمة</div>
         </div>
 
         {packs.length === 0 ? (
@@ -180,7 +183,7 @@ export function SourcesPage() {
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{p.name}</div>
                   <div className="text-xs opacity-60 mt-1">
-                    {p.sections.length} قسم، {new Date(p.importedAt).toLocaleString()}
+                    {arNum(p.sections.length)} قسم، {new Date(p.importedAt).toLocaleString("ar-EG", { dateStyle: "medium", timeStyle: "short" })}
                   </div>
                 </div>
                 {confirmDeleteId === p.packId ? (
@@ -225,7 +228,7 @@ function MiniStat(props: Readonly<{ label: string; value: number }>) {
   return (
     <div className="glass rounded-3xl p-4 border border-(--stroke)">
       <div className="text-xs opacity-60">{props.label}</div>
-      <div className="text-2xl font-semibold mt-1 tabular-nums" style={{ color: "var(--accent)" }}>{props.value}</div>
+      <div className="text-2xl font-semibold mt-1 tabular-nums" style={{ color: "var(--accent)" }}>{arNum(props.value)}</div>
     </div>
   );
 }

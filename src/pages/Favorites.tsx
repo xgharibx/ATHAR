@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arNum } from "@/lib/formatNumber";
 import { useNavigate } from "react-router-dom";
 import { Heart, ArrowUpRight, Trash2, Copy, Check, CopyCheck, Share2, BookOpen, ScrollText, Bookmark, Star, Users, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -171,7 +172,7 @@ export function FavoritesPage() {
     try {
       await writeClipboard(lines.join("\n").trim());
       setCopiedAll(true);
-      toast.success(`تم نسخ ${items.length} ذكر`);
+      toast.success(`تم نسخ ${arNum(items.length)} ذكر`);
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
       copyTimerRef.current = setTimeout(() => setCopiedAll(false), 2500);
     } catch {
@@ -258,7 +259,7 @@ export function FavoritesPage() {
               </>
             )}
             <div className="text-xs opacity-70 pr-1">
-              {activeTab === "adhkar" ? `${items.length} ذكر` : activeTab === "quran" ? `${quranBmList.length} علامة` : activeTab === "hadith" ? `${hadithBmList.length} حديث` : activeTab === "duas" ? `${duaFavItems.length} دعاء` : activeTab === "stories" ? `${storyFavItems.length} قصة` : `${companionFavItems.length} صحابي`}
+              {activeTab === "adhkar" ? `${arNum(items.length)} ذكر` : activeTab === "quran" ? `${arNum(quranBmList.length)} علامة` : activeTab === "hadith" ? `${arNum(hadithBmList.length)} حديث` : activeTab === "duas" ? `${arNum(duaFavItems.length)} دعاء` : activeTab === "stories" ? `${arNum(storyFavItems.length)} قصة` : `${arNum(companionFavItems.length)} صحابي`}
             </div>
           </div>
         </div>
@@ -291,7 +292,7 @@ export function FavoritesPage() {
             ].join(" ")}
           >
             <Heart size={14} aria-hidden="true" />
-            الأذكار {items.length > 0 && <span className="text-[11px] opacity-60">({items.length})</span>}
+            الأذكار {items.length > 0 && <span className="text-[11px] opacity-60">({arNum(items.length)})</span>}
           </button>
           <button type="button"
             id="fav-tab-quran"
@@ -307,7 +308,7 @@ export function FavoritesPage() {
             ].join(" ")}
           >
             <BookOpen size={14} aria-hidden="true" />
-            القرآن {quranBmList.length > 0 && <span className="text-[11px] opacity-60">({quranBmList.length})</span>}
+            القرآن {quranBmList.length > 0 && <span className="text-[11px] opacity-60">({arNum(quranBmList.length)})</span>}
           </button>
           <button type="button"
             id="fav-tab-hadith"
@@ -323,7 +324,7 @@ export function FavoritesPage() {
             ].join(" ")}
           >
             <ScrollText size={14} aria-hidden="true" />
-            الأحاديث {hadithBmList.length > 0 && <span className="text-[11px] opacity-60">({hadithBmList.length})</span>}
+            الأحاديث {hadithBmList.length > 0 && <span className="text-[11px] opacity-60">({arNum(hadithBmList.length)})</span>}
           </button>
           <button type="button"
             id="fav-tab-duas"
@@ -339,7 +340,7 @@ export function FavoritesPage() {
             ].join(" ")}
           >
             <Bookmark size={14} aria-hidden="true" />
-            الأدعية {duaFavItems.length > 0 && <span className="text-[11px] opacity-60">({duaFavItems.length})</span>}
+            الأدعية {duaFavItems.length > 0 && <span className="text-[11px] opacity-60">({arNum(duaFavItems.length)})</span>}
           </button>
           <button type="button"
             id="fav-tab-stories"
@@ -355,7 +356,7 @@ export function FavoritesPage() {
             ].join(" ")}
           >
             <Star size={14} aria-hidden="true" />
-            القصص {storyFavItems.length > 0 && <span className="text-[11px] opacity-60">({storyFavItems.length})</span>}
+            القصص {storyFavItems.length > 0 && <span className="text-[11px] opacity-60">({arNum(storyFavItems.length)})</span>}
           </button>
           <button type="button"
             id="fav-tab-companions"
@@ -371,7 +372,7 @@ export function FavoritesPage() {
             ].join(" ")}
           >
             <Users size={14} aria-hidden="true" />
-            الصحابة {companionFavItems.length > 0 && <span className="text-[11px] opacity-60">({companionFavItems.length})</span>}
+            الصحابة {companionFavItems.length > 0 && <span className="text-[11px] opacity-60">({arNum(companionFavItems.length)})</span>}
           </button>
         </div>
       </Card>
@@ -422,7 +423,7 @@ export function FavoritesPage() {
                   <div className="flex items-center gap-2 mb-2 px-1">
                     <span className="text-base">{identity.icon}</span>
                     <span className="text-xs font-semibold opacity-65" style={{ color: identity.accent }}>{group.sectionTitle}</span>
-                    <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
+                    <span className="text-[11px] opacity-40 mr-auto">{arNum(group.items.length)}</span>
                   </div>
                   <div className="stack-y-2" role="list">
                     {group.items.map((r: FlatDhikr) => (
@@ -504,7 +505,7 @@ export function FavoritesPage() {
                   <div className="flex items-center gap-2 mb-2 px-1">
                     <BookOpen size={13} aria-hidden="true" className="text-(--accent) shrink-0" />
                     <span className="text-xs font-semibold opacity-65 arabic-text">{group.surahName}</span>
-                    <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
+                    <span className="text-[11px] opacity-40 mr-auto">{arNum(group.items.length)}</span>
                   </div>
                   <div className="divide-y divide-white/6 rounded-2xl border border-(--stroke) overflow-hidden" role="list">
                     {group.items.map((bm) => (
@@ -579,7 +580,7 @@ export function FavoritesPage() {
                         ].join(" ")}
                         style={selectedBmBookKey === bk ? { background: book?.color ?? "var(--accent)", color: contrastText(book?.color ?? "#ffd780") } : {}}
                       >
-                        {book?.title ?? bk} ({count})
+                        {book?.title ?? bk} ({arNum(count)})
                       </button>
                     );
                   })}

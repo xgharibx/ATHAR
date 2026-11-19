@@ -49,7 +49,8 @@ body{padding:0}
   background-size:260px 290px;opacity:.5;animation-delay:-6s;animation-duration:20s
 }
 @keyframes af-shimmer{from{opacity:.27}to{opacity:.8}}
-.af-wrap{position:relative;width:100%;max-width:604px;margin:0 auto;padding-top:clamp(26px,5vw,48px)}
+/* Clear of the status bar and notch when shown inside the app (0 in a browser). */
+.af-wrap{position:relative;width:100%;max-width:604px;margin:0 auto;padding-top:max(clamp(26px,5vw,48px),calc(env(safe-area-inset-top,0px) + 16px));padding-bottom:env(safe-area-inset-bottom,0px)}
 .af-hero{text-align:center;margin-bottom:23px;max-width:100%}
 .af-wordmark{display:flex;flex-direction:column;align-items:center;gap:1px;text-decoration:none;width:max-content;max-width:100%;margin:0 auto;color:var(--af-gold)}
 .af-fingerprint{display:block;width:54px;height:51px;opacity:.94;filter:drop-shadow(0 5px 14px rgba(208,178,95,.16))}

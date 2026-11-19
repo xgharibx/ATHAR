@@ -12,6 +12,7 @@ import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { UFUQ_EXPLORE_GROUPS } from "@/components/ufuq/ufuqNav";
+import { arNum } from "@/lib/formatNumber";
 
 export function ExplorePage() {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ export function ExplorePage() {
       <section id="explore-adhkar" className="scroll-mt-20">
         <div className="u-section-head">
           <h2>الأذكار</h2>
-          <span className="text-[12.5px] text-(--muted)">{sections.length ? `${sections.length} مجموعة` : ""}</span>
+          <span className="text-[12.5px] text-(--muted)">{sections.length ? `${arNum(sections.length)} مجموعة` : ""}</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {sections.map((section) => {
