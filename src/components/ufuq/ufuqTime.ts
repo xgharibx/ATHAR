@@ -54,6 +54,33 @@ export function untilLabel(diffSec: number): string {
   return `بعد ${[h, m].filter(Boolean).join(" و")}`;
 }
 
+/** «ساعة و٥ دقائق» without «بعد», for «… حتى التهجد». */
+export function durationLabel(diffSec: number): string {
+  return untilLabel(diffSec).replace(/^بعد /, "");
+}
+
+/**
+ * What the day's next moment is called after «حتى»: the next prayer, or a
+ * moment between prayers (الشروق، الضحى، وقت الاستواء، التهجد…).
+ */
+const PHASE_TARGET: Record<string, string> = {
+  fajr: "الفجر",
+  "forbidden-sunrise": "الشروق",
+  duha: "الضحى",
+  "forbidden-zenith": "وقت الاستواء",
+  dhuhr: "الظهر",
+  asr: "العصر",
+  "forbidden-sunset": "وقت الغروب",
+  maghrib: "المغرب",
+  isha: "العشاء",
+  "wait-tahajjud": "انتظار التهجد",
+  tahajjud: "التهجد",
+};
+
+export function phaseTargetLabel(id: string, fallback: string): string {
+  return PHASE_TARGET[id] ?? fallback;
+}
+
 /** «٢:٥٨» and «م» apart, in Arabic digits, so the order never flips. */
 export function ufuqClock(raw: string): { time: string; period: string } {
   const clean = String(raw ?? "").trim().split(" ")[0] ?? "";

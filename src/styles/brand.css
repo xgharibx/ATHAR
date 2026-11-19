@@ -1,0 +1,41 @@
+/* Athar's own mark — the fingerprint with «أثر» across it, from the app icon —
+   drawn as two masks so it takes each theme's colours. */
+.athar-logo {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  filter: drop-shadow(0 1px 6px color-mix(in srgb, var(--bg) 70%, transparent));
+}
+
+.athar-logo > span {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.athar-logo-print {
+  -webkit-mask-image: var(--athar-print);
+  mask-image: var(--athar-print);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 70%, #fff 30%), var(--accent) 55%, color-mix(in srgb, var(--accent) 70%, #000 30%));
+}
+
+.athar-logo-word {
+  -webkit-mask-image: var(--athar-word);
+  mask-image: var(--athar-word);
+  background: var(--fg);
+}
+
+.athar-slogan {
+  font-size: 10.5px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}

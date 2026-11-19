@@ -88,9 +88,10 @@ export function resolveUfuqPalette(
   systemPrefersDark: boolean,
   nightByPrayerTime = false,
 ): UfuqResolvedPalette {
-  if (palette === "day") return "day";
-  if (palette === "night") return "night";
-  if (palette === "time") return nightByPrayerTime ? "night" : "day";
+  const chosen = palette ?? DEFAULT_UFUQ_PALETTE;
+  if (chosen === "day") return "day";
+  if (chosen === "night") return "night";
+  if (chosen === "time") return nightByPrayerTime ? "night" : "day";
   return systemPrefersDark ? "night" : "day";
 }
 

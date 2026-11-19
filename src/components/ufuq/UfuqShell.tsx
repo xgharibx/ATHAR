@@ -16,6 +16,7 @@ import { useTodayKey } from "@/hooks/useTodayKey";
 import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 import { IconExplore, IconPrayer, IconQuran, IconTasbeeh, IconToday } from "@/components/ufuq/UfuqIcons";
 import { ListenMiniPlayer } from "@/components/listen/MiniPlayer";
+import { DesignSwitch } from "@/components/layout/DesignSwitch";
 import { isUfuqTabRoot, ufuqTabFor, ufuqTitleFor, UFUQ_TABS, type UfuqTabId } from "@/components/ufuq/ufuqNav";
 
 const LiveGardenBackdrop = React.lazy(() =>
@@ -121,8 +122,8 @@ function UfuqTopBar({ onSearch }: { onSearch: () => void }) {
             </button>
           )}
         </div>
-        <div className="u-topbar-title" aria-hidden={root ? "true" : undefined}>
-          {root ? null : title}
+        <div className="u-topbar-title">
+          {root ? <DesignSwitch /> : title}
         </div>
         <div className="u-topbar-end">
           <UpdatePill />

@@ -8,7 +8,7 @@
  */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BookOpen, Check, Compass, HandHeart, Library, MapPin, MessageCircle, Share2, Sparkles } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, Compass, HandHeart, Library, MapPin, MessageCircle, MoonStar, Share2, Sparkles, Sun } from "lucide-react";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useStartupReady } from "@/hooks/useStartupReady";
 import { usePrayerTimes, formatPrayerHijriDate } from "@/hooks/usePrayerTimes";
@@ -29,7 +29,7 @@ import { getHomeAdhkarAction } from "@/lib/homeTimeActions";
 import { trackUxEvent } from "@/lib/uxMetrics";
 import { ListenEntry } from "@/components/listen/ListenEntry";
 import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
-import { PRAYER_KEYS, skyPhaseFor, ufuqClock, ufuqGreeting, untilLabel } from "@/components/ufuq/ufuqTime";
+import { PRAYER_KEYS, durationLabel, phaseTargetLabel, skyPhaseFor, ufuqClock, ufuqGreeting, untilLabel } from "@/components/ufuq/ufuqTime";
 
 function dailyIndex(key: string, length: number): number {
   let hash = 7;
@@ -90,6 +90,11 @@ function Sky() {
 
   const nextKey = schedule.next.name;
   const nextIndex = PRAYER_KEYS.indexOf(nextKey);
+  // The countdown under the prayer's name is to that prayer; a moment that
+  // comes first (the last third of the night, Duha, sunrise…) gets its own line.
+  const toPrayerSec = Math.max(0, (schedule.next.at.getTime() - now.getTime()) / 1000);
+  const moment = schedule.nextPhase;
+  const momentFirst = moment && moment.id !== nextKey.toLowerCase() && schedule.diffSec < toPrayerSec - 30;
   return (
     <button
       type="button"
@@ -99,7 +104,7 @@ function Sky() {
         trackUxEvent("ufuq_home:sky");
         navigate("/prayer-times");
       }}
-      aria-label={`الصلاة القادمة ${schedule.next.label} ${untilLabel(schedule.diffSec)}`}
+      aria-label={`الصلاة القادمة ${schedule.next.label} ${untilLabel(toPrayerSec)}${momentFirst ? `، و${durationLabel(schedule.diffSec)} حتى ${phaseTargetLabel(moment.id, moment.label)}` : ""}`}
     >
       {night ? <span className="u-sky-stars" aria-hidden="true" /> : null}
       <div className="u-sky-label">الصلاة القادمة</div>
@@ -110,7 +115,15 @@ function Sky() {
           return <>{clock.time} <span className="opacity-75">{clock.period === "ص" ? "صباحًا" : "مساءً"}</span></>;
         })()}
       </div>
-      <span className="u-sky-count">{untilLabel(schedule.diffSec)}</span>
+      <span className="u-sky-counts">
+        <span className="u-sky-count">{untilLabel(toPrayerSec)}</span>
+        {momentFirst ? (
+          <span className="u-sky-count is-moment">
+            {moment.id.includes("tahajjud") ? <MoonStar size={14} aria-hidden="true" /> : <Sun size={14} aria-hidden="true" />}
+            {durationLabel(schedule.diffSec)} حتى {phaseTargetLabel(moment.id, moment.label)}
+          </span>
+        ) : null}
+      </span>
       <div className="u-sky-track" aria-hidden="true">
         {schedule.primary.map((prayer, i) => (
           <div

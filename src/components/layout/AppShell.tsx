@@ -13,7 +13,8 @@ import { coerceCount } from "@/data/types";
 import { useNoorStore } from "@/store/noorStore";
 import { cn, pct } from "@/lib/utils";
 import { IconButton } from "@/components/ui/IconButton";
-import { LogoMark } from "@/components/brand/LogoMark";
+import { AtharLogo, AtharSlogan } from "@/components/brand/AtharLogo";
+import { DesignSwitch } from "@/components/layout/DesignSwitch";
 import { GardenOrnaments } from "@/components/brand/GardenOrnaments";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { ListenMiniPlayer } from "@/components/listen/MiniPlayer";
@@ -338,12 +339,9 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
       {/* Profile-like header */}
       <div className="px-5 pt-3 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl overflow-hidden border border-(--stroke) shadow-lg">
-            <LogoMark className="w-full h-full" title="Athar" />
-          </div>
+          <AtharLogo className="w-14 h-14" />
           <div className="flex-1 min-w-0">
-            <div className="font-bold text-base" style={{fontFamily:"'Georgia','Times New Roman',serif",letterSpacing:"0.04em"}}>Athar</div>
-            <div className="text-[11px] opacity-55 mt-0.5">اترك أثراً طيباً</div>
+            <AtharSlogan />
           </div>
           <button type="button"
             onClick={cycleTheme}
@@ -637,17 +635,16 @@ function ClassicAppShell() {
 
               <UpdatePill />
 
-              <NavLink to="/" className="flex items-center gap-2 min-w-0">
-                <LogoMark
-                  className="w-11 h-11 rounded-2xl border border-(--stroke) overflow-hidden shrink-0"
-                  title="Athar"
-                />
-                {/* Hide text at narrow viewport (high zoom / large OS font) */}
-                <div className="leading-tight max-[340px]:hidden">
-                  <div className="font-semibold" style={{fontFamily:"'Georgia','Times New Roman',serif",letterSpacing:"0.04em"}}>Athar</div>
-                  <div className="text-[11px] opacity-65">أذكار • صلاة</div>
-                </div>
+              <NavLink to="/" className="flex items-center gap-2 min-w-0" aria-label="أثر — همسة تطمئن قلبك، وتترك أثرًا">
+                <AtharLogo className="w-12 h-12" />
+                {/* The line beside the mark gives way to the design switch on narrow phones. */}
+                <AtharSlogan className="max-[459px]:hidden" />
               </NavLink>
+            </div>
+
+            {/* One tap to «أفق», in the middle of the bar */}
+            <div className="flex-1 flex justify-center min-w-0">
+              <DesignSwitch />
             </div>
 
             {/* Action buttons — shrink-0 so they stay visible, hide non-essential ones at high zoom */}
