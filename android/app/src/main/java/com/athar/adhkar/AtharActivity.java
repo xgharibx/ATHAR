@@ -52,6 +52,7 @@ public class AtharActivity extends BridgeActivity {
         registerPlugin(InAppBrowserPlugin.class);
         registerPlugin(NotificationActionsPlugin.class);
         registerPlugin(SystemSettingsPlugin.class);
+        registerPlugin(NativeUIPlugin.class);
         super.onCreate(savedInstanceState);
 
         // Ask once a day, in the background, whether a newer version has been
@@ -79,12 +80,29 @@ public class AtharActivity extends BridgeActivity {
      */
     @Override
     protected void load() {
+        WebView webView = findViewById(com.getcapacitor.android.R.id.webview);
         String launchRoute = isReturnFromFeedback(getIntent()) ? null : readRoute(getIntent());
-        if (launchRoute != null) {
-            WebView webView = findViewById(com.getcapacitor.android.R.id.webview);
-            if (webView != null) webView.addJavascriptInterface(new LaunchRoute(launchRoute), "AtharLaunch");
+        if (launchRoute != null && webView != null) {
+            webView.addJavascriptInterface(new LaunchRoute(launchRoute), "AtharLaunch");
         }
+        // The saved-data copy, for the page to fill back a web storage the
+        // system cleared, before any of the app's code reads it (index.html).
+        if (webView != null) webView.addJavascriptInterface(new VaultBridge(getApplicationContext()), "AtharVault");
         super.load();
+    }
+
+    /** Hands the saved-data copy to the page (read once, at start). */
+    static final class VaultBridge {
+        private final android.content.Context context;
+
+        VaultBridge(android.content.Context context) {
+            this.context = context;
+        }
+
+        @android.webkit.JavascriptInterface
+        public String dump() {
+            return NativeUIPlugin.NativeVault.readAll(context);
+        }
     }
 
     /** Hands the launch route to the page once. */

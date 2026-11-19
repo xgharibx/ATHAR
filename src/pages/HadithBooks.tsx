@@ -29,6 +29,8 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { cn } from "@/lib/utils";
 import { stripDiacritics } from "@/lib/arabic";
 import { arNum } from "@/lib/formatNumber";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 
 /* ------------------------------------------------------------------ */
@@ -155,7 +157,7 @@ function curatedEntryPreview(entry: FlatLibraryEntry) {
 }
 
 async function copyCuratedEntry(entry: FlatLibraryEntry) {
-  await navigator.clipboard.writeText(`${entry.arabic}\n\n${entry.source.title}${entry.narrator ? ` — ${entry.narrator}` : ""}`);
+  await writeClipboard(`${entry.arabic}\n\n${entry.source.title}${entry.narrator ? ` — ${entry.narrator}` : ""}`);
 }
 
 function CuratedEntryCard({ entry }: { entry: FlatLibraryEntry }) {
@@ -181,8 +183,7 @@ function CuratedEntryCard({ entry }: { entry: FlatLibraryEntry }) {
   const onShare = async () => {
     const text = `${entry.arabic}\n\n${entry.source.title}`;
     try {
-      if (navigator.share) await navigator.share({ title: entry.title, text });
-      else await navigator.clipboard.writeText(text);
+      await shareOrCopy(text, { title: entry.title });
       toast.success("جاهز للمشاركة");
     } catch {
       toast.error("تعذرت المشاركة");
@@ -512,7 +513,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
                     <button type="button"
                       onClick={async (e) => {
                         e.stopPropagation();
-                        try { await navigator.clipboard.writeText(r.snippet); toast.success("تم النسخ"); }
+                        try { const systemConfirmed = await writeClipboard(r.snippet); if (!systemConfirmed) toast.success("تم النسخ"); }
                         catch { toast.error("تعذر النسخ"); }
                       }}
                       className="mr-auto p-1 rounded-lg opacity-40 hover:opacity-80 transition-opacity"

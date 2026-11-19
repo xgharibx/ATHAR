@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 const STORY_BOOKMARKS_KEY = "noor_story_bookmarks";
 
@@ -210,16 +211,7 @@ function StoryCard({
                 const text = story.chapters && story.chapters.length > 0
                   ? `${story.nameAr}\n\n${story.chapters.map(c => `【${c.title}】\n${c.content}`).join('\n\n')}${lessons}`
                   : `${story.nameAr}\n\n${story.fullStory ?? story.summary}${lessons}`;
-                if (navigator.share) {
-                  await navigator.share({ text }).catch(() => {});
-                } else {
-                  try {
-                    await navigator.clipboard.writeText(text);
-                    toast.success("تم النسخ");
-                  } catch {
-                    toast.error("تعذّر النسخ");
-                  }
-                }
+                await shareOrCopy(text);
               }}
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 min-h-[44px] rounded-full transition-all"
               style={{ background: "var(--stroke)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.7 }}

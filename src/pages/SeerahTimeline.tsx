@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 const SEERAH_BOOKMARKS_KEY = "noor_seerah_bookmarks";
 
@@ -257,17 +258,8 @@ function BookCard({
                 const chaptersText = book.chapters.length > 0
                   ? book.chapters.map((c) => `【${c.title}】\n${c.content}`).join("\n\n")
                   : book.summary;
-                const text = `${book.icon} ${book.title}\n${book.era}\n\n${chaptersText}\n\n• ATHAR أثر`;
-                if (navigator.share) {
-                  await navigator.share({ text }).catch(() => {});
-                } else {
-                  try {
-                    await navigator.clipboard.writeText(text);
-                    toast.success("تم النسخ");
-                  } catch {
-                    toast.error("تعذّر النسخ");
-                  }
-                }
+                const text = `${book.icon} ${book.title}\n${book.era}\n\n${chaptersText}`;
+                await shareOrCopy(text);
               }}
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 min-h-[44px] rounded-full transition-all"
               style={{ background: "var(--stroke)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.7 }}

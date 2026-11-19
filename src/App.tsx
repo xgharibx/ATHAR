@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { setBackSwipe } from "@/lib/nativeUI";
 
 import { useApplyTheme } from "@/hooks/useApplyTheme";
 import { AppShell } from "@/components/layout/AppShell";
@@ -232,6 +233,13 @@ function AppContent() {
   const location = useLocation();
   const previousScrollPathname = React.useRef(location.pathname);
   const prayerTimes = usePrayerTimes();
+
+  // iPhone: the edge swipe goes back, except where the screen swipes sideways
+  // itself (turning Mushaf pages, the next and previous hadith).
+  const swipesSideways = /^\/mushaf(\/|$)|^\/hadith\/[^/]+\/[^/]+$/.test(location.pathname);
+  React.useEffect(() => {
+    void setBackSwipe(!swipesSideways);
+  }, [swipesSideways]);
 
   React.useEffect(() => {
     const reconcile = () => setReminderScheduleRevision((revision) => revision + 1);

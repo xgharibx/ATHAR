@@ -2,6 +2,21 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
+    <script id="vault-restore">
+    /* The app's saved data has a native copy (NativeUIPlugin). If the system
+       cleared the web view's storage, put back what is missing before any of
+       the app's code reads it. Only fills keys that are absent. */
+    (function(){
+      try {
+        var v = window.__atharVault;
+        if (!v && window.AtharVault && typeof window.AtharVault.dump === "function") v = JSON.parse(window.AtharVault.dump() || "{}");
+        if (!v) return;
+        for (var k in v) {
+          if (Object.prototype.hasOwnProperty.call(v, k) && localStorage.getItem(k) === null) localStorage.setItem(k, v[k]);
+        }
+      } catch (e) {}
+    })();
+    </script>
     <meta name="google" content="notranslate" />
     <meta
       name="viewport"

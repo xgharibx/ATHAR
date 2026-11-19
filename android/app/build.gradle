@@ -79,6 +79,8 @@ dependencies {
     implementation "androidx.work:work-runtime:2.9.1"
     // Custom Tabs: web pages open inside Athar (InAppBrowserPlugin).
     implementation "androidx.browser:browser:1.9.0"
+    // The system pull-to-refresh spinner (NativeUIPlugin).
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     // Native Quran recitation: a gapless verse playlist in a media playback
     // service, with the standard media notification and lock-screen controls.
     implementation "androidx.media3:media3-exoplayer:1.11.1"

@@ -16,6 +16,8 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useTakhrij } from "@/lib/useTakhrij";
 import { TakhrijCard } from "@/components/hadith/TakhrijCard";
 import { arNum } from "@/lib/formatNumber";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 
 const GRADE_LABELS: Record<string, string> = {
@@ -100,7 +102,7 @@ export function LibraryItemPage() {
 
   const onCopy = async () => {
     try {
-      await navigator.clipboard.writeText(`${entry.arabic}\n\n${entry.source.title}${entry.narrator ? ` — ${entry.narrator}` : ""}`);
+      await writeClipboard(`${entry.arabic}\n\n${entry.source.title}${entry.narrator ? ` — ${entry.narrator}` : ""}`);
       setCopied(true);
       toast.success("تم النسخ");
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
@@ -113,8 +115,7 @@ export function LibraryItemPage() {
   const onShare = async () => {
     const text = `${entry.arabic}\n\n${entry.source.title}`;
     try {
-      if (navigator.share) await navigator.share({ title: entry.title, text });
-      else await navigator.clipboard.writeText(text);
+      await shareOrCopy(text, { title: entry.title });
       toast.success("جاهز للمشاركة");
     } catch {
       toast.error("تعذرت المشاركة");

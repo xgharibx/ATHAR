@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Trash2, Plus, ArrowRight, BookOpen, ChevronDown, ChevronUp, Share2, Pencil, X, Check } from "lucide-react";
-import toast from "react-hot-toast";
 
 import { useNoorStore } from "@/store/noorStore";
 import type { CustomAdhkarPack } from "@/data/types";
@@ -11,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 // ─── Small item row in the create/edit form ──────────────────────────────────
 function ItemRow({
@@ -220,9 +220,8 @@ function PackCard({
           <button type="button"
             onClick={async () => {
               const lines = pack.items.map((it) => `• ${it.text}${it.count > 1 ? ` (${it.count}×)` : ""}`).join("\n");
-              const text = `${pack.title}\n\n${lines}\n\n• أثر`;
-              if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-              else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
+              const text = `${pack.title}\n\n${lines}`;
+              await shareOrCopy(text);
             }}
             className="p-2 rounded-xl hover:bg-(--card) transition-colors opacity-50 hover:opacity-100"
             aria-label="مشاركة الحزمة"

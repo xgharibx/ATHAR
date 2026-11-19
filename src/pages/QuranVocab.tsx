@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 
 const LEARNED_KEY = "noor_vocab_learned";
@@ -251,18 +253,17 @@ export function QuranVocabPage() {
   }
 
   async function shareWord(word: VocabWord) {
-    const text = `${word.arabic}\n${word.meaning}${word.frequency ? `\n(تكرّر في القرآن ~${word.frequency} مرة)` : ""}\n\n• ATHAR أثر — مفردات القرآن`;
+    const text = `${word.arabic}\n${word.meaning}${word.frequency ? `\n(تكرّر في القرآن ~${word.frequency} مرة)` : ""}`;
     try {
-      if (navigator.share) { await navigator.share({ text }); }
-      else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
+      await shareOrCopy(text);
     } catch {
-      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { /* ignore */ }
+      try { const systemConfirmed = await writeClipboard(text); if (!systemConfirmed) toast.success("تم النسخ"); } catch { /* ignore */ }
     }
   }
 
   async function copyWord(word: VocabWord) {
     const text = `${word.arabic} — ${word.meaning}`;
-    try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { /* ignore */ }
+    try { const systemConfirmed = await writeClipboard(text); if (!systemConfirmed) toast.success("تم النسخ"); } catch { /* ignore */ }
   }
 
   if (!card) {
@@ -920,11 +921,7 @@ export function QuranVocabPage() {
                   .sort((a, b) => a.id - b.id);
                 const lines = sorted.map((w, i) => `${arNum((i + 1))}. ${w.arabic} — ${w.meaning}`);
                 const text = `مفرداتي المحفوظة من القرآن الكريم (${arNum(learned.size)}/${QURAN_VOCAB.length}):\n${lines.join("\n")}`;
-                if (navigator.share) {
-                  await navigator.share({ text }).catch(() => {});
-                } else {
-                  try { await navigator.clipboard.writeText(text); toast.success("تم نسخ قائمة المحفوظات"); } catch { toast.error("تعذّر النسخ"); }
-                }
+                await shareOrCopy(text, { copiedMessage: "تم نسخ قائمة المحفوظات" });
               }}
               aria-label="نسخ قائمة المحفوظات"
             >

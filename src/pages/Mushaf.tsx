@@ -60,6 +60,8 @@ import { arNum } from "@/lib/formatNumber";
 import { countAr, AYAH, type CountForms } from "@/lib/arabicCount";
 import "@/styles/mushafReader.css";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 /**
  * The reader's "more" sheet, parked at the owner's request.
@@ -1434,10 +1436,10 @@ export function MushafPage() {
   const doCopy = async () => {
     if (!selectedItem) return;
     try {
-      await navigator.clipboard.writeText(
+      const systemConfirmed = await writeClipboard(
         `${selectedItem.text} ﴿${toArabicNumeral(selectedItem.displayAyah)}﴾\n(${selectedItem.surahName} ${selectedItem.surahId}:${selectedItem.displayAyah})`
       );
-      toast.success("تم النسخ");
+      if (!systemConfirmed) toast.success("تم النسخ");
     } catch { toast.error("تعذر النسخ"); }
   };
 
@@ -1497,8 +1499,7 @@ export function MushafPage() {
         const tr = await getAyahTranslation(selectedItem.surahId, selectedItem.originalAyah);
         if (tr) body += `\n\n${tr}${translationAttribution ? `\n\n${translationAttribution}` : ""}`;
       }
-      if (navigator.share) { await navigator.share({ text: body }); }
-      else { await navigator.clipboard.writeText(body); toast.success("تم النسخ"); }
+      await shareOrCopy(body);
       setShareSheetOpen(false);
     } catch (error) {
       if (!(error instanceof Error && error.name === "AbortError")) toast.error("تعذر المشاركة");
@@ -2723,7 +2724,7 @@ export function MushafPage() {
                     const ayahTxt = `${tafsirItem.text} ﴿${tafsirItem.displayAyah}﴾`;
                     const tafseerTxt = inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ?? "";
                     const src = `تفسير ${getTafsirLabel(inlineTafseerSource)}`;
-                    navigator.clipboard.writeText(`${ayahTxt}\n\n${src}:\n${tafseerTxt}`).then(() => toast.success("تم النسخ ✓")).catch(() => {});
+                    writeClipboard(`${ayahTxt}\n\n${src}:\n${tafseerTxt}`).then(() => toast.success("تم النسخ ✓")).catch(() => {});
                   }}
                 >
                   <Copy size={15} aria-hidden="true" />

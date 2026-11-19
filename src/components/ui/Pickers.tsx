@@ -16,6 +16,7 @@ import { Check, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { arNum, westernToArabicDigits } from "@/lib/formatNumber";
 import { cn } from "@/lib/utils";
+import { hasNativeUI, pickNativeDate, pickNativeTime } from "@/lib/nativeUI";
 
 type ChangeLike = { target: { value: string } };
 
@@ -195,7 +196,15 @@ export function DateField({ value, onChange, min, max, className, disabled, plac
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={rest["aria-label"]}
-        onClick={() => setOpen(true)}
+        onClick={async () => {
+          // In the app: the phone's own calendar. In a browser: the sheet below.
+          if (hasNativeUI()) {
+            const picked = await pickNativeDate({ value, min, max });
+            if (typeof picked === "string") onChange?.({ target: { value: picked } });
+            return;
+          }
+          setOpen(true);
+        }}
         className={cn(triggerBase, className)}
       >
         <span className={cn("truncate", !value && "opacity-50")}>{value ? formatDateAr(value) : placeholder}</span>
@@ -362,7 +371,15 @@ export function TimeField({ value, onChange, className, disabled, ...rest }: Tim
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={rest["aria-label"]}
-        onClick={() => setOpen(true)}
+        onClick={async () => {
+          // In the app: the phone's own time picker. In a browser: the sheet below.
+          if (hasNativeUI()) {
+            const picked = await pickNativeTime(parseTime(value) ? value : undefined);
+            if (picked) onChange?.({ target: { value: picked } });
+            return;
+          }
+          setOpen(true);
+        }}
         className={cn(triggerBase, className)}
       >
         <span className={cn("truncate", !parseTime(value) && "opacity-50")}>{formatTimeAr(value) || "اختر الوقت"}</span>

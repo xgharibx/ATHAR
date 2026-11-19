@@ -20,6 +20,7 @@ import DeepDivePanel from '@/ijaz/components/ui/DeepDivePanel';
 /* Dynamic 3D — no SSR */
 import ParticleField from '@/ijaz/components/effects/ParticleField';
 import SacredGeometry from '@/ijaz/components/effects/SacredGeometry';
+import { shareOrCopy } from "@/lib/shareTargets";
 
 /* Category -> particle variant mapping */
 const categoryParticle: Record<string, 'stars' | 'gold-dust' | 'divine-light' | 'nebula' | 'geometric'> = {
@@ -80,8 +81,7 @@ export default function MiracleDetailPage() {
     const verse = miracle.verses[0];
     const text = `${miracle.titleAr}\n\n${verse ? `﴿${verse.arabicText}﴾ [${verse.surah}: ${arNum(verse.ayahNumber)}]\n\n` : ''}${miracle.summaryAr}`;
     try {
-      if (navigator.share) await navigator.share({ title: miracle.titleAr, text });
-      else await navigator.clipboard.writeText(text);
+      await shareOrCopy(text, { title: miracle.titleAr });
     } catch {
       /* cancelled */
     }

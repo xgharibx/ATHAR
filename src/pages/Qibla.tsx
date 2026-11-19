@@ -4,12 +4,12 @@ import { ArrowRight, Compass, MapPin, RefreshCw, Share2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import toast from "react-hot-toast";
 import { nextAlignment, useCompassHeading } from "@/hooks/useCompassHeading";
 import { readCachedPrayerCoordinates } from "@/lib/prayerLocation";
 import { vibrate } from "@/lib/haptics";
 import { useNoorStore } from "@/store/noorStore";
 import { deviceLocationSupported, getDeviceLocation, type DeviceLocationError } from "@/lib/deviceLocation";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 // Kaaba coordinates (Adhan.js authoritative values)
 const MECCA_LAT = 21.4225241;
@@ -249,8 +249,7 @@ export function QiblaPage() {
               onClick={async () => {
                 const dir = formatBearing(qiblaBearing);
                 const text = `اتجاه القبلة من موقعي: ${Math.round(qiblaBearing)}° (${dir})`;
-                if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
+                await shareOrCopy(text);
               }}
               aria-label="مشاركة اتجاه القبلة"
               className="mt-2 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full opacity-60 hover:opacity-90 transition"

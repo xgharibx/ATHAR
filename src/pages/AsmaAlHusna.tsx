@@ -6,6 +6,8 @@ import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 type FilterTab = "all" | "memorized" | "favorites";
 
@@ -56,12 +58,11 @@ export function AsmaAlHusnaPage() {
   const pct = Math.round((memorizedCount / 99) * 100);
 
   const shareAsma = React.useCallback(async (name: (typeof ASMA_AL_HUSNA)[number]) => {
-    const text = `${name.arabic} — ${name.meaning}\n\n${name.benefit}\n\n• ATHAR أثر`;
+    const text = `${name.arabic} — ${name.meaning}\n\n${name.benefit}`;
     try {
-      if (navigator.share) { await navigator.share({ text }); }
-      else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
+      await shareOrCopy(text);
     } catch {
-      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
+      try { const systemConfirmed = await writeClipboard(text); if (!systemConfirmed) toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
     }
   }, []);
 

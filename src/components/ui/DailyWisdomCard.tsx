@@ -4,30 +4,24 @@ import toast from "react-hot-toast";
 import { getTodayWisdom } from "@/data/dailyWisdom";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 export function DailyWisdomCard(props: { dateKey?: string }) {
   const wisdom = React.useMemo(() => getTodayWisdom(props.dateKey), [props.dateKey]);
 
   const copyWisdom = async () => {
     try {
-      await navigator.clipboard.writeText(`${wisdom.text}\n\n— ${wisdom.source}`);
-      toast.success("تم نسخ النصيحة");
+      const systemConfirmed = await writeClipboard(`${wisdom.text}\n\n— ${wisdom.source}`);
+      if (!systemConfirmed) toast.success("تم نسخ النصيحة");
     } catch {
       toast.error("تعذر النسخ");
     }
   };
 
   const shareWisdom = async () => {
-    const shareText = `${wisdom.text}\n\n— ${wisdom.source}\n\n• ATHAR أثر`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ text: shareText });
-        return;
-      } catch {
-        // fall through to copy
-      }
-    }
-    await copyWisdom();
+    const shareText = `${wisdom.text}\n\n— ${wisdom.source}`;
+    await shareOrCopy(shareText);
   };
 
   return (

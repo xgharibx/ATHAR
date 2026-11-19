@@ -11,6 +11,7 @@
  * download. Each step is a genuine fallback, not a guess.
  */
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import toast from "react-hot-toast";
 import { downloadBlob } from "@/lib/download";
 import { allKnownStoreLinks, storeListingUrl } from "@/lib/storeIdentity";
 
@@ -217,7 +218,9 @@ export async function shareText(raw: string, title = "أثر"): Promise<ShareRes
     try {
       await navigator.share({ text, title });
       return "shared";
-    } catch {
+    } catch (error) {
+      // Closing the browser's sheet is not a failure.
+      if (error instanceof Error && error.name === "AbortError") return "shared";
       return "failed";
     }
   }
@@ -228,6 +231,18 @@ export async function shareText(raw: string, title = "أثر"): Promise<ShareRes
   } catch {
     return "failed";
   }
+}
+
+/**
+ * Share from any button: the phone's own share sheet in the app (with the
+ * app's link added), the browser's where it has one, and otherwise a copy that
+ * says so. Never throws.
+ */
+export async function shareOrCopy(raw: string, opts: { title?: string; copiedMessage?: string } = {}): Promise<ShareResult> {
+  const result = await shareText(raw, opts.title ?? "أثر");
+  if (result === "downloaded") toast.success(opts.copiedMessage ?? "تم النسخ");
+  else if (result === "failed") toast.error("تعذّرت المشاركة");
+  return result;
 }
 
 /**

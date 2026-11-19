@@ -6,6 +6,8 @@ import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 export function DuasPage() {
   const navigate = useNavigate();
@@ -48,7 +50,7 @@ export function DuasPage() {
   }, [showFavorites, category, query, duaFavorites]);
 
   function copyDua(id: string, text: string) {
-    void navigator.clipboard.writeText(text).then(() => {
+    void writeClipboard(text).then(() => {
       setCopied(id);
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
       copyTimerRef.current = setTimeout(() => setCopied(null), 2000);
@@ -56,12 +58,11 @@ export function DuasPage() {
   }
 
   async function shareDua(text: string, source?: string) {
-    const full = `${text}${source ? `\n\n${source}` : ""}\n\n• ATHAR أثر`;
+    const full = `${text}${source ? `\n\n${source}` : ""}`;
     try {
-      if (navigator.share) { await navigator.share({ text: full }); }
-      else { await navigator.clipboard.writeText(full); toast.success("تم النسخ"); }
+      await shareOrCopy(full);
     } catch {
-      try { await navigator.clipboard.writeText(full); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
+      try { const systemConfirmed = await writeClipboard(full); if (!systemConfirmed) toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
     }
   }
 

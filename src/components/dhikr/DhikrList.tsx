@@ -32,6 +32,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
+import { writeClipboard } from "@/lib/nativeUI";
 
 /**
  * Toolbar controls hidden for now at the owner's request.
@@ -483,7 +484,7 @@ export function DhikrList(props: Readonly<{
       lines.push("");
     });
     try {
-      await navigator.clipboard.writeText(lines.join("\n").trim());
+      await writeClipboard(lines.join("\n").trim());
       setCopiedAll(true);
       toast.success("تم نسخ جميع الأذكار");
       setTimeout(() => setCopiedAll(false), 2500);

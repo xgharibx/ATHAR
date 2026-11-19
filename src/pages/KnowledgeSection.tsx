@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 /** Shared shape for every knowledge-library entry (mirrors ProphetStory). */
 export type KnowledgeEntry = {
@@ -216,12 +217,7 @@ function EntryCard({
               const text = entry.chapters && entry.chapters.length > 0
                 ? `${entry.nameAr}\n\n${entry.chapters.map((c) => `【${c.title}】\n${c.content}`).join("\n\n")}${lessons}`
                 : `${entry.nameAr}\n\n${entry.fullStory ?? entry.summary}${lessons}`;
-              if (navigator.share) {
-                await navigator.share({ text }).catch(() => {});
-              } else {
-                try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
-                catch { toast.error("تعذّر النسخ"); }
-              }
+              await shareOrCopy(text);
             }}
             className="flex items-center gap-1.5 text-xs px-3 py-1.5 min-h-[44px] rounded-full transition-all"
             style={{ background: "var(--stroke)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.7 }}
