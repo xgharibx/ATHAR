@@ -1,0 +1,253 @@
+/* The Mushaf reader's settings sheet, top-bar captions and arrival glow. */
+
+/* The reader's sheets are always cream paper with dark ink, whatever the
+   app's theme, so the settings use the sheet's own colours. */
+.mushaf-jump-sheet {
+  --ms-ink: #1a1208;
+  --ms-muted: rgba(26, 18, 8, 0.62);
+  --ms-line: rgba(47, 79, 55, 0.18);
+  --ms-accent: #2f4f37;
+  --ms-card: rgba(47, 79, 55, 0.06);
+}
+
+.mushaf-set-section {
+  padding: 4px 0 14px;
+}
+
+.mushaf-set-section + .mushaf-set-section {
+  border-top: 1px solid color-mix(in srgb, var(--ms-line) 70%, transparent);
+  padding-top: 14px;
+}
+
+.mushaf-set-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ms-accent);
+  margin-bottom: 8px;
+}
+
+.mushaf-set-label {
+  font-size: 12.5px;
+  color: var(--ms-muted);
+  margin-bottom: 8px;
+}
+
+.mushaf-set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 2px;
+  font-size: 14px;
+  text-align: right;
+}
+
+.mushaf-set-row.is-stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.mushaf-set-row.is-link {
+  border-radius: 14px;
+}
+
+.mushaf-set-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--ms-muted);
+  line-height: 1.5;
+}
+
+.mushaf-set-step {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ms-line);
+  background: var(--ms-card);
+}
+
+.mushaf-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 46px;
+  height: 28px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ms-ink) 14%, transparent);
+  box-shadow: inset 0 0 0 1px var(--ms-line);
+  transition: background 200ms ease;
+}
+
+.mushaf-switch > i {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.3);
+  transition: right 220ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.mushaf-switch.is-on {
+  background: var(--ms-accent);
+}
+
+.mushaf-switch.is-on > i {
+  right: 21px;
+}
+
+.mushaf-seg {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 14px;
+  border: 1px solid var(--ms-line);
+  background: var(--ms-card);
+}
+
+.mushaf-seg > button {
+  flex: 1;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 11px;
+  font-size: 13px;
+  color: var(--ms-ink);
+  opacity: 0.75;
+  white-space: nowrap;
+  transition: background 160ms ease, opacity 160ms ease;
+}
+
+.mushaf-seg > button.is-on {
+  opacity: 1;
+  font-weight: 700;
+  color: var(--ms-accent);
+  background: color-mix(in srgb, var(--ms-accent) 16%, transparent);
+}
+
+.mushaf-seg.is-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mushaf-seg.is-scroll > button {
+  flex: 0 0 auto;
+}
+
+.mushaf-swatches {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px 6px;
+}
+
+.mushaf-swatches > button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--ms-muted);
+}
+
+.mushaf-swatches > button > i {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18), 0 0 0 2px transparent;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.mushaf-swatches.is-small > button > i {
+  width: 30px;
+  height: 30px;
+}
+
+.mushaf-swatches > button.is-on {
+  color: var(--ms-accent);
+  font-weight: 700;
+}
+
+.mushaf-swatches > button.is-on > i {
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18), 0 0 0 2px #fffbf0, 0 0 0 4px var(--ms-accent);
+  transform: scale(1.04);
+}
+
+.mushaf-set-select {
+  min-width: 56px;
+  height: 36px;
+  border-radius: 10px;
+  padding: 0 8px;
+  border: 1px solid var(--ms-line);
+  background: var(--ms-card);
+  color: var(--ms-ink);
+}
+
+.mushaf-set-fact {
+  padding: 10px 6px;
+  border-radius: 14px;
+  background: var(--ms-card);
+  border: 1px solid var(--ms-line);
+}
+
+.mushaf-set-fact > span {
+  display: block;
+  font-size: 11px;
+  color: var(--ms-muted);
+}
+
+.mushaf-set-fact > b {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+}
+
+/* Top bar: each tool says what it is. */
+.mushaf-chrome-icon-btn.has-caption {
+  flex-direction: column;
+  gap: 2px;
+  width: auto;
+  min-width: 44px;
+  height: auto;
+  min-height: 44px;
+  padding: 4px 4px 3px;
+}
+
+.mushaf-chrome-caption {
+  font-size: 9.5px;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+/* Arriving at an ayah from a link: a soft glow that fades. */
+.mushaf-ayah-span.arrived {
+  animation: mushaf-arrive 3.2s ease-out both;
+  border-radius: 10px;
+}
+
+@keyframes mushaf-arrive {
+  0%,
+  45% {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+  100% {
+    background: transparent;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mushaf-ayah-span.arrived {
+    animation: none;
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+}
