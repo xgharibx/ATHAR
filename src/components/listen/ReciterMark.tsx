@@ -27,7 +27,7 @@ const JEWELS = [
 const GOLD = { mid: "#b8862c", deep: "#5a3a0c", glow: "#ffe7a3" } as const;
 
 /** «الشيخ أبو بكر الشاطري» → ["أبو بكر", "الشاطري"]: the given name above the family name. */
-export function splitName(name: string): [string, string] {
+function splitName(name: string): [string, string] {
   const clean = name.replace(/^(الشيخ|شيخ|القارئ)\s+/, "").trim();
   const words = clean.split(/\s+/);
   if (words.length <= 1) return [clean, ""];
