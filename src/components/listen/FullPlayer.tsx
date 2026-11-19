@@ -153,7 +153,7 @@ function QueueSheet({ onClose }: { onClose: () => void }) {
   return createPortal(
     <div className="ls-sheet" onClick={onClose} role="presentation">
       <div className="ls-sheet-body" role="dialog" aria-modal="true" aria-label="قائمة التشغيل" onClick={(e) => e.stopPropagation()}>
-        <div className="ls-sheet-title">قائمة التشغيل · {arabicDigits(p.queue.length)}</div>
+        <div className="ls-sheet-title">قائمة التشغيل، {arabicDigits(p.queue.length)}</div>
         <div className="ls-list">
           {p.queue.map((t, i) => (
             <div key={`${t.id}-${i}`} className={`ls-row ${i === p.index ? "is-current" : ""}`}>

@@ -101,9 +101,9 @@ describe("the live garden", () => {
     expect(() => paintFlowerHead("rose", 0, 0.5, 40, "night", 2)).not.toThrow();
   });
 
-  it("draws real plants, not shapes: palm fronds of leaflets, rose petals, the real Moon", () => {
+  it("draws real plants, not shapes: palm fronds of leaflets, rose petals, a drawn moon", () => {
     const engine = read("src/components/ufuq/garden/GardenEngine.ts");
-    for (const used of ["paintFrond", "paintPalmTrunk", "paintPomegranate", "paintCypress", "paintFlowerHead", "paintRealMoon"]) {
+    for (const used of ["paintFrond", "paintPalmTrunk", "paintPomegranate", "paintCypress", "paintFlowerHead", "paintMoon"]) {
       expect(engine).toContain(used);
     }
     // A flower earned by a tasbeeh grows: the stem rises, then the bud opens.
@@ -113,12 +113,13 @@ describe("the live garden", () => {
 });
 
 describe("the filmed garden is retired", () => {
-  it("ships no footage, only NASA's Moon for the drawn sky", () => {
+  it("ships no footage or photographs", () => {
     for (const file of ["night.mp4", "day.mp4", "night.jpg", "day.jpg"]) {
       expect(existsSync(resolve(process.cwd(), `public/garden/${file}`))).toBe(false);
     }
     expect(existsSync(resolve(process.cwd(), "src/components/ufuq/garden/GardenBackdrop.tsx"))).toBe(false);
-    expect(readFileSync(resolve(process.cwd(), "public/garden/moon.jpg")).byteLength).toBeLessThan(80 * 1024);
+    // The moon is drawn (the cartoon one people preferred), not a photograph.
+    expect(existsSync(resolve(process.cwd(), "public/garden/moon.jpg"))).toBe(false);
   });
 
   it("gives anyone who had it the drawn garden instead", () => {

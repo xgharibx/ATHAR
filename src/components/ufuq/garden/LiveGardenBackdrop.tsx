@@ -7,7 +7,8 @@
 import * as React from "react";
 import { useLocation } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
-import { GardenEngine, type GardenMode } from "@/components/ufuq/garden/GardenEngine";
+import type { GardenMode } from "@/components/ufuq/garden/GardenEngine";
+import { createGardenController, type GardenController } from "@/components/ufuq/garden/gardenController";
 import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
 
 function currentMode(): GardenMode {
@@ -20,9 +21,8 @@ function prefersReducedMotion(): boolean {
 
 export function LiveGardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {}) {
   const location = useLocation();
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  const bgRef = React.useRef<HTMLCanvasElement>(null);
-  const engineRef = React.useRef<GardenEngine | null>(null);
+  const hostRef = React.useRef<HTMLDivElement>(null);
+  const engineRef = React.useRef<GardenController | null>(null);
   const growth = useGardenGrowth();
   const livePref = useNoorStore((s) => s.prefs.gardenLive !== false && !s.prefs.reduceMotion);
   const [systemReduced, setSystemReduced] = React.useState(prefersReducedMotion);
@@ -46,35 +46,56 @@ export function LiveGardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } =
   const initial = React.useRef({ mode, live, ...growth });
 
   React.useEffect(() => {
-    const canvas = canvasRef.current;
-    const bgCanvas = bgRef.current;
-    if (!canvas || !bgCanvas) return;
-    const engine = GardenEngine.create(bgCanvas, canvas, {
-      mode: initial.current.mode,
-      blooms: initial.current.blooms,
-      palmFruit: initial.current.palmFruit,
-      treeFruit: initial.current.treeFruit,
-      live: initial.current.live,
-    });
-    if (!engine) return;
+    const host = hostRef.current;
+    if (!host) return;
+    // Fresh canvases on every mount: a canvas can be handed to a worker only once.
+    const bgCanvas = document.createElement("canvas");
+    const canvas = document.createElement("canvas");
+    for (const el of [bgCanvas, canvas]) {
+      el.className = "u-garden";
+      el.setAttribute("aria-hidden", "true");
+      host.appendChild(el);
+    }
+    const size = { w: window.innerWidth, h: window.innerHeight };
+    for (const el of [canvas, bgCanvas]) {
+      el.style.width = `${size.w}px`;
+      el.style.height = `${size.h}px`;
+    }
+    const engine = createGardenController(
+      bgCanvas,
+      canvas,
+      {
+        mode: initial.current.mode,
+        blooms: initial.current.blooms,
+        palmFruit: initial.current.palmFruit,
+        treeFruit: initial.current.treeFruit,
+        live: initial.current.live,
+      },
+      size.w,
+      size.h,
+    );
+    if (!engine) {
+      bgCanvas.remove();
+      canvas.remove();
+      return;
+    }
     engineRef.current = engine;
 
-    let size = { w: 0, h: 0 };
     const resize = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
       // The on-screen keyboard shrinks the window; the garden stays put.
       if (w === size.w && h < size.h && h > size.h * 0.55) return;
-      size = { w, h };
+      if (w === size.w && h === size.h) return;
+      size.w = w;
+      size.h = h;
       for (const el of [canvas, bgCanvas]) {
         el.style.width = `${w}px`;
         el.style.height = `${h}px`;
       }
       engine.resize(w, h);
     };
-    resize();
     engine.setScroll(window.scrollY);
-    engine.start();
 
     const onVisible = () => (document.hidden ? engine.stop() : engine.start());
     const onScroll = () => engine.setScroll(window.scrollY);
@@ -105,6 +126,8 @@ export function LiveGardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } =
       document.removeEventListener("visibilitychange", onVisible);
       engine.destroy();
       engineRef.current = null;
+      bgCanvas.remove();
+      canvas.remove();
     };
   }, []);
 
@@ -122,8 +145,7 @@ export function LiveGardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } =
   // veil across the middle where the reading happens (lighter on «اليوم»).
   return (
     <>
-      <canvas ref={bgRef} className="u-garden" aria-hidden="true" />
-      <canvas ref={canvasRef} className="u-garden" aria-hidden="true" />
+      <div ref={hostRef} className="contents" aria-hidden="true" />
       <div className="u-garden-grade" aria-hidden="true" />
       <div className={`u-garden-veil ${location.pathname === "/" ? "is-light" : ""}`} aria-hidden="true" />
     </>

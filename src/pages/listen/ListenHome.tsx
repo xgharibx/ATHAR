@@ -247,7 +247,7 @@ export function ListenHomePage() {
                 if (!found) return null;
                 return (
                   <Link key={g.moshaf} to={`/listen/reciter/${g.reciter}?m=${g.moshaf}`} className="ls-gold ls-press">
-                    <ReciterMark name={found.reciter.n} gold />
+                    <ReciterMark name={found.reciter.n} gold withName={false} />
                     <span className="min-w-0">
                       <b>{found.reciter.n}</b>
                       <span>{g.note}</span>

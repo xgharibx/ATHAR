@@ -34,7 +34,7 @@ export function ListenMiniPlayer({ variant = "classic" }: { variant?: "classic" 
       {visible && track ? (
         <div className={cn("ls-mini", variant === "ufuq" && "is-ufuq")} role="region" aria-label="يُتلى الآن">
           <button type="button" className="flex items-center gap-2.5 flex-1 min-w-0" onClick={openFullPlayer} aria-label={`فتح المشغّل: ${track.title}`}>
-            <ReciterMark name={track.artist} />
+            <ReciterMark name={track.artist} withName={false} />
             <span className="ls-mini-text">
               <b>{track.title}</b>
               <span>{p.error ?? track.artist}</span>

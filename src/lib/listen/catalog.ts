@@ -103,7 +103,7 @@ export function arabicDigits(n: number | string): string {
 }
 
 export function moshafLabel(m: Moshaf): string {
-  return m.r === "حفص عن عاصم" ? m.s : `${m.s} · ${m.r}`;
+  return m.r === "حفص عن عاصم" ? m.s : `${m.s}، ${m.r}`;
 }
 
 export function surahTrack(reciter: Reciter, moshaf: Moshaf, surah: number): ListenTrack {

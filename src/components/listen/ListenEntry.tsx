@@ -19,20 +19,20 @@ export function ListenEntry() {
       <button type="button" className="ls-entry ls-press" onClick={() => navigate("/listen")}>
         <span className="ls-entry-marks" aria-hidden="true">
           {FACES.map((n) => (
-            <ReciterMark key={n} name={n} />
+            <ReciterMark key={n} name={n} withName={false} />
           ))}
         </span>
         <span className="ls-entry-text flex-1 min-w-0">
           <b className="inline-flex items-center gap-1.5">
             <Headphones size={16} className="text-(--accent)" aria-hidden="true" /> السماع
           </b>
-          <span>القرآن كاملًا بأصوات قرّاء العالم · التسجيلات الذهبية · قيام الحرمين · التواشيح</span>
+          <span>القرآن كاملًا بأصوات قرّاء العالم، التسجيلات الذهبية، قيام الحرمين، التواشيح</span>
         </span>
         <ChevronLeft size={18} className="opacity-50 shrink-0" aria-hidden="true" />
       </button>
       {last ? (
         <button type="button" className="ls-chip ls-press self-start" onClick={() => playTracks([last.track], 0, { resume: true })}>
-          <Headphones size={13} aria-hidden="true" /> أكمل: {last.track.title} · {last.track.artist}
+          <Headphones size={13} aria-hidden="true" /> أكمل: {last.track.title}، {last.track.artist}
         </button>
       ) : null}
     </div>
