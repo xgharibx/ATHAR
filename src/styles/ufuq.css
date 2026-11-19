@@ -730,6 +730,24 @@ body.quran-focus-mode .u-topbar {
   margin-top: 6px;
 }
 
+.u-sky-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.u-sky-counts .u-sky-count {
+  margin-top: 0;
+}
+
+/* A moment between prayers that comes first: «٥٦ دقيقة حتى التهجد». */
+.u-sky-count.is-moment {
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.08);
+  border-style: dashed;
+}
+
 .u-sky-count {
   display: inline-flex;
   align-items: center;
