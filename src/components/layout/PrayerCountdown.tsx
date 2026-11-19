@@ -77,7 +77,7 @@ export function PrayerCountdown(props: Readonly<{
         >
           {schedule.currentPhase.label}
         </div>
-        <div dir="ltr" className={[compact ? "mt-2 text-sm" : "mt-3 text-lg", "font-medium tabular-nums leading-snug wrap-break-word"].join(" ")}>
+        <div className={[compact ? "mt-2 text-sm" : "mt-3 text-lg", "font-medium tabular-nums leading-snug wrap-break-word"].join(" ")}>
           {schedule.currentPhase.value}
         </div>
       </div>

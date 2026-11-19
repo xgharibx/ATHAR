@@ -94,13 +94,23 @@ export function parseClockToMinutes(raw: string) {
   return (hours * 60) + minutes;
 }
 
+/** Arabic-Indic digits, as the rest of the app writes numbers. */
+export function arabicDigits(value: number | string): string {
+  return String(value).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[Number(d)]!);
+}
+
+/**
+ * «٤:٥٢ ص»: the time, then ص or م, kept together as one right-to-left unit
+ * so it reads the same in any line or box.
+ */
 export function formatMinutes12h(totalMinutes: number) {
   const wrapped = ((Math.round(totalMinutes) % 1440) + 1440) % 1440;
   const hh = Math.floor(wrapped / 60);
   const mm = wrapped % 60;
   const displayHour = hh % 12 || 12;
   const period = hh < 12 ? "ص" : "م";
-  return `\u2066${displayHour}:${String(mm).padStart(2, "0")} ${period}\u2069`;
+  // A no-break space keeps «ص» with its time when a line wraps.
+  return `\u2067${arabicDigits(displayHour)}:${arabicDigits(String(mm).padStart(2, "0"))}\u00A0${period}\u2069`;
 }
 
 export function format12h(raw: string) {
@@ -111,15 +121,16 @@ export function format12h(raw: string) {
   return formatMinutes12h(minutes);
 }
 
+/** «٢ س ١٤ د» or, in the last hour, «١٤ د ٤٢ ث»: units, so it can't be misread. */
 export function formatCountdown(diffSec: number) {
   if (diffSec <= 0) return "الآن";
-  const hours = Math.floor(diffSec / 3600);
-  const minutes = Math.floor((diffSec % 3600) / 60);
-  const seconds = diffSec % 60;
-  if (hours > 0) {
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  }
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  const total = Math.floor(diffSec);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  if (hours > 0) return `${arabicDigits(hours)} س ${arabicDigits(minutes)} د`;
+  if (minutes > 0) return `${arabicDigits(minutes)} د ${arabicDigits(seconds)} ث`;
+  return `${arabicDigits(seconds)} ث`;
 }
 
 export function formatRemainingText(diffSec: number) {
@@ -130,12 +141,12 @@ export function formatRemainingText(diffSec: number) {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     if (minutes === 0) {
-      return `${hours} ساعة تقريبًا`;
+      return `${arabicDigits(hours)} ساعة تقريبًا`;
     }
-    return `${hours} س ${minutes} د تقريبًا`;
+    return `${arabicDigits(hours)} س ${arabicDigits(minutes)} د تقريبًا`;
   }
 
-  return `${totalMinutes} دقيقة تقريبًا`;
+  return `${arabicDigits(totalMinutes)} دقيقة تقريبًا`;
 }
 
 function formatRange(startMinutes: number | null, endMinutes: number | null) {
@@ -145,9 +156,9 @@ function formatRange(startMinutes: number | null, endMinutes: number | null) {
     return formatMinutes12h(endMinutes);
   }
   if (endMinutes == null || startMinutes === endMinutes) return formatMinutes12h(startMinutes);
-  // In RTL layout with dir="ltr" containers: end is on the left, start is on the right —
-  // so Arabic readers read right-to-left: start first, then end. That is the natural order.
-  return `${formatMinutes12h(endMinutes)} - ${formatMinutes12h(startMinutes)}`;
+  // Start, then end, as Arabic is read: one right-to-left unit, so the order
+  // holds whatever box it is placed in.
+  return `\u2067${formatMinutes12h(startMinutes)} – ${formatMinutes12h(endMinutes)}\u2069`;
 }
 
 function buildPrimaryPrayer(name: PrimaryPrayerName, time: string, dayStart: Date): ComputedPrayer | null {
@@ -296,7 +307,7 @@ const NIGHT_SIXTH_LABELS = [
   "يبدأ السدس الأخير",
   "الفجر · نهاية الليل",
 ];
-const NIGHT_SIXTH_FRACTIONS = ["", "¹⁄₆", "²⁄₆", "³⁄₆", "⁴⁄₆", "⁵⁄₆", ""];
+const NIGHT_SIXTH_FRACTIONS = ["", "١", "٢", "٣", "٤", "٥", ""];
 
 function buildNightSixths(
   context: PrayerMinuteContext,
@@ -411,7 +422,7 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
     {
       id: "forbidden-sunrise",
       type: "forbidden",
-      label: "نهي بعد الشروق",
+      label: "وقت النهي بعد الشروق",
       timeLabel: formatRange(context.sunriseMinutes, context.sunriseForbiddenEnd),
     },
     {
@@ -423,7 +434,7 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
     {
       id: "forbidden-zenith",
       type: "forbidden",
-      label: "نهي الاستواء",
+      label: "وقت النهي عند الاستواء",
       timeLabel: formatRange(context.zenithForbiddenStart, context.dhuhrMinutes),
     },
     {
@@ -443,7 +454,7 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
     {
       id: "forbidden-sunset",
       type: "forbidden",
-      label: "نهي قبل الغروب",
+      label: "وقت النهي قبل الغروب",
       timeLabel: formatRange(context.sunsetForbiddenStart, context.maghribMinutes),
     },
     { id: "sunset", type: "marker", label: "الغروب", timeLabel: format12h(timings.Maghrib) },
@@ -468,15 +479,10 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
       timeLabel: formatRange(context.islamicMidnightMinutes, null),
     },
     {
-      id: "last-third",
-      type: "marker",
-      label: "الثلث الأخير من الليل",
-      timeLabel: formatRange(context.tahajjudStart, beforeMinute(context.nextDayFajrMinutes)),
-    },
-    {
+      // The last third of the night is the time of tahajjud: one row, not two.
       id: "tahajjud",
       type: "moment",
-      label: "صلاة التهجد",
+      label: "التهجد · الثلث الأخير من الليل",
       timeLabel: formatRange(context.tahajjudStart, beforeMinute(context.nextDayFajrMinutes)),
     },
     {

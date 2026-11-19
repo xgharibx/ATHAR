@@ -41,38 +41,49 @@ describe("parseClockToMinutes", () => {
 
 describe("formatMinutes12h", () => {
   it("formats midnight and noon correctly", () => {
-    expect(formatMinutes12h(0)).toContain("12:00");
+    expect(formatMinutes12h(0)).toContain("١٢:٠٠");
     expect(formatMinutes12h(0)).toContain("ص");
-    expect(formatMinutes12h(12 * 60)).toContain("12:00");
+    expect(formatMinutes12h(12 * 60)).toContain("١٢:٠٠");
     expect(formatMinutes12h(12 * 60)).toContain("م");
   });
 
   it("wraps minutes past 24h back into a valid clock time", () => {
-    expect(formatMinutes12h(24 * 60 + 30)).toContain("12:30");
+    expect(formatMinutes12h(24 * 60 + 30)).toContain("١٢:٣٠");
   });
 
   it("marks afternoon hours with م and morning hours with ص", () => {
-    expect(formatMinutes12h(16 * 60 + 36)).toContain("4:36");
+    expect(formatMinutes12h(16 * 60 + 36)).toContain("٤:٣٦");
     expect(formatMinutes12h(16 * 60 + 36)).toContain("م");
-    expect(formatMinutes12h(4 * 60 + 16)).toContain("4:16");
+    expect(formatMinutes12h(4 * 60 + 16)).toContain("٤:١٦");
     expect(formatMinutes12h(4 * 60 + 16)).toContain("ص");
   });
 });
 
 describe("format12h", () => {
   it("round-trips a raw HH:MM API value through parse+format", () => {
-    expect(format12h("13:00")).toContain("1:00");
+    expect(format12h("13:00")).toContain("١:٠٠");
     expect(format12h("13:00")).toContain("م");
+  });
+});
+
+describe("formatRange order", () => {
+  it("writes ranges start first, as one right-to-left unit", async () => {
+    const { buildPrayerSchedule: build } = await import("@/lib/prayerSchedule");
+    const schedule = build({ Fajr: "04:53", Sunrise: "06:23", Dhuhr: "11:40", Asr: "14:38", Maghrib: "16:57", Isha: "18:18" }, new Date(2026, 10, 19, 10, 0));
+    const fajr = schedule!.detailRows.find((r) => r.id === "fajr")!;
+    expect(fajr.timeLabel.indexOf("٤:٥٣")).toBeLessThan(fajr.timeLabel.indexOf("٦:٢٢"));
+    expect(fajr.timeLabel.startsWith("\u2067")).toBe(true);
+    expect(schedule!.detailRows.filter((r) => r.timeLabel === schedule!.detailRows.find((x) => x.id === "tahajjud")!.timeLabel)).toHaveLength(1);
   });
 });
 
 describe("formatCountdown", () => {
   it("shows mm:ss under an hour", () => {
-    expect(formatCountdown(65)).toBe("01:05");
+    expect(formatCountdown(65)).toBe("١ د ٥ ث");
   });
 
   it("shows hh:mm:ss once an hour or more remains", () => {
-    expect(formatCountdown(3661)).toBe("01:01:01");
+    expect(formatCountdown(3661)).toBe("١ س ١ د");
   });
 
   it("treats zero/negative as 'now'", () => {

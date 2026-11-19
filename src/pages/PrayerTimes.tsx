@@ -277,7 +277,7 @@ function IqamaTimeInline({ prayerTime, offset }: { prayerTime: string; offset: n
   const mins = parseClockToMinutes(cleanTime(prayerTime));
   if (mins == null) return null;
   return (
-    <div dir="ltr" className="text-sm font-medium tabular-nums opacity-60">
+    <div className="text-sm font-medium tabular-nums opacity-60">
       {formatMinutes12h(mins + offset)}
     </div>
   );
@@ -310,7 +310,7 @@ function CityRow({ city, country, label, dayKey, onRemove }: {
           {PRIMARY_PRAYERS.map((p) => (
             <div key={p}>
               <div className="opacity-50 mb-0.5">{PRAYER_LABELS[p]}</div>
-              <div dir="ltr" className="font-medium tabular-nums">{format12h(cleanTime(data[p] ?? ""))}</div>
+              <div className="font-medium tabular-nums">{format12h(cleanTime(data[p] ?? ""))}</div>
             </div>
           ))}
           </div>
@@ -502,7 +502,7 @@ function WeeklyTab() {
                 </td>
                 {PRIMARY_PRAYERS.map((p) => (
                   <td key={p} className="py-2 px-1 text-center">
-                    <span dir="ltr" className={cn("tabular-nums", isToday && "text-(--accent) font-semibold")}>
+                    <span className={cn("tabular-nums", isToday && "text-(--accent) font-semibold")}>
                       {format12h(cleanTime(day.timings[p] ?? ""))}
                     </span>
                   </td>
@@ -562,11 +562,11 @@ function MonthlyTab() {
                   <tr key={day.date.gregorian.date} className={cn("border-t border-(--stroke)", isToday && "bg-accent-8")}>
                     <td className="py-1.5 pr-1">
                       <div className={cn("font-medium", isToday && "text-(--accent)")}>{day.date.gregorian.day}</div>
-                      <div className="opacity-40 text-[9px]">{day.date.hijri.day} {day.date.hijri.month.ar}</div>
+                      <div className="opacity-40 text-[9px]">{toArabicIndic(Number(day.date.hijri.day))} {day.date.hijri.month.ar}</div>
                     </td>
                     {PRIMARY_PRAYERS.map((p) => (
                       <td key={p} className="py-1.5 px-0.5 text-center">
-                        <span dir="ltr" className={cn("tabular-nums", isToday && "text-(--accent) font-semibold")}>
+                        <span className={cn("tabular-nums", isToday && "text-(--accent) font-semibold")}>
                           {format12h(cleanTime(day.timings[p] ?? ""))}
                         </span>
                       </td>
@@ -635,7 +635,7 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
                   </div>
                   <div>
                     <div className="text-sm font-semibold">{PRAYER_LABELS[p]}</div>
-                    {timeRaw && <div dir="ltr" className="text-xs opacity-50 text-left">{format12h(cleanTime(timeRaw))}</div>}
+                    {timeRaw && <div className="text-xs opacity-50 text-left">{format12h(cleanTime(timeRaw))}</div>}
                   </div>
                 </div>
                 {prayed && <Badge className="text-[10px] bg-accent-16 border-accent-20">صلّيتُ ✓</Badge>}
@@ -697,7 +697,7 @@ function HijriCalendarTab() {
     <div className="stack-y-3">
       {hijriHeader && isCurrentMonth && (
         <div className="text-center py-2 rounded-2xl bg-accent-8 border border-accent-15 text-sm">
-          اليوم: {hijriHeader.day} {HIJRI_MONTH_NAMES[(hijriHeader.month.number ?? 1) - 1] ?? hijriHeader.month.ar} {hijriHeader.year} هـ
+          اليوم: {toArabicIndic(Number(hijriHeader.day))} {HIJRI_MONTH_NAMES[(hijriHeader.month.number ?? 1) - 1] ?? hijriHeader.month.ar} {toArabicIndic(Number(hijriHeader.year))}هـ
         </div>
       )}
 
@@ -746,7 +746,7 @@ function HijriCalendarTab() {
                     isToday && "text-(--accent)", isFriday && !isToday && "text-(--accent-2)")}>
                     {day.date.gregorian.day}
                   </div>
-                  <div className="text-[9px] opacity-40 leading-tight">{day.date.hijri.day}</div>
+                  <div className="text-[9px] opacity-40 leading-tight">{toArabicIndic(Number(day.date.hijri.day))}</div>
                   {hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-(--accent) mt-0.5" />}
                 </div>
               );
@@ -1093,7 +1093,7 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
           {prayerPoints.map((p) => (
             <div key={p.id} className="rounded-xl border px-2 py-2 text-center" style={{ backgroundColor: p.isPast ? "var(--card)" : "var(--card)", borderColor: p.isPast ? "var(--stroke)" : "var(--stroke)" }}>
               <div className="font-medium text-[11px]" style={{ opacity: p.isPast ? 0.35 : 1 }}>{p.label}</div>
-              <div dir="ltr" className="text-[10px] tabular-nums mt-0.5" style={{ opacity: 0.45 }}>{format12h(p.time)}</div>
+              <div className="text-[10px] tabular-nums mt-0.5" style={{ opacity: 0.45 }}>{format12h(p.time)}</div>
               {p.isPast && <div className="text-[9px] mt-0.5 opacity-30">مضى</div>}
             </div>
           ))}
@@ -1112,6 +1112,23 @@ type PendingLocationRefresh = {
 };
 
 export function PrayerTimesPage() {
+  // The five prayers alone, or every moment of the day between them (remembered).
+  const [dayView, setDayViewState] = React.useState<"prayers" | "all">(() => {
+    try {
+      return localStorage.getItem("athar_prayer_day_view") === "prayers" ? "prayers" : "all";
+    } catch {
+      return "all";
+    }
+  });
+  const setDayView = (v: "prayers" | "all") => {
+    setDayViewState(v);
+    try {
+      localStorage.setItem("athar_prayer_day_view", v);
+    } catch {
+      // Not remembered; fine.
+    }
+  };
+
   const navigate       = useNavigate();
   const prayerTimes    = usePrayerTimes();
   const reminders      = useNoorStore((s) => s.reminders);
@@ -1263,13 +1280,13 @@ export function PrayerTimesPage() {
 
   const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
     { key: "today",   label: "اليوم",      icon: Clock3 },
-    { key: "weekly",  label: "أسبوعي",    icon: CalendarDays },
-    { key: "monthly", label: "شهري",      icon: CalendarDays },
-    { key: "track",   label: "تتبع",      icon: Check },
-    { key: "stats",   label: "إحصاء",     icon: BarChart2 },
-    { key: "arc",     label: "القوس",      icon: Sunrise },
-    { key: "hijri",   label: "هجري",      icon: MoonStar },
-    { key: "cities",  label: "مدن",       icon: Globe },
+    { key: "weekly",  label: "الأسبوع",       icon: CalendarDays },
+    { key: "monthly", label: "الشهر",         icon: CalendarDays },
+    { key: "track",   label: "سجلّ صلاتي",    icon: Check },
+    { key: "stats",   label: "إحصاءاتي",      icon: BarChart2 },
+    { key: "arc",     label: "مسار الشمس",    icon: Sunrise },
+    { key: "hijri",   label: "التقويم الهجري", icon: MoonStar },
+    { key: "cities",  label: "مدن العالم",    icon: Globe },
   ];
 
   return (
@@ -1351,10 +1368,17 @@ export function PrayerTimesPage() {
               {(() => {
                 const ARABIC_MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
                 const d = new Date();
-                return `${toArabicIndic(d.getDate())} ${ARABIC_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+                return `${toArabicIndic(d.getDate())} ${ARABIC_MONTHS[d.getMonth()]} ${toArabicIndic(d.getFullYear())}`;
               })()}
             </Badge>
-            <Badge className="text-[11px]">{date.hijri.date} {date.hijri.month.ar}</Badge>
+            <Badge className="text-[11px]">
+              {(() => {
+                // The API gives «09-06-1448»: day, month, year.
+                const [d, m, y] = String(date.hijri.date ?? "").split("-").map((v) => Number.parseInt(v, 10));
+                if (!d || !m || !y) return `${date.hijri.date} ${date.hijri.month.ar}`;
+                return `${toArabicIndic(d)} ${HIJRI_MONTH_NAMES[m - 1] ?? date.hijri.month.ar} ${toArabicIndic(y)}هـ`;
+              })()}
+            </Badge>
             {data.__sourceLabel && <Badge className="text-[11px] opacity-60">{data.__sourceLabel}</Badge>}
             <Button variant="secondary" size="sm" onClick={() => void handleUseCurrentLocation()} disabled={locating || prayerTimes.isFetching} aria-label="استخدام موقعي لمواقيت الصلاة">
               <MapPin size={13} aria-hidden="true" />
@@ -1416,11 +1440,27 @@ export function PrayerTimesPage() {
         {/* TODAY */}
         {activeTab === "today" && (
           <div className="stack-y-2.5" role="tabpanel" id="pt-panel-today" aria-labelledby="pt-tab-today" tabIndex={0}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-sm font-semibold">تفاصيل اليوم</div>
-              <div className="text-[10px] opacity-40">الإقامة بعد الأذان بالدقائق المحددة</div>
+            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+              <div>
+                <div className="text-sm font-semibold">تفاصيل اليوم</div>
+                <div className="text-[10px] opacity-40 mt-0.5">الإقامة بعد الأذان بالدقائق المحددة</div>
+              </div>
+              <div className="flex rounded-xl bg-(--card) border border-(--stroke) overflow-hidden text-xs" role="radiogroup" aria-label="ما يُعرض">
+                {([["prayers", "الصلوات"], ["all", "كل الأوقات"]] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="radio"
+                    aria-checked={dayView === key}
+                    onClick={() => setDayView(key)}
+                    className={cn("px-3 h-8 transition", dayView === key ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-60")}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
-            {schedule.detailRows.map((row) => {
+            {schedule.detailRows.filter((row) => dayView === "all" || row.type === "prayer" || row.id === schedule.currentPhase.id).map((row) => {
               const Icon = rowIcon(row);
               const isActive = row.id === schedule.currentPhase.id
                 || (schedule.currentPhase.type === "prayer" && row.prayerName === schedule.current.name);
@@ -1437,7 +1477,7 @@ export function PrayerTimesPage() {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <div className="text-sm font-semibold">{row.label}</div>
+                        <div className="text-sm font-semibold">{row.prayerName === "Dhuhr" && new Date().getDay() === 5 ? "الجمعة" : row.label}</div>
                         {isActive && <Badge className="text-[10px] bg-accent-16 border-accent-20 text-(--accent)">الآن</Badge>}
                         {!isActive && isNext && <Badge className="text-[10px]">التالي</Badge>}
                       </div>
@@ -1446,8 +1486,8 @@ export function PrayerTimesPage() {
                   <div className="shrink-0 ms-auto">
                     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                       <div className="text-right">
-                        <div className="text-[10px] opacity-40 mb-0.5">{row.type === "prayer" ? "أذان" : "الوقت"}</div>
-                        <div dir="ltr" className="text-sm font-medium tabular-nums">{row.timeLabel}</div>
+                        <div className="text-[10px] opacity-40 mb-0.5">{row.type === "prayer" ? "وقتها" : "الوقت"}</div>
+                        <div className="text-sm font-medium tabular-nums">{row.timeLabel}</div>
                       </div>
                       {showIqama && row.prayerName && (
                         <>
@@ -1500,7 +1540,7 @@ export function PrayerTimesPage() {
                             <Badge className="text-[10px] bg-[#1a3a6a] border-[#2d5a9a] text-[#93c5fd]">الآن</Badge>
                           )}
                         </div>
-                        <span dir="ltr" className={cn("text-xs tabular-nums font-medium shrink-0", isActive ? "text-[#93c5fd]" : "opacity-55")}>
+                        <span className={cn("text-xs tabular-nums font-medium shrink-0", isActive ? "text-[#93c5fd]" : "opacity-55")}>
                           {sixth.timeLabel}
                         </span>
                       </div>
