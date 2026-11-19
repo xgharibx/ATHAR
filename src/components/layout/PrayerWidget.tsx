@@ -125,7 +125,7 @@ export function PrayerWidget() {
               <span className={cn("text-[11px]", isCurrent ? "opacity-95 font-semibold" : isNext ? "opacity-85" : "opacity-55")}>
                 {prayer.label}
               </span>
-              <span dir="ltr" className={cn("text-xs font-medium tabular-nums", isCurrent && "text-(--accent)")}>
+              <span className={cn("text-xs font-medium tabular-nums", isCurrent && "text-(--accent)")}>
                 {prayer.timeLabel}
               </span>
             </div>
@@ -149,7 +149,7 @@ export function PrayerWidget() {
                   <div className="flex items-center gap-1.5">
                     <Sunrise size={12} aria-hidden="true" className="text-[#ffd27d]" />
                     <span>{sunriseMoment.label}</span>
-                    <span dir="ltr" className="tabular-nums font-medium">{sunriseMoment.value}</span>
+                    <span className="tabular-nums font-medium">{sunriseMoment.value}</span>
                   </div>
                 )}
                 {sunriseMoment && duhaMoment && <span className="opacity-30">·</span>}
@@ -157,7 +157,7 @@ export function PrayerWidget() {
                   <div className="flex items-center gap-1.5">
                     <CloudSun size={12} aria-hidden="true" className="text-[#ffd27d]" />
                     <span>{duhaMoment.label}</span>
-                    <span dir="ltr" className="tabular-nums font-medium">{duhaMoment.value}</span>
+                    <span className="tabular-nums font-medium">{duhaMoment.value}</span>
                   </div>
                 )}
               </div>
@@ -167,7 +167,7 @@ export function PrayerWidget() {
               <div className="flex items-center gap-1.5">
                 <Moon size={12} aria-hidden="true" className="text-[#93c5fd]" />
                 <span>{midnightMoment.label}</span>
-                <span dir="ltr" className="tabular-nums font-medium">{midnightMoment.value}</span>
+                <span className="tabular-nums font-medium">{midnightMoment.value}</span>
               </div>
             )}
           </div>

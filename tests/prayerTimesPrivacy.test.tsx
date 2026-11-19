@@ -253,7 +253,7 @@ describe("Prayer Times location controls and calendar", () => {
       const firstKey = firstQuery?.queryKey;
       const novemberThird = container!.querySelector<HTMLTableRowElement>("#pt-panel-monthly tbody tr:nth-child(3)");
       expect(novemberThird?.cells[0]?.textContent).toContain("3");
-      expect(novemberThird?.cells[1]?.textContent).toContain("4:42");
+      expect(novemberThird?.cells[1]?.textContent).toContain("٤:٤٢");
       await act(async () => { await firstQuery?.queryFn?.(); });
 
       process.env.TZ = "UTC";
