@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // Visualizes the Quranic description of the water cycle —
 // modern hydrology confirms the complete cycle of evaporation, condensation, and precipitation.
@@ -22,7 +23,7 @@ export default function WaterCycleVisual({ className }: MiracleVisualProps) {
     // ResizeObserver handles canvas sizing below
 
     // Evaporation particles rising from ocean
-    const evapParticles = Array.from({ length: 60 }, () => ({
+    const evapParticles = Array.from({ length: particleCount(60) }, () => ({
       x: 0.05 + Math.random() * 0.35,
       y: 0.72 + Math.random() * 0.05,
       speed: 0.0008 + Math.random() * 0.0012,
@@ -339,18 +340,18 @@ export default function WaterCycleVisual({ className }: MiracleVisualProps) {
       ctx.fillText('الهطول', w * 0.7, h * 0.28);
       ctx.fillText('التجمّع', w * 0.08, h * 0.88);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

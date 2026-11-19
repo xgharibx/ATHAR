@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // 🧬 برهان التصميم — Design (Teleological) Argument
 // The incredible complexity and fine-tuning of biological systems points to a Designer
@@ -144,12 +145,12 @@ export default function DesignArgumentVisual({ className }: MiracleVisualProps) 
       ctx.fillText('٣.٢ مليار حرف في الحمض النووي', cx, h * 0.05);
       ctx.fillText('= معلومات أكثر من موسوعة كاملة', cx, h * 0.05 + 16);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -157,7 +158,7 @@ export default function DesignArgumentVisual({ className }: MiracleVisualProps) 
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

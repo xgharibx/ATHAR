@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // Visualizes the Quranic mention of unique fingerprints —
 // modern science confirms that every human has a unique fingerprint pattern.
@@ -22,7 +23,7 @@ export default function FingerprintsVisual({ className }: MiracleVisualProps) {
     // ResizeObserver handles canvas sizing below
 
     // Free-floating particles that converge into fingerprint pattern
-    const particles = Array.from({ length: 500 }, () => {
+    const particles = Array.from({ length: particleCount(500) }, () => {
       const angle = Math.random() * Math.PI * 2;
       const dist = 0.1 + Math.random() * 0.45;
       return {
@@ -207,18 +208,18 @@ export default function FingerprintsVisual({ className }: MiracleVisualProps) {
         }
       }
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

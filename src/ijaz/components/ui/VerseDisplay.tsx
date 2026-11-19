@@ -1,5 +1,6 @@
 
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { QuranicVerse } from '@/ijaz/types';
 import { verseRefAr } from '@/ijaz/lib/utils';
 import { useIjazPrefs } from '@/ijaz/lib/ijazPrefs';
@@ -74,14 +75,22 @@ export default function VerseDisplay({
           </p>
         </div>
 
-        {/* Verse Reference */}
-        <div className="text-center mt-4">
+        {/* Verse Reference, and a way to read it in its place in the Mushaf */}
+        <div className="text-center mt-4 flex flex-wrap items-center justify-center gap-2">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-verse-green/10 border border-verse-green/20 text-verse-green text-sm font-tajawal">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
             </svg>
             سورة {verseRefAr(verse.surah, verse.ayahNumber, verse.ayahNumberEnd)}
           </span>
+          {verse.surahNumber > 0 && verse.ayahNumber > 0 && (
+            <Link
+              to={`/mushaf?surah=${verse.surahNumber}&ayah=${verse.ayahNumber}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 text-text-secondary text-sm font-tajawal hover:bg-white/5 transition"
+            >
+              اقرأها في المصحف
+            </Link>
+          )}
         </div>
 
         {/* Translation */}

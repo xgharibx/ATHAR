@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // 🧬 مُضْغَةً — Embryo: The Chewed Lump Stage
 // Al-Mu'minun 23:14 — mudghah (chewed lump) = 4th-week embryo with somites
@@ -120,7 +121,7 @@ export default function EmbryoMudghahVisual({ className }: MiracleVisualProps) {
       ctx.stroke();
 
       // Size indicator
-      ctx.font = `${6.5 * (window.devicePixelRatio || 1)}px sans-serif`; ctx.textAlign = 'center';
+      ctx.font = `${6.5 * visualDpr()}px sans-serif`; ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(200,160,100,0.5)';
       ctx.fillText('4–6 mm', 0, s * 0.7);
 
@@ -154,7 +155,7 @@ export default function EmbryoMudghahVisual({ className }: MiracleVisualProps) {
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       ctx.fillStyle = '#04010a'; ctx.fillRect(0, 0, w, h);
 
@@ -206,19 +207,19 @@ export default function EmbryoMudghahVisual({ className }: MiracleVisualProps) {
         ctx.fillStyle = `rgba(80,120,255,${alpha})`; ctx.fill();
       });
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

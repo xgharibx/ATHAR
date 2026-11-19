@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // النبي الأمي — The Unlettered Prophet (العنكبوت 48)
 // Cinematic: a radiant source (the heart receiving revelation) pours streams of
@@ -19,7 +20,7 @@ export default function UnletteredProphetVisual({ className }: MiracleVisualProp
     let animId = 0;
     let time = 0;
 
-    const particles = Array.from({ length: 140 }, () => ({
+    const particles = Array.from({ length: particleCount(140) }, () => ({
       tx: 0.18 + Math.random() * 0.64,
       row: Math.floor(Math.random() * 6),
       r: Math.random() * 1.6 + 0.8,
@@ -93,12 +94,12 @@ export default function UnletteredProphetVisual({ className }: MiracleVisualProp
         ctx.stroke();
       }
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -106,7 +107,7 @@ export default function UnletteredProphetVisual({ className }: MiracleVisualProp
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

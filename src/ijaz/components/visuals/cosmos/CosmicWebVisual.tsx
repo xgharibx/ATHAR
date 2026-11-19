@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🕸️ وَالسَّمَاءَ بَنَيْنَاهَا بِأَيْدٍ — The Built Universe / Cosmic Web
 // Adh-Dhariyat 51:47 — we built the heaven with might
@@ -21,7 +22,7 @@ export default function CosmicWebVisual({ className }: MiracleVisualProps) {
 
     // Filament nodes (galaxy clusters)
     type Node = { x: number; y: number; size: number; brightness: number; phase: number };
-    const nodes: Node[] = Array.from({ length: 80 }, () => ({
+    const nodes: Node[] = Array.from({ length: particleCount(80) }, () => ({
       x: Math.random(), y: Math.random(),
       size: Math.random() * 3 + 1,
       brightness: Math.random() * 0.4 + 0.3,
@@ -42,7 +43,7 @@ export default function CosmicWebVisual({ className }: MiracleVisualProps) {
 
     // Dark matter flow particles along filaments
     type FlowPt = { edgeIdx: number; t: number; speed: number; alpha: number };
-    const flowPts: FlowPt[] = Array.from({ length: 120 }, () => ({
+    const flowPts: FlowPt[] = Array.from({ length: particleCount(120) }, () => ({
       edgeIdx: Math.floor(Math.random() * edges.length),
       t: Math.random(), speed: Math.random() * 0.004 + 0.001, alpha: Math.random() * 0.3 + 0.1,
     }));
@@ -97,19 +98,19 @@ export default function CosmicWebVisual({ className }: MiracleVisualProps) {
       ctx.fillText('وَالسَّمَاءَ بَنَيْنَاهَا', w * 0.5, h * 0.89);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

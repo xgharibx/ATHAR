@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // ⭐ النجم الطارق — The Pulsar (Knocking Star)
 // "وَالسَّمَاءِ وَالطَّارِقِ ۝ وَمَا أَدْرَاكَ مَا الطَّارِقُ ۝ النَّجْمُ الثَّاقِبُ"
@@ -21,7 +22,7 @@ export default function PulsarVisual({ className }: MiracleVisualProps) {
 
     // ResizeObserver handles canvas sizing below
 
-    const bgStars = Array.from({ length: 300 }, () => ({
+    const bgStars = Array.from({ length: particleCount(300) }, () => ({
       x: Math.random(),
       y: Math.random(),
       size: Math.random() * 1.2 + 0.3,
@@ -143,18 +144,18 @@ export default function PulsarVisual({ className }: MiracleVisualProps) {
       ctx.fillStyle = '#e8eeff';
       ctx.fill();
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

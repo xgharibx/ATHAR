@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🕋 فتح مكة — Conquest of Makkah
 // "إِنَّا فَتَحْنَا لَكَ فَتْحًا مُّبِينًا" / "إِذَا جَاءَ نَصْرُ اللَّهِ وَالْفَتْحُ"
@@ -22,7 +23,7 @@ export default function ConquestMakkahVisual({ className }: MiracleVisualProps) 
     // ResizeObserver handles canvas sizing below
 
     // Light particles converging toward center (the army gathering)
-    const particles = Array.from({ length: 200 }, () => ({
+    const particles = Array.from({ length: particleCount(200) }, () => ({
       angle: Math.random() * Math.PI * 2,
       dist: Math.random() * 0.5 + 0.3,
       speed: Math.random() * 0.001 + 0.0005,
@@ -132,18 +133,18 @@ export default function ConquestMakkahVisual({ className }: MiracleVisualProps) 
       ctx.textAlign = 'center';
       ctx.fillText('١٠,٠٠٠ صحابي', cx, h * 0.78);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

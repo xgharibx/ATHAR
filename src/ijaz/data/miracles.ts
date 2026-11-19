@@ -1,6 +1,7 @@
 import { Miracle, MiracleCategory } from '@/ijaz/types';
 import { EVIDENCE_AR } from '@/ijaz/data/evidenceAr';
 import { westernToArabicDigits } from '@/lib/formatNumber';
+import { MERGED_INTO, REMOVED, canonicalSlug } from '@/ijaz/data/aliases';
 
 export const miracles: Miracle[] = [
   // ================================================================
@@ -12532,12 +12533,62 @@ for (const m of miracles) {
   if (m.bookSource.chapterAr) m.bookSource.chapterAr = ar(m.bookSource.chapterAr);
 }
 
-/** 1…86 in reading order (the data's own `order` has a 22.5). */
+// ── Merge the miracles that appeared twice; drop the removed ones ──
+{
+  const bySlug = new Map(miracles.map((m) => [m.slug, m]));
+  const idAlias = new Map<string, string>();
+  const evidenceKey = (e: { title: string; year?: string }) =>
+    `${(e.year ?? '').match(/\d{4}/)?.[0] ?? ''}|${e.title.toLowerCase().replace(/[^a-z]/g, '').slice(0, 12)}`;
+  const sections = (dd: string) => new Set(dd.split(/\n(?=[^\n]+\n===)/).map((b) => b.split('\n')[0]!.trim()));
+  for (const [from, to] of Object.entries(MERGED_INTO)) {
+    const src = bySlug.get(from);
+    const dst = bySlug.get(to);
+    if (!src || !dst) continue;
+    idAlias.set(src.id, dst.id);
+    const seenEv = new Set(dst.scientificEvidence.map(evidenceKey));
+    for (const e of src.scientificEvidence) {
+      // The same discovery told twice (same year and scientist) is kept once.
+      const words = (t: string) => new Set(t.toLowerCase().match(/[a-z]{6,}/g) ?? []);
+      const same = dst.scientificEvidence.some((d) => {
+        if (!e.year || d.year !== e.year) return false;
+        const w = words(`${d.title} ${d.scientist ?? ''}`);
+        return [...words(`${e.title} ${e.scientist ?? ''}`)].some((x) => w.has(x));
+      });
+      if (seenEv.has(evidenceKey(e)) || same) continue;
+      dst.scientificEvidence.push(e);
+      seenEv.add(evidenceKey(e));
+    }
+    const seenVerse = new Set(dst.verses.map((v) => `${v.surahNumber}:${v.ayahNumber}`));
+    for (const v of src.verses) if (!seenVerse.has(`${v.surahNumber}:${v.ayahNumber}`)) dst.verses.push(v);
+    dst.tags = [...new Set([...dst.tags, ...src.tags])];
+    if (src.deepDiveAr) {
+      const have = sections(dst.deepDiveAr ?? '');
+      const extra = src.deepDiveAr.split(/\n(?=[^\n]+\n===)/).filter((b) => !have.has(b.split('\n')[0]!.trim()));
+      if (extra.length) dst.deepDiveAr = [dst.deepDiveAr ?? '', ...extra].filter(Boolean).join('\n\n');
+    }
+    if (src.deepDive && dst.deepDive && !dst.deepDive.includes(src.deepDive.slice(0, 40))) dst.deepDive = `${dst.deepDive}\n\n${src.deepDive}`;
+    if (src.descriptionAr.length > dst.descriptionAr.length * 1.6) dst.descriptionAr = src.descriptionAr;
+  }
+  for (let i = miracles.length - 1; i >= 0; i--) {
+    const m = miracles[i]!;
+    if (MERGED_INTO[m.slug] || REMOVED.has(m.slug)) miracles.splice(i, 1);
+  }
+  const removedIds = new Set([...bySlug.values()].filter((m) => REMOVED.has(m.slug)).map((m) => m.id));
+  // Related links: follow merges, and drop any that point nowhere (some ids
+  // in the data never matched a miracle, e.g. «miracle-celestial-orbits»).
+  const realIds = new Set(miracles.map((m) => m.id));
+  for (const m of miracles) {
+    m.relatedMiracleIds = [...new Set(m.relatedMiracleIds.map((id) => idAlias.get(id) ?? id))].filter((id) => id !== m.id && !removedIds.has(id) && realIds.has(id));
+  }
+}
+
+/** 1…n in reading order (the data's own `order` has a 22.5). */
 const NUMBER = new Map([...miracles].sort((a, b) => a.order - b.order).map((m, i) => [m.slug, i + 1]));
 export const miracleNumber = (slug: string): number => NUMBER.get(slug) ?? 0;
 
 export const getMiracleBySlug = (slug: string): Miracle | undefined => {
-  return miracles.find((m) => m.slug === slug);
+  const at = canonicalSlug(slug);
+  return at ? miracles.find((m) => m.slug === at) : undefined;
 };
 
 export const getMiracleById = (id: string): Miracle | undefined => {

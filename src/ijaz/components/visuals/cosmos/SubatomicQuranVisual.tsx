@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // ⚛️ وَلَا أَصْغَرُ مِن ذَٰلِكَ — Things Smaller Than an Atom
 // Saba 34:3 + Yunus 10:61 — 7th century stated subatomic particles exist
@@ -19,7 +20,7 @@ export default function SubatomicQuranVisual({ className }: MiracleVisualProps) 
     let animId: number;
     let time = 0;
 
-    const stars = Array.from({ length: 180 }, () => ({
+    const stars = Array.from({ length: particleCount(180) }, () => ({
       x: Math.random(), y: Math.random(), size: Math.random() * 1.4 + 0.2, alpha: Math.random() * 0.45 + 0.15,
       twinkle: Math.random() * Math.PI * 2, speed: Math.random() + 0.5,
     }));
@@ -43,7 +44,7 @@ export default function SubatomicQuranVisual({ className }: MiracleVisualProps) 
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       const cx = w * 0.5, cy = h * 0.45;
 
       ctx.fillStyle = '#010308'; ctx.fillRect(0, 0, w, h);
@@ -166,19 +167,19 @@ export default function SubatomicQuranVisual({ className }: MiracleVisualProps) 
         ctx.fillStyle = active ? 'rgba(255,210,80,0.85)' : 'rgba(80,100,180,0.45)'; ctx.fill();
       }
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
   return (
     <div className={`relative w-full h-full overflow-hidden ${className || ''}`}

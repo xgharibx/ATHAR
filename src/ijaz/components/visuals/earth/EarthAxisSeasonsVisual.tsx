@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🌍 Earth Axis Seasons
 // Quran / earth design — tilted axis causes seasons
@@ -20,7 +21,7 @@ export default function EarthAxisSeasonsVisual({ className }: MiracleVisualProps
     let time = 0;
 
     // Star background
-    const stars = Array.from({ length: 180 }, () => ({ x: Math.random(), y: Math.random(), size: Math.random() * 1.2 + 0.2, phase: Math.random() * Math.PI * 2 }));
+    const stars = Array.from({ length: particleCount(180) }, () => ({ x: Math.random(), y: Math.random(), size: Math.random() * 1.2 + 0.2, phase: Math.random() * Math.PI * 2 }));
 
     const draw = () => {
       time += 0.007;
@@ -108,19 +109,19 @@ export default function EarthAxisSeasonsVisual({ className }: MiracleVisualProps
         ctx.fillStyle = `rgba(${seasonColors[i][0]},${seasonColors[i][1]},${seasonColors[i][2]},0.4)`; ctx.fill();
       }
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

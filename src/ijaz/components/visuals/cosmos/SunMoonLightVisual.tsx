@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 export default function SunMoonLightVisual({ className }: MiracleVisualProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,7 +16,7 @@ export default function SunMoonLightVisual({ className }: MiracleVisualProps) {
     let animId: number;
     let time = 0;
 
-    const stars = Array.from({ length: 120 }, () => ({ x: Math.random(), y: Math.random(), size: Math.random() * 1.2 + 0.2, phase: Math.random() * Math.PI * 2 }));
+    const stars = Array.from({ length: particleCount(120) }, () => ({ x: Math.random(), y: Math.random(), size: Math.random() * 1.2 + 0.2, phase: Math.random() * Math.PI * 2 }));
 
     const draw = () => {
       time += 0.007;
@@ -80,18 +81,18 @@ export default function SunMoonLightVisual({ className }: MiracleVisualProps) {
       ctx.strokeStyle = 'rgba(140,130,200,0.12)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
       ctx.beginPath(); ctx.moveTo(midX, 0); ctx.lineTo(midX, h); ctx.stroke(); ctx.setLineDash([]);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr; canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

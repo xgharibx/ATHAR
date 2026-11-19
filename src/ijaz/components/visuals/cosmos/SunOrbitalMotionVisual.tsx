@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // ☀️ وَكُلٌّ فِي فَلَكٍ يَسْبَحُونَ — Sun in Orbital Motion
 // Ya-Sin 36:38-40 — the Sun swims/floats in orbit
@@ -20,7 +21,7 @@ export default function SunOrbitalMotionVisual({ className }: MiracleVisualProps
     let time = 0;
 
     // Star field
-    const stars = Array.from({ length: 250 }, () => ({ x: Math.random(), y: Math.random(), size: Math.random() * 1.5 + 0.3, phase: Math.random() * Math.PI * 2 }));
+    const stars = Array.from({ length: particleCount(250) }, () => ({ x: Math.random(), y: Math.random(), size: Math.random() * 1.5 + 0.3, phase: Math.random() * Math.PI * 2 }));
 
     // Sun orbit trail
     const orbitTrail: [number, number][] = [];
@@ -92,19 +93,19 @@ export default function SunOrbitalMotionVisual({ className }: MiracleVisualProps
       ctx.fillText('وَكُلٌّ فِي فَلَكٍ يَسْبَحُونَ', w * 0.5, h * 0.9);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

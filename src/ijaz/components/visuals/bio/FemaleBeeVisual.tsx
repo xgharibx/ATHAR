@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🐝 وَأَوْحَىٰ رَبُّكَ إِلَى النَّحْلِ — The Female Bee Miracle
 // Every verb is grammatically FEMININE (ي suffix)
@@ -40,7 +41,7 @@ export default function FemaleBeeVisual({ className }: MiracleVisualProps) {
       }
     };
 
-    const pollen = Array.from({ length: 80 }, () => ({
+    const pollen = Array.from({ length: particleCount(80) }, () => ({
       x: Math.random(), y: Math.random(),
       vx: (Math.random() - 0.5) * 0.0012,
       vy: -Math.random() * 0.001 - 0.0003,
@@ -112,7 +113,7 @@ export default function FemaleBeeVisual({ className }: MiracleVisualProps) {
     const draw = () => {
       time += 0.008;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       const bg = ctx.createLinearGradient(0, 0, 0, h);
       bg.addColorStop(0, '#040d01'); bg.addColorStop(0.5, '#061404'); bg.addColorStop(1, '#030b02');
@@ -180,12 +181,12 @@ export default function FemaleBeeVisual({ className }: MiracleVisualProps) {
         ctx.restore();
       });
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -193,7 +194,7 @@ export default function FemaleBeeVisual({ className }: MiracleVisualProps) {
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

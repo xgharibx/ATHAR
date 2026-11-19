@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // ⚫ BlackHoles
 // At-Takwir 81:15-16 — فَلَا أُقْسِمُ بِالخُنَّسِ الجَوَارِ الكُنَّسِ
@@ -21,7 +22,7 @@ export default function BlackHolesQuranVisual({ className }: MiracleVisualProps)
 
     // Stars being pulled in
     type Star = { angle: number; dist: number; speed: number; size: number; alpha: number };
-    const stars: Star[] = Array.from({ length: 120 }, (_, i) => ({
+    const stars: Star[] = Array.from({ length: particleCount(120) }, (_, i) => ({
       angle: (i / 120) * Math.PI * 2 + Math.random() * 0.3,
       dist: 0.12 + Math.random() * 0.35,
       speed: 0.002 + Math.random() * 0.004,
@@ -30,7 +31,7 @@ export default function BlackHolesQuranVisual({ className }: MiracleVisualProps)
     }));
 
     // Background stars
-    const bgStars = Array.from({ length: 200 }, () => ({ x: Math.random(), y: Math.random(), size: Math.random() * 1.2 + 0.2, phase: Math.random() * Math.PI * 2 }));
+    const bgStars = Array.from({ length: particleCount(200) }, () => ({ x: Math.random(), y: Math.random(), size: Math.random() * 1.2 + 0.2, phase: Math.random() * Math.PI * 2 }));
 
     const draw = () => {
       time += 0.007;
@@ -93,19 +94,19 @@ export default function BlackHolesQuranVisual({ className }: MiracleVisualProps)
       ctx.fillText('الخُنَّس · الجَوَارِ · الكُنَّس', w * 0.5, h * 0.91);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

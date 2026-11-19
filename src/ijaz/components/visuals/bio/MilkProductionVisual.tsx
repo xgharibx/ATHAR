@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // لبنًا خالصًا — Pure Milk (النحل 66)
 // Cinematic: two flowing channels — brown chyme (فرث) and red blood (دم) — run
@@ -114,12 +115,12 @@ export default function MilkProductionVisual({ className }: MiracleVisualProps) 
       ctx.lineTo(cxNode, midY);
       ctx.stroke();
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -127,7 +128,7 @@ export default function MilkProductionVisual({ className }: MiracleVisualProps) 
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

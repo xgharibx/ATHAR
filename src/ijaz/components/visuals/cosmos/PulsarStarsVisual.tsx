@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // ⭐ النَّجْمُ الثَّاقِبُ — Pulsar: The Piercing Star
 // At-Tariq 86:1-3 — thaqib = piercing/boring — pulsars emit drilling beams
@@ -21,7 +22,7 @@ export default function PulsarStarsVisual({ className }: MiracleVisualProps) {
 
     // Background stars
     type Star = { x: number; y: number; size: number; alpha: number };
-    const stars: Star[] = Array.from({ length: 350 }, () => ({
+    const stars: Star[] = Array.from({ length: particleCount(350) }, () => ({
       x: Math.random(), y: Math.random(),
       size: Math.random() * 1.5 + 0.2, alpha: Math.random() * 0.6 + 0.15,
     }));
@@ -33,7 +34,7 @@ export default function PulsarStarsVisual({ className }: MiracleVisualProps) {
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       // Dark space background
       ctx.fillStyle = '#01000a'; ctx.fillRect(0, 0, w, h);
@@ -138,19 +139,19 @@ export default function PulsarStarsVisual({ className }: MiracleVisualProps) {
       ctx.fillText('حتى ٧١٦ نبضة في الثانية', w * 0.96, h * 0.12);
       ctx.fillText('بِل بيرنل ١٩٦٧', w * 0.96, h * 0.16);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // ⭐ وَهُوَ الَّذِي جَعَلَ لَكُمُ النُّجُومَ لِتَهْتَدُوا — Stars for Navigation (الأنعام 97)
 // ULTIMATE: a rotating celestial sphere wheels around a fixed Polaris (true diurnal
@@ -25,7 +26,7 @@ export default function StarsNavigationVisual({ className }: MiracleVisualProps)
 
     // Rotating background stars (polar coordinates around Polaris)
     type Star = { ang: number; rad: number; size: number; tw: number; hot: boolean };
-    const stars: Star[] = Array.from({ length: 320 }, () => ({
+    const stars: Star[] = Array.from({ length: particleCount(320) }, () => ({
       ang: Math.random() * Math.PI * 2,
       rad: Math.random() * 0.9 + 0.02,
       size: Math.pow(Math.random(), 2) * 2.4 + 0.4,
@@ -249,19 +250,19 @@ export default function StarsNavigationVisual({ className }: MiracleVisualProps)
       ctx.fillText('لِتَهْتَدُوا بِها', w * 0.5, h * 0.92);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

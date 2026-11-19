@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // نبوءة انتصار الروم — Romans Victory Prophecy (الروم 2-4)
 // Cinematic battle map: a front line between Rome (west, blue) and Persia (east, red)
@@ -32,7 +33,7 @@ export default function RomansVictoryVisual({ className }: MiracleVisualProps) {
     const phaseDur = 2.6; // seconds per phase
 
     // Troop dots per side
-    const troops = Array.from({ length: 64 }, () => ({
+    const troops = Array.from({ length: particleCount(64) }, () => ({
       x: Math.random(),
       yy: Math.random(),
       side: Math.random() > 0.5 ? 1 : 0, // 1 = persia(east), 0 = rome(west)
@@ -150,12 +151,12 @@ export default function RomansVictoryVisual({ className }: MiracleVisualProps) {
       ctx.fillStyle = '#5aa0dc';
       ctx.fill();
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -163,7 +164,7 @@ export default function RomansVictoryVisual({ className }: MiracleVisualProps) {
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

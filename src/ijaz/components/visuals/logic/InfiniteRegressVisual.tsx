@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // برهان استحالة التسلسل — The Impossibility of Infinite Regress
 // Cinematic: a chain of cause-orbs recedes toward a vanishing point on the left,
@@ -87,12 +88,12 @@ export default function InfiniteRegressVisual({ className }: MiracleVisualProps)
       ctx.fillStyle = 'rgba(255,245,210,0.98)';
       ctx.fill();
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -100,7 +101,7 @@ export default function InfiniteRegressVisual({ className }: MiracleVisualProps)
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

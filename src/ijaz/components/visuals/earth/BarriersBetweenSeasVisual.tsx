@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🌊 مَرَجَ الْبَحْرَيْنِ — Barriers Between Seas
 // Ar-Rahman 55:19-20 — two seas meet, a barrier between them
@@ -21,7 +22,7 @@ export default function BarriersBetweenSeasVisual({ className }: MiracleVisualPr
 
     // Water particles for each sea
     type WaterPt = { x: number; y: number; vx: number; vy: number; sea: 0 | 1; alpha: number; phase: number };
-    const pts: WaterPt[] = Array.from({ length: 180 }, (_, i) => ({
+    const pts: WaterPt[] = Array.from({ length: particleCount(180) }, (_, i) => ({
       x: Math.random(), y: Math.random() * 0.55 + 0.2,
       vx: (Math.random() - 0.5) * 0.003, vy: (Math.random() - 0.5) * 0.002,
       sea: i < 90 ? 0 : 1, alpha: Math.random() * 0.3 + 0.4, phase: Math.random() * Math.PI * 2,
@@ -88,19 +89,19 @@ export default function BarriersBetweenSeasVisual({ className }: MiracleVisualPr
       ctx.fillText('بَيْنَهُمَا بَرْزَخٌ', barrierX, h * 0.88);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

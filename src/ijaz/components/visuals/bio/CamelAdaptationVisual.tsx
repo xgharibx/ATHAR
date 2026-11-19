@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🐪 أَفَلَا يَنظُرُونَ إِلَى الْإِبِلِ كَيْفَ خُلِقَتْ — Camel Adaptation (الغاشية 17)
 // ULTIMATE: a blazing desert with a scorching sun, layered drifting dunes, a
@@ -20,7 +21,7 @@ export default function CamelAdaptationVisual({ className }: MiracleVisualProps)
     let time = 0;
 
     // sandstorm particles
-    const sand = Array.from({ length: 70 }, () => ({
+    const sand = Array.from({ length: particleCount(70) }, () => ({
       x: Math.random(), y: Math.random(),
       sp: 0.001 + Math.random() * 0.003,
       r: 0.5 + Math.random() * 1.4,
@@ -202,18 +203,18 @@ export default function CamelAdaptationVisual({ className }: MiracleVisualProps)
       ctx.fillText('أَفَلَا يَنظُرُونَ إِلَى الْإِبِلِ كَيْفَ خُلِقَتْ', w * 0.5, h * 0.95);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr; canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

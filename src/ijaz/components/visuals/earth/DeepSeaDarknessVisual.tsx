@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 🌊 ظلمات البحر — Deep Sea Darkness
 // "أَوْ كَظُلُمَاتٍ فِي بَحْرٍ لُّجِّيٍّ يَغْشَاهُ مَوْجٌ مِّن فَوْقِهِ مَوْجٌ مِّن فَوْقِهِ سَحَابٌ
@@ -23,7 +24,7 @@ export default function DeepSeaDarknessVisual({ className }: MiracleVisualProps)
     // ResizeObserver handles canvas sizing below
 
     // Deep sea particles (debris, plankton)
-    const particles = Array.from({ length: 60 }, () => ({
+    const particles = Array.from({ length: particleCount(60) }, () => ({
       x: Math.random(),
       y: Math.random(),
       size: Math.random() * 2 + 0.5,
@@ -213,18 +214,18 @@ export default function DeepSeaDarknessVisual({ className }: MiracleVisualProps)
         ctx.fill();
       });
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      canvas.width = canvas.offsetWidth * visualDpr();
+      canvas.height = canvas.offsetHeight * visualDpr();
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);

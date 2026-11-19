@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // 💧 وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ — Water Origin of Life
 // Al-Anbiya 21:30 — every living thing made from water
@@ -21,7 +22,7 @@ export default function WaterOriginLifeVisual({ className }: MiracleVisualProps)
 
     // Water molecules
     type WaterMol = { x: number; y: number; vx: number; vy: number; phase: number };
-    const waterMols: WaterMol[] = Array.from({ length: 60 }, () => ({
+    const waterMols: WaterMol[] = Array.from({ length: particleCount(60) }, () => ({
       x: Math.random(), y: Math.random() * 0.5 + 0.15,
       vx: (Math.random() - 0.5) * 0.0015, vy: (Math.random() - 0.5) * 0.001,
       phase: Math.random() * Math.PI * 2,
@@ -134,7 +135,7 @@ export default function WaterOriginLifeVisual({ className }: MiracleVisualProps)
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       // Dark ocean background
       const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
@@ -200,19 +201,19 @@ export default function WaterOriginLifeVisual({ className }: MiracleVisualProps)
       ctx.fillText('كُلَّ شَيْءٍ حَيٍّ', w * 0.5, h * 0.82);
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

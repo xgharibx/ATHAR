@@ -1,6 +1,7 @@
 
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { particleCount } from '../frameGovernor';
 
 // ⚔️ معركة بدر — Battle of Badr
 // "وَلَقَدْ نَصَرَكُمُ اللَّهُ بِبَدْرٍ وَأَنتُمْ أَذِلَّةٌ"
@@ -98,7 +99,7 @@ export default function BattleBadrVisual({ className }: MiracleVisualProps) {
             </div>
             {/* Dot grid representing ~1000 */}
             <div className="mt-3 flex flex-wrap justify-center gap-[2px]">
-              {Array.from({ length: 80 }).map((_, i) => (
+              {Array.from({ length: particleCount(80) }).map((_, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0 }}

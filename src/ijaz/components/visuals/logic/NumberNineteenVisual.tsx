@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame } from '../frameGovernor';
 
 // 🔢 عَلَيْهَا تِسْعَةَ عَشَرَ — Number Nineteen
 // Al-Muddaththir 74:30 — over it are nineteen
@@ -94,19 +95,19 @@ export default function NumberNineteenVisual({ className }: MiracleVisualProps) 
       ctx.fillStyle = 'rgba(140,120,200,0.4)';
       ctx.fillText('عَلَيْهَا تِسْعَةَ عَشَرَ', cx, h * 0.88);
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

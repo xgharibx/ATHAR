@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // ⚫ فَلَا أُقْسِمُ بِالْخُنَّسِ الْجَوَارِ الْكُنَّسِ — The Black Holes Miracle
 // Three Arabic words: retreat+collapse / sweep with gravity / hide+disappear
@@ -20,7 +21,7 @@ export default function BlackHolesVisual({ className }: MiracleVisualProps) {
     let time = 0;
 
     // Background stars
-    const stars = Array.from({ length: 400 }, () => ({
+    const stars = Array.from({ length: particleCount(400) }, () => ({
       x: Math.random(), y: Math.random(),
       size: Math.pow(Math.random(), 3) * 2.2 + 0.2,
       alpha: Math.random() * 0.7 + 0.2,
@@ -232,19 +233,19 @@ export default function BlackHolesVisual({ className }: MiracleVisualProps) {
         ctx.restore();
       });
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
-    return () => { cancelAnimationFrame(animId); observer.disconnect(); };
+    return () => { cancelVisualFrame(animId); observer.disconnect(); };
   }, []);
 
   return (

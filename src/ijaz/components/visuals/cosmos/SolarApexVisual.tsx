@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+import { visualDpr, visualFrame, cancelVisualFrame, particleCount } from '../frameGovernor';
 
 // ☀️ سير الشمس إلى مستقرها — The Sun's Journey to the Solar Apex
 // "وَالشَّمْسُ تَجْرِي لِمُسْتَقَرٍّ لَّهَا ذَٰلِكَ تَقْدِيرُ الْعَزِيزِ الْعَلِيمِ"
@@ -21,7 +22,7 @@ export default function SolarApexVisual({ className }: MiracleVisualProps) {
     let time = 0;
 
     // ── Background star field ──────────────────────────────────
-    const bgStars = Array.from({ length: 500 }, () => ({
+    const bgStars = Array.from({ length: particleCount(500) }, () => ({
       x: Math.random(),
       y: Math.random(),
       size: Math.pow(Math.random(), 3) * 2.5 + 0.3,
@@ -32,7 +33,7 @@ export default function SolarApexVisual({ className }: MiracleVisualProps) {
     }));
 
     // ── Passing stars (sun moving through space — parallax) ───
-    const passingStars = Array.from({ length: 120 }, () => ({
+    const passingStars = Array.from({ length: particleCount(120) }, () => ({
       x: Math.random(),
       y: Math.random(),
       speedX: -(Math.random() * 0.006 + 0.002), // moving away behind sun
@@ -57,7 +58,7 @@ export default function SolarApexVisual({ className }: MiracleVisualProps) {
 
       const w = canvas.width;
       const h = canvas.height;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
 
       // ── Deep space background ────────────────────────────────
       const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
@@ -341,12 +342,12 @@ export default function SolarApexVisual({ className }: MiracleVisualProps) {
       ctx.fillText('١٩٫٧ كم/ث نحو قمة الشمس', midArrowX, midArrowY + 2 * dpr);
       ctx.restore();
 
-      animId = requestAnimationFrame(draw);
+      animId = visualFrame(draw);
     };
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = visualDpr();
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -355,7 +356,7 @@ export default function SolarApexVisual({ className }: MiracleVisualProps) {
     observer.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animId);
+      cancelVisualFrame(animId);
       observer.disconnect();
     };
   }, []);
