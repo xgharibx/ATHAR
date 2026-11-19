@@ -92,7 +92,7 @@ export function ListenSurahPage() {
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 114 }, (_, i) => i + 1).map((s) => (
             <button key={s} type="button" className="ls-chip ls-press justify-center" style={{ height: 40 }} onClick={() => navigate(`/listen/surah/${s}`, { replace: true })}>
-              {arabicDigits(s)} · {surahName(s)}
+              {arabicDigits(s)}، {surahName(s)}
             </button>
           ))}
         </div>
@@ -156,7 +156,7 @@ export function ListenGoldenPage() {
           if (!found) return null;
           return (
             <Link key={g.moshaf} to={`/listen/reciter/${g.reciter}?m=${g.moshaf}`} className="ls-gold ls-press" style={{ width: "100%" }}>
-              <ReciterMark name={found.reciter.n} gold />
+              <ReciterMark name={found.reciter.n} gold withName={false} />
               <span className="min-w-0">
                 <b>{found.reciter.n}</b>
                 <span>{g.note}</span>
@@ -214,7 +214,7 @@ export function ListenQiyamPage() {
   const total = Object.values(year.d).reduce((a, b) => a + b, 0);
   return (
     <div className="ls-page page-enter">
-      <ListHeader title={qiyamTitle(year)} sub={`${arabicDigits(tracks.length)} سورة · ${formatDuration(total)}`} tracks={tracks} />
+      <ListHeader title={qiyamTitle(year)} sub={`${arabicDigits(tracks.length)} سورة، ${formatDuration(total)}`} tracks={tracks} />
       <TrackList tracks={tracks} />
     </div>
   );
@@ -253,7 +253,7 @@ export function ListenAlbumPage() {
   const tracks = album.tracks.map((_, i) => albumTrack(album, i)).filter((t): t is ListenTrack => Boolean(t));
   return (
     <div className="ls-page page-enter">
-      <ListHeader title={album.title} sub={`${album.artist} · ${arabicDigits(tracks.length)} مقطعًا`} tracks={tracks} artist={album.artist} gold />
+      <ListHeader title={album.title} sub={`${album.artist}، ${arabicDigits(tracks.length)} مقطعًا`} tracks={tracks} artist={album.artist} gold />
       <TrackList tracks={tracks} meta={(t) => (t.artist !== album.artist ? <span>{t.artist}</span> : null)} />
       <p className="ls-credit">
         من <a href={album.src} target="_blank" rel="noreferrer">أرشيف الإنترنت</a>

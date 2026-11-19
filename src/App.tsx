@@ -341,9 +341,14 @@ function AppContent() {
       cancelIdleCallback?: (id: number) => void;
     };
 
+    // The pages people open first, so the first tap on a tab is as quick as the rest.
     const runPrefetch = () => {
-      void import("@/pages/Leaderboard");
       void import("@/pages/Quran");
+      void import("@/pages/PrayerTimes");
+      void import("@/pages/Sebha");
+      void import("@/pages/Mushaf");
+      void import("@/pages/listen/ListenHome");
+      void import("@/pages/Leaderboard");
       void import("@/pages/VideoLibrary");
     };
 

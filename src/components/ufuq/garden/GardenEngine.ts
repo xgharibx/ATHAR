@@ -22,10 +22,12 @@
 import {
   bloomTarget as _bloomTarget,
   easeOutBack,
+  moonIllumination,
+  moonPhase,
   seededRandom,
   windAt,
 } from "@/components/ufuq/garden/gardenMath";
-import { paintRealMoon } from "@/components/ufuq/garden/gardenMoon";
+import { cancelFrame, context2d, newCanvas, requestFrame, type AnyCanvas, type Ctx2D } from "@/components/ufuq/garden/canvasKit";
 import {
   composeSprites,
   FLOWER_STAGES,
@@ -120,52 +122,29 @@ const PALETTES: Record<GardenMode, Palette> = {
 /** Roses most of all; the rest keep the bed varied. */
 const KINDS: FlowerKind[] = ["rose", "tulip", "rose", "daisy", "rose", "lavender", "tulip", "jasmine", "poppy", "rose", "daisy", "jasmine"];
 
-let moonImg: HTMLImageElement | null = null;
-let moonLoading = false;
-const moonWaiters: Array<() => void> = [];
-/** NASA's Moon (the same one the filmed garden uses), loaded once. */
-function moonImage(onLoad: () => void): HTMLImageElement | null {
-  if (moonImg) return moonImg;
-  moonWaiters.push(onLoad);
-  if (!moonLoading && typeof Image !== "undefined") {
-    moonLoading = true;
-    const img = new Image();
-    img.decoding = "async";
-    img.onload = () => {
-      moonImg = img;
-      moonWaiters.splice(0).forEach((fn) => fn());
-    };
-    img.src = `${import.meta.env.BASE_URL ?? "/"}garden/moon.jpg`;
-  }
-  return null;
-}
-
 /** Flower heads are painted at this diameter and drawn smaller. */
 const HEAD_BASE = 40;
 /** How far the palm leans from its base to its crown, as a share of its height. */
 const PALM_LEAN = 0.14;
 
-function drawSprite(ctx: CanvasRenderingContext2D, s: Sprite | null, x: number, y: number, k = 1) {
+function drawSprite(ctx: Ctx2D, s: Sprite | null, x: number, y: number, k = 1) {
   if (!s) return;
   ctx.drawImage(s.canvas, x - s.ax * k, y - s.ay * k, s.w * k, s.h * k);
 }
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
-function makeCanvas(w: number, h: number): HTMLCanvasElement {
-  const c = document.createElement("canvas");
-  c.width = Math.max(1, Math.round(w));
-  c.height = Math.max(1, Math.round(h));
-  return c;
+function makeCanvas(w: number, h: number): AnyCanvas {
+  return newCanvas(w, h);
 }
 
 export class GardenEngine {
   /** Moving things, redrawn every frame. */
-  private readonly canvas: HTMLCanvasElement;
-  private readonly ctx: CanvasRenderingContext2D;
+  private readonly canvas: AnyCanvas;
+  private readonly ctx: Ctx2D;
   /** Sky, hills and the mosque, painted once; the compositor layers it for free. */
-  private readonly bgCanvas: HTMLCanvasElement;
-  private readonly bg: CanvasRenderingContext2D;
+  private readonly bgCanvas: AnyCanvas;
+  private readonly bg: Ctx2D;
   private bgDpr = 1;
   private opts: GardenOptions;
   private w = 0;
@@ -185,11 +164,11 @@ export class GardenEngine {
   private dryFronds: Frond[] = [];
   private motes: Mote[] = [];
   /** The nearest grass, drawn small and scaled up: out of focus, and cheaper. */
-  private soft: HTMLCanvasElement | null = null;
-  private softCtx: CanvasRenderingContext2D | null = null;
+  private soft: AnyCanvas | null = null;
+  private softCtx: Ctx2D | null = null;
   private softH = 0;
   private rowMax = { back: 30, mid: 34, front: 48 };
-  private glow: HTMLCanvasElement | null = null;
+  private glow: AnyCanvas | null = null;
   private clouds: Array<{ sprite: Sprite; x: number; y: number; sp: number }> = [];
 
   private stars: Star[] = [];
@@ -212,12 +191,13 @@ export class GardenEngine {
   private slowFrames = 0;
   private scrollY = 0;
   private readonly startedAt = performance.now();
+  private devicePixels = 0;
 
   constructor(
-    bgCanvas: HTMLCanvasElement,
-    bg: CanvasRenderingContext2D,
-    canvas: HTMLCanvasElement,
-    ctx: CanvasRenderingContext2D,
+    bgCanvas: AnyCanvas,
+    bg: Ctx2D,
+    canvas: AnyCanvas,
+    ctx: Ctx2D,
     opts: GardenOptions,
   ) {
     this.bgCanvas = bgCanvas;
@@ -228,10 +208,10 @@ export class GardenEngine {
   }
 
   /** null where canvas is unavailable (tests, very old WebViews). */
-  static create(bgCanvas: HTMLCanvasElement, canvas: HTMLCanvasElement, opts: GardenOptions): GardenEngine | null {
+  static create(bgCanvas: AnyCanvas, canvas: AnyCanvas, opts: GardenOptions): GardenEngine | null {
     try {
-      const bg = bgCanvas.getContext("2d", { alpha: false });
-      const ctx = canvas.getContext("2d");
+      const bg = context2d(bgCanvas, { alpha: false });
+      const ctx = context2d(canvas);
       return bg && ctx ? new GardenEngine(bgCanvas, bg, canvas, ctx, opts) : null;
     } catch {
       return null;
@@ -242,10 +222,12 @@ export class GardenEngine {
     return (performance.now() - this.startedAt) / 1000;
   }
 
-  resize(w: number, h: number) {
+  /** `dpr` comes from the page when the engine runs in a worker (which has no screen). */
+  resize(w: number, h: number, devicePixels?: number) {
     this.w = Math.max(1, w);
     this.h = Math.max(1, h);
-    const device = globalThis.devicePixelRatio || 1;
+    if (devicePixels) this.devicePixels = devicePixels;
+    const device = this.devicePixels || globalThis.devicePixelRatio || 1;
     this.dpr = Math.min(this.maxDpr, device);
     this.bgDpr = Math.min(2, device);
     this.canvas.width = Math.round(this.w * this.dpr);
@@ -255,7 +237,7 @@ export class GardenEngine {
     this.groundH = Math.min(200, Math.max(120, this.h * 0.2));
     this.groundY = this.h - this.groundH;
     this.soft ??= makeCanvas(1, 1);
-    this.softCtx ??= this.soft.getContext("2d");
+    this.softCtx ??= context2d(this.soft);
     this.build();
     if (!this.running) this.drawFrame(this.now);
   }
@@ -292,25 +274,25 @@ export class GardenEngine {
     this.lastFrame = 0;
     const loop = (ts: number) => {
       if (!this.running) return;
-      this.raf = requestAnimationFrame(loop);
+      this.raf = requestFrame(loop);
       if (ts - this.lastFrame < 32) return; // 30 frames a second is plenty for wind
       this.lastFrame = ts;
       const t0 = performance.now();
       this.drawFrame(this.now);
       this.adapt(performance.now() - t0);
     };
-    this.raf = requestAnimationFrame(loop);
+    this.raf = requestFrame(loop);
   }
 
   stop() {
     this.running = false;
-    cancelAnimationFrame(this.raf);
+    cancelFrame(this.raf);
     this.drawFrame(this.now);
   }
 
   destroy() {
     this.running = false;
-    cancelAnimationFrame(this.raf);
+    cancelFrame(this.raf);
     this.plants = this.glow = null;
     this.soft = null;
     this.softCtx = null;
@@ -621,7 +603,7 @@ export class GardenEngine {
 
     // One soft glow, reused by every firefly and jasmine at night.
     const glow = makeCanvas(48, 48);
-    const gl = glow.getContext("2d");
+    const gl = context2d(glow);
     if (gl) {
       const rg = gl.createRadialGradient(24, 24, 0, 24, 24, 24);
       rg.addColorStop(0, "rgba(255,246,190,1)");
@@ -671,7 +653,7 @@ export class GardenEngine {
     const R = Math.ceil(L * 1.15);
     const dpr = this.dpr;
     const canvas = makeCanvas(R * 2 * dpr, R * 2 * dpr);
-    const g = canvas.getContext("2d");
+    const g = context2d(canvas);
     if (!g) return null;
     for (const f of this.fronds) {
       if (!f.back) continue;
@@ -697,7 +679,7 @@ export class GardenEngine {
     return sprite;
   }
 
-  private paintMosque(g: CanvasRenderingContext2D, cx: number, base: number, k: number, color: string, night: boolean) {
+  private paintMosque(g: Ctx2D, cx: number, base: number, k: number, color: string, night: boolean) {
     g.save();
     g.translate(cx, base);
     g.scale(k, k);
@@ -795,20 +777,58 @@ export class GardenEngine {
     ctx.globalAlpha = 1;
   }
 
-  private moonSprite: HTMLCanvasElement | null = null;
+  private moonSprite: AnyCanvas | null = null;
   private moonSize = 0;
 
-  /** Tonight's Moon in its real phase, from NASA's map once it has loaded. */
+  /** Tonight's moon, drawn (not photographed), in its real phase, with its halo. */
   private paintMoon() {
-    const img = moonImage(() => {
-      this.moonSprite = null;
-      if (!this.running) this.drawFrame(this.now);
-    });
-    if (!img) return;
-    const r = Math.max(16, Math.min(30, this.w * 0.05));
-    const R = Math.ceil(r * 3.6);
-    this.moonSprite = paintRealMoon(img, r, R, this.dpr);
-    this.moonSize = R * 2;
+    const r = Math.min(40, Math.max(22, this.w * 0.065));
+    const phase = moonPhase(new Date());
+    const lit = moonIllumination(phase);
+    const size = Math.ceil(r * 10);
+    const dpr = this.dpr;
+    const sprite = makeCanvas(size * dpr, size * dpr);
+    const ctx = context2d(sprite);
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    const c = size / 2;
+    const halo = ctx.createRadialGradient(c, c, r * 0.8, c, c, r * (3.2 + lit * 1.6));
+    halo.addColorStop(0, `rgba(215,225,255,${0.1 + lit * 0.16})`);
+    halo.addColorStop(1, "rgba(215,225,255,0)");
+    ctx.fillStyle = halo;
+    ctx.fillRect(0, 0, size, size);
+    ctx.translate(c, c);
+    // The unlit disc, faint with earthshine.
+    ctx.fillStyle = "#1b2440";
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+    if (lit > 0.02) {
+      const waxing = phase < 0.5;
+      if (!waxing) ctx.scale(-1, 1);
+      const rx = r * Math.abs(Math.cos(2 * Math.PI * phase));
+      ctx.beginPath();
+      ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false);
+      ctx.ellipse(0, 0, rx, r, 0, Math.PI / 2, -Math.PI / 2, lit < 0.5);
+      ctx.closePath();
+      const face = ctx.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.1, 0, 0, r * 1.05);
+      face.addColorStop(0, "#fffaf0");
+      face.addColorStop(1, "#e3dcc8");
+      ctx.fillStyle = face;
+      ctx.fill();
+      // A few maria, only where the moon is lit.
+      ctx.save();
+      ctx.clip();
+      ctx.fillStyle = "rgba(120,115,100,0.16)";
+      for (const [mx, my, mr] of [[-0.25, -0.2, 0.28], [0.22, 0.15, 0.22], [-0.05, 0.38, 0.16], [0.35, -0.35, 0.12]] as const) {
+        ctx.beginPath();
+        ctx.arc(mx * r, my * r, mr * r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+    this.moonSprite = sprite;
+    this.moonSize = size;
   }
 
   private drawMoon(lift: number) {

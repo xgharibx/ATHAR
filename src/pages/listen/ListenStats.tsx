@@ -76,7 +76,7 @@ export function ListenStatsPage() {
             <h2 className="inline-flex items-center gap-1.5">
               <Sparkles size={17} className="text-(--accent)" aria-hidden="true" /> ختمة السماع
             </h2>
-            <p>كل سورة تسمعها إلى آخرها تُضاء هنا{s.khatma.rounds ? ` · أتممت ${arabicDigits(s.khatma.rounds)} ختمة` : ""}</p>
+            <p>كل سورة تسمعها إلى آخرها تُضاء هنا{s.khatma.rounds ? `، أتممت ${arabicDigits(s.khatma.rounds)} ختمة` : ""}</p>
           </div>
           <b className="text-(--accent)">{arabicDigits(done.size)}/١١٤</b>
         </div>
@@ -130,7 +130,7 @@ export function ListenStatsPage() {
           <div className="ls-chips">
             {topSurahs.map(([n, times]) => (
               <span key={n} className="ls-chip">
-                {surahName(Number(n))} · {arabicDigits(times)}×
+                {surahName(Number(n))}، {arabicDigits(times)}×
               </span>
             ))}
           </div>

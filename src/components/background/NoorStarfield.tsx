@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -57,6 +57,35 @@ function Starfield(props: { count?: number; size?: number; opacity?: number; col
   );
 }
 
+/**
+ * The stars turn very slowly, so 15 frames a second looks the same as 60 and
+ * leaves the main thread free; they also hold still for a moment while the
+ * person is touching or scrolling, so taps never wait on a frame.
+ */
+function GentleFrames() {
+  const invalidate = useThree((s) => s.invalidate);
+  React.useEffect(() => {
+    let holdUntil = 0;
+    const hold = () => {
+      holdUntil = performance.now() + 450;
+    };
+    const timer = window.setInterval(() => {
+      if (document.hidden || performance.now() < holdUntil) return;
+      invalidate();
+    }, 66);
+    window.addEventListener("pointerdown", hold, { passive: true });
+    window.addEventListener("scroll", hold, { passive: true });
+    window.addEventListener("keydown", hold);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("pointerdown", hold);
+      window.removeEventListener("scroll", hold);
+      window.removeEventListener("keydown", hold);
+    };
+  }, [invalidate]);
+  return null;
+}
+
 export default function NoorStarfield(props: { mobile?: boolean; color?: string; onReady?: (ready: boolean) => void }) {
   const [enabled, setEnabled] = React.useState(true);
   const mobile = props.mobile === true;
@@ -65,6 +94,7 @@ export default function NoorStarfield(props: { mobile?: boolean; color?: string;
 
   return (
     <Canvas
+      frameloop="demand"
       dpr={mobile ? [0.8, 1.1] : [1, 1.5]}
       camera={{ position: [0, 0, 3], fov: 60 }}
       style={{ position: "absolute", inset: 0 }}
@@ -75,6 +105,7 @@ export default function NoorStarfield(props: { mobile?: boolean; color?: string;
         canvas.addEventListener("webglcontextlost", onLost, { once: true });
       }}
     >
+      <GentleFrames />
       <ambientLight intensity={0.7} />
       <Starfield count={mobile ? 900 : 1800} size={mobile ? 0.009 : 0.006} opacity={mobile ? 0.95 : 0.85} color={props.color} onReady={props.onReady} />
     </Canvas>

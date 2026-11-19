@@ -59,8 +59,8 @@ export function ListenReciterPage() {
         <ReciterMark name={reciter.n} gold={moshaf.s === "مجوّد"} />
         <h1>{reciter.n}</h1>
         <p>
-          {moshafLabel(moshaf)} · {arabicDigits(surahs.length)} سورة
-          {listened > 60 ? ` · استمعت إليه ${formatListened(listened)}` : ""}
+          {moshafLabel(moshaf)}، {arabicDigits(surahs.length)} سورة
+          {listened > 60 ? `، استمعت إليه ${formatListened(listened)}` : ""}
         </p>
         <div className="ls-actions">
           <button type="button" className="ls-play-btn" onClick={() => playTracks(queue, 0, { resume: true })}>
@@ -103,7 +103,7 @@ export function ListenReciterPage() {
               className={`ls-chip ${m.id === moshaf.id ? "is-on" : ""}`}
               onClick={() => setParams({ m: String(m.id) }, { replace: true })}
             >
-              {m.s} · {m.r}
+              {m.s}، {m.r}
             </button>
           ))}
         </div>
@@ -172,7 +172,7 @@ export function ListenRecitersPage() {
             <ReciterMark name={r.n} style={{ width: 44, height: 44, fontSize: 14, flexShrink: 0 }} />
             <span className="ls-row-main">
               <span className="ls-row-title block">{r.n}</span>
-              <span className="ls-row-meta">{r.m.map((m) => moshafLabel(m)).join(" · ")}</span>
+              <span className="ls-row-meta">{r.m.map((m) => moshafLabel(m)).join("، ")}</span>
             </span>
           </Link>
         ))}

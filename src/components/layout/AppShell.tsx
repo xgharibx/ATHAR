@@ -1,10 +1,11 @@
 import * as React from "react";
+import { prefetchWhenIdle } from "@/lib/prefetch";
 import { vibrate } from "@/lib/haptics";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon, Clock, BookMarked, Clapperboard, Trophy, Sparkles, Atom } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { NoorBackground } from "@/components/background/NoorBackground";
 import { FloatingNav } from "@/components/layout/FloatingNav";
@@ -41,6 +42,11 @@ const SHOW_HEADER_MENU = false;
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette }))
 );
+
+/** Search opens instantly: its code is fetched while the app is idle. */
+function usePrefetchSearch() {
+  React.useEffect(() => prefetchWhenIdle(() => import("@/components/layout/CommandPalette")), []);
+}
 
 const QuickTasbeehFab = React.lazy(() =>
   import("@/components/layout/QuickTasbeehFab").then((m) => ({ default: m.QuickTasbeehFab }))
@@ -446,6 +452,7 @@ function MobileSidebarContent(props: { onNavigate?: () => void }) {
  * Settings. The classic frame is unchanged.
  */
 export function AppShell() {
+  usePrefetchSearch();
   const ufuq = useNoorStore((s) => s.prefs.designMode === "ufuq");
   return ufuq ? <UfuqShell /> : <ClassicAppShell />;
 }
@@ -699,18 +706,16 @@ function ClassicAppShell() {
 
           {/* Main */}
           <main id="main-content" tabIndex={-1} aria-label="المحتوى الرئيسي" className="col-span-12 xl:col-span-9 2xl:col-span-10 focus:outline-hidden">
-            <AnimatePresence mode="wait">
+            {/* The new page appears at once and fades in; it never waits for the old one to fade out. */}
               <motion.div
                 key={location.pathname}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="route-page-wrapper"
               >
                 <Outlet />
               </motion.div>
-            </AnimatePresence>
           </main>
         </div>
 

@@ -4,6 +4,7 @@
  * and floating buttons while the new design is on (see AppShell).
  */
 import * as React from "react";
+import { prefetchWhenIdle } from "@/lib/prefetch";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Pause, Play, Radio, Search, Settings2, X } from "lucide-react";
@@ -26,6 +27,11 @@ const LiveGardenBackdrop = React.lazy(() =>
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
+
+/** Search opens instantly: its code is fetched while the app is idle. */
+function usePrefetchSearch() {
+  React.useEffect(() => prefetchWhenIdle(() => import("@/components/layout/CommandPalette")), []);
+}
 
 const TAB_ICONS: Record<UfuqTabId, (props: { active?: boolean; size?: number }) => React.ReactElement> = {
   today: IconToday,
@@ -238,6 +244,7 @@ function UfuqTabBar() {
 }
 
 export function UfuqShell() {
+  usePrefetchSearch();
   const location = useLocation();
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const look = useNoorStore((s) => s.prefs.ufuqLook ?? "live");
@@ -282,18 +289,16 @@ export function UfuqShell() {
       ) : null}
       <UfuqTopBar onSearch={() => setPaletteOpen(true)} />
       <main id="main-content" tabIndex={-1} aria-label="المحتوى الرئيسي" className="u-main focus:outline-hidden">
-        <AnimatePresence mode="wait">
+        {/* The new page appears at once and fades in; it never waits for the old one to fade out. */}
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="route-page-wrapper"
           >
             <Outlet />
           </motion.div>
-        </AnimatePresence>
       </main>
       <UfuqTabBar />
     </div>

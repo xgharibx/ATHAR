@@ -15,16 +15,15 @@
  * painter takes the mode so night versions are moonlit, not just darker.
  */
 import { seededRandom } from "@/components/ufuq/garden/gardenMath";
+import { context2d, newCanvas, type AnyCanvas, type Ctx2D } from "@/components/ufuq/garden/canvasKit";
 
 export type SpriteMode = "day" | "night";
 
-export type Sprite = { canvas: HTMLCanvasElement; w: number; h: number; ax: number; ay: number };
+export type Sprite = { canvas: AnyCanvas; w: number; h: number; ax: number; ay: number };
 
-function sprite(w: number, h: number, dpr: number, ax: number, ay: number, paint: (g: CanvasRenderingContext2D) => void): Sprite | null {
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.ceil(w * dpr));
-  canvas.height = Math.max(1, Math.ceil(h * dpr));
-  const g = canvas.getContext("2d");
+function sprite(w: number, h: number, dpr: number, ax: number, ay: number, paint: (g: Ctx2D) => void): Sprite | null {
+  const canvas = newCanvas(Math.ceil(w * dpr), Math.ceil(h * dpr));
+  const g = context2d(canvas);
   if (!g) return null;
   g.scale(dpr, dpr);
   g.lineCap = "round";
@@ -41,10 +40,8 @@ function sprite(w: number, h: number, dpr: number, ax: number, ay: number, paint
 export function composeSprites(layers: Array<Sprite | null>, dpr: number): Sprite | null {
   const first = layers.find((l): l is Sprite => Boolean(l));
   if (!first) return null;
-  const full = document.createElement("canvas");
-  full.width = first.canvas.width;
-  full.height = first.canvas.height;
-  const g = full.getContext("2d", { willReadFrequently: true });
+  const full = newCanvas(first.canvas.width, first.canvas.height);
+  const g = context2d(full, { willReadFrequently: true });
   if (!g) return first;
   for (const l of layers) if (l) g.drawImage(l.canvas, 0, 0);
   let x0 = full.width;
@@ -67,10 +64,8 @@ export function composeSprites(layers: Array<Sprite | null>, dpr: number): Sprit
     return { canvas: full, w: first.w, h: first.h, ax: first.ax, ay: first.ay };
   }
   if (x1 < x0 || y1 < y0) return null;
-  const cut = document.createElement("canvas");
-  cut.width = x1 - x0 + 1;
-  cut.height = y1 - y0 + 1;
-  cut.getContext("2d")?.drawImage(full, -x0, -y0);
+  const cut = newCanvas(x1 - x0 + 1, y1 - y0 + 1);
+  context2d(cut)?.drawImage(full, -x0, -y0);
   return { canvas: cut, w: cut.width / dpr, h: cut.height / dpr, ax: first.ax - x0 / dpr, ay: first.ay - y0 / dpr };
 }
 
@@ -399,7 +394,7 @@ export function paintPomegranate(height: number, mode: SpriteMode, dpr: number, 
     }
   });
 
-  const leafShape = (g: CanvasRenderingContext2D, x: number, y: number, a: number, L: number) => {
+  const leafShape = (g: Ctx2D, x: number, y: number, a: number, L: number) => {
     g.save();
     g.translate(x, y);
     g.rotate(a);
