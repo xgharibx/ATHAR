@@ -438,10 +438,10 @@ export function QuranVocabPage() {
             <div className="flex gap-1.5 mt-2 flex-wrap" role="group" aria-label="فلتر التكرار">
               {([
                 { key: "all", label: "الكل" },
-                { key: "top", label: "الأكثر تكرارًا (50)" },
-                { key: "mid", label: "متوسطة (100)" },
-                { key: "rare", label: "نادرة (70)" },
-                { key: "misunderstood", label: "قد تُفهم خطأً" },
+                { key: "top", label: "⭐ عليا (50)" },
+                { key: "mid", label: "⚪ وسطى (100)" },
+                { key: "rare", label: "⚫ نادرة (70)" },
+                { key: "misunderstood", label: "⚠️ قد تُفهم خطأً" },
               ] as const).map(({ key, label }) => (
                 <button
                   key={key}
@@ -642,7 +642,7 @@ export function QuranVocabPage() {
                 {card.wrongMeaning && (
                   <div className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full mb-3"
                     style={{ background: "color-mix(in srgb, #f97316 12%, transparent)", color: "#f97316", border: "1px solid rgba(249,115,22,0.3)" }}>
-                    قد تُفهم خطأً
+                    ⚠️ قد تُفهم خطأً
                   </div>
                 )}
                 <div className="text-5xl font-bold mb-4" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
