@@ -8,6 +8,7 @@
  * including next and previous station. Browsers, and app builds from before
  * this, use the web audio player.
  */
+import { claimAudioFocus } from "@/lib/audioFocus";
 import { claimMediaSession, releaseMediaSession, setMediaPlaybackState } from "@/lib/mediaSession";
 import { hasNativeRecitation, startNativeRecitation, type NativeRecitationSession } from "@/lib/nativeRecitation";
 
@@ -207,6 +208,7 @@ export function playRadio(idx: number, triedStations = new Set<number>()) {
   const stationIdx = _normalizeStationIndex(idx);
   const station = QURAN_RADIO_STATIONS[stationIdx];
   if (!station) return;
+  claimAudioFocus("radio", stopRadio);
 
   _stationIdx = stationIdx;
   triedStations.add(stationIdx);

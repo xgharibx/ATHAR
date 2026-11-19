@@ -2,7 +2,8 @@ import * as React from "react";
 import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, ChevronDown } from "lucide-react";
+  Bookmark, BookOpen, CalendarDays, Languages, Search, Shuffle, Star, Volume2, X, LayoutGrid, Info, ChevronDown } from "lucide-react";
+import { ListenEntry } from "@/components/listen/ListenEntry";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
 import { getFirstAyahOfJuz, getHizbProgress, getJuzProgress, surahContainsJuz } from "@/lib/quranJuz";
 
@@ -24,6 +25,7 @@ type AyahHitLite = AyahHit;
 import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { getReciter } from "@/lib/quranReciters";
 import { loadQuranPageMap } from "@/data/quranLoad";
+import { countAr, AYAH, MINUTE } from "@/lib/arabicCount";
 import { arNum } from "@/lib/formatNumber";
 import { countCompletedKhatmaDays, getKhatmaDayRange, getKhatmaPlanStatus, getKhatmaTimeline } from "@/lib/quranKhatma";
 
@@ -639,11 +641,9 @@ export function QuranPage() {
     return (
       <div className="p-6">
         <Card className="p-6">
-          <div className="text-lg font-semibold">حدث خطأ</div>
+          <div className="text-lg font-semibold">لم يكتمل التحميل</div>
           <div className="opacity-70 mt-2 text-sm leading-6">
-            تعذر تحميل بيانات القرآن. يمكنك إضافة الملف {" "}
-            <code className="px-2 py-1 rounded-lg bg-(--card) border border-(--stroke)">public/data/quran.json</code>
-            {" "}أو التأكد من الاتصال بالإنترنت.
+            تعذّر تحميل المصحف. تحقّق من الاتصال بالإنترنت ثم أعد فتح الصفحة.
           </div>
         </Card>
       </div>
@@ -671,7 +671,7 @@ export function QuranPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               type="search"
-              placeholder={mode === "ayahs" ? "ابحث داخل الآيات…" : "ابحث عن سورة… (مثال: الكهف، ٢:٢٥٥، ٢:١٨)"}
+              placeholder={mode === "ayahs" ? "ابحث بكلمة من الآيات…" : "اسم السورة أو رقم الآية، مثل: الكهف أو ٢:٢٥٥"}
               aria-label={mode === "ayahs" ? "بحث داخل الآيات" : "بحث عن سورة"}
               spellCheck={false}
               autoComplete="off"
@@ -753,7 +753,7 @@ export function QuranPage() {
             style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 35%, transparent)" }}
           >
             <span>📖 {arNum(quranStats.started)} سورة</span>
-            {(quranDailyAyahs[todayISO] ?? 0) > 0 && <span style={{ color: "var(--accent)", opacity: 1 }}>اليوم: {arNum((quranDailyAyahs[todayISO] ?? 0))} آية</span>}
+            {(quranDailyAyahs[todayISO] ?? 0) > 0 && <span style={{ color: "var(--accent)", opacity: 1 }}>اليوم: {countAr(quranDailyAyahs[todayISO] ?? 0, AYAH)}</span>}
             {prefs.quranDailyGoal > 0 && (() => {
               const todayAyahs = quranDailyAyahs[todayISO] ?? 0;
               const goal = prefs.quranDailyGoal;
@@ -803,7 +803,7 @@ export function QuranPage() {
               onClick={() => navigate("/quran/plans")}
               className="flex items-center gap-1.5 text-xs opacity-60 hover:opacity-100 transition mr-auto"
             >
-              <span>📅 خطط التلاوة</span>
+              <span className="inline-flex items-center gap-1"><CalendarDays size={13} aria-hidden="true" /> خطط التلاوة</span>
               {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished && (
                 <span style={{ color: "var(--accent)", opacity: 1 }}>{arNum(khatma.meta.percent)}٪</span>
               )}
@@ -824,7 +824,7 @@ export function QuranPage() {
               onClick={() => navigate("/quran/plans")}
               className="text-xs opacity-45 hover:opacity-80 transition flex items-center gap-1.5"
             >
-              <span>📅 خطط التلاوة</span>
+              <span className="inline-flex items-center gap-1"><CalendarDays size={13} aria-hidden="true" /> خطط التلاوة</span>
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-50" aria-hidden="true"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
           </div>
@@ -895,7 +895,7 @@ export function QuranPage() {
           }}
         >
           <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-(--accent)">
-            <span aria-hidden="true">📅</span>
+            <CalendarDays size={16} aria-hidden="true" />
             <span>خطة تلاوة مجدولة</span>
           </div>
           <p className="mb-3 text-sm opacity-80">
@@ -988,6 +988,9 @@ export function QuranPage() {
         </div>
       )}
 
+      {/* ── «السماع»: the whole Quran in the voices of the world's reciters ── */}
+      {mode === "surahs" && !query ? <ListenEntry /> : null}
+
       {/* ── Verse of the Day ──────────────────────────────── */}      {mode === "surahs" && !query && dailyVerse && (
         <button
           type="button"
@@ -1001,7 +1004,7 @@ export function QuranPage() {
         >
           <div className="px-5 py-4">
             <div className="flex items-center gap-2 mb-3 text-[11px] opacity-60">
-              <span aria-hidden="true">⭐</span>
+              <Star size={13} fill="currentColor" aria-hidden="true" style={{ color: "var(--accent)" }} />
               <span>آية اليوم</span>
               <span className="mr-auto opacity-70" style={{ color: "var(--accent)" }}>
                 {dailyVerse.surahName} ﴿{toArabicNumeral(dailyVerse.ayahIndex)}﴾
@@ -1051,10 +1054,11 @@ export function QuranPage() {
                 role="tab"
                 aria-controls="quran-surah-list"
                 aria-selected={sortMode === "progress"}
+                title="السور حسب تقدّمي فيها"
                 onClick={() => setSortMode("progress")}
                 className={`px-3.5 h-9 transition ${sortMode === "progress" ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
-                التقدم
+                تقدّمي
               </button>
               {recentSurahs.length > 0 && (
               <button type="button"
@@ -1074,17 +1078,18 @@ export function QuranPage() {
                 onClick={() => setSortMode("unread")}
                 className={`px-3.5 h-9 transition ${sortMode === "unread" ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
-                غير مقروء
+                لم أقرأها
               </button>
               {sortedFiltered.length > 0 || sortMode === "nearly" ? (
               <button type="button"
                 role="tab"
                 aria-controls="quran-surah-list"
                 aria-selected={sortMode === "nearly"}
+                title="سور أوشكت على إتمامها"
                 onClick={() => setSortMode("nearly")}
                 className={`px-3.5 h-9 transition ${sortMode === "nearly" ? "bg-accent-20 text-(--accent) font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
-                تقريباً
+                أوشكت
               </button>
               ) : null}
             </div>
@@ -1137,15 +1142,16 @@ export function QuranPage() {
             <button type="button"
               onClick={() => setShowTranslation((v) => !v)}
               aria-pressed={showTranslation}
-              aria-label={showTranslation ? "إخفاء الترجمة الإنجليزية" : "إظهار الترجمة الإنجليزية"}
-              title={showTranslation ? "إخفاء الترجمة الإنجليزية" : "إظهار الترجمة الإنجليزية"}
+              aria-label={showTranslation ? "إخفاء ترجمة المعاني" : "إظهار ترجمة المعاني بالإنجليزية"}
+              title={showTranslation ? "إخفاء ترجمة المعاني" : "إظهار ترجمة المعاني بالإنجليزية"}
               className={[
                 "h-9 px-2.5 rounded-xl border text-[11px] font-semibold transition shrink-0",
                 showTranslation
                   ? "bg-accent-15 border-accent-35 text-(--accent)"
                   : "bg-(--card) border-(--stroke) opacity-55 hover:opacity-100",
               ].join(" ")}>
-              EN
+              <Languages size={13} aria-hidden="true" className="inline me-1" />
+              الترجمة
             </button>
 
             <button type="button"
@@ -1158,7 +1164,8 @@ export function QuranPage() {
             </button>
 
             {/* Theme color dots */}
-            <div className="mr-auto flex items-center gap-1">
+            <div className="mr-auto flex items-center gap-1" role="group" aria-label="لون صفحات المصحف">
+              <span className="text-[10.5px] opacity-50 me-1">لون المصحف</span>
               {(["default", "sepia", "midnight", "parchment", "forest", "rose", "ocean", "desert", "dawn"] as const).map((t) => (
                 <button type="button"
                   key={t}
@@ -1317,7 +1324,7 @@ export function QuranPage() {
                 <div className="px-4 py-1.5 text-[10px] opacity-50 flex items-center gap-2" style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 25%, transparent)" }}>
                   <span>{arNum(sortedFiltered.length)} سورة قيد القراءة</span>
                   <span>·</span>
-                  <span>{arNum(totalRemaining)} آية متبقية (~{arNum(readMins)} دقيقة)</span>
+                  <span>بقي {countAr(totalRemaining, AYAH)}، نحو {countAr(readMins, MINUTE)}</span>
                 </div>
               );
             }
@@ -1328,7 +1335,7 @@ export function QuranPage() {
                 <div className="px-4 py-1.5 text-[10px] opacity-50 flex items-center gap-2" style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 25%, transparent)" }}>
                   <span>{arNum(sortedFiltered.length)} سورة لم تُقرأ</span>
                   <span>·</span>
-                  <span>{arNum(totalAyahs)} آية (~{arNum(readMins)} دقيقة)</span>
+                  <span>{countAr(totalAyahs, AYAH)}، نحو {countAr(readMins, MINUTE)}</span>
                 </div>
               );
             }
@@ -1385,7 +1392,7 @@ export function QuranPage() {
                     recordRecentSurah(s.id);
                     navigate(`/mushaf?surah=${s.id}${juzStartAyah === null ? "" : `&ayah=${juzStartAyah}`}`);
                   }}
-                  aria-label={`افتح سورة ${s.name} في المصحف${juzStartAyah === null ? "" : ` عند الآية ${arNum(juzStartAyah)} في الجزء ${arNum(filterJuz!)}`} — ${s.ayahs.length} آية`}
+                  aria-label={`افتح سورة ${s.name} في المصحف${juzStartAyah === null ? "" : ` عند الآية ${arNum(juzStartAyah)} في الجزء ${arNum(filterJuz!)}`} — ${countAr(s.ayahs.length, AYAH)}`}
                   className="min-w-0 flex-1 flex items-center gap-4 border-0 bg-transparent p-0 text-right text-inherit cursor-pointer focus:outline-hidden focus:bg-accent-8"
                 >
                   {/* Number badge */}
@@ -1407,25 +1414,23 @@ export function QuranPage() {
                       ) : null}
                     </div>
                     <div className="mt-0.5 flex items-center gap-2 text-[11px] opacity-45">
-                      {s.englishName && <span lang="en">{s.englishName}</span>}
-                      {s.englishName && <span>·</span>}
                       <span className={`surah-type-${isMedinan ? "madani" : "maki"} px-1.5 py-0 rounded-full border text-[9px]`}>
                         {isMedinan ? "مدنية" : "مكية"}
                       </span>
                       <span>·</span>
-                      <span className="tabular-nums" aria-label={`عدد آيات السورة: ${s.ayahs.length}`}>{arNum(s.ayahs.length)} آية</span>
+                      <span className="tabular-nums">{countAr(s.ayahs.length, AYAH)}</span>
                       {mushafPage ? (
                         <span className="tabular-nums opacity-45" title={`صفحة المصحف ${mushafPage}`}>
-                          · ص {toArabicNumeral(mushafPage)}
+                          · صفحة {toArabicNumeral(mushafPage)}
                         </span>
                       ) : null}
                       {sortMode === "unread" && (() => {
                         const mins = Math.max(1, Math.round(s.ayahs.length / 8));
-                        return <span>· ~{arNum(mins)} دق</span>;
+                        return <span>· نحو {countAr(mins, MINUTE)}</span>;
                       })()}
                       {sortMode === "nearly" && maxRead > 0 && maxRead < s.ayahs.length && (
                         <span className="tabular-nums" style={{ color: "var(--accent)" }}>
-                          · {arNum((s.ayahs.length - maxRead))} آية متبقية
+                          · بقي {countAr(s.ayahs.length - maxRead, AYAH)}
                         </span>
                       )}
                     </div>

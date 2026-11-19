@@ -15,7 +15,7 @@
  */
 import { Capacitor, registerPlugin, type PluginListenerHandle } from "@capacitor/core";
 
-export type RecitationVerse = { id: string; url: string; title: string; artist: string };
+export type RecitationVerse = { id: string; url: string; title: string; artist: string; album?: string };
 export type RecitationRepeat = "none" | "one" | "all";
 export type RecitationState = "playing" | "paused" | "buffering" | "stopped";
 
@@ -31,7 +31,12 @@ type QuranAudioPlugin = {
     repeat: RecitationRepeat;
     /** Live radio streams: nothing is buffered ahead, and the lock screen shows a live broadcast. */
     live?: boolean;
+    /** Resume a long track (a whole surah) where it was left. */
+    startPositionMs?: number;
   }): Promise<void>;
+  /** App builds from before the listening section reject these two. */
+  position(): Promise<{ index: number; positionMs: number; durationMs: number; playing: boolean }>;
+  seek(options: { positionMs: number; index?: number }): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;
   stop(): Promise<void>;
@@ -117,7 +122,15 @@ function releasePlayer(id: number): void {
  * build has no native player, so the caller can use the web player instead.
  */
 export async function startNativeRecitation(
-  options: { verses: RecitationVerse[]; startIndex: number; rate: number; volume: number; repeat: RecitationRepeat; live?: boolean },
+  options: {
+    verses: RecitationVerse[];
+    startIndex: number;
+    rate: number;
+    volume: number;
+    repeat: RecitationRepeat;
+    live?: boolean;
+    startPositionMs?: number;
+  },
   events: NativeRecitationEvents,
 ): Promise<NativeRecitationSession | null> {
   const native = nativePlugin();
@@ -169,6 +182,7 @@ export async function startNativeRecitation(
       volume: options.volume,
       repeat: options.repeat,
       ...(options.live ? { live: true } : {}),
+      ...(options.startPositionMs ? { startPositionMs: Math.round(options.startPositionMs) } : {}),
     });
   } catch {
     // An app build from before the native player.
@@ -200,6 +214,32 @@ export async function startNativeRecitation(
       return paused && !ended;
     },
   };
+}
+
+/**
+ * Where the native player is in its current track, or null when there is no
+ * native player (or this app build is older than the listening section).
+ */
+export async function nativePlaybackPosition(): Promise<{ index: number; positionMs: number; durationMs: number; playing: boolean } | null> {
+  const native = nativePlugin();
+  if (!native) return null;
+  try {
+    return await native.position();
+  } catch {
+    return null;
+  }
+}
+
+/** Jump within the current track (or to track `index`). False when this app build cannot. */
+export async function nativeSeek(positionMs: number, index?: number): Promise<boolean> {
+  const native = nativePlugin();
+  if (!native) return false;
+  try {
+    await native.seek({ positionMs: Math.max(0, Math.round(positionMs)), ...(index === undefined ? {} : { index }) });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Save verses for offline listening as files on the device. Null when this app build cannot. */

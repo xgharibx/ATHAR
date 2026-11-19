@@ -15,6 +15,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
 import { IconExplore, IconPrayer, IconQuran, IconTasbeeh, IconToday } from "@/components/ufuq/UfuqIcons";
+import { ListenMiniPlayer } from "@/components/listen/MiniPlayer";
 import { isUfuqTabRoot, ufuqTabFor, ufuqTitleFor, UFUQ_TABS, type UfuqTabId } from "@/components/ufuq/ufuqNav";
 
 const LiveGardenBackdrop = React.lazy(() =>
@@ -200,6 +201,7 @@ function UfuqTabBar() {
   return (
     <div className={`u-tabbar-wrap ${hiddenByScroll ? "is-hidden" : ""}`}>
       <div className="u-tabbar-stack">
+        <ListenMiniPlayer variant="ufuq" />
         <NowPlaying />
         <nav className="u-tabbar" aria-label="التنقل الرئيسي">
           {UFUQ_TABS.map((tab) => {

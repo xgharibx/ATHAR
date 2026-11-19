@@ -40,6 +40,10 @@ import org.json.JSONObject;
  *       live: true for the Quran radio stations (shown as a radio station)
  *   pause() / resume() / stop() / next() / previous()
  *   setRate({ rate }) / setVolume({ volume })
+ *   position()  resolves { index, positionMs, durationMs, playing } for the
+ *       listening section's progress bar and the verses that follow the reciter
+ *   seek({ positionMs, index? })  jump within the current track (or to another)
+ *   items may carry "album"; play may carry "startPositionMs" (resume where you left off)
  *   download({ urls, maxBytes })  saves verses for offline listening,
  *       reporting "downloadProgress" { done, total }; resolves { saved, failed, evicted }
  *   clearDownloads() / downloadedBytes()
@@ -171,8 +175,9 @@ public class QuranAudioPlugin extends Plugin {
         float rate = clampRate(call.getFloat("rate", 1f));
         float volume = clampVolume(call.getFloat("volume", 1f));
         String repeat = call.getString("repeat", "none");
+        long startPosition = Math.max(0L, call.getLong("startPositionMs", 0L));
         withController(call, (player) -> {
-            player.setMediaItems(items, start, 0);
+            player.setMediaItems(items, start, startPosition);
             player.setRepeatMode(
                 "one".equals(repeat) ? Player.REPEAT_MODE_ONE : "all".equals(repeat) ? Player.REPEAT_MODE_ALL : Player.REPEAT_MODE_OFF
             );
@@ -190,7 +195,7 @@ public class QuranAudioPlugin extends Plugin {
         MediaMetadata metadata = new MediaMetadata.Builder()
             .setTitle(item.optString("title", "القرآن الكريم"))
             .setArtist(item.optString("artist", ""))
-            .setAlbumTitle("القرآن الكريم · أثر")
+            .setAlbumTitle(item.optString("album", "القرآن الكريم · أثر"))
             .setArtworkUri(Uri.parse(ARTWORK))
             .build();
         return new MediaItem.Builder().setMediaId(item.optString("id", url)).setUri(uri).setMediaMetadata(metadata).build();
@@ -253,6 +258,38 @@ public class QuranAudioPlugin extends Plugin {
     @PluginMethod
     public void previous(PluginCall call) {
         withController(call, Player::seekToPreviousMediaItem);
+    }
+
+    /** Where the player is: the listening section's progress bar polls this while it is open. */
+    @PluginMethod
+    public void position(PluginCall call) {
+        main.post(() -> {
+            JSObject data = new JSObject();
+            MediaController current = controller;
+            if (current == null || !current.isConnected() || current.getMediaItemCount() == 0) {
+                data.put("index", -1);
+                data.put("positionMs", 0);
+                data.put("durationMs", 0);
+                data.put("playing", false);
+            } else {
+                long duration = current.getDuration();
+                data.put("index", current.getCurrentMediaItemIndex());
+                data.put("positionMs", Math.max(0L, current.getCurrentPosition()));
+                data.put("durationMs", duration == androidx.media3.common.C.TIME_UNSET ? 0 : Math.max(0L, duration));
+                data.put("playing", current.isPlaying());
+            }
+            call.resolve(data);
+        });
+    }
+
+    @PluginMethod
+    public void seek(PluginCall call) {
+        long position = Math.max(0L, call.getLong("positionMs", 0L));
+        Integer index = call.getInt("index");
+        withController(call, (player) -> {
+            if (index != null && index >= 0 && index < player.getMediaItemCount()) player.seekTo(index, position);
+            else player.seekTo(position);
+        });
     }
 
     @PluginMethod

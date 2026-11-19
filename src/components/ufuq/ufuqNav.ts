@@ -7,7 +7,7 @@
  */
 import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3, BookMarked, BookOpen, BookOpenText, Bookmark, Clapperboard, Compass, Droplets, Feather, GraduationCap,
+  BarChart3, BookMarked, Headphones, BookOpen, BookOpenText, Bookmark, Clapperboard, Compass, Droplets, Feather, GraduationCap,
   HandHeart, Heart, History, Landmark, Library, ListChecks, MapPin, MessageCircle, Mic, MoonStar, NotebookPen,
   ScrollText, Settings2, Shield, Sparkles, Star, Sun, TimerReset, Trophy, Users, Zap, Atom, BellRing, Scale, Gem,
 } from "lucide-react";
@@ -26,7 +26,7 @@ export const UFUQ_TABS: ReadonlyArray<{ id: UfuqTabId; path: string; label: stri
 export function ufuqTabFor(pathname: string): UfuqTabId {
   if (pathname === "/") return "today";
   if (pathname.startsWith("/c/")) return "today";
-  if (pathname.startsWith("/quran") || pathname.startsWith("/mushaf") || pathname.startsWith("/tafsir") || pathname.startsWith("/tasmee")) return "quran";
+  if (pathname.startsWith("/quran") || pathname.startsWith("/listen") || pathname.startsWith("/mushaf") || pathname.startsWith("/tafsir") || pathname.startsWith("/tasmee")) return "quran";
   if (pathname.startsWith("/prayer-times") || pathname.startsWith("/qibla") || pathname.startsWith("/mosques") || pathname.startsWith("/qadaa")) return "prayer";
   if (pathname.startsWith("/sebha")) return "tasbeeh";
   return "explore";
@@ -46,6 +46,7 @@ export const UFUQ_EXPLORE_GROUPS: readonly UfuqGroup[] = [
     title: "القرآن وعلومه",
     items: [
       { path: "/mushaf", title: "المصحف", sub: "صفحات المصحف كاملة مع التلاوة", icon: BookOpenText },
+      { path: "/listen", title: "السماع", sub: "القرآن كاملًا بأصوات قرّاء العالم وقيام الحرمين والتواشيح", icon: Headphones },
       { path: "/quran/plans", title: "خطط التلاوة والختمة", sub: "وِرد يومي يوصلك إلى الختم", icon: ListChecks },
       { path: "/tafsir", title: "التفسير", sub: "معاني الآيات من كتب التفسير", icon: ScrollText },
       { path: "/tasmee", title: "التسميع", sub: "راجع حفظك بصوتك", icon: Mic },
@@ -160,6 +161,14 @@ const TITLES: Record<string, string> = {
 export function ufuqTitleFor(pathname: string): string {
   if (TITLES[pathname]) return TITLES[pathname]!;
   if (pathname.startsWith("/settings/")) return "الإعدادات";
+  if (pathname.startsWith("/listen")) {
+    const sub: Record<string, string> = {
+      reciters: "قرّاء العالم", reciter: "القارئ", surah: "سورة بأصوات القرّاء", golden: "التسجيلات الذهبية",
+      qiyam: "قيام الليل في الحرمين", tawasheeh: "التواشيح والابتهالات", album: "التواشيح", favorites: "المفضّلة",
+      playlist: "قائمتك", stats: "أثر سماعك",
+    };
+    return sub[pathname.split("/")[2] ?? ""] ?? "السماع";
+  }
   if (pathname.startsWith("/hadith/")) return "الحديث";
   if (pathname.startsWith("/library/")) return "المكتبة";
   if (pathname.startsWith("/video-library/")) return "الدورات";
