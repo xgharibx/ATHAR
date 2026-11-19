@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 
 import { shareOrCopy } from "@/lib/shareTargets";
 import { YT_STATE, embedSrc, newYouTubePlayer, type YTPlayer } from "@/lib/youtubePlayer";
+import { arNum, westernToArabicDigits } from "@/lib/formatNumber";
 import type {
   VideoLibraryChannel,
   VideoLibraryCourse,
@@ -22,8 +23,9 @@ function formatTime(seconds: number) {
   const h = Math.floor(safe / 3600);
   const m = Math.floor((safe % 3600) / 60);
   const s = safe % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  return `${m}:${String(s).padStart(2, "0")}`;
+  const clock = h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
+  // In Arabic digits, and kept left-to-right so «١:٢٧:٠٤» reads as a time.
+  return `\u2066${westernToArabicDigits(clock)}\u2069`;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -215,7 +217,7 @@ export function YouTubeCoursePlayer({
                 >
                   <SkipForward size={28} aria-hidden="true" className="mx-auto mb-3" style={{ color: accent }} />
                   <div className="font-bold arabic-text mb-1">الدرس التالي</div>
-                  <div className="text-xs opacity-60 mb-4">ينطلق خلال {nextCountdown} ثوانٍ</div>
+                  <div className="text-xs opacity-60 mb-4">ينطلق خلال {arNum(nextCountdown)} ثوانٍ</div>
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -324,7 +326,7 @@ export function YouTubeCoursePlayer({
             </div>
             <div className="flex items-center justify-between text-[10px] opacity-45 tabular-nums">
               <span>{formatTime(current)}</span>
-              <span className="font-medium" style={{ color: accent }}>{percent}%</span>
+              <span className="font-medium" style={{ color: accent }}>{arNum(percent)}٪</span>
               <span>{formatTime(duration)}</span>
             </div>
           </div>
