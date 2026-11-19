@@ -25,6 +25,14 @@ import { useHadithPack } from "@/data/useHadithBook";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { arNum } from "@/lib/formatNumber";
+
+/** «نتيجة واحدة»، «نتيجتان»، «٣ نتائج»، «١١ نتيجة» — Arabic number agreement. */
+function resultsLabel(n: number): string {
+  if (n === 1) return "نتيجة واحدة";
+  if (n === 2) return "نتيجتان";
+  if (n >= 3 && n <= 10) return `${arNum(n)} نتائج`;
+  return `${arNum(n)} نتيجة`;
+}
 import { writeClipboard } from "@/lib/nativeUI";
 
 // --- Recent searches helpers ---
@@ -382,7 +390,7 @@ export function SearchPage() {
                 : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
             )}
           >
-            الكل ({sectionChips.reduce((a, c) => a + c.count, 0)})
+            الكل ({arNum(sectionChips.reduce((a, c) => a + c.count, 0))})
           </button>
           {sectionChips.map((chip) => {
             const identity = getSectionIdentity(chip.id);
@@ -401,7 +409,7 @@ export function SearchPage() {
               >
                 <span>{identity.icon}</span>
                 <span>{chip.title}</span>
-                <span className="opacity-70">({chip.count})</span>
+                <span className="opacity-70">({arNum(chip.count)})</span>
               </button>
             );
           })}
@@ -420,7 +428,7 @@ export function SearchPage() {
                 : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
             )}
           >
-            الكل ({libraryChips.reduce((a, c) => a + c.count, 0)})
+            الكل ({arNum(libraryChips.reduce((a, c) => a + c.count, 0))})
           </button>
           {libraryChips.map((chip) => {
             const isActive = libraryFilter === chip.id;
@@ -438,7 +446,7 @@ export function SearchPage() {
               >
                 <span>{chip.icon}</span>
                 <span>{chip.title}</span>
-                <span className="opacity-70">({chip.count})</span>
+                <span className="opacity-70">({arNum(chip.count)})</span>
               </button>
             );
           })}
@@ -452,7 +460,7 @@ export function SearchPage() {
           <div className="text-sm font-semibold">النتائج</div>
           {q.trim() && (
             <div className="text-xs opacity-55 tabular-nums" aria-live="polite" aria-atomic="true">
-              {totalHits > 50 ? `${results.length} من ${totalHits}` : results.length}
+              {totalHits > 50 ? `${arNum(results.length)} من ${arNum(totalHits)}` : arNum(results.length)}
             </div>
           )}
         </div>
@@ -542,8 +550,8 @@ export function SearchPage() {
           <div className="text-sm font-semibold">نتائج القرآن</div>
           {q.trim() && quranResults.length > 0 && (
             <div className="text-xs opacity-55 tabular-nums">
-              {quranResults.filter(r => r.type === "ayah").length} آية
-              {quranResults.filter(r => r.type === "surah").length > 0 && `، ${quranResults.filter(r => r.type === "surah").length} سورة`}
+              {arNum(quranResults.filter(r => r.type === "ayah").length)} آية
+              {quranResults.filter(r => r.type === "surah").length > 0 && `، ${arNum(quranResults.filter(r => r.type === "surah").length)} سورة`}
             </div>
           )}
         </div>
@@ -573,42 +581,45 @@ export function SearchPage() {
                     <div className="flex items-center gap-2">
                       <BookOpen size={16} aria-hidden="true" className="text-(--accent) shrink-0 opacity-70" />
                       <span className="text-sm font-semibold arabic-text">{r.surah.name}</span>
-                      <span className="text-xs opacity-45 tabular-nums">{r.surah.ayahs.length} آية</span>
+                      <span className="text-xs opacity-45 tabular-nums">{arNum(r.surah.ayahs.length)} آية</span>
                     </div>
                     <ArrowUpRight size={16} className="opacity-55 shrink-0" aria-hidden="true" />
                   </div>
                 </button>
               ) : (
-                <button type="button"
-                  onClick={() => navigate(`/mushaf?surah=${r.surah.id}&ayah=${r.ayahIndex}`)}
-                  className="group w-full text-right glass rounded-3xl p-4 hover:bg-(--card-2) transition border border-(--stroke) press-effect glass-hover"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs opacity-55 shrink-0 tabular-nums">﴿{r.ayahIndex}﴾</span>
-                      <span className="text-xs opacity-55 arabic-text shrink-0">{r.surah.name}</span>
+                // Two buttons side by side, not one inside the other: nested
+                // buttons are invalid, and a tap could open the verse instead of
+                // copying it. The copy button is always shown (hover-only meant
+                // a phone never saw it).
+                <div className="relative">
+                  <button type="button"
+                    onClick={() => navigate(`/mushaf?surah=${r.surah.id}&ayah=${r.ayahIndex}`)}
+                    className="w-full text-right glass rounded-3xl p-4 hover:bg-(--card-2) transition border border-(--stroke) press-effect glass-hover"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xs opacity-55 shrink-0 tabular-nums">﴿{arNum(r.ayahIndex)}﴾</span>
+                        <span className="text-xs opacity-55 arabic-text shrink-0">{r.surah.name}</span>
+                      </div>
+                      <ArrowUpRight size={16} className="opacity-55 shrink-0" aria-hidden="true" />
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try { const systemConfirmed = await writeClipboard(r.text); if (!systemConfirmed) toast.success("تم النسخ"); }
-                          catch { toast.error("تعذر النسخ"); }
-                        }}
-                        className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 hover:opacity-100! transition-opacity"
-                        style={{ background: "var(--card)", color: "var(--fg)" }}
-                        aria-label="نسخ الآية"
-                      >
-                        <Copy size={13} aria-hidden="true" />
-                      </button>
-                      <ArrowUpRight size={16} className="opacity-55" aria-hidden="true" />
+                    <div className="mt-2 arabic-text text-sm leading-7 opacity-80">
+                      {r.text.slice(0, 200)}{r.text.length > 200 ? "…" : ""}
                     </div>
-                  </div>
-                  <div className="mt-2 arabic-text text-sm leading-7 opacity-80">
-                    {r.text.slice(0, 200)}{r.text.length > 200 ? "…" : ""}
-                  </div>
-                </button>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try { const systemConfirmed = await writeClipboard(r.text); if (!systemConfirmed) toast.success("تم النسخ"); }
+                      catch { toast.error("تعذر النسخ"); }
+                    }}
+                    className="absolute top-2.5 inset-e-10 grid h-8 w-8 place-items-center rounded-lg opacity-70 transition-opacity hover:opacity-100"
+                    style={{ background: "var(--card)", color: "var(--fg)" }}
+                    aria-label="نسخ الآية"
+                  >
+                    <Copy size={13} aria-hidden="true" />
+                  </button>
+                </div>
               )}
                 </div>
               );
@@ -625,7 +636,7 @@ export function SearchPage() {
           <div className="text-sm font-semibold">نتائج المكتبة</div>
           {q.trim() && libraryResults.length > 0 && (
             <div className="text-xs opacity-55 tabular-nums">
-              {libraryTotalHits > 50 ? `${libraryResults.length} من ${libraryTotalHits}` : libraryResults.length}
+              {libraryTotalHits > 50 ? `${arNum(libraryResults.length)} من ${arNum(libraryTotalHits)}` : arNum(libraryResults.length)}
             </div>
           )}
         </div>
@@ -690,7 +701,7 @@ export function SearchPage() {
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="text-sm font-semibold">بحث في الأحاديث</div>
           {hadithResults.length > 0 && q.trim() && (
-            <div className="text-xs opacity-55 tabular-nums">{hadithResults.length} نتيجة</div>
+            <div className="text-xs opacity-55 tabular-nums">{resultsLabel(hadithResults.length)}</div>
           )}
         </div>
 

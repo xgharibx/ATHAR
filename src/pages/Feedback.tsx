@@ -1,4 +1,6 @@
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
+import { useStartupReady } from "@/hooks/useStartupReady";
 
 type Category = "problem" | "feature" | "suggestion" | "content" | "other";
 const categories: Array<{ value: Category; label: string }> = [
@@ -12,6 +14,16 @@ const FEEDBACK_ENDPOINT = "https://ojstudhmcypoqfnwugbf.supabase.co/functions/v1
 
 /** Fallback for cached/older PWA navigation; main public page lives at /feedback/index.html. */
 export function FeedbackPage() {
+  // Opened first (a link, or the app reopening on this page), it must lift
+  // the launch screen itself: it is shown outside the app's usual frame.
+  useStartupReady();
+  const navigate = useNavigate();
+  /** Back into the app, where the reader came from, without reloading it. */
+  const backToApp = (event: React.MouseEvent) => {
+    event.preventDefault();
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/", { replace: true });
+  };
   const [category, setCategory] = React.useState<Category>("suggestion");
   const [message, setMessage] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
@@ -30,15 +42,12 @@ export function FeedbackPage() {
     stylesheet.setAttribute("data-athar-feedback-style", "");
     document.head.appendChild(stylesheet);
 
-    // The shared script configures a user-initiated app-opening link only.
-    const returnScript = document.createElement("script");
-    returnScript.src = "/feedback/return.js";
-    returnScript.defer = true;
-    document.body.appendChild(returnScript);
-
+    // The standalone page's return.js turns «العودة إلى أثر» into a link that
+    // opens the app from a browser. Here the reader is already in the app:
+    // on iPhone that link sent them to the App Store, on Android it did
+    // nothing. This page goes back inside the app instead.
     return () => {
       stylesheet.remove();
-      returnScript.remove();
     };
   }, []);
 
@@ -91,7 +100,7 @@ export function FeedbackPage() {
       <div className="af-stars" aria-hidden="true" />
       <div className="af-wrap">
         <header className="af-hero">
-          <a className="af-wordmark" href="/" aria-label="أثر — الصفحة الرئيسية">
+          <a className="af-wordmark" href="/" onClick={backToApp} aria-label="أثر — الصفحة الرئيسية">
             <svg className="af-fingerprint" viewBox="-112 -91 224 219" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none">
               <g stroke="#d8ba78" strokeLinecap="round">
                 <path d="M -86 -4 C -56 -66,56 -66,86 -4" strokeWidth="5.5" />
@@ -158,7 +167,7 @@ export function FeedbackPage() {
           </form>
         </section>
         <footer className="af-footer">
-          <a className="af-back" data-af-return href="/">العودة إلى أثر <span aria-hidden="true">←</span></a>
+          <a className="af-back" href="/" onClick={backToApp}>العودة إلى أثر <span aria-hidden="true">←</span></a>
           <p className="af-footer-sign">هَمْسَةٌ تُطَمْئِنُ قَلْبَكَ، وَتَتْرُكُ أَثَرًا</p>
         </footer>
       </div>
