@@ -1,4 +1,5 @@
 import * as React from "react";
+import { hasNativeUI, startNativePullToRefresh } from "@/lib/nativeUI";
 
 interface UsePullToRefreshOptions {
   onRefresh: () => void | Promise<void>;
@@ -38,8 +39,15 @@ export function usePullToRefresh({
     pullDistance: 0,
   });
 
+  // In the app: the system's own pull-to-refresh spinner instead of the web gesture.
   React.useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !hasNativeUI()) return;
+    const stop = startNativePullToRefresh(() => onRefreshRef.current());
+    return stop ?? undefined;
+  }, [enabled]);
+
+  React.useEffect(() => {
+    if (!enabled || hasNativeUI()) return;
 
     const onTouchStart = (e: Event) => {
       const touch = (e as TouchEvent).touches[0];

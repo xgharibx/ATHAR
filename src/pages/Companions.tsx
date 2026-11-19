@@ -7,6 +7,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 const COMPANION_BOOKMARKS_KEY = "noor_companion_bookmarks";
 
@@ -270,16 +271,7 @@ export default function Companions() {
                       onClick={async (e) => {
                         e.stopPropagation();
                         const text = `${companion.name}${companion.title ? ` — ${companion.title}` : ""}\n\n${companion.brief}`;
-                        if (navigator.share) {
-                          await navigator.share({ text }).catch(() => {});
-                        } else {
-                          try {
-                            await navigator.clipboard.writeText(text);
-                            toast.success("تم النسخ");
-                          } catch {
-                            toast.error("تعذّر النسخ");
-                          }
-                        }
+                        await shareOrCopy(text);
                       }}
                       className="flex items-center gap-1.5 rounded-full border border-(--stroke) bg-(--card) px-3 py-1.5 text-xs transition-all glass-hover press-effect"
                       style={{ color: "var(--fg)" }}

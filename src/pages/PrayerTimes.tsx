@@ -29,6 +29,7 @@ import type { PrayerAlertPrayer } from "@/store/noorStore";
 import { clearCachedPrayerCoordinates, DEFAULT_PRAYER_CITY, getPrayerLocationIdentity, readCachedPrayerCoordinates } from "@/lib/prayerLocation";
 import { adjustTimings, hasAdjustments, type PrayerTimeAdjust } from "@/lib/prayerAdjust";
 import { PRAYER_CALC_METHODS } from "@/lib/prayerCalcMethods";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1306,9 +1307,8 @@ export function PrayerTimesPage() {
           <Button variant="secondary" size="sm" aria-label="مشاركة المواقيت" onClick={async () => {
             if (!timings) return;
             const lines = PRIMARY_PRAYERS.map((p) => `${PRAYER_LABELS[p]}: ${cleanTime(timings[p] ?? "")}`);
-            const text = `مواقيت الصلاة اليوم:\n${lines.join("\n")}\n\n• أثر`;
-            if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-            else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
+            const text = `مواقيت الصلاة اليوم:\n${lines.join("\n")}`;
+            await shareOrCopy(text);
           }}>
             <Share2 size={15} aria-hidden="true" />
             <span className="hidden sm:inline">مشاركة</span>

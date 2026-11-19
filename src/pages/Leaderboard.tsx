@@ -37,6 +37,7 @@ import {
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum, arFullDate } from "@/lib/formatNumber";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { writeClipboard } from "@/lib/nativeUI";
 
 
 const COOLDOWN_MS = 45_000;
@@ -1106,7 +1107,7 @@ function LocalFriendsCard(props: {
 
   const copyMyCode = async () => {
     try {
-      await navigator.clipboard.writeText(myExportCode);
+      await writeClipboard(myExportCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -1296,7 +1297,7 @@ function GroupKhatmaCard() {
 
   const copyShareCode = async () => {
     try {
-      await navigator.clipboard.writeText(shareCode);
+      await writeClipboard(shareCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch { /* ignore */ }

@@ -17,6 +17,8 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { toArabicNumeral, getSurahJuz, SURAH_REVELATION } from "@/lib/quranMeta";
 import { arNum } from "@/lib/formatNumber";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 import {
   getEnglishText, getSurahInfo, getTafsirForAyah, sajdaInSurah,
@@ -206,7 +208,7 @@ function PopoverContent(props: {
 
   const copyAyah = () => {
     try {
-      void navigator.clipboard.writeText(`${firstAyahText}\n\n— ${surah.name} ﴿${toArabicNumeral(1)}﴾`);
+      void writeClipboard(`${firstAyahText}\n\n— ${surah.name} ﴿${toArabicNumeral(1)}﴾`);
       toast.success("نُسخت الآية");
     } catch { /* ignore */ }
   };
@@ -336,8 +338,7 @@ function PopoverContent(props: {
           <button type="button" onClick={async () => {
             try {
               const text = `سورة ${surah.name} (${surah.ayahs.length} آية)`;
-              if (navigator.share) await navigator.share({ title: `سورة ${surah.name}`, text });
-              else { await navigator.clipboard.writeText(text); toast.success("نُسخت معلومة السورة"); }
+              await shareOrCopy(text, { title: `سورة ${surah.name}`, copiedMessage: "نُسخت معلومة السورة" });
             } catch { /* ignore */ }
           }}
             className="flex items-center justify-center gap-1 rounded-lg border border-(--stroke) bg-(--card) px-2 py-1.5 text-[11px] font-semibold text-(--fg) transition hover:bg-(--card-2) active:scale-95">

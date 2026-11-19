@@ -48,6 +48,7 @@ import { arNum } from "@/lib/formatNumber";
 import { createMindfulSession, logMindfulSession } from "@/lib/mindfulMinutes";
 import { normalizeArabic, startVoiceTasbeeh, VOICE_TASBEEH_PHRASES, voiceTasbeehAvailable, type VoicePhrase } from "@/lib/voiceTasbeeh";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -944,10 +945,9 @@ export function SebhaPage() {
       return t;
     })();
     const life = Object.values(useNoorStore.getState().tasbeehLifetime).reduce((s, v) => s + (Number(v) || 0), 0);
-    const text = `إحصائياتي في أثر:\n• اليوم: ${arNum(todayTotal)} تسبيحة\n• هذا الأسبوع: ${arNum(week)} تسبيحة\n• الإجمالي: ${arNum(life)} تسبيحة\n🔥 سلسلة ${tasbeehStreak} يوم\n\n﴿ فَاذْكُرُونِي أَذْكُرْكُمْ ﴾\n— أثر`;
+    const text = `إحصائياتي في أثر:\n• اليوم: ${arNum(todayTotal)} تسبيحة\n• هذا الأسبوع: ${arNum(week)} تسبيحة\n• الإجمالي: ${arNum(life)} تسبيحة\n🔥 سلسلة ${tasbeehStreak} يوم\n\n﴿ فَاذْكُرُونِي أَذْكُرْكُمْ ﴾`;
     try {
-      if (navigator.share) await navigator.share({ text }).catch(() => {});
-      else { await navigator.clipboard.writeText(text); toast.success("تم نسخ الإحصائيات"); }
+      await shareOrCopy(text, { copiedMessage: "تم نسخ الإحصائيات" });
     } catch { /* ignore */ }
   }, [tasbeehStreak]);
 
@@ -1190,12 +1190,8 @@ export function SebhaPage() {
                     const lines = sebhaSessions.slice(0, 10).map(
                       (s) => `• ${s.dhikrLabel}: ${s.count}${s.target ? `/${s.target}` : ""}`
                     );
-                    const text = `جلسات التسبيح اليوم:\n${lines.join("\n")}\n\n• ATHAR أثر`;
-                    if (navigator.share) {
-                      await navigator.share({ text }).catch(() => {});
-                    } else {
-                      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
-                    }
+                    const text = `جلسات التسبيح اليوم:\n${lines.join("\n")}`;
+                    await shareOrCopy(text);
                   }}
                   className="flex items-center gap-1 text-xs opacity-50 hover:opacity-80 transition"
                 >
@@ -1379,10 +1375,9 @@ export function SebhaPage() {
           <button type="button"
             onClick={async () => {
               const label = current.short || "السبحة";
-              const text = `${label} × ${effectiveTarget}\n\n﴿ فَاذْكُرُونِي أَذْكُرْكُمْ ﴾\n\n— أثر`;
+              const text = `${label} × ${effectiveTarget}\n\n﴿ فَاذْكُرُونِي أَذْكُرْكُمْ ﴾\n`;
               try {
-                if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                else { await navigator.clipboard.writeText(text); toast.success("تم نسخ الذكر"); }
+                await shareOrCopy(text, { copiedMessage: "تم نسخ الذكر" });
               } catch { /* ignore */ }
             }}
             className="mt-3 mx-auto flex items-center gap-1.5 rounded-2xl border border-accent-35 bg-accent-15 px-3 py-1.5 text-xs font-semibold text-(--accent) transition active:scale-95"

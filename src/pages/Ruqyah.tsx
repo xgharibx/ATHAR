@@ -7,25 +7,26 @@ import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
   const [count, setCount] = React.useState(0);
   const done = count >= item.count;
 
   const doShare = React.useCallback(async () => {
-    const text = item.arabic + "\n\n• ATHAR أثر";
+    const text = item.arabic;
     try {
-      if (navigator.share) { await navigator.share({ text }); }
-      else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
+      await shareOrCopy(text);
     } catch {
-      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
+      try { const systemConfirmed = await writeClipboard(text); if (!systemConfirmed) toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
     }
   }, [item.arabic]);
 
   const doCopy = async () => {
     try {
-      await navigator.clipboard.writeText(item.arabic);
-      toast.success("تم النسخ");
+      const systemConfirmed = await writeClipboard(item.arabic);
+      if (!systemConfirmed) toast.success("تم النسخ");
     } catch {
       toast.error("تعذر النسخ");
     }

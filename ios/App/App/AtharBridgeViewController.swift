@@ -8,6 +8,12 @@ final class AtharBridgeViewController: CAPBridgeViewController {
         super.capacitorDidLoad()
         guard let bridge else { return }
 
+        // The saved-data copy goes in before the page's own code runs, so a
+        // web storage the system cleared is filled back before the app reads it.
+        if let restore = NativeVault.restoreScript() {
+            webView?.configuration.userContentController.addUserScript(restore)
+        }
+
         bridge.registerPluginInstance(AuthBridgePlugin())
         bridge.registerPluginInstance(ShareBridgePlugin())
         bridge.registerPluginInstance(WidgetRefreshPlugin())
@@ -27,6 +33,7 @@ final class AtharBridgeViewController: CAPBridgeViewController {
         bridge.registerPluginInstance(InAppBrowserPlugin())
         bridge.registerPluginInstance(NotificationActionsPlugin())
         bridge.registerPluginInstance(SystemSettingsPlugin())
+        bridge.registerPluginInstance(NativeUIPlugin())
         AppDelegate.flushPendingNativeAuthURL()
     }
 }

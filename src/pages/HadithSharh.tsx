@@ -9,7 +9,7 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, BookOpenText, ChevronLeft, Share2, Sparkles, WifiOff } from "lucide-react";
-import { toast } from "react-hot-toast";
+
 
 import {
   fetchSharhChildren,
@@ -24,6 +24,7 @@ import { verdictColor } from "@/lib/dorarTakhrij";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { westernToArabicDigits } from "@/lib/formatNumber";
 import { HADITH, countAr } from "@/lib/arabicCount";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 
 type View =
@@ -126,11 +127,7 @@ export function HadithSharhPage() {
   const share = React.useCallback(async (h: SharhHadith) => {
     const text = `${h.hadeeth}\n\n${h.attribution} — ${h.grade}\n\nالشرح: ${h.explanation}\n\nمن موسوعة الأحاديث النبوية`;
     try {
-      if (navigator.share) await navigator.share({ text });
-      else {
-        await navigator.clipboard.writeText(text);
-        toast.success("تم النسخ");
-      }
+      await shareOrCopy(text);
     } catch { /* user cancelled */ }
   }, []);
 

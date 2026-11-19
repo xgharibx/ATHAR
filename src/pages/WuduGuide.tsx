@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, CheckCircle2, Circle, Share2 } from "lucide-react";
-import toast from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
 import { WUDU_STEPS } from "@/data/wuduGuide";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 export function WuduGuidePage() {
   const navigate = useNavigate();
@@ -28,9 +28,8 @@ export function WuduGuidePage() {
 
   const shareFullGuide = async () => {
     const lines = WUDU_STEPS.map((s, i) => `${i + 1}. ${s.title}\n${s.description}`);
-    const text = `دليل الوضوء خطوة بخطوة\n\n${lines.join("\n\n")}\n\n• أثر`;
-    if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-    else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
+    const text = `دليل الوضوء خطوة بخطوة\n\n${lines.join("\n\n")}`;
+    await shareOrCopy(text);
   };
 
   return (
@@ -177,11 +176,7 @@ export function WuduGuidePage() {
                     onClick={async (e) => {
                       e.stopPropagation();
                       const text = `${step.title}\n${step.description}${step.times > 1 ? `\n(يُكرَّر ${step.times} مرات)` : ""}`;
-                      if (navigator.share) {
-                        await navigator.share({ text }).catch(() => {});
-                      } else {
-                        try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
-                      }
+                      await shareOrCopy(text);
                     }}
                     className="p-1.5 rounded-lg opacity-50 hover:opacity-100 transition-opacity"
                     style={{ background: "var(--stroke)", color: "var(--fg)" }}

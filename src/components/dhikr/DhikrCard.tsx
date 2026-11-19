@@ -26,6 +26,7 @@ import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
  */
 const getConfetti = async () => (opts: Record<string, unknown>) => { void celebrate([opts]); };
 import toast from "react-hot-toast";
+import { writeClipboard } from "@/lib/nativeUI";
 
 // D8: parse hadith grade from benefit text
 function parseHadithGrade(benefit: string): { grade: string; color: string } | null {
@@ -328,7 +329,7 @@ export function DhikrCard(props: {
 
   const doCopy = async (silent = false) => {
     try {
-      await navigator.clipboard.writeText(displayText);
+      await writeClipboard(displayText);
     } catch {
       if (!silent) {
         // Explicit copy actions stay quiet by default per UX request.

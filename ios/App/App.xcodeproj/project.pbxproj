@@ -58,6 +58,7 @@
 		F4A7B13E0D804E928F0C1001 /* adhan_ahmad_al_nafees.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2001 /* adhan_ahmad_al_nafees.caf */; };
 		F4A7B13E0D804E928F0C1002 /* birds.caf in Resources */ = {isa = PBXBuildFile; fileRef = F4A7B13E0D804E928F0C2002 /* birds.caf */; };
 		F968CF241BA876B64F5647AB /* SystemSettingsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B041649460E0E938DE20DFE6 /* SystemSettingsPlugin.swift */; };
+		5BF4BBD2FD85EA69205BF080 /* NativeUIPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE71C52871A61DA0BBA13DE7 /* NativeUIPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -125,6 +126,7 @@
 		AC4FFEF27FFB5830C345962B /* AtharMoreWidgets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharMoreWidgets.swift; sourceTree = "<group>"; };
 		ACF0538B9505F0274F3CE067 /* AtharDailyWidgets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharDailyWidgets.swift; sourceTree = "<group>"; };
 		B041649460E0E938DE20DFE6 /* SystemSettingsPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemSettingsPlugin.swift; sourceTree = "<group>"; };
+		DE71C52871A61DA0BBA13DE7 /* NativeUIPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeUIPlugin.swift; sourceTree = "<group>"; };
 		B10D03353703029A438FEE40 /* AtharTasbeehWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharTasbeehWidget.swift; sourceTree = "<group>"; };
 		C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetRefreshPlugin.swift; sourceTree = "<group>"; };
 		D3646930F2BA6A8C2EFE8343 /* OpenAtharScreenIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OpenAtharScreenIntent.swift; sourceTree = "<group>"; };
@@ -241,6 +243,7 @@
 				90B30A9D5F9D702B8AC42299 /* InAppBrowserPlugin.swift */,
 				53597E5F54F7ED6A3ED30096 /* NotificationActionsPlugin.swift */,
 				B041649460E0E938DE20DFE6 /* SystemSettingsPlugin.swift */,
+				DE71C52871A61DA0BBA13DE7 /* NativeUIPlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -422,6 +425,7 @@
 				80ADB4C8FB06CD83BCECDBC4 /* InAppBrowserPlugin.swift in Sources */,
 				C3BC1A93A069A69AD5E42331 /* NotificationActionsPlugin.swift in Sources */,
 				F968CF241BA876B64F5647AB /* SystemSettingsPlugin.swift in Sources */,
+				5BF4BBD2FD85EA69205BF080 /* NativeUIPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

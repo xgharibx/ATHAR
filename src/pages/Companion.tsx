@@ -90,9 +90,10 @@ import {
   peekCompanionHealth,
   type CompanionHealthState,
 } from "@/lib/companionHealth";
-import { shareImageBlob } from "@/lib/shareTargets";
+import { shareFileBlob, shareImageBlob, shareOrCopy } from "@/lib/shareTargets";
 import { canSendCompanionAiMessage, grantCompanionAiConsent } from "@/lib/companionConsent";
 import { CompanionAiConsentDialog } from "@/components/companion/CompanionAiConsentDialog";
+import { writeClipboard } from "@/lib/nativeUI";
 
 const NoorStarfield = React.lazy(() => import("@/components/background/NoorStarfield"));
 
@@ -1084,14 +1085,14 @@ export function CompanionPage() {
           onClick={() => scrollToBottom("smooth")}
           aria-label="انتقل لأحدث رسالة"
           className="fixed inset-x-0 z-40 mx-auto grid h-9 w-9 place-items-center rounded-full border border-(--stroke) bg-(--card-2) text-(--fg) shadow-lg backdrop-blur-xl transition active:scale-90"
-          style={{ bottom: "calc(var(--sab) + 104px)", left: 0, right: 0, width: "36px" }}>
+          style={{ bottom: "calc(max(var(--sab), var(--kb, 0px)) + 104px)", left: 0, right: 0, width: "36px" }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7" /></svg>
         </button>
       ) : null}
 
       {/* Composer — docks at the very bottom of the screen (the floating tab-bar
           is hidden on this route), so the chat reads as one focused surface. */}
-      <div className="fixed inset-x-0 z-40" style={{ bottom: "calc(var(--sab) + 12px)" }}>
+      <div className="fixed inset-x-0 z-40" style={{ bottom: "calc(max(var(--sab), var(--kb, 0px)) + 12px)" }}>
         <div className="mx-auto w-full max-w-3xl px-4">
           <div className="flex items-end gap-1.5 rounded-2xl border border-(--stroke) bg-(--bg)/95 p-2 shadow-2xl backdrop-blur-xl">
             <textarea
@@ -1287,7 +1288,7 @@ function MessageBubble(props: {
   const isUser = props.role === "user";
   const [copied, setCopied] = React.useState(false);
   const copy = React.useCallback(async () => {
-    try { await navigator.clipboard.writeText(props.text); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
+    try { await writeClipboard(props.text); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
   }, [props.text]);
 
   if (isUser) {
@@ -1724,16 +1725,17 @@ const markdownComponents: Components = {
 
 /* ─── Conversation history grouping + export helpers (in lib) ────────────── */
 
-function downloadConversation(conv: CompanionConversation): void {
+/**
+ * Saves a conversation as a text file. In the app this opens the phone's own
+ * sheet (save to Files, send, keep in notes): an <a download> click there has
+ * nowhere to put the file and did nothing. In a browser it downloads.
+ */
+async function downloadConversation(conv: CompanionConversation): Promise<void> {
   try {
     const blob = new Blob([exportConversationText(conv)], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `athar-${conv.id.slice(2, 10)}.txt`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    toast.success("تم تنزيل المحادثة");
+    const result = await shareFileBlob(blob, { filename: `athar-${conv.id.slice(2, 10)}.txt`, title: conv.title || "محادثة" });
+    if (result === "downloaded") toast.success("تم تنزيل المحادثة");
+    else if (result === "failed") toast.error("تعذَّر تصدير المحادثة");
   } catch {
     toast.error("تعذَّر تصدير المحادثة");
   }
@@ -1991,17 +1993,11 @@ function HistoryItem(props: {
 function PinnedReplyCard({ pin, onDelete }: { pin: PinnedReply; onDelete: () => void }) {
   const [copied, setCopied] = React.useState(false);
   const copy = async () => {
-    try { await navigator.clipboard.writeText(pin.text); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
+    try { await writeClipboard(pin.text); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
   };
   const share = async () => {
     try {
-      if (navigator.share) {
-        await navigator.share({ text: pin.text, title: "أثر" });
-      } else {
-        await navigator.clipboard.writeText(pin.text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1600);
-      }
+      await shareOrCopy(pin.text, { title: "أثر" });
     } catch { /* user cancelled */ }
   };
   return (

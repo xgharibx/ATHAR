@@ -21,6 +21,8 @@ import { COMPANIONS } from "@/data/companions";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { AdhkarLoadStatus } from "@/components/home/AdhkarLoadStatus";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 // Shared empty value, so the store selector returns the same array each time.
 const NO_DUA_FAVORITES: string[] = [];
@@ -122,7 +124,7 @@ export function FavoritesPage() {
 
   const copyItem = React.useCallback(async (key: string, text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await writeClipboard(text);
       setCopiedKey(key);
       toast.success("تم النسخ");
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
@@ -167,7 +169,7 @@ export function FavoritesPage() {
       lines.push("");
     }
     try {
-      await navigator.clipboard.writeText(lines.join("\n").trim());
+      await writeClipboard(lines.join("\n").trim());
       setCopiedAll(true);
       toast.success(`تم نسخ ${items.length} ذكر`);
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
@@ -185,12 +187,9 @@ export function FavoritesPage() {
       if (item.benefit) lines.push(`  ﴾ ${item.benefit} ﴿`);
       lines.push("");
     }
-    const text = lines.join("\n").trim() + "\n\n• ATHAR أثر";
-    if (navigator.share) {
-      try { await navigator.share({ text }); return; } catch { /* fall through */ }
-    }
-    await copyAll();
-  }, [items, copyAll]);
+    const text = lines.join("\n").trim();
+    await shareOrCopy(text);
+  }, [items]);
 
   // Group items by section for organized display
   const grouped = React.useMemo(() => {
@@ -666,7 +665,7 @@ export function FavoritesPage() {
                   <div className="flex flex-col gap-2 shrink-0">
                     <Button
                       variant="outline"
-                      onClick={() => { navigator.clipboard.writeText(dua.arabic).then(() => toast.success("تم النسخ")).catch(() => toast.error("تعذّر النسخ")); }}
+                      onClick={() => { writeClipboard(dua.arabic).then(() => toast.success("تم النسخ")).catch(() => toast.error("تعذّر النسخ")); }}
                       aria-label="نسخ الدعاء"
                     >
                       <Copy size={14} aria-hidden="true" />

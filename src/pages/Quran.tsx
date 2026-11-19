@@ -1,5 +1,4 @@
 import * as React from "react";
-import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Bookmark, BookOpen, CalendarDays, Languages, Search, Shuffle, Star, Volume2, X, LayoutGrid, Info, ChevronDown } from "lucide-react";
@@ -28,6 +27,7 @@ import { loadQuranPageMap } from "@/data/quranLoad";
 import { countAr, AYAH, MINUTE } from "@/lib/arabicCount";
 import { arNum } from "@/lib/formatNumber";
 import { countCompletedKhatmaDays, getKhatmaDayRange, getKhatmaPlanStatus, getKhatmaTimeline } from "@/lib/quranKhatma";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 
 function normalize(s: string) {
@@ -770,12 +770,7 @@ export function QuranPage() {
                 onClick={async () => {
                   const text = `🔥 سلسلتي في القرآن ${arNum(quranStreak)} يوم متتالٍ\nقرأت ${arNum(quranStats.totalAyahs)} آية، ${arNum(quranStats.completed)} سور مكتملة.`;
                   try {
-                    if (navigator.share) {
-                      await navigator.share({ text, title: "سلسلة قراءة القرآن" });
-                    } else {
-                      await navigator.clipboard.writeText(text);
-                      toast.success("نُسخت السلسلة");
-                    }
+                    await shareOrCopy(text, { title: "سلسلة قراءة القرآن", copiedMessage: "نُسخت السلسلة" });
                   } catch { /* ignore */ }
                 }}
                 className="text-xs transition hover:opacity-100"

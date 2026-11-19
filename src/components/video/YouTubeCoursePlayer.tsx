@@ -2,6 +2,7 @@ import * as React from "react";
 import { ArrowRight, Bookmark, BookmarkCheck, CheckCircle2, ExternalLink, Play, Share2, SkipBack, SkipForward } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { shareOrCopy } from "@/lib/shareTargets";
 import type {
   VideoLibraryChannel,
   VideoLibraryCourse,
@@ -224,9 +225,7 @@ export function YouTubeCoursePlayer({
   const shareVideo = async () => {
     const text = `${video.title}\n${channel?.displayName ?? "مكتبة أثر"}\n${video.youtubeUrl}`;
     try {
-      if (navigator.share) await navigator.share({ title: video.title, text, url: video.youtubeUrl });
-      else await navigator.clipboard.writeText(text);
-      toast.success("تم تجهيز رابط الدرس");
+      await shareOrCopy(text, { title: video.title, copiedMessage: "تم نسخ رابط الدرس" });
     } catch {
       toast.error("تعذرت المشاركة");
     }

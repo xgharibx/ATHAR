@@ -21,6 +21,7 @@ import { GradeChip } from "@/components/hadith/GradeChip";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { arNum } from "@/lib/formatNumber";
+import { writeClipboard } from "@/lib/nativeUI";
 
 
 /* ------------------------------------------------------------------ */
@@ -93,8 +94,8 @@ function HadithRow({ item, bookKey }: { item: HadithItem; bookKey: string }) {
                 onClick={async (e) => {
                   e.stopPropagation();
                   try {
-                    await navigator.clipboard.writeText(cleanHadithText(item.t));
-                    toast.success("تم النسخ");
+                    const systemConfirmed = await writeClipboard(cleanHadithText(item.t));
+                    if (!systemConfirmed) toast.success("تم النسخ");
                   } catch {
                     toast.error("تعذر النسخ");
                   }

@@ -53,6 +53,7 @@ import toast from "react-hot-toast";
 import { arNum } from "@/lib/formatNumber";
 import { PremiumShareComposer } from "@/components/share/PremiumShareComposer";
 import type { PosterContent } from "@/lib/premiumPoster";
+import { writeClipboard } from "@/lib/nativeUI";
 
 
 /* ------------------------------------------------------------------ */
@@ -189,8 +190,8 @@ export function HadithReaderPage() {
     if (!hadith) return;
     const text = `${cleanHadithText(hadith.t)}\n\n— ${hadithRef(meta?.title ?? "", hadith.a)}`;
     try {
-      await navigator.clipboard.writeText(text);
-      toast.success("تم النسخ");
+      const systemConfirmed = await writeClipboard(text);
+      if (!systemConfirmed) toast.success("تم النسخ");
     } catch {
       toast.error("تعذّر النسخ");
     }

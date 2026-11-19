@@ -25,6 +25,7 @@ import { useHadithPack } from "@/data/useHadithBook";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { arNum } from "@/lib/formatNumber";
+import { writeClipboard } from "@/lib/nativeUI";
 
 // --- Recent searches helpers ---
 const RECENT_KEY = "noor_recent_searches";
@@ -493,7 +494,7 @@ export function SearchPage() {
                         <button
                           type="button"
                           onClick={async () => {
-                            try { await navigator.clipboard.writeText(r.text); toast.success("تم النسخ"); }
+                            try { const systemConfirmed = await writeClipboard(r.text); if (!systemConfirmed) toast.success("تم النسخ"); }
                             catch { toast.error("تعذر النسخ"); }
                           }}
                           className="rounded-lg p-1.5 opacity-60 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
@@ -592,7 +593,7 @@ export function SearchPage() {
                         type="button"
                         onClick={async (e) => {
                           e.stopPropagation();
-                          try { await navigator.clipboard.writeText(r.text); toast.success("تم النسخ"); }
+                          try { const systemConfirmed = await writeClipboard(r.text); if (!systemConfirmed) toast.success("تم النسخ"); }
                           catch { toast.error("تعذر النسخ"); }
                         }}
                         className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 hover:opacity-100! transition-opacity"

@@ -12,6 +12,7 @@ import { useTodayKey } from "@/hooks/useTodayKey";
 import { arNum } from "@/lib/formatNumber";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { countCompletedKhatmaDays, getKhatmaDayRange, getKhatmaPlanStatus, getKhatmaTimeline } from "@/lib/quranKhatma";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -394,8 +395,7 @@ export function QuranPlansPage() {
               onClick={async () => {
                 const remaining = Math.max(0, activePlan.days - activePlan.elapsed);
                 const text = `📖 خطة ختمة القرآن الكريم\n${activePlan.name}\n\nالتقدم: ${arNum(activePlan.pct)}٪ (${arNum(activePlan.doneCount)} يوم مكتمل)\nالمتبقي: ${arNum(remaining)} يوم\nالورد اليومي: ${arNum(activePlan.dailyAyahs)} آية\n\nاترك أثراً طيباً 🌟`;
-                if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
+                await shareOrCopy(text);
               }}
             >
               <Share2 className="w-4 h-4" />

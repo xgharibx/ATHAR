@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, MapPin, RefreshCw, Share2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import toast from "react-hot-toast";
 import { Capacitor } from "@capacitor/core";
 import { directionsUrl, mapsAppLabel, openDirectionsOnAndroid, webMapsUrl } from "@/lib/directions";
 import { deviceLocationSupported, getDeviceLocation, type DeviceLocationError } from "@/lib/deviceLocation";
+import { shareOrCopy } from "@/lib/shareTargets";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -305,11 +305,7 @@ export function NearbyMosquesPage() {
                       type="button"
                       onClick={async () => {
                         const text = `${mosque.name}\n${mapsUrl}`;
-                        if (navigator.share) {
-                          await navigator.share({ title: mosque.name, text, url: mapsUrl }).catch(() => {});
-                        } else {
-                          try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
-                        }
+                        await shareOrCopy(text, { title: mosque.name });
                       }}
                       className="p-1.5 rounded-lg opacity-50 hover:opacity-100 transition"
                       style={{ background: "var(--card)", color: "var(--fg)" }}

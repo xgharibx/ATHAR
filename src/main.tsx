@@ -15,6 +15,8 @@ import { loadStoreIdentity } from "@/lib/storeIdentity";
 import { setPendingNotificationAction } from "@/lib/reminders";
 import { parseWebReminderActionFragment } from "@/lib/webReminderActions";
 import { markStartupReady } from "@/lib/startup";
+import { startKeyboardInset } from "@/lib/keyboardInset";
+import { startNativeVault } from "@/lib/nativeVault";
 
 const APP_RUNTIME_VERSION = (import.meta.env.VITE_RUNTIME_VERSION as string | undefined) ?? "local-dev";
 const APP_RUNTIME_VERSION_KEY = "noor_app_runtime_version";
@@ -210,6 +212,11 @@ if (rootContainer) {
     const warm = () => void import("@/lib/youtubePlayer").then((m) => m.warmYouTubeApi()).catch(() => undefined);
     const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
     window.setTimeout(() => (idle ? idle(warm, { timeout: 4000 }) : warm()), 3500);
+
+    // Bars pinned to the bottom lift above the iPhone keyboard (see keyboardInset.ts).
+    startKeyboardInset();
+    // A native copy of what the app saves, so a cleared web storage can be restored (see nativeVault.ts).
+    startNativeVault();
 
     const root = ReactDOM.createRoot(sentinel);
     (window as unknown as Record<string, unknown>)[ROOT_INSTANCE_KEY] = root;

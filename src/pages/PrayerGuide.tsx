@@ -5,14 +5,12 @@ import toast from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
 import { PRAYER_STEPS } from "@/data/prayerGuide";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 async function sharePrayerStep(step: { title: string; arabic?: string; description: string }) {
   const text = [step.title, step.arabic, step.description].filter(Boolean).join("\n\n");
-  if (navigator.share) {
-    await navigator.share({ text }).catch(() => {});
-  } else {
-    try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
-  }
+  await shareOrCopy(text);
 }
 
 export function PrayerGuidePage() {
@@ -25,9 +23,8 @@ export function PrayerGuidePage() {
       const parts = [`${s.id}. ${s.title}`, s.arabic, s.description].filter(Boolean);
       return parts.join("\n");
     });
-    const text = `دليل الصلاة خطوة بخطوة\n\n${lines.join("\n\n")}\n\n• أثر`;
-    if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-    else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
+    const text = `دليل الصلاة خطوة بخطوة\n\n${lines.join("\n\n")}`;
+    await shareOrCopy(text);
   };
 
   return (
@@ -154,7 +151,7 @@ export function PrayerGuidePage() {
                     <button
                       type="button"
                       onClick={async () => {
-                        try { await navigator.clipboard.writeText([step.title, step.arabic, step.description].filter(Boolean).join("\n\n")); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
+                        try { const systemConfirmed = await writeClipboard([step.title, step.arabic, step.description].filter(Boolean).join("\n\n")); if (!systemConfirmed) toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
                       }}
                       aria-label="نسخ الخطوة"
                       className="p-2 rounded-xl transition-opacity hover:opacity-75"

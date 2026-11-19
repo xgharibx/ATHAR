@@ -55,6 +55,8 @@ import { toArabicNumeral } from "@/lib/quranMeta";
 import { arNum } from "@/lib/formatNumber";
 import { countCompletedKhatmaDays, getKhatmaTimeline } from "@/lib/quranKhatma";
 import { forHijri } from "@/lib/hijri";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 // Shared empty value, so the store selectors return the same object each time.
 const NO_CHECKLIST: Record<string, boolean> = {};
@@ -646,8 +648,8 @@ export function HomePage() {
   const copyDailyWird = async () => {
     if (!dailyWird) return;
     try {
-      await navigator.clipboard.writeText(dailyWird.copyText);
-      toast.success("تم النسخ");
+      const systemConfirmed = await writeClipboard(dailyWird.copyText);
+      if (!systemConfirmed) toast.success("تم النسخ");
     } catch {
       toast.error("تعذر النسخ");
     }
@@ -1009,8 +1011,7 @@ export function HomePage() {
                     onClick={async () => {
                       const emoji = streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨";
                       const text = `${emoji} سلسلة ${streak} يوم متواصل في تطبيق أثر!\n\nالاستمرار في الذكر والعبادة — اترك أثراً طيباً.`;
-                      if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                      else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
+                      await shareOrCopy(text);
                     }}
                   >
                     {streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨"} {streak} يوم متواصل
@@ -1300,8 +1301,7 @@ export function HomePage() {
                     className="text-xs opacity-55 mt-0.5 hover:opacity-80 transition-opacity text-right"
                     onClick={async () => {
                       const text = `وصلت لمستوى: ${xpLevel.emoji} ${xpLevel.label} (${totalXp.toLocaleString("ar-SA")} نقطة) في تطبيق أثر!\n\nاترك أثراً طيباً كل يوم.`;
-                      if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                      else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
+                      await shareOrCopy(text);
                     }}
                   >
                     {xpLevel.emoji} {xpLevel.label} — {totalXp.toLocaleString("ar-SA")} نقطة
@@ -1642,8 +1642,7 @@ export function HomePage() {
                   </Button>
                   <Button variant="secondary" disabled={!dailyWird} onClick={async () => {
                     if (!dailyWird) return;
-                    if (navigator.share) { await navigator.share({ text: dailyWird.copyText }).catch(() => {}); }
-                    else { try { await navigator.clipboard.writeText(dailyWird.copyText); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
+                    await shareOrCopy(dailyWird.copyText);
                   }}>
                     <Share2 size={16} />
                   </Button>

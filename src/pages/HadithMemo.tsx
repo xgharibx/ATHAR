@@ -18,6 +18,8 @@ import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { writeClipboard } from "@/lib/nativeUI";
 
 
 /* ------------------------------------------------------------------ */
@@ -457,8 +459,8 @@ export function HadithMemoPage() {
                 type="button"
                 onClick={async () => {
                   try {
-                    await navigator.clipboard.writeText(cleanHadithText(current.item.t));
-                    toast.success("تم النسخ");
+                    const systemConfirmed = await writeClipboard(cleanHadithText(current.item.t));
+                    if (!systemConfirmed) toast.success("تم النسخ");
                   } catch {
                     toast.error("تعذر النسخ");
                   }
@@ -474,10 +476,9 @@ export function HadithMemoPage() {
                 onClick={async () => {
                   const text = `${cleanHadithText(current.item.t)}\n\n${hadithRef(bookTitle(current.bookKey), current.item.a)}`;
                   try {
-                    if (navigator.share) { await navigator.share({ text }); }
-                    else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
+                    await shareOrCopy(text);
                   } catch {
-                    try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
+                    try { const systemConfirmed = await writeClipboard(text); if (!systemConfirmed) toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
                   }
                 }}
                 className="rounded-lg border border-(--stroke) bg-(--card) p-1.5 opacity-60 transition hover:opacity-100 press-effect"

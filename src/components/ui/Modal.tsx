@@ -75,7 +75,8 @@ export function Modal(props: {
               "sm:relative sm:inset-auto sm:mx-auto sm:my-auto sm:max-h-[85vh] sm:w-full sm:max-w-xl sm:rounded-3xl sm:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.45)]",
               props.className ?? "",
             ].join(" ")}
-            style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0px)", overscrollBehavior: "contain" }}
+            // `--kb`: on iPhone the keyboard covers the page, so a sheet with a field lifts above it.
+            style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0px)", bottom: "var(--kb, 0px)", maxHeight: "calc(88dvh - var(--kb, 0px))", overscrollBehavior: "contain" }}
             data-no-swipe
             {...sheetEventProps}
           >
