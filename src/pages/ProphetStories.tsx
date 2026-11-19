@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arCount, arNum, westernToArabicDigits } from "@/lib/formatNumber";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronDown, ChevronUp, Search, X, Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { PROPHET_STORIES, type ProphetStory } from "@/data/prophetStories";
@@ -76,10 +77,10 @@ function StoryCard({
             {story.nameAr}
           </div>
           {story.period && (
-            <div className="text-xs opacity-50 mt-0.5">{story.period}</div>
+            <div className="text-xs opacity-50 mt-0.5">{westernToArabicDigits(story.period)}</div>
           )}
           {story.chapters && story.chapters.length > 0 && (
-            <div className="text-[10px] font-semibold mt-1" style={{ color: "var(--accent)" }}>📚 {story.chapters.length} فصول</div>
+            <div className="text-[10px] font-semibold mt-1" style={{ color: "var(--accent)" }}>📚 {arNum(story.chapters.length)} فصول</div>
           )}
           {!story.chapters && story.fullStory && (
             <div className="text-[10px] font-semibold mt-1" style={{ color: "var(--accent)" }}>📖 قصة كاملة</div>
@@ -297,7 +298,7 @@ export function ProphetStoriesPage() {
                   <div className="text-xs opacity-60">قصص الأنبياء</div>
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: "#f59e0b" }}>قصص الأنبياء</h1>
-                <div className="text-sm opacity-70 mt-1">{filtered.length} من {PROPHET_STORIES.length} نبيًا</div>
+                <div className="text-sm opacity-70 mt-1">{arNum(filtered.length)} من {arNum(PROPHET_STORIES.length)} نبيًا</div>
               </div>
               <button
                 type="button"
@@ -340,7 +341,7 @@ export function ProphetStoriesPage() {
 
       {/* Visually hidden live region for search count */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {query ? `نتائج البحث: ${filtered.length} قصة` : null}
+        {query ? `نتائج البحث: ${arCount(filtered.length, { one: "قصة", two: "قصتان", few: "قصص" })}` : null}
       </div>
       {/* Stories */}
       <div className="px-4 pt-4 stack-y-3" role="list" aria-label="قائمة قصص الأنبياء">

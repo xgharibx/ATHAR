@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { arNum, westernToArabicDigits } from "@/lib/formatNumber";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, ChevronRight, Users, Search, X, Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { COMPANIONS, COMPANION_CATEGORIES, type Companion, type CompanionChapter } from "@/data/companions";
@@ -84,7 +85,7 @@ export default function Companions() {
                 <Users size={19} aria-hidden="true" className="text-(--accent)" />
                 <h1 className="text-lg font-bold">الصحابة الكرام</h1>
               </div>
-              <div className="text-xs opacity-55 mt-1" aria-live="polite" aria-atomic="true">{filtered.length} من {COMPANIONS.length} صحابي</div>
+              <div className="text-xs opacity-55 mt-1" aria-live="polite" aria-atomic="true">{arNum(filtered.length)} من {arNum(COMPANIONS.length)} صحابي</div>
             </div>
             <button
               type="button"
@@ -121,7 +122,7 @@ export default function Companions() {
                 border: activeCategory === "all" ? "1px solid transparent" : "1px solid var(--stroke)",
               }}
             >
-              الجميع ({COMPANIONS.length})
+              الجميع ({arNum(COMPANIONS.length)})
             </button>
             {COMPANION_CATEGORIES.map((cat) => {
               const count = COMPANIONS.filter((c) => c.category === cat.key).length;
@@ -139,7 +140,7 @@ export default function Companions() {
                     border: isActive ? "1px solid transparent" : "1px solid var(--stroke)",
                   }}
                 >
-                  {cat.label} ({count})
+                  {cat.label} ({arNum(count)})
                 </button>
               );
             })}
@@ -214,7 +215,7 @@ export default function Companions() {
                   <div className="flex items-center gap-2 mt-0.5">
                     {companion.death && (
                       <span className="text-[11px]" style={{ color: "var(--muted)" }}>
-                        الوفاة: {companion.death}
+                        الوفاة: {westernToArabicDigits(companion.death)}
                       </span>
                     )}
                     <span
@@ -254,7 +255,7 @@ export default function Companions() {
                           className="text-sm font-bold mb-2"
                           style={{ color: "var(--accent)" }}
                         >
-                          {i + 1}. {ch.title}
+                          {arNum(i + 1)}. {ch.title}
                         </h3>
                         {ch.content.split("\n\n").map((para, j) => (
                           <p key={j} className="text-sm leading-loose mb-2">{para}</p>

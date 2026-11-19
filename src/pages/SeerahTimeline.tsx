@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arCount, arNum } from "@/lib/formatNumber";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronDown, ChevronUp, Search, X, Bookmark, BookmarkCheck } from "lucide-react";
 import {
@@ -94,7 +95,7 @@ function BookCard({
             </span>
             {book.chapters.length > 0 && (
               <span className="text-[10px] font-semibold" style={{ color }}>
-                📚 {book.chapters.length} فصول
+                📚 {arNum(book.chapters.length)} فصول
               </span>
             )}
           </div>
@@ -153,7 +154,7 @@ function BookCard({
                           className="text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0"
                           style={{ background: `color-mix(in srgb, ${color} 20%, transparent)`, color }}
                         >
-                          {idx + 1}
+                          {arNum(idx + 1)}
                         </span>
                       </div>
                       <span
@@ -355,7 +356,7 @@ export default function SeerahTimeline() {
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: "#10b981" }}>السيرة النبوية</h1>
                 <div className="text-sm opacity-70 mt-1">
-                  {filtered.length} من {SEERAH_BOOKS.length} كتاباً
+                  {arNum(filtered.length)} من {arNum(SEERAH_BOOKS.length)} كتابًا
                   {bookmarks.size > 0 && (
                     <span className="mr-2 text-xs" style={{ color: "#10b981" }}>
                       • {bookmarks.size} محفوظ
@@ -451,7 +452,7 @@ export default function SeerahTimeline() {
 
       {/* Live region */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {query ? `نتائج البحث: ${filtered.length} كتاب` : null}
+        {query ? `نتائج البحث: ${arCount(filtered.length, { one: "كتاب", two: "كتابان", few: "كتب" })}` : null}
       </div>
 
       {/* Book list */}
