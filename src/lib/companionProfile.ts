@@ -66,7 +66,7 @@ export const LEVEL_LABEL: Record<CompanionProfile["level"], string> = {
 
 export function buildCompanionProfileContext(p: CompanionProfile): string {
   if (!p.onboarded) {
-    return "حالة المستخدم: لم يُعرِّف نفسه بعد. اقترح عليه أول محادثة بنبرة ترحيب خفيفة ودافئة، ولا تُكثر الأسئلة.";
+    return "";
   }
   const goals = p.goals.length > 0
     ? p.goals

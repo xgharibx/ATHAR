@@ -23,6 +23,7 @@ import {
 import { ReplyContent } from "@/components/companion/ReplyContent";
 import { replyToPlainText } from "@/lib/companionEvidence";
 import { followUpsFor } from "@/lib/companionFollowUps";
+import { planReveal, prefersStillText } from "@/lib/companionReveal";
 import { toast } from "react-hot-toast";
 import Fuse from "fuse.js";
 import { toPng } from "html-to-image";
@@ -74,7 +75,7 @@ import {
 } from "@/lib/companionProfile";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useStickToBottom } from "@/lib/useStickToBottom";
-import { injectReminderStoreIds } from "@/lib/companionReminderBlocks";
+import { injectReminderStoreIds, reminderCategory } from "@/lib/companionReminderBlocks";
 import { useNoorStore } from "@/store/noorStore";
 import { hasCustomReminderPermission } from "@/lib/customReminderNotifications";
 import {
@@ -238,9 +239,14 @@ export function CompanionPage() {
   const [verification, setVerification] = React.useState<VerificationReport | null>(null);
   /** The step the server reports while the reader waits. */
   const [stages, setStages] = React.useState<CompanionStage[]>([]);
+  /** The answer being written onto the screen right now, by its place in the conversation. */
+  const [writingIndex, setWritingIndex] = React.useState<number | null>(null);
+  const writingTimerRef = React.useRef<number | null>(null);
+  React.useEffect(() => () => { if (writingTimerRef.current) window.clearTimeout(writingTimerRef.current); }, []);
   /** The last failed question, shown in the chat with a way to send it again. */
   const [failure, setFailure] = React.useState<{ question: string; error: CompanionError } | null>(null);
   const [showSettings, setShowSettings] = React.useState(false);
+  const [partialStopped, setPartialStopped] = React.useState(false);
   const serverFollowUpsRef = React.useRef<string[]>([]);
 
   const [profile, setProfile] = React.useState<CompanionProfile>(() => loadProfile());
@@ -347,10 +353,13 @@ export function CompanionPage() {
 
   // Restore partial stream from a previous session if any
   React.useEffect(() => {
+    // An answer cut off when the app closed is kept as it stood, marked as
+    // incomplete; nothing is still coming for it.
     const partial = loadPartialStream();
     if (partial && partial.text) {
-      setMessages(partial.messages);
-      setStreamingText(partial.text);
+      setMessages([...partial.messages, { role: "assistant", content: partial.text }]);
+      setPartialStopped(true);
+      clearPartialStream();
     }
   }, []);
 
@@ -360,8 +369,9 @@ export function CompanionPage() {
   React.useEffect(() => {
     const last = messages[messages.length - 1];
     if (last?.role === "user") scrollToBottom("smooth");
-    else stickToBottom("smooth");
-  }, [messages.length, messages, scrollToBottom, stickToBottom]);
+    // An answer being written is followed line by line instead (useFollowWriting).
+    else if (writingIndex === null) stickToBottom("smooth");
+  }, [messages.length, messages, scrollToBottom, stickToBottom, writingIndex]);
 
   // Streaming tokens: follow the growing reply only while at the bottom, with
   // an instant ("auto") scroll — a queued "smooth" animation per token can't
@@ -449,6 +459,13 @@ export function CompanionPage() {
           onDone: (fullText, report) => {
             done = true;
             const withIds = injectReminderStoreIds(fullText, createdReminderIdsRef.current);
+            // The new answer takes the place right after this turn's question,
+            // and is written onto the screen unless the reader wants less motion.
+            if (!prefersStillText()) {
+              if (writingTimerRef.current) window.clearTimeout(writingTimerRef.current);
+              setWritingIndex(history.length);
+              writingTimerRef.current = window.setTimeout(() => setWritingIndex(null), planReveal(withIds).totalMs);
+            }
             setMessages((m) => [...m, { role: "assistant", content: withIds }]);
             setVerification(report);
             setStreamingText(null);
@@ -481,7 +498,7 @@ export function CompanionPage() {
               const repeat = (VALID_REPEATS_PAGE as string[]).includes(repeatRaw)
                 ? (repeatRaw as ParsedReminderView["repeat"])
                 : "once";
-              const categoryRaw = typeof c.input.category === "string" ? c.input.category : "";
+              const categoryRaw = reminderCategory(c.input.category);
               const category = (VALID_CATEGORIES_PAGE as string[]).includes(categoryRaw)
                 ? (categoryRaw as ParsedReminderView["category"])
                 : "custom";
@@ -555,7 +572,6 @@ export function CompanionPage() {
     setPendingConsentMessage(null);
   }, []);
 
-  const [partialStopped, setPartialStopped] = React.useState(false);
 
   const stop = React.useCallback(() => {
     abortRef.current?.abort();
@@ -1036,13 +1052,11 @@ export function CompanionPage() {
       {/* Conversation */}
       <div className="mt-5 stack-y-3" aria-live="polite">
         {messages.map((m, i) => (
-          <MessageBubble key={i} role={m.role} text={m.content} onPin={() => pinReply(m.content)} onShare={() => shareAsImage(m.content)} />
+          <MessageBubble key={i} role={m.role} text={m.content} writing={i === writingIndex} onPin={() => pinReply(m.content)} onShare={() => shareAsImage(m.content)} />
         ))}
-        {streamingText !== null ? (
-          streamingText
-            ? <MessageBubble role="assistant" text={streamingText} streaming tokens={countTokens(streamingText)} />
-            : <ThinkingIndicator stages={stages} onStop={stop} />
-        ) : null}
+        {/* The answer arrives whole, once verified, and is then written in the
+            bubble that stands here while it is prepared. */}
+        {streamingText !== null ? <ThinkingIndicator stages={stages} onStop={stop} /> : null}
         {failure && !isBusy ? (
           <div role="alert" className="flex items-start gap-3 rounded-2xl border border-amber-500/35 bg-amber-500/10 p-3.5">
             <span aria-hidden="true" className="mt-0.5 text-base">⚠️</span>
@@ -1061,14 +1075,14 @@ export function CompanionPage() {
             </div>
           </div>
         ) : null}
-        {verification?.flagged && streamingText === null ? (
-          <div role="status" className="flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+        {verification?.flagged && streamingText === null && writingIndex === null ? (
+          <div role="status" className="ai-after flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
             <span aria-hidden="true" className="mt-0.5">ⓘ</span>
             <ul className="list-inside list-disc">{verification.notes.map((note, i) => <li key={i}>{note}</li>)}</ul>
           </div>
         ) : null}
-        {followUps.length > 0 && !isBusy ? (
-          <div className="mt-2 flex flex-wrap gap-2">
+        {followUps.length > 0 && !isBusy && writingIndex === null ? (
+          <div className="ai-after mt-2 flex flex-wrap gap-2">
             {followUps.map((s) => (
               <button type="button" key={s}
                 onClick={() => void send(s)}
@@ -1329,71 +1343,130 @@ const STAGE_STEPS: Array<{ stage: CompanionStage; label: string }> = [
   { stage: "verifying", label: "يتحقق من الآيات والأحاديث" },
 ];
 
+/**
+ * The answer's own bubble, before the answer: where it will be written, a
+ * few lines of light, and the step the server is on. When the answer comes
+ * it is written into a bubble in this same place, so nothing jumps.
+ */
 export function ThinkingIndicator({ stages, onStop }: { stages: CompanionStage[]; onStop: () => void }) {
   // Steps the server has reached. "searching" only shows when a search runs.
   const steps = STAGE_STEPS.filter((step) => stages.includes(step.stage));
   const current = steps[steps.length - 1];
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-accent-35 bg-linear-to-br from-accent-15 via-(--card) to-(--card) px-4 py-3.5 shadow-[0_0_24px_-6px_var(--accent)]">
-      {/* Sweeping gradient stripe */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 -inset-s-1/2 w-1/2 bg-linear-to-r from-transparent via-(--accent)/15 to-transparent"
-        style={{ animation: "athar-thinking-sweep 2.4s ease-in-out infinite" }}
-      />
-      <div className="relative flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          {/* Concentric gradient orb */}
-          <span className="relative grid h-10 w-10 place-items-center rounded-full">
-            <span
-              className="absolute inset-0 rounded-full opacity-60"
-              style={{
-                background: "conic-gradient(from 0deg, var(--accent), color-mix(in srgb, var(--accent) 30%, transparent), var(--accent))",
-                animation: "athar-orb-spin 3s linear infinite",
-                filter: "blur(2px)",
-              }}
-            />
-            <span className="absolute inset-1 rounded-full bg-linear-to-br from-emerald-300/40 via-emerald-500/30 to-teal-500/30 backdrop-blur-sm" />
-            <Sparkles className="relative h-4 w-4 text-emerald-100" aria-hidden="true" />
-          </span>
-          <div className="flex flex-col">
-            <span className="text-[12px] font-bold text-(--fg)" aria-live="polite">
+    <div className="flex justify-end gap-2" role="status">
+      <div className="min-w-0 w-[88%] max-w-[88%]">
+        <div className="relative overflow-hidden rounded-2xl rounded-tl-md border border-accent-35 bg-(--card) px-4 py-3.5 shadow-[0_0_28px_-10px_var(--accent)]">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[12.5px] font-bold text-(--fg)" aria-live="polite">
               {current ? `${current.label}…` : "يقرأ سؤالك…"}
             </span>
-            <span className="text-[10px] text-(--muted-2) flex items-center gap-1">
-              <span
-                className="inline-block h-1 w-1 rounded-full bg-(--accent)"
-                style={{ animation: "athar-pulse 1.2s ease-in-out infinite" }}
-              />
-              <span
-                className="inline-block h-1 w-1 rounded-full bg-(--accent)"
-                style={{ animation: "athar-pulse 1.2s ease-in-out infinite", animationDelay: "0.15s" }}
-              />
-              <span
-                className="inline-block h-1 w-1 rounded-full bg-(--accent)"
-                style={{ animation: "athar-pulse 1.2s ease-in-out infinite", animationDelay: "0.3s" }}
-              />
-            </span>
+            <button type="button" onClick={onStop}
+              className="shrink-0 rounded-lg border border-(--stroke) bg-(--bg)/60 px-2.5 py-1 text-[11px] text-(--muted) transition hover:text-(--fg)">
+              إيقاف
+            </button>
           </div>
+          <div className="mt-3 stack-y-2.5" aria-hidden="true">
+            <div className="ai-wait-line w-[92%]" />
+            <div className="ai-wait-line w-[78%]" style={{ animationDelay: "0.18s" }} />
+            <div className="ai-wait-line w-[56%]" style={{ animationDelay: "0.36s" }} />
+          </div>
+          {steps.length > 1 ? (
+            <ol className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10.5px] text-(--muted-2)">
+              {steps.slice(0, -1).map((step) => (
+                <li key={step.stage} className="flex items-center gap-1">
+                  <Check className="h-3 w-3 text-(--accent)" aria-hidden="true" />
+                  {step.label}
+                </li>
+              ))}
+            </ol>
+          ) : null}
         </div>
-        <button type="button" onClick={onStop}
-          className="rounded-lg border border-(--stroke) bg-(--bg)/60 px-2.5 py-1 text-[11px] text-(--muted) backdrop-blur-xs transition hover:text-(--fg)">
-          إيقاف
-        </button>
       </div>
-      {steps.length > 1 ? (
-        <ol className="relative mt-2.5 flex flex-wrap gap-x-3 gap-y-1 ps-[52px] text-[10.5px] text-(--muted-2)">
-          {steps.slice(0, -1).map((step) => (
-            <li key={step.stage} className="flex items-center gap-1">
-              <Check className="h-3 w-3 text-(--accent)" aria-hidden="true" />
-              {step.label}
-            </li>
-          ))}
-        </ol>
-      ) : null}
-      <style>{`@keyframes athar-orb-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } } @keyframes athar-pulse { 0%, 100% { opacity: 0.3; transform: scale(0.85) } 50% { opacity: 1; transform: scale(1.1) } } @keyframes athar-thinking-sweep { 0% { transform: translateX(-100%) } 100% { transform: translateX(300%) } }`}</style>
+      <AssistantMark busy />
     </div>
   );
+}
+
+/** «أثر»'s mark beside its answers; it breathes while an answer is prepared or written. */
+function AssistantMark({ busy = false }: { busy?: boolean }) {
+  return (
+    <span className="relative mt-0.5 grid h-8 w-8 shrink-0 place-items-center self-start rounded-xl border border-accent-35 bg-accent-15">
+      {busy ? (
+        <span
+          aria-hidden="true"
+          className="absolute -inset-1 rounded-[14px] opacity-70"
+          style={{ background: "conic-gradient(from 0deg, var(--accent), transparent 40%, var(--accent))", animation: "athar-orb-spin 2.6s linear infinite", filter: "blur(3px)", zIndex: -1 }}
+        />
+      ) : null}
+      <Sparkles className="h-4 w-4 text-(--accent)" aria-hidden="true" />
+      <style>{`@keyframes athar-orb-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
+    </span>
+  );
+}
+
+/**
+ * While an answer is written, keep the line being written in view, the way
+ * a reader's eye would follow it. Scrolling up to re-read stops the
+ * following at once.
+ */
+function useFollowWriting(ref: React.RefObject<HTMLDivElement | null>, active: boolean, totalMs: number) {
+  React.useEffect(() => {
+    const element = ref.current;
+    if (!active || !element || typeof window === "undefined") return;
+    const written = Array.from(element.querySelectorAll<HTMLElement>("[data-at]"));
+    if (written.length === 0) return;
+    const start = performance.now();
+    let following = true;
+    let frame = 0;
+    let lastCheck = 0;
+    let frontier = 0;
+    let grown = 0;
+    let touchY = 0;
+    // A card unfolds a moment before its first word; show it as it does.
+    const LOOKAHEAD_MS = 260;
+    element.classList.add("ai-growing");
+    element.style.setProperty("--grow", "56px");
+    const onWheel = (event: WheelEvent) => { if (event.deltaY < 0) following = false; };
+    const onTouchStart = (event: TouchEvent) => { touchY = event.touches[0]?.clientY ?? 0; };
+    const onTouchMove = (event: TouchEvent) => { if ((event.touches[0]?.clientY ?? 0) > touchY + 8) following = false; };
+    const finish = () => {
+      element.classList.remove("ai-growing");
+      element.style.removeProperty("--grow");
+    };
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      if (elapsed >= totalMs) {
+        finish();
+        return;
+      }
+      if (now - lastCheck > 110) {
+        lastCheck = now;
+        while (frontier + 1 < written.length && Number(written[frontier + 1]!.dataset.at) <= elapsed + LOOKAHEAD_MS) frontier += 1;
+        const box = element.getBoundingClientRect();
+        const word = written[frontier]!.getBoundingClientRect();
+        // The bubble is shown down to the line being written, and only grows.
+        grown = Math.max(grown, word.bottom - box.top + 22);
+        element.style.setProperty("--grow", `${Math.min(grown, box.height)}px`);
+        if (following) {
+          // The composer covers the bottom of the screen.
+          const limit = window.innerHeight - 150;
+          if (word.bottom > limit) window.scrollBy({ top: word.bottom - limit + 48, behavior: "smooth" });
+        }
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    frame = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(frame);
+      finish();
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [ref, active, totalMs]);
 }
 
 /* ─── Message bubble with share + pin ──────────────────────────────────── */
@@ -1403,11 +1476,16 @@ function MessageBubble(props: {
   text: string;
   streaming?: boolean;
   tokens?: number;
+  /** A new answer being written onto the screen (see companionReveal.ts). */
+  writing?: boolean;
   onStop?: () => void;
   onPin?: () => void;
   onShare?: () => void;
 }) {
   const isUser = props.role === "user";
+  const bubbleRef = React.useRef<HTMLDivElement>(null);
+  const totalMs = React.useMemo(() => (props.writing ? planReveal(props.text).totalMs : 0), [props.writing, props.text]);
+  useFollowWriting(bubbleRef, Boolean(props.writing) && !isUser, totalMs);
   const [copied, setCopied] = React.useState(false);
   const copy = React.useCallback(async () => {
     try { await writeClipboard(isUser ? props.text : replyToPlainText(props.text)); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
@@ -1426,11 +1504,11 @@ function MessageBubble(props: {
   return (
     <div className="flex justify-end gap-2">
       <div className="min-w-0 max-w-[88%]">
-        <div className="rounded-2xl rounded-tl-md border border-(--stroke) bg-(--card) px-4 py-3 text-sm leading-relaxed">
-          <BubbleContent text={props.text} streaming={!!props.streaming} tokens={props.tokens} />
+        <div ref={bubbleRef} className="rounded-2xl rounded-tl-md border border-(--stroke) bg-(--card) px-4 py-3 text-sm leading-relaxed">
+          <BubbleContent text={props.text} streaming={!!props.streaming} tokens={props.tokens} writing={props.writing} />
         </div>
-        {!props.streaming && props.text.trim() ? (
-          <div className="mt-1.5 flex items-center gap-1 px-1 text-[11px] text-(--muted-2)">
+        {!props.streaming && !props.writing && props.text.trim() ? (
+          <div className="ai-after mt-1.5 flex items-center gap-1 px-1 text-[11px] text-(--muted-2)">
             <button type="button" onClick={copy} className="flex items-center gap-1 hover:text-(--fg) transition" aria-label="نسخ الرد">
               {copied ? <Check className="h-3 w-3 text-(--ok)" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
               {copied ? "نُسخ" : "نسخ"}
@@ -1446,9 +1524,7 @@ function MessageBubble(props: {
           </div>
         ) : null}
       </div>
-      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center self-start rounded-xl bg-accent-15 border border-accent-35">
-        <Sparkles className="h-4 w-4 text-(--accent)" aria-hidden="true" />
-      </span>
+      <AssistantMark busy={props.writing} />
     </div>
   );
 }
@@ -1533,8 +1609,8 @@ export function parseReminderToolCallsPage(text: string): ParsedReminderView[] {
       if (typeof parsed.title !== "string") continue;
       const repeat = String(parsed.repeat ?? "") as ParsedReminderView["repeat"];
       if (!VALID_REPEATS_PAGE.includes(repeat)) continue;
-      const category = (VALID_CATEGORIES_PAGE as string[]).includes(String(parsed.category))
-        ? (parsed.category as ParsedReminderView["category"])
+      const category = (VALID_CATEGORIES_PAGE as string[]).includes(reminderCategory(parsed.category))
+        ? (reminderCategory(parsed.category) as ParsedReminderView["category"])
         : "custom";
       const anchorKey = (VALID_ANCHORS_PAGE as string[]).includes(String(parsed.anchorKey ?? ""))
         ? (parsed.anchorKey as NonNullable<ParsedReminderView["anchorKey"]>)
@@ -1665,14 +1741,14 @@ function resolveActualReminderPage(r: ParsedReminderView | undefined) {
   return store.customReminders.find((x) => x.title === r.title);
 }
 
-function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: boolean; tokens?: number }) {
+function BubbleContent({ text, streaming, tokens, writing }: { text: string; streaming?: boolean; tokens?: number; writing?: boolean }) {
   const reminders = React.useMemo(() => (streaming ? [] : parseReminderToolCallsPage(text)), [text, streaming]);
   const navigate = useNavigate();
   return (
     <>
-      <ReplyContent text={text} onNavigate={navigateRoute} />
-      {!streaming && reminders.length > 0 ? (
-        <div className="mt-2 stack-y-1.5">
+      <ReplyContent text={text} onNavigate={navigateRoute} write={writing} />
+      {!streaming && !writing && reminders.length > 0 ? (
+        <div className="ai-after mt-2 stack-y-1.5">
           {reminders.map((r) => (
             <ReminderChip
               key={r.id}
@@ -1732,17 +1808,6 @@ function ShimmerCursor({ tokens }: { tokens?: number }) {
   );
 }
 
-/**
- * Rough whitespace-aware word/segment count. Chat-model tokens vary but
- * Arabic text averages ~1.5 tokens per word; this UI counter is a calm
- * "this reply is still growing" affordance, not a billing meter.
- */
-function countTokens(text: string): number {
-  if (!text) return 0;
-  const trimmed = text.trim();
-  if (!trimmed) return 0;
-  return trimmed.split(/\s+/).length;
-}
 
 /* ─── Conversation history grouping + export helpers (in lib) ────────────── */
 

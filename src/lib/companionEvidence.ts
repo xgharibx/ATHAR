@@ -61,7 +61,7 @@ export function parseHadithBlock(body: string): HadithParts {
     }
     if (key === "الدرجة") {
       const [grade, grader] = value!.split(/\s+—\s+/);
-      parts.grade = grade?.trim();
+      parts.grade = grade?.trim().replace(/^\[\s*|\s*\]$/g, "");
       if (grader?.trim()) parts.grader = grader.trim();
     }
   }

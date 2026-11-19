@@ -22,6 +22,7 @@ import { ROUTE_LABELS } from "@/lib/companionAI";
 import { splitIntoSegments } from "@/lib/companionBlocks";
 import { isTrustedSourceUrl } from "@/lib/companionSources";
 import { extractSources, isAcceptedGrade, parseHadithBlock, parseVerseBlock, type SourceLink } from "@/lib/companionEvidence";
+import { CARD_GAP, CARD_TEXT_LEAD, VERSE_PACE, countWords, planReveal } from "@/lib/companionReveal";
 import { getInternalAppRoute } from "@/lib/internalAppRoute";
 import type { CalloutKind } from "@/lib/companionMarkdown";
 
@@ -73,20 +74,95 @@ function GradeChip({ grade, grader }: { grade: string; grader?: string }) {
   );
 }
 
-function HadithCard({ body, size }: { body: string; size: Size }) {
+/* ─── Writing the answer («حبر من نور») ─────────────────────────────────── */
+
+/** Where one part of the answer starts in the writing, and its pace. */
+type Reveal = { base: number; step: number; pace?: number };
+
+const at = (reveal: Reveal, offset: number) => Math.round((reveal.base + offset) * reveal.step);
+const delayStyle = (ms: number) => ({ ["--d" as string]: `${ms}ms` }) as React.CSSProperties;
+
+/** Plain text written word by word. Spaces and line breaks stay where they are. */
+function Written({ text, reveal }: { text: string; reveal?: Reveal }) {
+  if (!reveal) return <>{text}</>;
+  // Each word's place in the writing, worked out before rendering.
+  const pieces = text.split(/(\s+)/);
+  const order: number[] = [];
+  let words = 0;
+  for (const piece of pieces) {
+    order.push(piece && !/^\s+$/.test(piece) ? words++ : -1);
+  }
+  return (
+    <>
+      {pieces.map((piece, key) => {
+        if (order[key]! < 0) return piece;
+        const ms = at(reveal, order[key]! * (reveal.pace ?? 1));
+        return <span key={key} className="rw" data-at={ms} style={delayStyle(ms)}>{piece}</span>;
+      })}
+    </>
+  );
+}
+
+type HastNode = { type: string; tagName?: string; value?: string; properties?: Record<string, unknown>; children?: HastNode[] };
+
+/** The same for rendered markdown: every word of its text becomes a written span. */
+function rehypeWriteWords(reveal: Reveal) {
+  return () => (tree: HastNode) => {
+    let index = 0;
+    const walk = (node: HastNode) => {
+      if (!node.children || node.tagName === "code" || node.tagName === "pre") return;
+      const next: HastNode[] = [];
+      for (const child of node.children) {
+        if (child.type !== "text" || !child.value) {
+          walk(child);
+          next.push(child);
+          continue;
+        }
+        for (const piece of child.value.split(/(\s+)/)) {
+          if (!piece) continue;
+          if (/^\s+$/.test(piece)) {
+            next.push({ type: "text", value: piece });
+            continue;
+          }
+          const ms = at(reveal, index);
+          index += 1;
+          next.push({ type: "element", tagName: "span", properties: { className: ["rw"], dataAt: ms, style: `--d:${ms}ms` }, children: [{ type: "text", value: piece }] });
+        }
+      }
+      node.children = next;
+    };
+    walk(tree);
+  };
+}
+
+/** A card unfolds when the writing reaches it, then its text is written. */
+type Animated = { className?: string; style?: React.CSSProperties };
+function cardReveal(reveal: Reveal | undefined): { card: Animated; text: Reveal | undefined; after: (words: number) => Animated } {
+  if (!reveal) return { card: {}, text: undefined, after: () => ({}) };
+  const cardMs = at(reveal, CARD_GAP - 2);
+  return {
+    card: { className: "rc", style: delayStyle(cardMs) },
+    text: { base: reveal.base + CARD_GAP + CARD_TEXT_LEAD, step: reveal.step, pace: reveal.pace },
+    after: (words: number) => ({ className: "rf", style: delayStyle(at(reveal, CARD_GAP + CARD_TEXT_LEAD + words)) }),
+  };
+}
+
+function HadithCard({ body, size, reveal }: { body: string; size: Size; reveal?: Reveal }) {
   const parts = parseHadithBlock(body);
   const footer = [parts.narrator ?? "", parts.source ? `${parts.source}${parts.number ? ` ${parts.number}` : ""}` : ""].filter(Boolean);
   // The grader is named when it is someone other than the collection's author
   // (a grade by al-Albani on a hadith in the Sunan, say).
   const grader = parts.grader && !(parts.source ?? "").includes(parts.grader) ? parts.grader : undefined;
+  const r = cardReveal(reveal);
+  const words = countWords(parts.text);
   return (
-    <figure className="my-2.5 overflow-hidden rounded-2xl border" style={cardStyle(KIND.hadith.hue)}>
-      <CardLabel kind="hadith" end={parts.grade ? <GradeChip grade={parts.grade} grader={grader} /> : null} />
+    <figure className={["relative my-2.5 overflow-hidden rounded-2xl border", r.card.className ?? ""].join(" ")} style={{ ...cardStyle(KIND.hadith.hue), ...r.card.style }}>
+      <CardLabel kind="hadith" end={parts.grade ? <span {...r.after(words)}><GradeChip grade={parts.grade} grader={grader} /></span> : null} />
       <blockquote className={["arabic-text px-3.5 pt-1.5 text-(--fg) whitespace-pre-wrap", size === "page" ? "text-[17px] leading-9" : "text-[15px] leading-8"].join(" ")}>
-        {parts.text}
+        <Written text={parts.text} reveal={r.text} />
       </blockquote>
       {footer.length > 0 ? (
-        <figcaption className="mx-3.5 mb-2.5 mt-1.5 border-t pt-1.5 text-[11.5px] leading-5 text-(--muted)" style={{ borderColor: "color-mix(in srgb, var(--card-hue) 25%, transparent)" }}>
+        <figcaption className={["mx-3.5 mb-2.5 mt-1.5 border-t pt-1.5 text-[11.5px] leading-5 text-(--muted)", r.after(words).className ?? ""].join(" ")} style={{ borderColor: "color-mix(in srgb, var(--card-hue) 25%, transparent)", ...r.after(words).style }}>
           {footer.join(" · ")}
         </figcaption>
       ) : <div className="h-2.5" />}
@@ -94,19 +170,22 @@ function HadithCard({ body, size }: { body: string; size: Size }) {
   );
 }
 
-function VerseCard({ body, size }: { body: string; size: Size }) {
+function VerseCard({ body, size, reveal }: { body: string; size: Size; reveal?: Reveal }) {
   const parts = parseVerseBlock(body);
+  const r = cardReveal(reveal ? { ...reveal, pace: VERSE_PACE } : undefined);
+  const words = Math.ceil(countWords(parts.text) * VERSE_PACE);
+  const after = r.after(words);
   return (
-    <figure className="my-2.5 overflow-hidden rounded-2xl border" style={cardStyle(KIND.verse.hue)}>
+    <figure className={["relative my-2.5 overflow-hidden rounded-2xl border", r.card.className ?? ""].join(" ")} style={{ ...cardStyle(KIND.verse.hue), ...r.card.style }}>
       <CardLabel kind="verse" />
       <blockquote
         className={["quran-text px-3.5 pt-1.5 text-center text-(--fg)", size === "page" ? "text-[21px] leading-[2.1]" : "text-[18px] leading-[2]"].join(" ")}
         style={{ fontFamily: "var(--font-quran)" }}
       >
-        {parts.text}
+        <Written text={parts.text} reveal={r.text} />
       </blockquote>
       {parts.surah ? (
-        <figcaption className="mx-3.5 mb-2.5 mt-1 border-t pt-1.5 text-center text-[11.5px] text-(--muted)" style={{ borderColor: "color-mix(in srgb, var(--card-hue) 25%, transparent)" }}>
+        <figcaption className={["mx-3.5 mb-2.5 mt-1 border-t pt-1.5 text-center text-[11.5px] text-(--muted)", after.className ?? ""].join(" ")} style={{ borderColor: "color-mix(in srgb, var(--card-hue) 25%, transparent)", ...after.style }}>
           سورة {parts.surah} · الآية {parts.ayah}
         </figcaption>
       ) : <div className="h-2.5" />}
@@ -114,11 +193,12 @@ function VerseCard({ body, size }: { body: string; size: Size }) {
   );
 }
 
-function NoteCard({ kind, body, size }: { kind: CalloutKind; body: string; size: Size }) {
+function NoteCard({ kind, body, size, reveal }: { kind: CalloutKind; body: string; size: Size; reveal?: Reveal }) {
   const k = KIND[kind] ?? KIND.info;
   const prayer = kind === "dua";
+  const r = cardReveal(reveal);
   return (
-    <div className="my-2.5 overflow-hidden rounded-2xl border" style={cardStyle(k.hue)}>
+    <div className={["relative my-2.5 overflow-hidden rounded-2xl border", r.card.className ?? ""].join(" ")} style={{ ...cardStyle(k.hue), ...r.card.style }}>
       <CardLabel kind={kind} />
       <div
         className={[
@@ -127,25 +207,26 @@ function NoteCard({ kind, body, size }: { kind: CalloutKind; body: string; size:
           prayer ? (size === "page" ? "text-[16px] leading-8" : "text-[15px] leading-7") : (size === "page" ? "text-sm leading-7" : "text-[13.5px] leading-6"),
         ].join(" ")}
       >
-        {body}
+        <Written text={body} reveal={r.text} />
       </div>
     </div>
   );
 }
 
-function SourceChips({ sources }: { sources: SourceLink[] }) {
+function SourceChips({ sources, reveal }: { sources: SourceLink[]; reveal?: Reveal }) {
   const shown = sources.filter((source) => isTrustedSourceUrl(source.url));
   if (shown.length === 0) return null;
   return (
     <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-      <span className="text-[11px] text-(--muted-2)">المصادر:</span>
-      {shown.map((source) => (
+      <span className={["text-[11px] text-(--muted-2)", reveal ? "rf" : ""].join(" ")} style={reveal ? delayStyle(at(reveal, 0)) : undefined}>المصادر:</span>
+      {shown.map((source, index) => (
         <a
           key={source.url}
           href={source.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 rounded-full border border-(--stroke) bg-(--card-2) px-2.5 py-0.5 text-[11.5px] font-semibold text-(--fg) transition hover:border-accent-35"
+          className={["inline-flex items-center gap-1 rounded-full border border-(--stroke) bg-(--card-2) px-2.5 py-0.5 text-[11.5px] font-semibold text-(--fg) transition hover:border-accent-35", reveal ? "rf" : ""].join(" ")}
+          style={reveal ? delayStyle(at(reveal, index + 1)) : undefined}
         >
           {source.name}
           <ExternalLink className="h-3 w-3 opacity-60" aria-hidden="true" />
@@ -155,12 +236,13 @@ function SourceChips({ sources }: { sources: SourceLink[] }) {
   );
 }
 
-function ActionButton({ route, label, onNavigate }: { route: string; label: string; onNavigate: (route: string) => void }) {
+function ActionButton({ route, label, onNavigate, reveal }: { route: string; label: string; onNavigate: (route: string) => void; reveal?: Reveal }) {
   return (
     <button
       type="button"
       onClick={() => onNavigate(route)}
-      className="group my-2 flex w-full items-center justify-between gap-2 rounded-2xl border border-accent-35 bg-accent-15 px-3.5 py-2.5 text-start text-sm font-semibold text-(--fg) transition hover:bg-accent-15/80 active:scale-[0.99]"
+      className={["group my-2 flex w-full items-center justify-between gap-2 rounded-2xl border border-accent-35 bg-accent-15 px-3.5 py-2.5 text-start text-sm font-semibold text-(--fg) transition hover:bg-accent-15/80 active:scale-[0.99]", reveal ? "rc" : ""].join(" ")}
+      style={reveal ? delayStyle(at(reveal, 2)) : undefined}
     >
       <span className="flex items-center gap-2">
         <span className="grid h-7 w-7 place-items-center rounded-xl bg-accent-15 text-(--accent)">
@@ -213,34 +295,57 @@ const markdownComponents: Components = {
   hr: () => <hr className="my-3 border-(--stroke)" />,
 };
 
-/** The body of an answer: prose, evidence cards, notes, page buttons and sources. */
-export function ReplyContent({ text, size = "page", onNavigate }: { text: string; size?: Size; onNavigate: (route: string) => void }) {
+/**
+ * The body of an answer: prose, evidence cards, notes, page buttons and
+ * sources. With `write`, the answer is written onto the screen (see
+ * companionReveal.ts); the plan's own count of words decides where each part
+ * starts, so parts never wait on one another to render.
+ */
+export function ReplyContent({ text, size = "page", onNavigate, write = false }: { text: string; size?: Size; onNavigate: (route: string) => void; write?: boolean }) {
   const segments = React.useMemo(() => splitIntoSegments(text), [text]);
+  const step = React.useMemo(() => planReveal(text).step, [text]);
+  // Where each part starts in the writing, and where the sources come.
+  const starts: number[] = [];
   const sources: SourceLink[] = [];
-  const body = segments.map((segment, index) => {
+  let units = 0;
+  for (const segment of segments) {
+    starts.push(units);
     if (segment.kind === "action") {
-      return <ActionButton key={`a-${index}`} route={segment.route} label={segment.label} onNavigate={onNavigate} />;
+      units += CARD_GAP;
+    } else if (segment.kind === "callout") {
+      const cardText = segment.calloutKind === "hadith" ? parseHadithBlock(segment.text).text : segment.calloutKind === "verse" ? parseVerseBlock(segment.text).text : segment.text;
+      units += CARD_GAP + CARD_TEXT_LEAD + Math.ceil(countWords(cardText) * (segment.calloutKind === "verse" ? VERSE_PACE : 1)) + 2;
+    } else {
+      const split = extractSources(segment.text);
+      sources.push(...split.sources);
+      units += countWords(split.text);
+    }
+  }
+  const sourcesStart = units;
+  const body = segments.map((segment, index) => {
+    const reveal: Reveal | undefined = write ? { base: starts[index]!, step } : undefined;
+    if (segment.kind === "action") {
+      return <ActionButton key={`a-${index}`} route={segment.route} label={segment.label} onNavigate={onNavigate} reveal={reveal} />;
     }
     if (segment.kind === "callout") {
-      if (segment.calloutKind === "hadith") return <HadithCard key={`h-${index}`} body={segment.text} size={size} />;
-      if (segment.calloutKind === "verse") return <VerseCard key={`v-${index}`} body={segment.text} size={size} />;
-      return <NoteCard key={`n-${index}`} kind={segment.calloutKind} body={segment.text} size={size} />;
+      if (segment.calloutKind === "hadith") return <HadithCard key={`h-${index}`} body={segment.text} size={size} reveal={reveal} />;
+      if (segment.calloutKind === "verse") return <VerseCard key={`v-${index}`} body={segment.text} size={size} reveal={reveal} />;
+      return <NoteCard key={`n-${index}`} kind={segment.calloutKind} body={segment.text} size={size} reveal={reveal} />;
     }
-    const split = extractSources(segment.text);
-    sources.push(...split.sources);
-    if (!split.text) return null;
+    const prose = extractSources(segment.text).text;
+    if (!prose) return null;
     return (
       <div key={`t-${index}`} className={size === "compact" ? "text-[14px]" : undefined}>
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-          {split.text}
+        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={reveal ? [rehypeWriteWords(reveal)] : undefined} components={markdownComponents}>
+          {prose}
         </ReactMarkdown>
       </div>
     );
   });
   return (
-    <>
+    <div className={write ? "ai-reveal" : undefined}>
       {body}
-      <SourceChips sources={sources} />
-    </>
+      <SourceChips sources={sources} reveal={write ? { base: sourcesStart, step } : undefined} />
+    </div>
   );
 }

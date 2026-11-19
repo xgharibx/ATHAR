@@ -458,22 +458,18 @@ export function buildContextBlock(ctx: CompanionContext): string {
   if (ctx.streakDays > 1) lines.push(`السلسلة الحالية: ${ctx.streakDays} يومًا متواصلًا.`);
   if (ctx.lastSurahId) lines.push(`آخر موضع قرأه: سورة رقم ${ctx.lastSurahId}.`);
   if (ctx.khatma) {
-    lines.push(`الختمة: اليوم ${ctx.khatma.day} من ${ctx.khatma.totalDays}${ctx.khatma.onTrack ? " — متابع" : " — متأخر قليلًا (شجِّعه)"}.`);
+    lines.push(`الختمة: اليوم ${ctx.khatma.day} من ${ctx.khatma.totalDays}${ctx.khatma.onTrack ? " — متابع" : " — متأخر قليلًا"}.`);
   }
 
   // Tomorrow-aware nudges
-  if (ctx.isTomorrowFriday) {
-    lines.push(`غدًا الجمعة: فرصة لقراءة سورة الكهف، والصلاة على النبي ﷺ، والدعاء في ساعة الإجابة.`);
-  } else if (ctx.isThursday) {
-    lines.push(`اليوم الخميس: صيامه مستحب (أبو أيوب الأنصاري رضي الله عنه).`);
-  }
-  if (ctx.isLastTenNights) {
-    lines.push(`العشر الأواخر من رمضان: ليلة القدر خير من ألف شهر — احرص على إحيائها.`);
-  } else if (ctx.isRamadan) {
-    lines.push(`رمضان: روحانية عالية — اقترح الورد والأدعية المناسبة.`);
-  } else if (ctx.daysToRamadan !== null && ctx.daysToRamadan <= 60) {
-    lines.push(`رمضان بعد ${ctx.daysToRamadan} يومًا — إن أراد المستخدم خطة استعدادية فاقترح.`);
-  }
+  // Facts only. A virtue or a ruling here would reach the reply without
+  // verified evidence, and a direction ("encourage him") would pull the
+  // answer away from the question; the server's rules forbid both.
+  if (ctx.isTomorrowFriday) lines.push("غدًا الجمعة.");
+  else if (ctx.isThursday) lines.push("اليوم الخميس.");
+  if (ctx.isLastTenNights) lines.push("نحن في العشر الأواخر من رمضان.");
+  else if (ctx.isRamadan) lines.push("نحن في رمضان.");
+  else if (ctx.daysToRamadan !== null && ctx.daysToRamadan <= 60) lines.push(`رمضان بعد ${ctx.daysToRamadan} يومًا.`);
 
   // 7-day adherence (compact, oldest → newest)
   lines.push(`خريطة الأسبوع (الأقدم → الأحدث): ${ctx.adherenceWeek.map((d) => `${d.weekdayAr}:${d.score}`).join(" | ")}.`);
@@ -528,28 +524,9 @@ const WEB_SEARCH_TOOL: WebSearchTool20250305 = { type: "web_search_20250305", na
 
 const COMPANION_TOOLS: Tool[] = [
   {
-    name: "next_step",
-    description: "اقتراح خطوة عملية واحدة على المستخدم (مثلاً «افتح أذكار الصباح» أو «اقرأ وردي»). استخدم route من قائمة المسارات الصالحة فقط. اكتب description قصيرًا وواضحًا بالعربية.",
-    input_schema: {
-      type: "object",
-      properties: {
-        route: {
-          type: "string",
-          description: "المسار الداخلي للتطبيق، مثال: /c/morning",
-          enum: Object.keys(ROUTE_LABELS),
-        },
-        description: {
-          type: "string",
-          description: "وصف قصير بالعربية لِما سيفعله المستخدم، مثال: «افتح أذكار الصباح»",
-        },
-      },
-      required: ["route", "description"],
-    },
-  },
-  {
     name: "create_reminder",
     description:
-      "أنشئ تذكيرًا شخصيًا للمستخدم من حوارك معه. استخدمها حصرًا حين يطلب المستخدم صراحةً جدولة شيء أو تذكيره به (مثل «ذكّرني بـ…»، «كل جمعة أريد…»، «اجعلني أذكر…»). استدعِ هذه الأداة فعليًا — لا يكفي وصف ما ستفعله. الفئات المتاحة: adhkar, quran, dua, fasting, general. التكرار: once, daily, weekly, monthly (تكرار ثابت بوقتٍ محدد)، أو prayer_aligned/sunnah_aligned (مرتبط بوقت صلاة أو عبادة سنّية عبر anchorKey، يُعاد حسابه يوميًا فعليًا لا بوقتٍ ثابت). atTimeOfDay بصيغة HH:MM (٢٤ ساعة) — مطلوب لـ once/daily/weekly/monthly، اختياري كوقتٍ احتياطي مع anchorKey. لتكرار weekly حدِّد dayOfWeek (اسم اليوم بالإنجليزية)، ولتكرار monthly حدِّد dayOfMonth (١-٣١) — بدونهما لن يُحسب أي موعد فعلي للتذكير. anchorKey يربط التذكير بصلاة أو عبادة سنّية (fajr, dhuhr, asr, maghrib, isha, sunrise, tahajjud, duha, witr) مع anchorOffsetMinutes بالدقائق (سالب = قبل، موجب = بعد) — استخدمه فقط مع repeat=prayer_aligned أو sunnah_aligned، ولا تستخدمه أبدًا لـ«يوم الجمعة» (استخدم weekly + dayOfWeek=friday بدلًا من ذلك، فلا وجود لمفهوم «anchor على الجمعة»). description اختياري. deeplink مسار داخل التطبيق (مثال: /c/morning) ليُفتح عند نقر التذكير. suggestion اختياري وهو اقتراح قصير يظهر للمستخدم. عند استدعاء هذه الأداة، أرسل مع الرد نصًّا قصيرًا بالعربية فقط يخبر المستخدم بأنك أضفت التذكير، ولا تذكر JSON أو تفاصيل تقنية.",
+      "أنشئ تذكيرًا شخصيًا حين يطلب المستخدم صراحةً أن يُذكَّر بشيء أو أن يُجدوَل له (مثل «ذكّرني بـ…» أو «كل جمعة أريد…»). اكتب قبل الاستدعاء جملة تأكيد واحدة تذكر اليوم والوقت. once وdaily وweekly وmonthly تحتاج atTimeOfDay بصيغة HH:MM؛ weekly تحتاج dayOfWeek، وmonthly تحتاج dayOfMonth. prayer_aligned وsunnah_aligned تحتاجان anchorKey، مع anchorOffsetMinutes بالدقائق (سالب = قبل). يوم الجمعة يُجدوَل weekly مع dayOfWeek=friday، لا بـ anchorKey.",
     input_schema: {
       type: "object",
       properties: {
@@ -640,7 +617,7 @@ function buildMemoryBlock(): string {
   const mem = getMemory();
   if (mem.length === 0) return "";
   const lines = mem.slice(-8).map((m) => `- (${m.d}) ${m.q}`);
-  return "ذاكرة محادثات سابقة مع هذا المستخدم (استعن بها، ولا تسردها عليه):\n" + lines.join("\n");
+  return "أسئلة سابقة لهذا المستخدم (لفهم سياقه فقط، لا تذكرها):\n" + lines.join("\n");
 }
 
 /* ─── Friday reflection ─────────────────────────────────────────────────── */
@@ -674,14 +651,19 @@ export function buildWeeklyReflectionPrompt(): string {
   const dayIndex = Math.floor(Date.now() / 86_400_000);
   const todaysHadith = DAILY_HADITH_FAJR_PHRASES[dayIndex % DAILY_HADITH_FAJR_PHRASES.length];
 
+  // Written to fit the assistant's rules: a longer answer because it is asked
+  // for, the hadith named by its words so the server finds and verifies it
+  // (a pasted text could not be shown as verified), and a supplication in the
+  // assistant's own words.
   return [
-    "اكتب لي «خاطرة الجمعة»: خاطرة إيمانية قصيرة (٤-٦ فقرات) مخصَّصة لي بناءً على أسبوعي الفعلي التالي، تبدأ بحمد الله، وتتضمن آية تناسب حالي، وتختم بدعاء ونصيحة عملية واحدة للأسبوع القادم:",
+    "اكتب لي «خاطرة الجمعة»: خاطرة قصيرة في ثلاث فقرات عن أسبوعي، تبدأ بحمد الله، وتتأمل معنى حديث اليوم المذكور أدناه، وتختم بدعاء قصير ونصيحة عملية واحدة للأسبوع القادم.",
+    "أسبوعي:",
     `- أيام النشاط: ${activeDays} من 7`,
     `- آيات قرأتُها: ${ayahs}`,
     `- تسبيحات: ${tasbeeh}`,
-    `- أذكار الصباح: ${morningDays} أيام | أذكار المساء: ${eveningDays} أيام`,
+    `- أذكار الصباح: ${morningDays} أيام، وأذكار المساء: ${eveningDays} أيام`,
     lastRead,
-    `اربط خاطرتك بهذا الحديث النبوي تحديدًا — لا تستبدله ولا تخترع حديثًا آخر ولا تُغيِّر لفظه أو معناه:\n«${todaysHadith}»`,
+    `حديث اليوم في التطبيق: «${todaysHadith}»`,
   ].filter(Boolean).join("\n");
 }
 
@@ -955,7 +937,7 @@ export async function streamCompanionReply(
 
     const dynamicContext = [
       profile.includePersonalContext ? buildContextBlock(ctx) : buildMinimalContextBlock(ctx),
-      profile.includePersonalContext && mood ? `حالة المستخدم الآن: ${mood} (اضبط نبرتك وفقًا لها — لا تبالغ).` : "",
+      profile.includePersonalContext && mood ? `حالة المستخدم الآن كما تبدو من رسالته: ${mood}.` : "",
       profile.includePersonalContext ? buildCompanionProfileContext(profile) : "",
       profile.includePersonalContext ? buildMemoryBlock() : "",
       retrieval.text,

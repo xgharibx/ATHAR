@@ -37,7 +37,8 @@ import {
   type CompanionConversation,
 } from "@/lib/companionHistory";
 import { ReplyContent } from "@/components/companion/ReplyContent";
-import { injectReminderStoreIds } from "@/lib/companionReminderBlocks";
+import { planReveal, prefersStillText } from "@/lib/companionReveal";
+import { injectReminderStoreIds, reminderCategory } from "@/lib/companionReminderBlocks";
 import { useStickToBottom } from "@/lib/useStickToBottom";
 import { useNoorStore } from "@/store/noorStore";
 import { hasCustomReminderPermission } from "@/lib/customReminderNotifications";
@@ -124,8 +125,8 @@ export function parseReminderToolCalls(text: string): ParsedReminder[] {
       if (typeof parsed.title !== "string") continue;
       const repeat = String(parsed.repeat ?? "") as ParsedReminder["repeat"];
       if (!VALID_REPEATS.includes(repeat)) continue;
-      const category = (VALID_CATEGORIES as string[]).includes(String(parsed.category))
-        ? (parsed.category as ParsedReminder["category"])
+      const category = (VALID_CATEGORIES as string[]).includes(reminderCategory(parsed.category))
+        ? (reminderCategory(parsed.category) as ParsedReminder["category"])
         : "custom";
       const anchorKey = (VALID_ANCHORS as string[]).includes(String(parsed.anchorKey ?? ""))
         ? (parsed.anchorKey as NonNullable<ParsedReminder["anchorKey"]>)
@@ -214,6 +215,10 @@ export function CompanionModal(props: {
   const [streamingText, setStreamingText] = React.useState<string | null>(null);
   /** The step the server reports while the reply is prepared. */
   const [stage, setStage] = React.useState<CompanionStage | null>(null);
+  /** The answer being written onto the screen, by its place in the conversation. */
+  const [writingIndex, setWritingIndex] = React.useState<number | null>(null);
+  const writingTimerRef = React.useRef<number | null>(null);
+  React.useEffect(() => () => { if (writingTimerRef.current) window.clearTimeout(writingTimerRef.current); }, []);
   const [verification, setVerification] = React.useState<VerificationReport | null>(null);
   const [showHistory, setShowHistory] = React.useState(false);
   const [history, setHistory] = React.useState<CompanionConversation[]>([]);
@@ -251,8 +256,9 @@ export function CompanionModal(props: {
   React.useEffect(() => {
     const last = messages[messages.length - 1];
     if (last?.role === "user") scrollToBottom("smooth");
-    else stickToBottom("smooth");
-  }, [messages.length, messages, scrollToBottom, stickToBottom]);
+    // A new answer is written from the top; jumping to its (still blank) end would hide it.
+    else if (writingIndex === null) stickToBottom("smooth");
+  }, [messages.length, messages, scrollToBottom, stickToBottom, writingIndex]);
 
   // Streaming tokens follow the reply only while the reader is at the bottom.
   React.useEffect(() => {
@@ -366,6 +372,11 @@ export function CompanionModal(props: {
         onDone: (fullText, ver) => {
           done = true;
           const withIds = injectReminderStoreIds(fullText, createdReminderIdsRef.current);
+          if (!prefersStillText()) {
+            if (writingTimerRef.current) window.clearTimeout(writingTimerRef.current);
+            setWritingIndex(history.length);
+            writingTimerRef.current = window.setTimeout(() => setWritingIndex(null), planReveal(withIds).totalMs);
+          }
           setMessages((m) => [...m, { role: "assistant", content: withIds }]);
           setVerification(ver);
           setStreamingText(null);
@@ -380,7 +391,7 @@ export function CompanionModal(props: {
             const repeat = (VALID_REPEATS as string[]).includes(repeatRaw)
               ? (repeatRaw as ParsedReminder["repeat"])
               : "once";
-            const categoryRaw = typeof c.input.category === "string" ? c.input.category : "";
+            const categoryRaw = reminderCategory(c.input.category);
             const category = (VALID_CATEGORIES as string[]).includes(categoryRaw)
               ? (categoryRaw as ParsedReminder["category"])
               : "custom";
@@ -614,12 +625,9 @@ export function CompanionModal(props: {
             </div>
           ) : null}
           {messages.map((m, i) => (
-            <ModalBubble key={i} role={m.role} text={m.content} onNavigate={navigateRoute} />
+            <ModalBubble key={i} role={m.role} text={m.content} writing={i === writingIndex} onNavigate={navigateRoute} />
           ))}
           {streamingText !== null ? (
-            streamingText
-              ? <ModalBubble role="assistant" text={streamingText} streaming onNavigate={navigateRoute} />
-              : (
                 <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-3.5 py-2.5 text-[11px] text-emerald-100">
                   <span className="relative grid h-6 w-6 place-items-center rounded-full">
                     <span
@@ -632,9 +640,8 @@ export function CompanionModal(props: {
                   <span aria-live="polite">{stage ? MODAL_STAGE_LABEL[stage] : "يقرأ سؤالك…"}</span>
                   <style>{`@keyframes athar-modal-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
                 </div>
-              )
           ) : null}
-          {verification?.flagged && streamingText === null ? (
+          {verification?.flagged && streamingText === null && writingIndex === null ? (
             <div className="flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
               <ul className="list-inside list-disc">{verification.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
@@ -730,13 +737,13 @@ function resolveActualReminder(r: ParsedReminder | undefined) {
   return store.customReminders.find((x) => x.title === r.title);
 }
 
-function ModalBubbleContent({ text, streaming, onNavigate }: { text: string; streaming?: boolean; onNavigate: (route: string) => void }) {
-  const reminders = React.useMemo(() => (streaming ? [] : parseReminderToolCalls(text)), [text, streaming]);
+function ModalBubbleContent({ text, streaming, writing, onNavigate }: { text: string; streaming?: boolean; writing?: boolean; onNavigate: (route: string) => void }) {
+  const reminders = React.useMemo(() => (streaming || writing ? [] : parseReminderToolCalls(text)), [text, streaming, writing]);
   return (
     <>
       {/* The modal is always dark; its text colours are set for the shared view. */}
       <div style={MODAL_REPLY_COLOURS}>
-        <ReplyContent text={text} size="compact" onNavigate={onNavigate} />
+        <ReplyContent text={text} size="compact" onNavigate={onNavigate} write={writing} />
       </div>
       {!streaming && reminders.length > 0 ? (
         <ReminderChips
@@ -814,7 +821,7 @@ function ReminderChips({
   );
 }
 
-function ModalBubble(props: { role: "user" | "assistant"; text: string; streaming?: boolean; onNavigate: (route: string) => void }) {
+function ModalBubble(props: { role: "user" | "assistant"; text: string; streaming?: boolean; writing?: boolean; onNavigate: (route: string) => void }) {
   const isUser = props.role === "user";
   return (
     <div className={isUser ? "flex justify-end" : "flex justify-start"}>
@@ -826,7 +833,7 @@ function ModalBubble(props: { role: "user" | "assistant"; text: string; streamin
       ].join(" ")}>
         {isUser
           ? <span style={{ whiteSpace: "pre-wrap" }}>{props.text}</span>
-          : <ModalBubbleContent text={props.text} streaming={props.streaming} onNavigate={props.onNavigate} />}
+          : <ModalBubbleContent text={props.text} streaming={props.streaming} writing={props.writing} onNavigate={props.onNavigate} />}
       </div>
     </div>
   );

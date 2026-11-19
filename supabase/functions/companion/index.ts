@@ -19,7 +19,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 import { companionCorsHeaders } from "./cors.ts";
 import { EVIDENCE_STEP_SYSTEM, EVIDENCE_TOOL, buildEvidenceBlock, gatherHadith, gatherVerses, loadQuran, readEvidencePlan } from "./evidence.ts";
 import { type GuardContext, ReplyGuard, UNAVAILABLE_REPLY, finalizeReplyDetailed, isUsableReply } from "./guard.ts";
-import { CLIENT_BASE_PROMPT_OPENING, SERVER_SYSTEM_PROMPT, focusClientContext } from "./prompt.ts";
+import { CLIENT_BASE_PROMPT_OPENING, CLIENT_CONTEXT_HEADING, CREATE_REMINDER_TOOL, SERVER_SYSTEM_PROMPT, focusClientContext } from "./prompt.ts";
 import { SEARCH_STEP_SYSTEM, buildTrustedResultsBlock, selectTrustedResults } from "./sources.ts";
 import { guardMessage, guardSseStream } from "./stream.ts";
 
@@ -60,7 +60,7 @@ const EVIDENCE_CONTEXT_CHARS = 600;
 const RETRY_TIMEOUT_MS = 40_000;
 // Dropped clauses and sentences beyond which a reply is worth writing again.
 const RETRY_DAMAGE_THRESHOLD = 3;
-const RETRY_INSTRUCTION = "تنبيه أخير: اكتب الجواب كله بالعربية الفصحى، بحروف عربية فقط، في جمل قصيرة تامة المعنى. لا تكتب بأي لغة أخرى ولا بحروف لاتينية، ولا تروِ عن النبي ﷺ قولًا أو فعلًا بعبارتك؛ الدليل يظهر في كتلته فقط.";
+const RETRY_INSTRUCTION = "تنبيه أخير: اكتب الجواب النهائي وحده، بلا مخطط ولا ملاحظات، بالعربية الفصحى، بحروف عربية فقط، في جمل قصيرة تامة المعنى. لا تكتب بأي لغة أخرى ولا بحروف لاتينية، ولا تروِ عن النبي ﷺ قولًا أو فعلًا بعبارتك؛ الدليل يظهر في كتلته فقط.";
 const MAX_BODY_BYTES = 256 * 1024;
 const UPSTREAM_TIMEOUT_MS = 60_000;
 const WINDOW_MS = 60_000;
@@ -301,9 +301,11 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
       if (typeof name !== "string" || !COMPANION_TOOL_NAMES.has(name)) {
         return jsonError(req, "unrecognized tool definition", 400);
       }
-      // Library excerpts are no longer given to the model, so there is nothing
-      // for the citation tool to point at.
-      if (name !== "cite") clientTools.push(tool);
+      // Only reminders remain a tool, defined by the server. Buttons to a page
+      // are written as an action block (one way, not two that the model mixed
+      // up), and library excerpts are no longer given to the model, so there
+      // is nothing for the citation tool to point at.
+      if (name === "create_reminder" && !clientTools.includes(CREATE_REMINDER_TOOL)) clientTools.push(CREATE_REMINDER_TOOL);
     }
   }
 
@@ -327,7 +329,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
       .filter((text) => text && !text.trimStart().startsWith(CLIENT_BASE_PROMPT_OPENING))
       .map((text) => focusClientContext(text).slice(0, MAX_CLIENT_CONTEXT_CHARS))
       .filter(Boolean)
-      .map((text) => ({ type: "text", text }));
+      .map((text) => ({ type: "text", text: `${CLIENT_CONTEXT_HEADING}\n${text}` }));
     const system = [
       { type: "text", text: SERVER_SYSTEM_PROMPT },
       ...clientBlocks,

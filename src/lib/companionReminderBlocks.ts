@@ -26,3 +26,14 @@ export function injectReminderStoreIds(
     }
   });
 }
+
+/**
+ * The reminder tool names its categories in its own words (adhkar, fasting,
+ * general); the app's reminders use dhikr, fast and custom. Unmapped, a fasting
+ * reminder lost its category and showed as a plain one.
+ */
+const TOOL_CATEGORY: Record<string, string> = { adhkar: "dhikr", fasting: "fast", general: "custom" };
+export function reminderCategory(value: unknown): string {
+  const raw = typeof value === "string" ? value : "";
+  return TOOL_CATEGORY[raw] ?? raw;
+}

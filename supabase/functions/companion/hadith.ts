@@ -151,7 +151,8 @@ export function formatHadithAttribution(item: HadithEvidence): string {
   const parts = [
     item.narrator ? `الراوي: ${item.narrator}` : "",
     `المصدر: ${item.source}${item.number ? ` (${item.number})` : ""}`,
-    `الدرجة: ${item.grade}${item.grader ? ` — ${item.grader}` : ""}`,
+    // The encyclopedia writes some grades in brackets ("[صحيح]").
+    `الدرجة: ${item.grade.replace(/^\[\s*|\s*\]$/g, "")}${item.grader ? ` — ${item.grader}` : ""}`,
   ].filter(Boolean);
   return `— ${parts.join(" | ")}`;
 }

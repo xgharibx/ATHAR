@@ -9817,3 +9817,124 @@ body:has(.sebha-focus) .fab {
 @media (prefers-reduced-motion: reduce) {
   .new-glow { animation: none; box-shadow: 0 0 10px 1px rgba(232, 185, 35, 0.35); }
 }
+
+/* ── «حبر من نور»: an answer from أثر is written onto the screen ─────────────
+   Each word rises out of a soft blur with a brief glow of the theme's light
+   that cools into ink; cards unfold with one sweep of light along the edge.
+   Delays come from src/lib/companionReveal.ts (--d per element). */
+.ai-reveal .rw {
+  display: inline-block;
+  animation: ai-ink 620ms cubic-bezier(0.22, 0.8, 0.24, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes ai-ink {
+  0% {
+    opacity: 0;
+    transform: translateY(0.42em);
+    filter: blur(7px);
+    text-shadow: none;
+  }
+  32% {
+    opacity: 1;
+    filter: blur(0);
+    text-shadow:
+      0 0 14px color-mix(in srgb, var(--accent) 80%, transparent),
+      0 0 3px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    text-shadow: none;
+  }
+}
+.ai-reveal .rc {
+  animation: ai-card 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+.ai-reveal .rc::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    color-mix(in srgb, var(--card-hue, var(--accent)) 30%, transparent) 46%,
+    color-mix(in srgb, #fff 22%, transparent) 50%,
+    color-mix(in srgb, var(--card-hue, var(--accent)) 30%, transparent) 54%,
+    transparent 70%
+  );
+  transform: translateX(110%);
+  animation: ai-sweep 1100ms ease-in-out both;
+  animation-delay: calc(var(--d, 0ms) + 260ms);
+}
+@keyframes ai-card {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.975);
+    clip-path: inset(0 0 100% 0 round 16px);
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 0 0 round 16px);
+  }
+}
+@keyframes ai-sweep {
+  from { transform: translateX(110%); opacity: 1; }
+  to { transform: translateX(-110%); opacity: 0; }
+}
+.ai-reveal .rf {
+  animation: ai-fade 460ms ease-out both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes ai-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+/* What comes after an answer (its buttons, the next questions) arrives once it is written. */
+.ai-after {
+  animation: ai-fade 420ms ease-out both;
+}
+/* The waiting bubble: lines of light where the answer will be written. */
+.ai-wait-line {
+  height: 0.62rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--fg) 7%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 32%, transparent) 45%,
+    color-mix(in srgb, var(--fg) 7%, transparent) 90%
+  );
+  background-size: 220% 100%;
+  animation: ai-wait 1.9s ease-in-out infinite;
+}
+@keyframes ai-wait {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-reveal .rw, .ai-reveal .rc, .ai-reveal .rc::after, .ai-reveal .rf, .ai-after, .ai-wait-line { animation: none !important; }
+}
+.reduce-motion .ai-reveal .rw, .reduce-motion .ai-reveal .rc, .reduce-motion .ai-reveal .rc::after,
+.reduce-motion .ai-reveal .rf, .reduce-motion .ai-after, .reduce-motion .ai-wait-line { animation: none !important; }
+/* Words written one by one are separate boxes; a paragraph made only of boxes
+   has no letters to take its direction from, and `plaintext` then lays it out
+   left to right — the words of a hadith came out in reverse. */
+.ai-reveal .arabic-text,
+.ai-reveal .quran-text {
+  unicode-bidi: isolate;
+  direction: rtl;
+}
+/* The bubble grows with the writing: it is shown down to the line being written. */
+.ai-growing {
+  clip-path: inset(0 0 calc(100% - var(--grow, 56px)) 0 round 16px);
+  transition: clip-path 260ms linear;
+}
+.reduce-motion .ai-growing { clip-path: none; }
+@media (prefers-reduced-motion: reduce) { .ai-growing { clip-path: none; } }
