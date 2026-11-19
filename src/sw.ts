@@ -6,7 +6,6 @@ import {
   NetworkFirst,
   NetworkOnly,
   CacheFirst,
-  StaleWhileRevalidate,
 } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
@@ -68,6 +67,8 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
     caches.delete("wbw-api-v1").catch((error: unknown) => {
       console.warn("[athar] Could not remove the legacy year-long word-by-word cache.", error);
     }),
+    // The fonts ship with the app now; Google Fonts are no longer fetched.
+    ...["google-fonts-stylesheets", "google-fonts-webfonts"].map((name) => caches.delete(name).catch(() => false)),
     caches.delete("athar-html").catch((error: unknown) => {
       console.warn("[athar] Could not remove legacy unbounded navigation cache.", error);
     }),
@@ -101,26 +102,6 @@ setCatchHandler(async ({ request }) => {
 });
 
 // Runtime caches (mirror the previous generateSW workbox.runtimeCaching rules).
-registerRoute(
-  ({ url }) => url.origin === "https://fonts.googleapis.com",
-  new StaleWhileRevalidate({
-    cacheName: "google-fonts-stylesheets",
-    plugins: [new ExpirationPlugin({ maxEntries: 10 })],
-  }),
-);
-registerRoute(
-  ({ url }) => url.origin === "https://fonts.gstatic.com",
-  new CacheFirst({
-    cacheName: "google-fonts-webfonts",
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({
-        maxEntries: 10,
-        maxAgeSeconds: 60 * 60 * 24 * 365,
-      }),
-    ],
-  }),
-);
 // Explicit offline downloads use cache:no-store to bypass this handler and are
 // written only after their response size and aggregate usage pass the app budget.
 registerRoute(

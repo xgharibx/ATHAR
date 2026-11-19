@@ -62,8 +62,9 @@ export function buildContentSecurityPolicy(scriptHashes: string[]): string {
       ],
     ],
     // Component libraries set inline styles; styles cannot run code.
-    ["style-src", ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"]],
-    ["font-src", ["'self'", "data:", "https://fonts.gstatic.com"]],
+    ["style-src", ["'self'", "'unsafe-inline'"]],
+    // The fonts ship with the app (src/styles/fonts.css).
+    ["font-src", ["'self'", "data:"]],
     // Recitations, radio streams, thumbnails and content APIs come from many
     // HTTPS hosts listed in data files, so these stay scheme-restricted.
     ["img-src", ["'self'", "data:", "blob:", "https:"]],
