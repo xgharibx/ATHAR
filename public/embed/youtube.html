@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.youtube.com https://s.ytimg.com; frame-src https://www.youtube-nocookie.com https://www.youtube.com; style-src 'self'; img-src https: data:; connect-src https:" />
+  <title>أثر — مشغّل الفيديو</title>
+  <link rel="stylesheet" href="youtube.css" />
+</head>
+<body>
+  <!--
+    The video player for the iPhone and Android apps.
+
+    YouTube now refuses an embedded player whose page has no web address to
+    send as its referrer, and the apps' own pages have none it accepts
+    (capacitor://localhost on iPhone): the player showed "Error 153" instead of
+    the lesson. The apps load this page from athark.org, which YouTube accepts,
+    and it holds the player. youtube.js relays the controls the apps use
+    (play, pause, seek, mute) and reports the player's state back.
+  -->
+  <div id="player"></div>
+  <script src="youtube.js"></script>
+</body>
+</html>

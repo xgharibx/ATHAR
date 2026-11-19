@@ -69,7 +69,9 @@ export function buildContentSecurityPolicy(scriptHashes: string[]): string {
     ["img-src", ["'self'", "data:", "blob:", "https:"]],
     ["media-src", ["'self'", "data:", "blob:", "https:"]],
     ["connect-src", ["'self'", "data:", "blob:", "https:", "wss:"]],
-    ["frame-src", ["https://www.youtube.com", "https://www.youtube-nocookie.com"]],
+    // The apps play YouTube through athark.org's player page (YouTube refuses
+    // their own pages as referrers); see src/lib/youtubePlayer.ts.
+    ["frame-src", ["https://www.youtube.com", "https://www.youtube-nocookie.com", "https://www.athark.org"]],
     ["worker-src", ["'self'", "blob:"]],
     ["manifest-src", ["'self'"]],
     ["object-src", ["'none'"]],

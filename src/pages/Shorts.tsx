@@ -30,7 +30,7 @@ import { Heart, Volume2, VolumeX, ChevronLeft, Play, Pause, Share2, EyeOff, Book
 import { useShortsDB } from "@/data/useShortsDB";
 import { useNoorStore, type ShortsChannelStat } from "@/store/noorStore";
 import { buildShortsFeed, posterFor, type Short } from "@/lib/shortsFeed";
-import { createPlayer, loadYouTubeApi, YT_STATE, type YTPlayer } from "@/lib/youtubePlayer";
+import { createPlayer, embedSrc, loadYouTubeApi, YT_STATE, type YTPlayer } from "@/lib/youtubePlayer";
 import { shareText } from "@/lib/shareTargets";
 import { getShortsSeekTarget } from "@/lib/shortsKeyboardControls";
 import { ShortsLibrary } from "@/components/shorts/ShortsLibrary";
@@ -88,18 +88,18 @@ function readMutePreference(): boolean {
 }
 
 function embedUrl(id: string, muted: boolean) {
-  const p = new URLSearchParams({
-    autoplay: "1",
-    mute: muted ? "1" : "0",
-    playsinline: "1",
-    controls: "1",
-    rel: "0",
-    modestbranding: "1",
-    loop: "1",
+  // In the apps this is the athark.org player page (YouTube refuses the apps' own pages).
+  return embedSrc(id, {
+    autoplay: 1,
+    mute: muted ? 1 : 0,
+    playsinline: 1,
+    controls: 1,
+    rel: 0,
+    modestbranding: 1,
+    loop: 1,
     playlist: id, // `loop` needs an explicit playlist to repeat a single video
-    iv_load_policy: "3",
+    iv_load_policy: 3,
   });
-  return `https://www.youtube-nocookie.com/embed/${id}?${p.toString()}`;
 }
 
 function ShortCard({

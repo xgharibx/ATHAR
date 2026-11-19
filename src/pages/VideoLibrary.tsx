@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arNum } from "@/lib/formatNumber";
 import Fuse from "fuse.js";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -189,9 +190,9 @@ function SheikhBannerCard({
             style={{ background: `${channel.accent}18`, borderColor: `${channel.accent}45`, color: channel.accent }}
           >
             {videos.length > 0
-              ? `${videos.length} فيديو`
+              ? `${arNum(videos.length)} فيديو`
               : courses.length > 0
-              ? `${courses.length} دورة`
+              ? `${arNum(courses.length)} دورة`
               : "قريباً"}
           </div>
         </div>
@@ -210,9 +211,9 @@ function SheikhBannerCard({
               <ThinBar percent={stats.percent} accent={channel.accent} />
               <div className="flex items-center justify-between text-[10px] opacity-50 mt-1">
                 <span>
-                  {stats.done}/{stats.total}
+                  {arNum(stats.done)}/{arNum(stats.total)}
                 </span>
-                <span>{stats.percent}%</span>
+                <span>{arNum(stats.percent)}٪</span>
               </div>
             </>
           ) : (
@@ -308,7 +309,7 @@ function CourseCard2({
           {course.isGenerated ? (
             <><BookOpen size={9} aria-hidden="true" /><span>موضوع</span></>
           ) : (
-            <><GraduationCap size={9} aria-hidden="true" /><span>{videos.length} درس</span></>
+            <><GraduationCap size={9} aria-hidden="true" /><span>{arNum(videos.length)} درس</span></>
           )}
         </div>
         {course.isGenerated && (
@@ -316,7 +317,7 @@ function CourseCard2({
             className="px-1.5 py-0.5 rounded-xl text-[9px] font-semibold"
             style={{ background: "rgba(0,0,0,0.55)", color: "rgba(255,255,255,0.55)" }}
           >
-            {videos.length} فيديو
+            {arNum(videos.length)} فيديو
           </div>
         )}
       </div>
@@ -340,7 +341,7 @@ function CourseCard2({
           <div className="stack-y-1">
             <ThinBar percent={stats.percent} accent={accent} />
             <div className="flex items-center justify-between text-[9px] opacity-55">
-              <span>{stats.done}/{stats.total}</span>
+              <span>{arNum(stats.done)}/{arNum(stats.total)}</span>
               <span>{formatDuration(stats.totalSeconds)}</span>
             </div>
           </div>
@@ -795,7 +796,7 @@ function VideoHome({
                   className="flex items-center gap-1.5 rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5"
                 >
                   <span className="text-[10px] opacity-50">{s.label}</span>
-                  <span className="text-[13px] font-bold">{s.value}</span>
+                  <span className="text-[13px] font-bold">{arNum(s.value)}</span>
                 </div>
               ))}
               {overallStats.total > 0 && (
@@ -810,7 +811,7 @@ function VideoHome({
                     تقدمك
                   </span>
                   <span className="text-[13px] font-bold" style={{ color: "var(--accent)" }}>
-                    {overallStats.percent}%
+                    {arNum(overallStats.percent)}٪
                   </span>
                 </div>
               )}
@@ -845,7 +846,7 @@ function VideoHome({
                   className={cn("shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
                     searchChannelFilter === ch.id ? "border-transparent" : "bg-(--card) border-(--stroke) hover:bg-(--card-2)")}
                   style={searchChannelFilter === ch.id ? { background: ch.accent, color: contrastText(ch.accent) } : { borderColor: `${ch.accent}40` }}>
-                  {ch.name} ({ch.count})
+                  {ch.name} ({arNum(ch.count)})
                 </button>
               ))}
             </div>
@@ -986,7 +987,7 @@ function VideoHome({
         <section aria-label="المشايخ">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">المشايخ</h2>
-            <span className="text-xs opacity-40">{data.db.channels.length} قناة</span>
+            <span className="text-xs opacity-40">{arNum(data.db.channels.length)} قناة</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {data.db.channels.map((ch) => (
@@ -1011,7 +1012,7 @@ function VideoHome({
               <Zap size={14} aria-hidden="true" style={{ color: "var(--accent)" }} />
               في تقدم
             </h2>
-            <span className="text-xs opacity-40">{inProgressCourses.length} دورة</span>
+            <span className="text-xs opacity-40">{arNum(inProgressCourses.length)} دورة</span>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-0.5 px-0.5">
             {inProgressCourses.map((c) => (
@@ -1058,7 +1059,7 @@ function VideoHome({
         <section aria-label="أحدث الدروس">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">أحدث الدروس</h2>
-            <span className="text-xs opacity-40">{newestVideos.length} درس</span>
+            <span className="text-xs opacity-40">{arNum(newestVideos.length)} درس</span>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-0.5 px-0.5">
             {newestVideos.map((v) => (
@@ -1105,7 +1106,7 @@ function VideoHome({
               <CheckCircle2 size={14} className="text-emerald-400" />
               مكتملة
             </h2>
-            <span className="text-xs opacity-40">{completedCourses.length} دورة</span>
+            <span className="text-xs opacity-40">{arNum(completedCourses.length)} دورة</span>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-0.5 px-0.5">
             {completedCourses.slice(0, 12).map((c) => (
@@ -1265,7 +1266,7 @@ function SheikhScreen({
             {stats.total > 0 && (
               <ProgressRing percent={stats.percent} size={54} strokeWidth={4} color={channel.accent}>
                 <span className="text-[10px] font-bold" style={{ color: channel.accent }}>
-                  {stats.percent}%
+                  {arNum(stats.percent)}٪
                 </span>
               </ProgressRing>
             )}
@@ -1281,18 +1282,18 @@ function SheikhScreen({
                     color: channel.accent,
                   }}
                 >
-                  {channelVideos.length} فيديو
+                  {arNum(channelVideos.length)} فيديو
                 </div>
               )}
               {channelCourses.length > 0 && (
                 <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs">
-                  {channelCourses.length} دورة
+                  {arNum(channelCourses.length)} دورة
                 </div>
               )}
               {stats.done > 0 && (
                 <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs flex items-center gap-1">
                   <CheckCircle2 size={11} className="opacity-60" />
-                  <span>{stats.done} مكتمل</span>
+                  <span>{arNum(stats.done)} مكتمل</span>
                 </div>
               )}
               {channelVideos.length > 0 && Math.floor(channelVideos.reduce((s, v) => s + (v.durationSeconds ?? 0), 0) / 3600) > 0 && (
@@ -1364,7 +1365,7 @@ function SheikhScreen({
       <section aria-label={topicFilter ? "الفيديوهات المصنفة" : "كل الفيديوهات"}>
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[13px] font-semibold arabic-text">{topicFilter ? "الفيديوهات المصنفة" : "كل الفيديوهات"}</h2>
-          <span className="text-xs opacity-40">{visibleVideos.length}</span>
+          <span className="text-xs opacity-40">{arNum(visibleVideos.length)}</span>
         </div>
         {/* Sort chips */}
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2" role="group" aria-label="ترتيب الفيديوهات">
@@ -1515,7 +1516,7 @@ function CourseScreen({
             </div>
             <ProgressRing percent={stats.percent} size={60} strokeWidth={5} color={accent}>
               <div className="text-[11px] font-bold" style={{ color: accent }}>
-                {stats.percent}%
+                {arNum(stats.percent)}٪
               </div>
             </ProgressRing>
           </div>
@@ -1525,7 +1526,7 @@ function CourseScreen({
               className="rounded-2xl px-3 py-1.5 text-xs border"
               style={{ background: `${accent}12`, borderColor: `${accent}30`, color: accent }}
             >
-              {stats.done}/{stats.total} مكتمل
+              {arNum(stats.done)}/{arNum(stats.total)} مكتمل
             </div>
             {stats.totalSeconds > 0 && (
               <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs flex items-center gap-1">
@@ -1568,7 +1569,7 @@ function CourseScreen({
       <section aria-label="قائمة الدروس">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[13px] font-semibold arabic-text">قائمة الدروس</h2>
-          <span className="text-xs opacity-40">{courseVideos.length} درس</span>
+          <span className="text-xs opacity-40">{arNum(courseVideos.length)} درس</span>
         </div>
         {/* Sort chips */}
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2" role="group" aria-label="ترتيب الفيديوهات">
@@ -1783,7 +1784,7 @@ function WatchScreen({
               <div>
                 <div className="text-[12px] font-semibold arabic-text">{course.title}</div>
                 <div className="text-[11px] opacity-45 mt-0.5">
-                  {index + 1} من {courseVideos.length} درس
+                  {arNum(index + 1)} من {arNum(courseVideos.length)} درس
                 </div>
               </div>
             </div>
@@ -1794,7 +1795,7 @@ function WatchScreen({
                 aria-valuemin={0}
                 aria-valuemax={courseVideos.length}
                 aria-valuenow={courseVideos.filter((v) => progress[v.id]?.completed).length}
-                aria-label={`تقدم الدورة: ${courseVideos.filter((v) => progress[v.id]?.completed).length} من ${courseVideos.length} درس`}
+                aria-label={`تقدم الدورة: ${courseVideos.filter((v) => progress[v.id]?.completed).length} من ${arNum(courseVideos.length)} درس`}
               >
                 <div
                   className="h-full rounded-full"
@@ -1950,16 +1951,16 @@ function TopicScreen({
           </div>
           <div className="flex gap-2 flex-wrap">
             <div className="rounded-2xl px-3 py-1.5 text-xs border" style={{ background: `${topic.accent}12`, borderColor: `${topic.accent}30`, color: topic.accent }}>
-              {topicVideos.length} فيديو
+              {arNum(topicVideos.length)} فيديو
             </div>
             {topicCourses.length > 0 && (
               <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs flex items-center gap-1">
-                <GraduationCap size={10} aria-hidden="true" /><span>{topicCourses.length} دورة</span>
+                <GraduationCap size={10} aria-hidden="true" /><span>{arNum(topicCourses.length)} دورة</span>
               </div>
             )}
             {channelIds.length > 0 && (
               <div className="rounded-2xl bg-(--card) border border-(--stroke) px-3 py-1.5 text-xs">
-                {channelIds.length} مشايخ
+                {arNum(channelIds.length)} مشايخ
               </div>
             )}
           </div>
@@ -1995,7 +1996,7 @@ function TopicScreen({
               channelFilter === null ? "border-transparent" : "bg-(--card) border-(--stroke) hover:bg-(--card-2)")}
             style={channelFilter === null ? { background: topic.accent, color: contrastText(topic.accent) } : {}}
           >
-            الكل ({topicVideos.length})
+            الكل ({arNum(topicVideos.length)})
           </button>
           {channelChips.map(({ id, channel, count }) => (
             <button type="button" key={id}
@@ -2005,7 +2006,7 @@ function TopicScreen({
                 channelFilter === id ? "border-transparent" : "bg-(--card) border-(--stroke) hover:bg-(--card-2)")}
               style={channelFilter === id ? { background: channel.accent, color: contrastText(channel.accent) } : { borderColor: `${channel.accent}40` }}
             >
-              {channel.displayName} ({count})
+              {channel.displayName} ({arNum(count)})
             </button>
           ))}
         </div>
@@ -2015,7 +2016,7 @@ function TopicScreen({
       <section aria-label="الفيديوهات">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[13px] font-semibold arabic-text">الفيديوهات</h2>
-          <span className="text-xs opacity-40">{visibleVideos.length}</span>
+          <span className="text-xs opacity-40">{arNum(visibleVideos.length)}</span>
         </div>
         {/* Sort chips */}
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2" role="group" aria-label="ترتيب الفيديوهات">
