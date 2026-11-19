@@ -85,7 +85,7 @@ const LIBRARY_SECTIONS: LibrarySection[] = [
   {
     id: "seerah",
     title: "السيرة النبوية",
-    subtitle: "16 كتاباً في حياة النبي ﷺ",
+    subtitle: "١٦ كتابًا في حياة النبي ﷺ",
     description: "السيرة المفصلة من النسب والولادة إلى الوفاة الشريفة، فصلاً فصلاً داخل بطاقات منظمة.",
     icon: "🌙",
     accent: "#10b981",
@@ -123,7 +123,7 @@ const LIBRARY_SECTIONS: LibrarySection[] = [
     title: "الملائكة",
     subtitle: "عالم الملائكة ووظائفهم",
     description: "تعرّف على الملائكة الواردين في القرآن والسنة وما أخبر به النبي ﷺ عنهم ووظائف كلٍّ منهم.",
-    icon: "�",
+    icon: "💫",
     accent: "#38bdf8",
     route: "/angels",
   },
@@ -217,7 +217,7 @@ function LibraryHubCard({ section }: { section: LibrarySection }) {
       type="button"
       onClick={() => navigate(section.route)}
       className={cn(
-        "group relative overflow-hidden rounded-2xl border p-4 text-right transition press-effect cv-auto",
+        "group relative block w-full overflow-hidden rounded-2xl border p-4 text-right transition press-effect cv-auto",
         section.featured ? "col-span-full min-h-[150px]" : "min-h-[168px]"
       )}
       style={{
@@ -263,7 +263,7 @@ function LibraryHubCard({ section }: { section: LibrarySection }) {
 
 function LibraryHubView() {
   const navigate = useNavigate();
-  const featured = LIBRARY_SECTIONS.find((section) => section.featured);
+  const featured = LIBRARY_SECTIONS.filter((section) => section.featured);
   const sections = LIBRARY_SECTIONS.filter((section) => !section.featured);
 
   return (
@@ -292,7 +292,7 @@ function LibraryHubView() {
         </div>
       </Card>
 
-      {featured && <LibraryHubCard section={featured} />}
+      {featured.map((section) => <LibraryHubCard key={section.id} section={section} />)}
 
       <div className="grid grid-cols-2 gap-3" role="list" aria-label="أقسام المكتبة">
         {sections.map((section) => (

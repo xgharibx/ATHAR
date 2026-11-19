@@ -6,6 +6,9 @@ import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { shareOrCopy } from "@/lib/shareTargets";
+import { arCount, arNum } from "@/lib/formatNumber";
+import { entryBadge } from "@/lib/knowledgeEntry";
+
 
 /** Shared shape for every knowledge-library entry (mirrors ProphetStory). */
 export type KnowledgeEntry = {
@@ -55,6 +58,7 @@ function EntryCard({
   const [open, setOpen] = React.useState(false);
   const [openChapter, setOpenChapter] = React.useState<number | null>(null);
   const chapterRefs = React.useRef<Array<HTMLDivElement | null>>([]);
+  const { badge, title } = entryBadge(entry.nameAr);
 
   const handleToggleChapter = React.useCallback((idx: number, isOpen: boolean) => {
     const next = isOpen ? null : idx;
@@ -93,20 +97,21 @@ function EntryCard({
         </div>
         <div className="flex-1 text-right mr-2">
           <div className="font-bold text-base" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
-            {entry.nameAr}
+            {title}
           </div>
           {entry.period && (
             <div className="text-xs opacity-50 mt-0.5">{entry.period}</div>
           )}
           {entry.chapters && entry.chapters.length > 0 && (
-            <div className="text-[10px] font-semibold mt-1" style={{ color: accent }}>📚 {entry.chapters.length} فصول</div>
+            <div className="text-[10px] font-semibold mt-1" style={{ color: accent }}>📚 {arCount(entry.chapters.length, { one: "فصل", two: "فصلان", few: "فصول" })}</div>
           )}
         </div>
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold shrink-0"
+          className={`h-10 min-w-10 px-1 rounded-full flex items-center justify-center font-bold shrink-0 tabular-nums ${badge.length > 1 ? "text-base" : "text-lg"}`}
           style={{ background: accent, color: "#fff" }}
+          aria-hidden="true"
         >
-          {entry.nameAr.charAt(0)}
+          {badge}
         </div>
       </button>
 
@@ -301,7 +306,7 @@ export function KnowledgeSectionPage({ config }: { config: KnowledgeSectionConfi
                   <div className="text-xs opacity-60">{title}</div>
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: accent }}>{title}</h1>
-                <div className="text-sm opacity-70 mt-1">{filtered.length} من {entries.length} {unitLabel}</div>
+                <div className="text-sm opacity-70 mt-1">{arNum(filtered.length)} من {arNum(entries.length)} {unitLabel}</div>
               </div>
               <button
                 type="button"
@@ -342,7 +347,7 @@ export function KnowledgeSectionPage({ config }: { config: KnowledgeSectionConfi
       </div>
 
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {query ? `نتائج البحث: ${filtered.length}` : null}
+        {query ? `نتائج البحث: ${arNum(filtered.length)}` : null}
       </div>
       <div className="px-4 pt-4 stack-y-3" role="list" aria-label={title}>
         {filtered.length === 0 ? (

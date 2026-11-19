@@ -5,13 +5,25 @@ import { Card } from "@/components/ui/Card";
 import { WUDU_STEPS } from "@/data/wuduGuide";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { shareOrCopy } from "@/lib/shareTargets";
+import { arCount, arNum } from "@/lib/formatNumber";
+import { vibrate } from "@/lib/haptics";
+import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
+import { useNoorStore } from "@/store/noorStore";
+
+const timesLabel = (times: number) => `يُكرَّر ${arCount(times, { one: "مرة", two: "مرتين", few: "مرات" })}`;
 
 export function WuduGuidePage() {
   const navigate = useNavigate();
   const [done, setDone] = React.useState<Set<number>>(new Set());
+  const haptics = useNoorStore((s) => s.prefs.enableHaptics !== false);
   useScrollRestoration();
+  // The phone is often propped up by the basin while the hands are wet: the
+  // screen stays on while the guide is open.
+  useKeepScreenAwake(true);
 
   function toggle(id: number) {
+    const marking = !done.has(id);
+    if (haptics && marking) vibrate(done.size + 1 === WUDU_STEPS.length ? [15, 60, 15, 60, 30] : 12);
     setDone((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -27,7 +39,7 @@ export function WuduGuidePage() {
   const allDone = done.size === WUDU_STEPS.length;
 
   const shareFullGuide = async () => {
-    const lines = WUDU_STEPS.map((s, i) => `${i + 1}. ${s.title}\n${s.description}`);
+    const lines = WUDU_STEPS.map((s, i) => `${arNum(i + 1)}. ${s.title}\n${s.description}`);
     const text = `دليل الوضوء خطوة بخطوة\n\n${lines.join("\n\n")}`;
     await shareOrCopy(text);
   };
@@ -48,7 +60,7 @@ export function WuduGuidePage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl shrink-0"
+                className="mt-1 p-2 rounded-xl shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -59,22 +71,22 @@ export function WuduGuidePage() {
                   <div className="text-xs opacity-60">دليل الوضوء</div>
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: "#06b6d4" }}>كيفية الوضوء</h1>
-                <div className="text-sm opacity-70 mt-1 tabular-nums" aria-live="polite" aria-atomic="true">{done.size} / {WUDU_STEPS.length} خطوات</div>
+                <div className="text-sm opacity-70 mt-1 tabular-nums" aria-live="polite" aria-atomic="true">{arNum(done.size)} من {arNum(WUDU_STEPS.length)} خطوات</div>
               </div>
               <div className="flex items-center gap-1 mt-1">
                 <button
                   type="button"
                   onClick={shareFullGuide}
-                  className="p-2 rounded-xl opacity-60 hover:opacity-100 transition"
+                  className="p-2 rounded-xl opacity-60 hover:opacity-100 transition min-w-[44px] min-h-[44px] flex items-center justify-center"
                   style={{ background: "var(--card)", color: "var(--fg)" }}
                   aria-label="مشاركة الدليل"
                 >
-                  <Share2 size={16} />
+                  <Share2 size={16} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   onClick={reset}
-                  className="text-xs px-3 py-1.5 rounded-full"
+                  className="text-xs px-3 min-h-[44px] rounded-full"
                   style={{ background: "var(--card)", color: "#06b6d4", border: "1px solid rgba(6,182,212,0.3)" }}
                 >
                   إعادة
@@ -89,7 +101,7 @@ export function WuduGuidePage() {
               aria-valuenow={done.size}
               aria-valuemin={0}
               aria-valuemax={WUDU_STEPS.length}
-              aria-label={`التقدم: ${done.size} من ${WUDU_STEPS.length} خطوات`}
+              aria-label={`التقدم: ${arNum(done.size)} من ${arNum(WUDU_STEPS.length)} خطوات`}
             >
               <div
                 className="h-full rounded-full transition-all duration-400"
@@ -124,15 +136,10 @@ export function WuduGuidePage() {
         {WUDU_STEPS.map((step) => {
           const isDone = done.has(step.id);
           return (
-            <div key={step.id} role="listitem">
             <div
-              role="button"
-              tabIndex={0}
-              onClick={() => toggle(step.id)}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(step.id); } }}
-              aria-pressed={isDone}
-              aria-label={`${step.title}${isDone ? " — تم" : ""}`}
-              className="w-full text-right rounded-2xl p-4 transition-all duration-200 flex items-start gap-3 cursor-pointer"
+              key={step.id}
+              role="listitem"
+              className="relative rounded-2xl transition-all duration-200"
               style={{
                 background: isDone
                   ? "color-mix(in srgb, var(--ok, #3ddc97) 12%, var(--card))"
@@ -140,53 +147,57 @@ export function WuduGuidePage() {
                 border: `1px solid ${isDone ? "color-mix(in srgb, var(--ok, #3ddc97) 35%, transparent)" : "var(--stroke)"}`,
               }}
             >
-              {/* Check icon */}
-              <div className="mt-0.5 shrink-0">
-                {isDone ? (
-                  <CheckCircle2 size={22} style={{ color: "var(--ok, #3ddc97)" }} />
-                ) : (
-                  <Circle size={22} aria-hidden="true" style={{ color: "var(--accent)", opacity: 0.5 }} />
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => toggle(step.id)}
+                aria-pressed={isDone}
+                className="w-full text-right p-4 pb-14 flex items-start gap-3"
+              >
+                {/* Check icon */}
+                <span className="mt-0.5 shrink-0" aria-hidden="true">
+                  {isDone ? (
+                    <CheckCircle2 size={22} style={{ color: "var(--ok, #3ddc97)" }} />
+                  ) : (
+                    <Circle size={22} style={{ color: "var(--accent)", opacity: 0.5 }} />
+                  )}
+                </span>
 
-              {/* Content */}
-              <div className="flex-1">
-                <div className="flex items-center justify-end gap-2 mb-1">
-                  <span className="font-bold text-sm" style={{ color: "var(--fg)" }}>
-                    {step.title}
+                {/* Content */}
+                <span className="flex-1 block">
+                  <span className="flex items-center justify-end gap-2 mb-1">
+                    <span className="font-bold text-sm" style={{ color: "var(--fg)" }}>
+                      {step.title}
+                    </span>
+                    <span
+                      className="text-xs h-6 min-w-6 px-1 rounded-full flex items-center justify-center font-bold shrink-0"
+                      style={{ background: "var(--accent)", color: "var(--on-accent)" }}
+                      aria-hidden="true"
+                    >
+                      {arNum(step.id)}
+                    </span>
                   </span>
-                  <span
-                    className="text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold shrink-0"
-                    style={{ background: "var(--accent)", color: "var(--on-accent)" }}
-                  >
-                    {step.id}
+                  <span className="block text-sm leading-relaxed opacity-75 text-right" style={{ color: "var(--fg)" }}>
+                    {step.description}
                   </span>
-                </div>
-                <p className="text-sm leading-relaxed opacity-75 text-right" style={{ color: "var(--fg)" }}>
-                  {step.description}
-                </p>
-                {step.times > 1 && (
-                  <p className="text-xs mt-1.5" style={{ color: "var(--accent)" }}>
-                    يُكرَّر {step.times} مرات
-                  </p>
-                )}
-                <div className="flex justify-end mt-2">
-                  <button
-                    type="button"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      const text = `${step.title}\n${step.description}${step.times > 1 ? `\n(يُكرَّر ${step.times} مرات)` : ""}`;
-                      await shareOrCopy(text);
-                    }}
-                    className="p-1.5 rounded-lg opacity-50 hover:opacity-100 transition-opacity"
-                    style={{ background: "var(--stroke)", color: "var(--fg)" }}
-                    title="مشاركة هذه الخطوة"
-                  >
-                    <Share2 size={13} />
-                  </button>
-                </div>
-              </div>
-            </div>
+                  {step.times > 1 && (
+                    <span className="block text-xs mt-1.5" style={{ color: "var(--accent)" }}>
+                      {timesLabel(step.times)}
+                    </span>
+                  )}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const text = `${step.title}\n${step.description}${step.times > 1 ? `\n(${timesLabel(step.times)})` : ""}`;
+                  await shareOrCopy(text);
+                }}
+                className="absolute bottom-2 left-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl opacity-60 hover:opacity-100 transition-opacity"
+                style={{ color: "var(--fg)" }}
+                aria-label={`مشاركة خطوة ${step.title}`}
+              >
+                <Share2 size={15} aria-hidden="true" />
+              </button>
             </div>
           );
         })}
