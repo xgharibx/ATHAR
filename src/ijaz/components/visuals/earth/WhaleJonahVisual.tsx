@@ -218,10 +218,10 @@ export default function WhaleJonahVisual({ className }: MiracleVisualProps) {
         style={{ background: 'linear-gradient(to top, rgba(0,21,48,0.92) 0%, rgba(0,21,48,0.5) 60%, rgba(0,21,48,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🐳', label: 'sperm whale', sub: 'largest predator' },
-            { icon: '🪣', label: 'يبتلع كاملاً', sub: 'whole humans' },
+            { icon: '🐳', label: 'حوت العنبر', sub: 'أكبر مفترس' },
+            { icon: '🪣', label: 'يبتلع كاملاً', sub: 'يتسع لإنسان' },
             { icon: '💡', label: 'نجاة يونس', sub: 'معجزة' },
-            { icon: '🌊', label: 'deep ocean', sub: 'darkness layers' },
+            { icon: '🌊', label: 'أعماق البحر', sub: 'طبقات الظلام' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(0,15,35,0.1)', border: '1px solid rgba(30,70,140,0.22)', backdropFilter: 'blur(8px)' }}>

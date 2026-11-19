@@ -241,9 +241,9 @@ export default function WaterOriginLifeVisual({ className }: MiracleVisualProps)
         style={{ background: 'linear-gradient(to top, rgba(0,8,15,0.92) 0%, rgba(0,8,15,0.5) 60%, rgba(0,8,15,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '💧', label: '70–90% ماء', sub: 'في كل خلية' },
-            { icon: '🧬', label: 'DNA + بروتين', sub: 'يحتاج الماء' },
-            { icon: '🚀', label: 'NASA: follow water', sub: 'بحث عن حياة' },
+            { icon: '💧', label: '٧٠–٩٠% ماء', sub: 'في كل خلية' },
+            { icon: '🧬', label: 'حمض نووي + بروتين', sub: 'يحتاج الماء' },
+            { icon: '🚀', label: 'ناسا: اتبع الماء', sub: 'بحث عن حياة' },
             { icon: '🔬', label: 'كيمياء حيوية', sub: 'مذيب عالمي' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"

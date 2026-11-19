@@ -200,7 +200,7 @@ export default function LyingForelockVisual({ className }: MiracleVisualProps) {
       // Label
       ctx.font = `${Math.max(10, w * 0.011)}px sans-serif`;
       ctx.fillStyle = `rgba(255,68,68,${pfcPulse * 0.7})`;
-      ctx.fillText('Prefrontal Cortex', 0.27 * w, 0.16 * h);
+      ctx.fillText('قشرة الفص الجبهي', 0.27 * w, 0.16 * h);
 
       // FOREHEAD glow
       const fhPulse = Math.sin(time * 0.03 + 0.5) * 0.2 + 0.4;
@@ -219,7 +219,7 @@ export default function LyingForelockVisual({ className }: MiracleVisualProps) {
       // Forehead label
       ctx.font = `${Math.max(9, w * 0.01)}px sans-serif`;
       ctx.fillStyle = `rgba(251,191,36,${fhPulse * 0.6})`;
-      ctx.fillText('Forelock (Nasiyah)', foreheadX * w - 30, foreheadY * h - w * 0.04);
+      ctx.fillText('الناصية', foreheadX * w - 30, foreheadY * h - w * 0.04);
 
       // Connection from forehead to PFC
       ctx.beginPath();
@@ -317,10 +317,10 @@ export default function LyingForelockVisual({ className }: MiracleVisualProps) {
         ctx.textAlign = 'center';
         if (isLying) {
           ctx.fillStyle = `rgba(255,68,68,${labelAlpha * 0.5})`;
-          ctx.fillText('Deception', w * 0.5, h * 0.82);
+          ctx.fillText('الكذب', w * 0.5, h * 0.82);
         } else {
           ctx.fillStyle = `rgba(96,165,250,${labelAlpha * 0.5})`;
-          ctx.fillText('Decision-Making', w * 0.5, h * 0.82);
+          ctx.fillText('اتخاذ القرار', w * 0.5, h * 0.82);
         }
         ctx.textAlign = 'start';
       }

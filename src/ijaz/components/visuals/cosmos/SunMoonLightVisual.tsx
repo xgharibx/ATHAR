@@ -116,7 +116,7 @@ export default function SunMoonLightVisual({ className }: MiracleVisualProps) {
           {[
             { icon: '☀️', label: 'ضياء = مصدر', sub: 'emitter' },
             { icon: '🌕', label: 'نور = عاكس', sub: 'reflector' },
-            { icon: '💬', label: 'فرق دلالي', sub: '7th century' },
+            { icon: '💬', label: 'فرق دلالي', sub: 'القرن السابع' },
             { icon: '🔭', label: 'spectroscopy', sub: '1859 CE' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"

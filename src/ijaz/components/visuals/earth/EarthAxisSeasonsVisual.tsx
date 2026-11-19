@@ -148,9 +148,9 @@ export default function EarthAxisSeasonsVisual({ className }: MiracleVisualProps
         style={{ background: 'linear-gradient(to top, rgba(1,0,16,0.92) 0%, rgba(1,0,16,0.5) 60%, rgba(1,0,16,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🌍', label: '23.5° ميل', sub: 'تخلق فصولاً' },
+            { icon: '🌍', label: '٢٣.٥° ميل', sub: 'تخلق فصولاً' },
             { icon: '☔', label: 'الانقلابين', sub: 'solstices' },
-            { icon: '🌃', label: '4 فصول', sub: 'تنوع بيئي' },
+            { icon: '🌃', label: '٤ فصول', sub: 'تنوع بيئي' },
             { icon: '📐', label: 'تصميم دقيق', sub: 'precision' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"

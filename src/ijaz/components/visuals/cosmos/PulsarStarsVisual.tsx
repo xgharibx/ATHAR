@@ -130,13 +130,13 @@ export default function PulsarStarsVisual({ className }: MiracleVisualProps) {
       ctx.fillText('الثَّاقِبُ', cx, cy + 42 + pulseGlow * 3);
       ctx.font = `${8 * dpr}px sans-serif`; ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(120,160,220,0.4)';
-      ctx.fillText('the piercing one', cx, cy + 54 + pulseGlow * 2);
+      ctx.fillText('الثاقب', cx, cy + 54 + pulseGlow * 2);
 
       // Pulse rate label
       ctx.font = `${8 * dpr}px monospace`; ctx.textAlign = 'right';
       ctx.fillStyle = 'rgba(100,160,220,0.3)';
-      ctx.fillText('716 Hz max', w * 0.96, h * 0.12);
-      ctx.fillText('Bell Burnell 1967', w * 0.96, h * 0.16);
+      ctx.fillText('حتى ٧١٦ نبضة في الثانية', w * 0.96, h * 0.12);
+      ctx.fillText('بِل بيرنل ١٩٦٧', w * 0.96, h * 0.16);
 
       animId = requestAnimationFrame(draw);
     };
@@ -178,10 +178,10 @@ export default function PulsarStarsVisual({ className }: MiracleVisualProps) {
         style={{ background: 'linear-gradient(to top, rgba(1,0,10,0.92) 0%, rgba(1,0,10,0.5) 60%, rgba(1,0,10,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '⭐', label: 'ثاقب = يخترق', sub: 'piercing beam' },
-            { icon: '🌀', label: 'نجم نيوتروني', sub: 'neutron star' },
-            { icon: '⚡', label: '716 Hz', sub: 'fastest pulsar' },
-            { icon: '🔭', label: 'Bell Burnell 1967', sub: 'Nobel 1974' },
+            { icon: '⭐', label: 'ثاقب = يخترق', sub: 'حزمة ثاقبة' },
+            { icon: '🌀', label: 'نجم نيوتروني', sub: 'نجم نيوتروني' },
+            { icon: '⚡', label: '716 Hz', sub: 'أسرع نجم نابض' },
+            { icon: '🔭', label: 'بِل بيرنل ١٩٦٧', sub: 'نوبل ١٩٧٤' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(20,40,80,0.1)', border: '1px solid rgba(60,100,180,0.22)', backdropFilter: 'blur(8px)' }}>

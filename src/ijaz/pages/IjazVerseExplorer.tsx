@@ -6,6 +6,9 @@ import VerseDisplay from '@/ijaz/components/ui/VerseDisplay';
 import { verses } from '@/ijaz/data/verses';
 import { miracles } from '@/ijaz/data/miracles';
 import { QuranicVerse } from '@/ijaz/types';
+import { VERSE, arabicTags, verseRefAr } from '@/ijaz/lib/utils';
+import { useIjazPrefs } from '@/ijaz/lib/ijazPrefs';
+import { countAr } from '@/lib/arabicCount';
 
 // Flatten all verses from miracles + standalone verses
 function getAllVerses(): QuranicVerse[] {
@@ -31,6 +34,7 @@ const keywords = [
 ];
 
 export default function VerseExplorerPage() {
+  const showEnglish = useIjazPrefs((s) => s.showEnglish);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVerse, setSelectedVerse] = useState<QuranicVerse | null>(null);
   const allVerses = useMemo(() => getAllVerses(), []);
@@ -103,7 +107,7 @@ export default function VerseExplorerPage() {
             </div>
 
             {/* Results count */}
-            <p className="text-text-muted text-sm font-tajawal mb-4">{filteredVerses.length} آية</p>
+            <p className="text-text-muted text-sm font-tajawal mb-4">{countAr(filteredVerses.length, VERSE)}</p>
 
             {/* Verses Grid */}
             <div className="stack-y-4">
@@ -124,10 +128,10 @@ export default function VerseExplorerPage() {
                   </p>
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-text-muted text-xs font-tajawal">
-                      سورة {verse.surah} : {verse.ayahNumber}
+                      سورة {verseRefAr(verse.surah, verse.ayahNumber, verse.ayahNumberEnd)}
                     </span>
                     <div className="flex gap-1">
-                      {verse.keywords.slice(0, 3).map((kw) => (
+                      {arabicTags(verse.keywords).slice(0, 3).map((kw) => (
                         <span key={kw} className="px-2 py-0.5 rounded-full bg-verse-green/10 text-verse-green text-xs font-tajawal">
                           {kw}
                         </span>
@@ -164,7 +168,7 @@ export default function VerseExplorerPage() {
                               className="block glass-card p-3 hover:border-gold-primary/30 transition-all"
                             >
                               <h4 className="text-gold-primary font-amiri text-sm font-bold">{m.titleAr}</h4>
-                              <p className="text-text-muted text-xs font-tajawal mt-0.5">{m.title}</p>
+                              {showEnglish && <p className="text-text-muted text-xs font-tajawal mt-0.5" dir="ltr" lang="en">{m.title}</p>}
                             </Link>
                           ))}
                         </div>

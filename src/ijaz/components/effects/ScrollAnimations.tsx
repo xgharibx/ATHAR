@@ -1,5 +1,6 @@
 
-import { useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
+import { arNum } from '@/lib/formatNumber';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -245,10 +246,15 @@ export function TextReveal({
     };
   }, [stagger, delay]);
 
+  // A real space between the words, so the heading reads (and copies, and is
+  // spoken) as words, not one run of letters.
   const words = text.split(' ').map((word, i) => (
-    <span key={i} className="inline-block overflow-hidden mx-[0.15em]">
-      <span className="word inline-block">{word}</span>
-    </span>
+    <Fragment key={i}>
+      {i > 0 ? ' ' : null}
+      <span className="inline-block overflow-hidden">
+        <span className="word inline-block">{word}</span>
+      </span>
+    </Fragment>
   ));
 
   return (
@@ -285,6 +291,7 @@ export function AnimatedCounter({
 
     const el = ref.current;
 
+    countRef.current.value = 0;
     gsap.to(countRef.current, {
       value: target,
       duration,
@@ -296,7 +303,7 @@ export function AnimatedCounter({
       },
       onUpdate: () => {
         if (el) {
-          el.textContent = `${prefix}${Math.round(countRef.current.value)}${suffix}`;
+          el.textContent = `${prefix}${arNum(Math.round(countRef.current.value))}${suffix}`;
         }
       },
     });
@@ -308,7 +315,8 @@ export function AnimatedCounter({
     };
   }, [target, suffix, prefix, duration]);
 
-  return <span ref={ref} className={className}>{prefix}0{suffix}</span>;
+  // The real number until the count-up starts, so it never reads «0».
+  return <span ref={ref} className={className}>{prefix}{arNum(target)}{suffix}</span>;
 }
 
 // =============================================

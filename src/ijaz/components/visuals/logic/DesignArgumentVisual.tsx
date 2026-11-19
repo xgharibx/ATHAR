@@ -141,7 +141,7 @@ export default function DesignArgumentVisual({ className }: MiracleVisualProps) 
       ctx.font = '11px Tajawal';
       ctx.fillStyle = 'rgba(212, 168, 83, 0.3)';
       ctx.textAlign = 'center';
-      ctx.fillText('3.2 مليار حرف في الحمض النووي', cx, h * 0.05);
+      ctx.fillText('٣.٢ مليار حرف في الحمض النووي', cx, h * 0.05);
       ctx.fillText('= معلومات أكثر من موسوعة كاملة', cx, h * 0.05 + 16);
 
       animId = requestAnimationFrame(draw);
@@ -190,7 +190,7 @@ export default function DesignArgumentVisual({ className }: MiracleVisualProps) 
         <p className="font-amiri text-sm md:text-lg text-verse-green/70" style={{ textShadow: '0 0 20px rgba(45,212,168,0.2)' }}>
           صُنْعَ اللَّهِ الَّذِي أَتْقَنَ كُلَّ شَيْءٍ
         </p>
-        <p className="text-gold-primary/40 text-xs font-tajawal mt-1">النمل : 88</p>
+        <p className="text-gold-primary/40 text-xs font-tajawal mt-1">النمل: ٨٨</p>
       </motion.div>
     </div>
   );

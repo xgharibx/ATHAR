@@ -20,10 +20,10 @@ export default function QuranPreservationVisual({ className }: MiracleVisualProp
     let time = 0;
 
     const mss = [
-      { name: 'Birmingham', date: '568–645م', ang: -Math.PI * 0.75 },
-      { name: 'Sana\'a', date: '7th c.', ang: -Math.PI * 0.25 },
-      { name: 'Topkapi', date: '8th c.', ang: Math.PI * 0.25 },
-      { name: 'Samarkand', date: '8th c.', ang: Math.PI * 0.75 },
+      { name: 'برمنغهام', date: '٥٦٨–٦٤٥م', ang: -Math.PI * 0.75 },
+      { name: 'صنعاء', date: '7th c.', ang: -Math.PI * 0.25 },
+      { name: 'طوب قابي', date: '8th c.', ang: Math.PI * 0.25 },
+      { name: 'سمرقند', date: '8th c.', ang: Math.PI * 0.75 },
     ];
 
     const arabicChars = 'ابتثجحخدذرزسشصضطظعغفقكلمنهوي';
@@ -196,10 +196,10 @@ export default function QuranPreservationVisual({ className }: MiracleVisualProp
         style={{ background: 'linear-gradient(to top, rgba(5,4,8,0.92) 0%, rgba(5,4,8,0.5) 60%, rgba(5,4,8,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M4 19.5V5a2 2 0 0 1 2-2h14v14 M4 19.5A2.5 2.5 0 0 0 6.5 22H20', label: 'Birmingham', sub: '568-645 CE' },
-            { d: 'M2 5c3-1.5 6-1.5 10 0v15c-4-1.5-7-1.5-10 0z M22 5c-3-1.5-6-1.5-10 0v15c4-1.5 7-1.5 10 0z', label: '114 سورة', sub: 'متطابقة' },
-            { d: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M21 21l-5-5', label: 'carbon dated', sub: "Sana'a 1972" },
-            { d: 'M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4 12 14.01l-3-3', label: 'لا تغيير', sub: '14 قرنا' },
+            { d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M4 19.5V5a2 2 0 0 1 2-2h14v14 M4 19.5A2.5 2.5 0 0 0 6.5 22H20', label: 'برمنغهام', sub: '568-645 CE' },
+            { d: 'M2 5c3-1.5 6-1.5 10 0v15c-4-1.5-7-1.5-10 0z M22 5c-3-1.5-6-1.5-10 0v15c4-1.5 7-1.5 10 0z', label: '١١٤ سورة', sub: 'متطابقة' },
+            { d: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M21 21l-5-5', label: 'مؤرخ بالكربون', sub: "Sana'a 1972" },
+            { d: 'M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4 12 14.01l-3-3', label: 'لا تغيير', sub: '١٤ قرنا' },
           ].map(({ d, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(10,8,20,0.1)', border: '1px solid rgba(80,60,160,0.22)', backdropFilter: 'blur(8px)' }}>

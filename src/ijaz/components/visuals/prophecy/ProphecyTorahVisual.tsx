@@ -13,9 +13,9 @@ const VERSE: Tok[] = [
 ];
 
 const MATCHES = [
-  { ref: 'تثنية 18:18', text: '“A prophet like Moses”', match: 'محمد ﷺ = نبيٌّ بشريعةٍ مثل موسى', color: '#d4a853' },
-  { ref: 'تثنية 18:18', text: '“From among their brothers”', match: 'إخوة بني إسرائيل = بنو إسماعيل = العرب', color: '#f472b6' },
-  { ref: 'تثنية 33:2', text: '“He shone forth from Paran”', match: 'فاران = مكة · مَهبط الوحي', color: '#2dd4a8' },
+  { ref: 'تثنية ١٨:١٨', text: '«نبيًّا مثل موسى»', match: 'محمد ﷺ = نبيٌّ بشريعةٍ مثل موسى', color: '#d4a853' },
+  { ref: 'تثنية ١٨:١٨', text: '«من وسط إخوتهم»', match: 'إخوة بني إسرائيل = بنو إسماعيل = العرب', color: '#f472b6' },
+  { ref: 'تثنية ٣٣:٢', text: '«وتلألأ من جبل فاران»', match: 'فاران = مكة · مَهبط الوحي', color: '#2dd4a8' },
 ];
 
 export default function ProphecyTorahVisual({ className }: MiracleVisualProps) {

@@ -135,9 +135,9 @@ export default function SunOrbitalMotionVisual({ className }: MiracleVisualProps
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
             { icon: '☀️', label: '220 km/s', sub: 'سرعة مدارية' },
-            { icon: '🌀', label: 'فلك المجرة', sub: '225M سنة/دورة' },
-            { icon: '🔭', label: 'Solar apex', sub: 'Herschel 1783' },
-            { icon: '🌌', label: 'Milky Way', sub: 'يسبح ليس يدور' },
+            { icon: '🌀', label: 'فلك المجرة', sub: '٢٢٥M سنة/دورة' },
+            { icon: '🔭', label: 'قمة الشمس', sub: 'هيرشل ١٧٨٣' },
+            { icon: '🌌', label: 'درب التبانة', sub: 'يسبح ليس يدور' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(20,15,0,0.1)', border: '1px solid rgba(160,130,40,0.22)', backdropFilter: 'blur(8px)' }}>

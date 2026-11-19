@@ -10,6 +10,14 @@ import { categories } from '@/ijaz/data/categories';
 import { MiracleCategory } from '@/ijaz/types';
 import { AnimatedGradientText } from '@/ijaz/components/effects/TextEffects';
 import { useScrollRestoration } from '@/hooks/useScrollRestoration';
+import { useSearchParams } from 'react-router-dom';
+import { useIjazPrefs } from '@/ijaz/lib/ijazPrefs';
+import { MIRACLE } from '@/ijaz/lib/utils';
+import { arNum } from '@/lib/formatNumber';
+import { countAr } from '@/lib/arabicCount';
+
+type Status = 'all' | 'unread' | 'saved';
+const STATUS: [Status, string][] = [['all', 'الكل'], ['unread', 'لم أقرأها'], ['saved', 'المحفوظة']];
 import { useIsMobile } from '@/ijaz/hooks/useIsMobile';
 
 import ParticleField from '@/ijaz/components/effects/ParticleField';
@@ -20,11 +28,18 @@ export default function MiraclesPage() {
   const isMobile = useIsMobile();
   const [selectedCategory, setSelectedCategory] = useState<MiracleCategory | 'all'>('all');
   const [sortBy, setSortBy] = useState<'order' | 'category'>('order');
+  const [params, setParams] = useSearchParams();
+  const status: Status = params.get('saved') ? 'saved' : params.get('unread') ? 'unread' : 'all';
+  const setStatus = (s: Status) => setParams(s === 'all' ? {} : { [s]: '1' }, { replace: true });
+  const read = useIjazPrefs((s) => s.read);
+  const saved = useIjazPrefs((s) => s.saved);
 
   const filteredMiracles = useMemo(() => {
     let result = selectedCategory === 'all'
       ? [...miracles]
       : miracles.filter((m) => m.category === selectedCategory);
+    if (status === 'saved') result = result.filter((m) => saved.includes(m.slug));
+    else if (status === 'unread') result = result.filter((m) => !read[m.slug]);
 
     if (sortBy === 'category') {
       result.sort((a, b) => a.category.localeCompare(b.category));
@@ -32,7 +47,7 @@ export default function MiraclesPage() {
       result.sort((a, b) => a.order - b.order);
     }
     return result;
-  }, [selectedCategory, sortBy]);
+  }, [selectedCategory, sortBy, status, saved, read]);
 
   return (
     <main className="min-h-screen relative" dir="rtl">
@@ -58,11 +73,11 @@ export default function MiraclesPage() {
           >
             <h1 className="font-amiri text-4xl md:text-5xl lg:text-6xl font-bold mb-5">
               <AnimatedGradientText colors={['#d4a853', '#f0e6b8', '#ffffff', '#d4a853']}>
-                {'\u0627\u0644\u0645\u0639\u062C\u0632\u0627\u062A \u0627\u0644\u0639\u0644\u0645\u064A\u0629'}
+                {'المعجزات العلمية'}
               </AnimatedGradientText>
             </h1>
             <p className="text-text-secondary font-tajawal text-base md:text-lg max-w-3xl mx-auto mb-8 leading-relaxed">
-              {'\u0645\u062C\u0645\u0648\u0639\u0629 \u0634\u0627\u0645\u0644\u0629 \u0645\u0646 \u0627\u0644\u0645\u0639\u062C\u0632\u0627\u062A \u0627\u0644\u0639\u0644\u0645\u064A\u0629 \u0641\u064A \u0627\u0644\u0642\u0631\u0622\u0646 \u0627\u0644\u0643\u0631\u064A\u0645 \u0648\u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u0646\u0628\u0648\u064A\u0629\u060C \u0645\u0633\u062A\u062E\u0631\u062C\u0629 \u0645\u0646 \u0645\u0624\u0644\u0641\u0627\u062A \u062F. \u0647\u064A\u062B\u0645 \u0637\u0644\u0639\u062A\u060C \u0645\u0639 \u0627\u0644\u0623\u062F\u0644\u0629 \u0627\u0644\u0639\u0644\u0645\u064A\u0629 \u0627\u0644\u062D\u062F\u064A\u062B\u0629 \u0648\u0627\u0644\u0622\u064A\u0627\u062A \u0627\u0644\u0642\u0631\u0622\u0646\u064A\u0629'}
+              {`${countAr(miracles.length, MIRACLE)} في القرآن الكريم والسنة النبوية، من مؤلفات د. هيثم طلعت، مع آياتها وأدلتها العلمية`}
             </p>
 
             {/* Search */}
@@ -89,7 +104,7 @@ export default function MiraclesPage() {
                       : 'border-white/10 text-text-muted hover:text-text-primary hover:border-white/20'
                   }`}
                 >
-                  {'\u0627\u0644\u0643\u0644'} ({miracles.length})
+                  {'الكل'} ({arNum(miracles.length)})
                 </button>
                 {categories.map((cat) => (
                   <CategoryBadge
@@ -109,18 +124,28 @@ export default function MiraclesPage() {
                 onChange={(e) => setSortBy(e.target.value as 'order' | 'category')}
                 className="bg-vanta/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-text-primary font-tajawal focus:outline-hidden focus:border-gold-primary/50 backdrop-blur-xs"
               >
-                <option value="order">{'\u062A\u0631\u062A\u064A\u0628 \u062D\u0633\u0628 \u0627\u0644\u0631\u0642\u0645'}</option>
-                <option value="category">{'\u062A\u0631\u062A\u064A\u0628 \u062D\u0633\u0628 \u0627\u0644\u0642\u0633\u0645'}</option>
+                <option value="order">{'ترتيب حسب الرقم'}</option>
+                <option value="category">{'ترتيب حسب القسم'}</option>
               </Select>
             </div>
           </motion.div>
 
-          {/* Results Count */}
-          <p className="text-text-muted text-sm font-tajawal mb-6">
-            {filteredMiracles.length} {'\u0645\u0639\u062C\u0632\u0629'}
-            {selectedCategory !== 'all' &&
-              ` ${'\u0641\u064A \u0642\u0633\u0645'} ${categories.find((c) => c.id === selectedCategory)?.nameAr || ''}`}
-          </p>
+          {/* Status + count */}
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            <div className="flex gap-2" role="radiogroup" aria-label="عرض">
+              {STATUS.map(([k, label]) => (
+                <button key={k} type="button" role="radio" aria-checked={status === k} onClick={() => setStatus(k)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-tajawal border transition ${status === k ? 'bg-gold-primary/20 border-gold-primary text-gold-primary' : 'border-white/10 text-text-muted hover:text-text-primary'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-text-muted text-sm font-tajawal mr-auto">
+              {filteredMiracles.length ? countAr(filteredMiracles.length, MIRACLE) : ''}
+              {selectedCategory !== 'all' && filteredMiracles.length ? ` في ${categories.find((c) => c.id === selectedCategory)?.nameAr || ''}` : ''}
+            </p>
+          </div>
 
           {/* Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -143,7 +168,9 @@ export default function MiraclesPage() {
 
           {filteredMiracles.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-text-muted font-tajawal text-lg">{'\u0644\u0627 \u062A\u0648\u062C\u062F \u0646\u062A\u0627\u0626\u062C'}</p>
+              <p className="text-text-muted font-tajawal text-lg">
+                {status === 'saved' ? 'لم تحفظ معجزة بعد، اضغط «احفظها» في صفحتها.' : status === 'unread' ? 'قرأتها كلها، بارك الله فيك.' : 'لا توجد نتائج'}
+              </p>
             </div>
           )}
         </div>

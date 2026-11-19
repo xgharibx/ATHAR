@@ -165,7 +165,7 @@ export default function ContingencyVisual({ className }: MiracleVisualProps) {
         className="absolute bottom-4 left-0 right-0 text-center font-amiri text-xs md:text-sm text-verse-green/75 px-4 z-10 pointer-events-none"
         style={{ textShadow: '0 0 20px rgba(45,212,168,0.3)' }}
       >
-        يَا أَيُّهَا النَّاسُ أَنتُمُ الْفُقَرَاءُ إِلَى اللَّهِ وَاللَّهُ هُوَ الْغَنِيُّ — فاطر : 15
+        يَا أَيُّهَا النَّاسُ أَنتُمُ الْفُقَرَاءُ إِلَى اللَّهِ وَاللَّهُ هُوَ الْغَنِيُّ — فاطر: ١٥
       </motion.p>
     </div>
   );

@@ -123,7 +123,7 @@ export default function LightningThunderVisual({ className }: MiracleVisualProps
           {[
             { icon: '⚡', label: '3e9 V', sub: 'جهد صاعقة' },
             { icon: '✨', label: '2000 C', sub: 'حرارة شرارة' },
-            { icon: '🌩️', label: '1.4B/سنة', sub: 'صاعقة عالميا' },
+            { icon: '🌩️', label: '١.٤B/سنة', sub: 'صاعقة عالميا' },
             { icon: '🌋', label: 'plasma', sub: 'حالة رابعة' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"

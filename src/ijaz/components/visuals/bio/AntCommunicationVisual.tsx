@@ -21,11 +21,11 @@ export default function AntCommunicationVisual({ className }: MiracleVisualProps
 
     // Ant colony underground structure
     const chambers = [
-      { x: 0.5, y: 0.65, r: 0.055, label: 'غرفة الملكة', labelEn: 'Queen Chamber' },
-      { x: 0.3, y: 0.55, r: 0.04, label: 'تخزين', labelEn: 'Food Storage' },
-      { x: 0.7, y: 0.55, r: 0.038, label: 'الحضانة', labelEn: 'Brood' },
-      { x: 0.38, y: 0.75, r: 0.032, label: 'فطر', labelEn: 'Fungus' },
-      { x: 0.62, y: 0.76, r: 0.032, label: 'نفايات', labelEn: 'Waste' },
+      { x: 0.5, y: 0.65, r: 0.055, label: 'غرفة الملكة', labelEn: 'حجرة الملكة' },
+      { x: 0.3, y: 0.55, r: 0.04, label: 'تخزين', labelEn: 'مخزن الطعام' },
+      { x: 0.7, y: 0.55, r: 0.038, label: 'الحضانة', labelEn: 'الحضانة' },
+      { x: 0.38, y: 0.75, r: 0.032, label: 'فطر', labelEn: 'الفطر' },
+      { x: 0.62, y: 0.76, r: 0.032, label: 'نفايات', labelEn: 'النفايات' },
     ];
 
     // Tunnels connecting chambers
@@ -192,7 +192,7 @@ export default function AntCommunicationVisual({ className }: MiracleVisualProps
       // ♀ label
       ctx.font = `${9 * dpr}px serif`; ctx.textAlign = 'left';
       ctx.fillStyle = 'rgba(200,180,100,0.6)';
-      ctx.fillText('♀ قَالَتْ — she said', warnAnt.x * w + 28, warnAnt.y * h + 12);
+      ctx.fillText('♀ قَالَتْ: بصيغة المؤنث', warnAnt.x * w + 28, warnAnt.y * h + 12);
 
       animId = requestAnimationFrame(draw);
     };
@@ -237,7 +237,7 @@ export default function AntCommunicationVisual({ className }: MiracleVisualProps
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
             { d: 'M12 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M12 9v8 M9 14h6', label: 'قالَت — مؤنث', sub: 'جميع العاملات إناث' },
-            { d: 'M9 3h6 M10 3v6l-4 8a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-4-8V3', label: 'فيرومون إنذار', sub: 'Wilson 1971' },
+            { d: 'M9 3h6 M10 3v6l-4 8a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-4-8V3', label: 'فيرومون إنذار', sub: 'ويلسون ١٩٧١' },
             { d: 'M3 10l9-7 9 7 M5 9v11h14V9 M10 20v-6h4v6', label: 'مساكن = غرف', sub: 'مجتمع منظم' },
             { d: 'M4 3c8 4 8 14 16 18 M20 3C12 7 12 17 4 21 M7 5h10 M7 19h10', label: 'XX كروموسوم', sub: 'إناث بيولوجياً' },
           ].map(({ d, label, sub }) => (

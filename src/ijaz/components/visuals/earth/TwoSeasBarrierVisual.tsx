@@ -188,7 +188,7 @@ export default function TwoSeasBarrierVisual({ className }: MiracleVisualProps) 
         <p className="font-amiri text-lg md:text-xl text-verse-green/80 leading-relaxed" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           مَرَجَ الْبَحْرَيْنِ يَلْتَقِيَانِ ۝ بَيْنَهُمَا بَرْزَخٌ لَّا يَبْغِيَانِ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الرحمن : 19-20</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الرحمن: ١٩–٢٠</p>
       </motion.div>
     </div>
   );

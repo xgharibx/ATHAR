@@ -194,8 +194,8 @@ export default function MountainsStabilityVisual({ className }: MiracleVisualPro
         style={{ background: 'linear-gradient(to top, rgba(6,12,4,0.92) 0%, rgba(6,12,4,0.5) 60%, rgba(6,12,4,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '⛰️', label: 'أوتاد = جذور', sub: '3-4x عمق' },
-            { icon: '📐', label: 'Isostasy', sub: 'Airy 1855' },
+            { icon: '⛰️', label: 'أوتاد = جذور', sub: '٣–٤x عمق' },
+            { icon: '📐', label: 'التوازن الأيزوستاتي', sub: 'إيري ١٨٥٥' },
             { icon: '🌊', label: 'تخفيف الزلازل', sub: 'امتصاص الطاقة' },
             { icon: '🔗', label: 'تثبيت القشرة', sub: 'stability' },
           ].map(({ icon, label, sub }) => (

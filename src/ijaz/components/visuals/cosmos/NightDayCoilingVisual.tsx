@@ -127,8 +127,8 @@ export default function NightDayCoilingVisual({ className }: MiracleVisualProps)
         style={{ background: 'linear-gradient(to top, rgba(1,0,16,0.92) 0%, rgba(1,0,16,0.5) 60%, rgba(1,0,16,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🌃', label: 'يكوِّر = يلفّ', sub: 'wraps like turban' },
-            { icon: '🌍', label: 'دوران كروي', sub: '24 ساعة' },
+            { icon: '🌃', label: 'يكوِّر = يلفّ', sub: 'يلتف كالعمامة' },
+            { icon: '🌍', label: 'دوران كروي', sub: '٢٤ ساعة' },
             { icon: '⏱️', label: 'تسارع مستمر', sub: 'yuk-awwiru' },
             { icon: '☀️', label: 'تقصير النهار', sub: 'وتطويل الليل' },
           ].map(({ icon, label, sub }) => (

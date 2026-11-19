@@ -323,7 +323,7 @@ export default function SolarApexVisual({ className }: MiracleVisualProps) {
       ctx.font = `${10 * dpr}px sans-serif`;
       ctx.fillStyle = `rgba(255,200,80,${gcLabelAlpha * 0.7})`;
       ctx.textAlign = 'center';
-      ctx.fillText('Galactic Center', gcx, gcy + 28 * dpr);
+      ctx.fillText('مركز المجرة', gcx, gcy + 28 * dpr);
       ctx.restore();
 
       // ── Speed label on arrow (mid-point) ─────────────────────
@@ -338,7 +338,7 @@ export default function SolarApexVisual({ className }: MiracleVisualProps) {
       ctx.font = `bold ${9 * dpr}px sans-serif`;
       ctx.fillStyle = 'rgba(255,200,80,0.9)';
       ctx.textAlign = 'center';
-      ctx.fillText('19.7 km/s → Solar Apex', midArrowX, midArrowY + 2 * dpr);
+      ctx.fillText('١٩٫٧ كم/ث نحو قمة الشمس', midArrowX, midArrowY + 2 * dpr);
       ctx.restore();
 
       animId = requestAnimationFrame(draw);
@@ -404,7 +404,7 @@ export default function SolarApexVisual({ className }: MiracleVisualProps) {
           }}>
           <span style={{ color: '#ffd85a', fontSize: 8 }}>◎</span>
           <span className="text-[8px] font-bold tracking-[0.18em] uppercase"
-            style={{ color: 'rgba(255,210,80,0.82)' }}>Solar Apex · Hercules</span>
+            style={{ color: 'rgba(255,210,80,0.82)' }}>قمة الشمس، كوكبة الجاثي</span>
         </div>
       </motion.div>
 
@@ -426,11 +426,11 @@ export default function SolarApexVisual({ className }: MiracleVisualProps) {
         {/* Stat chips — single scrollable row */}
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '⚡', label: '19.7 كم/ث', sub: 'نحو الأوج' },
-            { icon: '🔄', label: '220 كم/ث', sub: 'مداري' },
-            { icon: '💫', label: '225 م.سنة', sub: 'دورة كاملة' },
-            { icon: '🔭', label: 'هيرشل 1783م', sub: 'الاكتشاف' },
-            { icon: '📅', label: '1174 عاماً', sub: 'بعد القرآن' },
+            { icon: '⚡', label: '١٩.٧ كم/ث', sub: 'نحو الأوج' },
+            { icon: '🔄', label: '٢٢٠ كم/ث', sub: 'مداري' },
+            { icon: '💫', label: '٢٢٥ م.سنة', sub: 'دورة كاملة' },
+            { icon: '🔭', label: 'هيرشل ١٧٨٣م', sub: 'الاكتشاف' },
+            { icon: '📅', label: '١١٧٤ عاماً', sub: 'بعد القرآن' },
           ].map(({ icon, label, sub }) => (
             <div key={label}
               className="flex items-center gap-1 rounded-full px-2.5 py-1"

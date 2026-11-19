@@ -147,7 +147,7 @@ export default function EarthShapeVisual({ className }: MiracleVisualProps) {
       ctx.font = '11px Tajawal';
       ctx.fillStyle = `rgba(212, 168, 83, ${annAlpha})`;
       ctx.textAlign = 'center';
-      ctx.fillText('القطر الاستوائي: 12,756 كم', cx, cy + radiusY + 35);
+      ctx.fillText('القطر الاستوائي: ١٢,٧٥٦ كم', cx, cy + radiusY + 35);
 
       // Polar radius line (vertical — shorter)
       ctx.beginPath();
@@ -161,7 +161,7 @@ export default function EarthShapeVisual({ className }: MiracleVisualProps) {
 
       ctx.fillStyle = `rgba(45, 212, 168, ${annAlpha})`;
       ctx.textAlign = 'left';
-      ctx.fillText('القطر القطبي: 12,714 كم', cx + radiusX + 20, cy);
+      ctx.fillText('القطر القطبي: ١٢,٧١٤ كم', cx + radiusX + 20, cy);
 
       // Shape label
       ctx.font = 'bold 13px Amiri';
@@ -212,7 +212,7 @@ export default function EarthShapeVisual({ className }: MiracleVisualProps) {
         <p className="font-amiri text-xl md:text-2xl text-verse-green/80" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           وَالْأَرْضَ بَعْدَ ذَٰلِكَ دَحَاهَا
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">النازعات : 30</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">النازعات: ٣٠</p>
       </motion.div>
     </div>
   );

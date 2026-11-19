@@ -68,10 +68,10 @@ export default function LowestPointVisual({ className }: MiracleVisualProps) {
 
     // Depth markers
     const depthMarkers = [
-      { elev: 0.5, label: 'Sea Level' },
+      { elev: 0.5, label: 'سطح البحر' },
       { elev: 0.6, label: '-200m' },
       { elev: 0.7, label: '-400m' },
-      { elev: 0.75, label: '-430m (Lowest)' },
+      { elev: 0.75, label: '−٤٣٠ م (الأخفض)' },
     ];
 
     const draw = () => {

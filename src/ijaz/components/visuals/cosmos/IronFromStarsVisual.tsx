@@ -77,7 +77,7 @@ export default function IronFromStarsVisual({ className }: MiracleVisualProps) {
         ctx.fillStyle = 'rgba(255,240,200,0.9)'; ctx.fill();
         ctx.font = `9px sans-serif`; ctx.textAlign = 'center';
         ctx.fillStyle = 'rgba(255,220,150,0.4)';
-        ctx.fillText('نجم عملاق — Fe-56 يتراكم', starX, starY + starR * 0.55);
+        ctx.fillText('نجم عملاق — Fe-٥٦ يتراكم', starX, starY + starR * 0.55);
       } else if (phase === 'collapse') {
         const progress = phaseTime / 1.2;
         const starR = Math.min(w, h) * 0.1 * (1 - progress * 0.7);
@@ -89,7 +89,7 @@ export default function IronFromStarsVisual({ className }: MiracleVisualProps) {
         ctx.fillStyle = `rgba(255,200,100,${0.8 + progress * 0.2})`; ctx.fill();
         ctx.font = `9px sans-serif`; ctx.textAlign = 'center';
         ctx.fillStyle = 'rgba(255,150,80,0.5)';
-        ctx.fillText('انهيار — supernova', starX, starY + 60);
+        ctx.fillText('انهيار نجمي', starX, starY + 60);
       } else if (phase === 'explosion') {
         expPts.forEach((p) => {
           p.x += p.vx; p.y += p.vy; p.vy += 0.03; p.alpha -= 0.008;
@@ -172,9 +172,9 @@ export default function IronFromStarsVisual({ className }: MiracleVisualProps) {
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
             { icon: '⚙️', label: 'Fe-56', sub: 'أثقل عنصر نووي' },
-            { icon: '💥', label: 'Supernova', sub: 'مصنع الحديد' },
-            { icon: '🌍', label: 'أُنزل = sent down', sub: 'من الفضاء' },
-            { icon: '🔭', label: '26 عدد ذري', sub: '26 Surah Hadid' },
+            { icon: '💥', label: 'مستعر أعظم', sub: 'مصنع الحديد' },
+            { icon: '🌍', label: 'أُنزل من السماء', sub: 'من الفضاء' },
+            { icon: '🔭', label: '٢٦ عدد ذري', sub: 'الحديد: ٢٥' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(30,20,5,0.1)', border: '1px solid rgba(160,120,40,0.22)', backdropFilter: 'blur(8px)' }}>

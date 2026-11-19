@@ -22,12 +22,12 @@ export default function CelestialOrbitsVisual({ className }: MiracleVisualProps)
     // ResizeObserver handles canvas sizing below
 
     const orbits = [
-      { rx: 0.12, ry: 0.08, speed: 2.0, size: 6, color: '#a0a0a0', name: 'Mercury', tilt: 0.1 },
-      { rx: 0.18, ry: 0.13, speed: 1.5, size: 8, color: '#e8c975', name: 'Venus', tilt: -0.05 },
-      { rx: 0.25, ry: 0.18, speed: 1.0, size: 9, color: '#4A90D9', name: 'Earth', tilt: 0.02, hasTrail: true },
-      { rx: 0.32, ry: 0.23, speed: 0.7, size: 7, color: '#c1440e', name: 'Mars', tilt: 0.08 },
-      { rx: 0.42, ry: 0.30, speed: 0.4, size: 18, color: '#c88b3a', name: 'Jupiter', tilt: -0.03 },
-      { rx: 0.52, ry: 0.37, speed: 0.25, size: 15, color: '#d4a853', name: 'Saturn', tilt: 0.06, hasRing: true },
+      { rx: 0.12, ry: 0.08, speed: 2.0, size: 6, color: '#a0a0a0', name: 'عطارد', tilt: 0.1 },
+      { rx: 0.18, ry: 0.13, speed: 1.5, size: 8, color: '#e8c975', name: 'الزهرة', tilt: -0.05 },
+      { rx: 0.25, ry: 0.18, speed: 1.0, size: 9, color: '#4A90D9', name: 'الأرض', tilt: 0.02, hasTrail: true },
+      { rx: 0.32, ry: 0.23, speed: 0.7, size: 7, color: '#c1440e', name: 'المريخ', tilt: 0.08 },
+      { rx: 0.42, ry: 0.30, speed: 0.4, size: 18, color: '#c88b3a', name: 'المشتري', tilt: -0.03 },
+      { rx: 0.52, ry: 0.37, speed: 0.25, size: 15, color: '#d4a853', name: 'زحل', tilt: 0.06, hasRing: true },
     ];
 
     // Background stars
@@ -173,7 +173,7 @@ export default function CelestialOrbitsVisual({ className }: MiracleVisualProps)
         <p className="font-amiri text-xl md:text-2xl text-verse-green/80" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           كُلٌّ فِي فَلَكٍ يَسْبَحُونَ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">يس : 40</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">يس: ٤٠</p>
       </motion.div>
     </div>
   );

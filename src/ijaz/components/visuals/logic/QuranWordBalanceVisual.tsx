@@ -232,7 +232,7 @@ export default function QuranWordBalanceVisual({ className }: MiracleVisualProps
             { d: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M2 12h20 M12 2a15 15 0 0 1 0 20 M12 2a15 15 0 0 0 0 20', label: 'دنيا / آخرة', sub: '115 / 115' },
             { d: 'M12 3a9 9 0 0 1 9 9 M12 3a9 9 0 0 0-9 9 M3 12a4 4 0 0 0 8 0 M13 12a4 4 0 0 0 8 0 M9 18h6', label: 'ملائكة / شياطين', sub: '88 / 88' },
             { d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75', label: 'رجل / امرأة', sub: '24 / 24' },
-            { d: 'M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', label: 'اليوم', sub: '365 مرة' },
+            { d: 'M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', label: 'اليوم', sub: '٣٦٥ مرة' },
           ].map(({ d, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(180,140,30,0.07)', border: '1px solid rgba(200,160,40,0.2)', backdropFilter: 'blur(8px)' }}>

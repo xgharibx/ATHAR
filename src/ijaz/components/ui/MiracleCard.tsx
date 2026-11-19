@@ -2,7 +2,12 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Miracle } from '@/ijaz/types';
-import { getCategoryLabel, getVisualizationColor, truncate } from '@/ijaz/lib/utils';
+import { PROOF, getCategoryLabel, getVisualizationColor, truncate, verseRefAr } from '@/ijaz/lib/utils';
+import { useIjazPrefs } from '@/ijaz/lib/ijazPrefs';
+import { miracleNumber } from '@/ijaz/data/miracles';
+import { arNum } from '@/lib/formatNumber';
+import { countAr } from '@/lib/arabicCount';
+import { Atom, BookmarkCheck, Brain, Check, Dna, Globe2, ScrollText } from 'lucide-react';
 
 interface MiracleCardProps {
   miracle: Miracle;
@@ -11,6 +16,10 @@ interface MiracleCardProps {
 
 export default function MiracleCard({ miracle, index }: MiracleCardProps) {
   const accentColor = getVisualizationColor(miracle.visualizationType);
+  const showEnglish = useIjazPrefs((s) => s.showEnglish);
+  const read = useIjazPrefs((s) => !!s.read[miracle.slug]);
+  const saved = useIjazPrefs((s) => s.saved.includes(miracle.slug));
+  const Icon = { cosmos: Atom, microscopic: Dna, earth: Globe2, timeline: ScrollText, logic: Brain }[miracle.visualizationType] ?? Atom;
 
   return (
     <motion.div
@@ -33,17 +42,13 @@ export default function MiracleCard({ miracle, index }: MiracleCardProps) {
                 color: accentColor,
               }}
             >
-              <span className="text-base">
-                {miracle.visualizationType === 'cosmos' && '🌌'}
-                {miracle.visualizationType === 'microscopic' && '🧬'}
-                {miracle.visualizationType === 'earth' && '🌍'}
-                {miracle.visualizationType === 'timeline' && '📜'}
-                {miracle.visualizationType === 'logic' && '🧠'}
-              </span>
+              <Icon size={14} aria-hidden="true" />
               <span className="font-tajawal text-xs">{getCategoryLabel(miracle.category)}</span>
             </span>
-            <span className="text-text-muted text-xs font-tajawal">
-              #{miracle.order}
+            <span className="flex items-center gap-1.5 text-text-muted text-xs font-tajawal">
+              {saved && <BookmarkCheck size={14} aria-label="محفوظة" style={{ color: '#d4a853' }} />}
+              {read && <span className="inline-flex items-center gap-0.5" style={{ color: accentColor }}><Check size={13} aria-hidden="true" />قرأتها</span>}
+              <span>{arNum(miracleNumber(miracle.slug))}</span>
             </span>
           </div>
 
@@ -52,9 +57,11 @@ export default function MiracleCard({ miracle, index }: MiracleCardProps) {
             <h3 className="text-gold-primary font-amiri text-xl font-bold leading-tight group-hover:text-gold-light transition-colors">
               {miracle.titleAr}
             </h3>
-            <p className="text-text-secondary text-sm font-tajawal">
-              {miracle.title}
-            </p>
+            {showEnglish && (
+              <p className="text-text-secondary text-sm font-tajawal" dir="ltr" lang="en">
+                {miracle.title}
+              </p>
+            )}
           </div>
 
           {/* Verse Preview */}
@@ -64,8 +71,7 @@ export default function MiracleCard({ miracle, index }: MiracleCardProps) {
                 {truncate(miracle.verses[0].arabicText, 120)}
               </p>
               <p className="text-text-muted text-xs mt-2 font-tajawal">
-                سورة {miracle.verses[0].surah} : {miracle.verses[0].ayahNumber}
-                {miracle.verses[0].ayahNumberEnd && `-${miracle.verses[0].ayahNumberEnd}`}
+                سورة {verseRefAr(miracle.verses[0].surah, miracle.verses[0].ayahNumber, miracle.verses[0].ayahNumberEnd)}
               </p>
             </div>
           )}
@@ -83,7 +89,7 @@ export default function MiracleCard({ miracle, index }: MiracleCardProps) {
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg>
-                {miracle.scientificEvidence.length} أدلة
+                {countAr(miracle.scientificEvidence.length, PROOF)}
               </span>
               <span className="flex items-center gap-1">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

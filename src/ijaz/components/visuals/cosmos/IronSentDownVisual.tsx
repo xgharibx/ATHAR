@@ -285,7 +285,7 @@ export default function IronSentDownVisual({ className }: MiracleVisualProps) {
         <p className="font-amiri text-sm md:text-lg text-verse-green/80 px-4" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           وَأَنزَلْنَا الْحَدِيدَ فِيهِ بَأْسٌ شَدِيدٌ وَمَنَافِعُ لِلنَّاسِ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الحديد : 25</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الحديد: ٢٥</p>
       </motion.div>
     </motion.div>
   );

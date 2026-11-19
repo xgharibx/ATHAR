@@ -173,7 +173,7 @@ export default function KalamCosmologicalVisual({ className }: MiracleVisualProp
         className="absolute bottom-4 left-0 right-0 text-center font-amiri text-xs md:text-sm text-verse-green/75 px-4 z-10 pointer-events-none"
         style={{ textShadow: '0 0 20px rgba(45,212,168,0.3)' }}
       >
-        أَمْ خُلِقُوا مِنْ غَيْرِ شَيْءٍ أَمْ هُمُ الْخَالِقُونَ — الطور : 35
+        أَمْ خُلِقُوا مِنْ غَيْرِ شَيْءٍ أَمْ هُمُ الْخَالِقُونَ — الطور: ٣٥
       </motion.p>
     </div>
   );

@@ -111,10 +111,10 @@ export default function SexDeterminationVisual({ className }: MiracleVisualProps
         style={{ background: 'linear-gradient(to top, rgba(6,2,20,0.92) 0%, rgba(6,2,20,0.5) 60%, rgba(6,2,20,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '♂️', label: 'XY = ذكر', sub: 'sperm decides' },
-            { icon: '♀️', label: 'XX = أنثى', sub: 'egg carries X' },
-            { icon: '🧬', label: 'نُطْفَة', sub: 'Leeuwenhoek 1677' },
-            { icon: '🔬', label: 'McClung 1902', sub: 'sex chromosome' },
+            { icon: '♂️', label: 'XY = ذكر', sub: 'النطفة تحدد' },
+            { icon: '♀️', label: 'XX = أنثى', sub: 'البويضة تحمل X' },
+            { icon: '🧬', label: 'نُطْفَة', sub: 'ليفنهوك ١٦٧٧' },
+            { icon: '🔬', label: 'مكلانغ ١٩٠٢', sub: 'كروموسوم الجنس' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(10,4,25,0.1)', border: '1px solid rgba(80,50,160,0.22)', backdropFilter: 'blur(8px)' }}>

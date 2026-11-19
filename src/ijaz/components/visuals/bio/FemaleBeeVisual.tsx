@@ -233,7 +233,7 @@ export default function FemaleBeeVisual({ className }: MiracleVisualProps) {
           {[
             { icon: '♀', label: 'كل العاملات إناث', sub: '100%' },
             { icon: 'ي', label: 'صيغة مؤنثة', sub: 'اتخذي · كلي · اسلكي' },
-            { icon: '🔬', label: 'تشارلز بتلر 1609م', sub: 'بعد القرآن بـ 1000 سنة' },
+            { icon: '🔬', label: 'تشارلز بتلر ١٦٠٩م', sub: 'بعد القرآن بـ ١٠٠٠ سنة' },
             { icon: '🧬', label: 'كروموسوم XX', sub: 'بيولوجياً إناث' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"

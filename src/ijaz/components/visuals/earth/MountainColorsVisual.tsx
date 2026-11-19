@@ -16,16 +16,16 @@ export default function MountainColorsVisual({ className }: MiracleVisualProps) 
     let time = 0;
 
     const strata = [
-      { color: 'rgba(220,220,220,0.55)', ar: 'بيض', en: 'quartz/chalk', thickness: 0.08 },
-      { color: 'rgba(160,80,40,0.5)', ar: 'حُمر', en: 'iron oxide', thickness: 0.12 },
+      { color: 'rgba(220,220,220,0.55)', ar: 'بيض', en: 'كوارتز وطباشير', thickness: 0.08 },
+      { color: 'rgba(160,80,40,0.5)', ar: 'حُمر', en: 'أكسيد الحديد', thickness: 0.12 },
       { color: 'rgba(200,180,120,0.45)', ar: 'sandy', en: 'sandstone', thickness: 0.07 },
-      { color: 'rgba(180,100,60,0.5)', ar: 'حمراء', en: 'jasper/laterite', thickness: 0.1 },
+      { color: 'rgba(180,100,60,0.5)', ar: 'حمراء', en: 'يشب ولاتريت', thickness: 0.1 },
       { color: 'rgba(240,240,250,0.5)', ar: 'بيض', en: 'limestone', thickness: 0.09 },
       { color: 'rgba(40,40,40,0.65)', ar: 'غرابيب', en: 'basalt', thickness: 0.12 },
-      { color: 'rgba(160,80,60,0.45)', ar: 'حمر', en: 'red granite', thickness: 0.08 },
+      { color: 'rgba(160,80,60,0.45)', ar: 'حمر', en: 'غرانيت أحمر', thickness: 0.08 },
       { color: 'rgba(20,20,20,0.7)', ar: 'سود', en: 'obsidian', thickness: 0.14 },
       { color: 'rgba(230,210,190,0.4)', ar: 'فاتح', en: 'travertine', thickness: 0.07 },
-      { color: 'rgba(30,30,40,0.6)', ar: 'سود', en: 'coal/slate', thickness: 0.13 },
+      { color: 'rgba(30,30,40,0.6)', ar: 'سود', en: 'فحم وأردواز', thickness: 0.13 },
     ];
 
     const draw = () => {
@@ -129,9 +129,9 @@ export default function MountainColorsVisual({ className }: MiracleVisualProps) 
         style={{ background: 'linear-gradient(to top, rgba(10,12,20,0.92) 0%, rgba(10,12,20,0.5) 60%, rgba(10,12,20,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '⚪', label: 'بيض = quartz', sub: 'SiO\u2082' },
-            { icon: '🔴', label: 'حمر = iron oxide', sub: 'Fe\u2082O\u2083' },
-            { icon: '⚫', label: 'سود = basalt', sub: 'obsidian/coal' },
+            { icon: '⚪', label: 'بيض: كوارتز', sub: 'سيليكا' },
+            { icon: '🔴', label: 'حمر: أكسيد الحديد', sub: 'Fe\u2082O\u2083' },
+            { icon: '⚫', label: 'سود: بازلت', sub: 'زجاج بركاني وفحم' },
             { icon: '🧪', label: 'geology', sub: 'stratigraphy' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"

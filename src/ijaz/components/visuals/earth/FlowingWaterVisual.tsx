@@ -65,7 +65,7 @@ export default function FlowingWaterVisual({ className }: MiracleVisualProps) {
       });
       ctx.font = `7px monospace`; ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(60,120,200,0.25)';
-      ctx.fillText('H\u2082O polar molecule', molX, molY + 32);
+      ctx.fillText('جزيء الماء القطبي', molX, molY + 32);
 
       // Life forms
       forms.forEach((f) => {
@@ -128,10 +128,10 @@ export default function FlowingWaterVisual({ className }: MiracleVisualProps) {
         style={{ background: 'linear-gradient(to top, rgba(0,24,40,0.92) 0%, rgba(0,24,40,0.5) 60%, rgba(0,24,40,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '💧', label: 'H\u2082O polar', sub: 'hydrogen bonds' },
-            { icon: '🦠', label: '70% body H\u2082O', sub: 'every cell' },
-            { icon: '🐟', label: 'حياة بحرية', sub: '230k species' },
-            { icon: '🧬', label: 'abiogenesis', sub: '3.8B years' },
+            { icon: '💧', label: 'جزيء قطبي', sub: 'روابط هيدروجينية' },
+            { icon: '🦠', label: '٧٠٪ من الجسم ماء', sub: 'كل خلية' },
+            { icon: '🐟', label: 'حياة بحرية', sub: '٢٣٠ ألف نوع' },
+            { icon: '🧬', label: 'abiogenesis', sub: '٣٫٨ مليار سنة' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(0,20,35,0.1)', border: '1px solid rgba(20,80,140,0.22)', backdropFilter: 'blur(8px)' }}>

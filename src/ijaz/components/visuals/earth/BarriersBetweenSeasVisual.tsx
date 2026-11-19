@@ -72,15 +72,15 @@ export default function BarriersBetweenSeasVisual({ className }: MiracleVisualPr
       // ── Labels ───────────────────────────────────────────────
       ctx.font = `8px sans-serif`; ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(100,160,255,0.5)';
-      ctx.fillText('بحر بارد | Atlantic', barrierX * 0.5, h * 0.3);
+      ctx.fillText('بحر بارد (الأطلسي)', barrierX * 0.5, h * 0.3);
       ctx.fillStyle = 'rgba(60,220,200,0.5)';
-      ctx.fillText('بحر دافئ | Mediterranean', barrierX + barrierX * 0.5, h * 0.3);
+      ctx.fillText('بحر دافئ (المتوسط)', barrierX + barrierX * 0.5, h * 0.3);
 
       // Salt difference arrow
       ctx.font = `7px monospace`; ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(160,220,255,0.35)';
-      ctx.fillText('ملوحية 36‰', barrierX * 0.5, h * 0.45);
-      ctx.fillText('ملوحية 39‰', barrierX + barrierX * 0.5, h * 0.45);
+      ctx.fillText('ملوحية ٣٦‰', barrierX * 0.5, h * 0.45);
+      ctx.fillText('ملوحية ٣٩‰', barrierX + barrierX * 0.5, h * 0.45);
 
       // بَرْزَخٌ label
       ctx.font = `bold 11px serif`; ctx.textAlign = 'center';
@@ -130,7 +130,7 @@ export default function BarriersBetweenSeasVisual({ className }: MiracleVisualPr
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
             { icon: '🌊', label: 'برزخ = حاجز', sub: 'halocline' },
-            { icon: '🔬', label: 'Dr. Hay 1980', sub: 'ثبيت سبباً' },
+            { icon: '🔬', label: 'د. هاي ١٩٨٠', sub: 'ثبيت سبباً' },
             { icon: '🐟', label: 'ملوحية مختلفة', sub: 'لا تختلط' },
             { icon: '🌡️', label: 'درجة حرارة مختلفة', sub: 'pycnocline' },
           ].map(({ icon, label, sub }) => (

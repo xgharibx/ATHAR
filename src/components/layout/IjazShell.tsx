@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Outlet, useLocation, useNavigate, NavLink } from "react-router-dom";
-import { ArrowRight, Home, Search, BookOpen, Sparkles, Clock, Zap } from "lucide-react";
+import { ArrowRight, Home, Search, BookOpen, Sparkles, Clock, Zap, Languages } from "lucide-react";
+import { useIjazPrefs } from "@/ijaz/lib/ijazPrefs";
 import { InstantStars } from "@/components/background/InstantStars";
 import { useNoorStore } from "@/store/noorStore";
 
@@ -31,6 +32,8 @@ export function IjazShell() {
   const [starfieldReady, setStarfieldReady] = React.useState(false);
   const [starsPainted, setStarsPainted] = React.useState(false);
   const reduceMotion = useNoorStore(s => s.prefs.reduceMotion);
+  const showEnglish = useIjazPrefs((s) => s.showEnglish);
+  const setShowEnglish = useIjazPrefs((s) => s.setShowEnglish);
 
   React.useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
@@ -89,9 +92,23 @@ export function IjazShell() {
         </button>
 
         <span className="ijaz-brand">
-          <span className="ijaz-brand-icon">✦</span>
+          <span className="ijaz-brand-icon" aria-hidden="true">✦</span>
           <span className="ijaz-brand-text">الإعجاز العلمي</span>
         </span>
+
+        {/* The English translations stay hidden unless asked for. */}
+        <button
+          type="button"
+          onClick={() => setShowEnglish(!showEnglish)}
+          aria-pressed={showEnglish}
+          aria-label={showEnglish ? "إخفاء الترجمة الإنجليزية" : "إظهار الترجمة الإنجليزية"}
+          title={showEnglish ? "إخفاء الترجمة الإنجليزية" : "إظهار الترجمة الإنجليزية"}
+          className="ijaz-back-btn"
+          style={{ marginInlineStart: "auto", ...(showEnglish ? { color: "#d4a853", borderColor: "rgba(212,168,83,0.45)" } : {}) }}
+        >
+          <Languages size={16} aria-hidden="true" />
+          <span>EN</span>
+        </button>
       </header>
 
       {/* ── Sub-nav ── */}

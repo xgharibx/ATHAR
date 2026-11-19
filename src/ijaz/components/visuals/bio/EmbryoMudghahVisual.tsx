@@ -188,7 +188,7 @@ export default function EmbryoMudghahVisual({ className }: MiracleVisualProps) {
         ctx.save(); ctx.globalAlpha = fadeIn * 0.7;
         ctx.font = `${9 * dpr}px sans-serif`; ctx.textAlign = 'center';
         ctx.fillStyle = 'rgba(255,180,100,0.7)'; ctx.shadowBlur = 0;
-        ctx.fillText('قطعة كالممضوغة — مؤكد من كيث مور 1986', cx, cy + s * 0.85);
+        ctx.fillText('قطعة كالممضوغة — مؤكد من كيث مور ١٩٨٦', cx, cy + s * 0.85);
         ctx.restore();
       }
 
@@ -252,10 +252,10 @@ export default function EmbryoMudghahVisual({ className }: MiracleVisualProps) {
         style={{ background: 'linear-gradient(to top, rgba(4,1,10,0.92) 0%, rgba(4,1,10,0.5) 60%, rgba(4,1,10,0) 100%)', paddingTop: 28 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🦷', label: 'مُضغة = ممضوغ', sub: '28–31 يوم' },
-            { icon: '🔬', label: 'السوميتات', sub: 'teeth marks pattern' },
+            { icon: '🦷', label: 'مُضغة = ممضوغ', sub: '٢٨–٣١ يوم' },
+            { icon: '🔬', label: 'السوميتات', sub: 'نمط آثار الأسنان' },
             { icon: '📏', label: '4–6 mm', sub: 'حجم اللقمة' },
-            { icon: '🏥', label: 'Keith Moore 1986', sub: 'U of Toronto' },
+            { icon: '🏥', label: 'كيث مور ١٩٨٦', sub: 'جامعة تورنتو' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(80,40,10,0.1)', border: '1px solid rgba(180,100,40,0.22)', backdropFilter: 'blur(8px)' }}>

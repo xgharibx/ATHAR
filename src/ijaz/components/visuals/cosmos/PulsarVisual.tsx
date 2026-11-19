@@ -171,7 +171,7 @@ export default function PulsarVisual({ className }: MiracleVisualProps) {
         <p className="font-amiri text-lg md:text-2xl text-verse-green/80" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           وَالسَّمَاءِ وَالطَّارِقِ ۝ النَّجْمُ الثَّاقِبُ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الطارق : 1-3</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الطارق: ١–٣</p>
       </motion.div>
     </div>
   );

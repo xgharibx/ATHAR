@@ -14,8 +14,8 @@ const VERSE: Tok[] = [
 ];
 
 const MATCHES = [
-  { ref: 'Isaiah 42:1', text: '“My chosen one in whom I delight”', match: 'محمد ﷺ = المختار · المصطفى', color: '#d4a853' },
-  { ref: 'Isaiah 42:11', text: '“Let Kedar’s settlements rejoice”', match: 'قيدار = ابن إسماعيل = عرب الحجاز (مكة)', color: '#f472b6' },
+  { ref: 'Isaiah 42:1', text: '«مختاري الذي سُرّت به نفسي»', match: 'محمد ﷺ = المختار · المصطفى', color: '#d4a853' },
+  { ref: 'Isaiah 42:11', text: '«لتهتف ديار قيدار»', match: 'قيدار = ابن إسماعيل = عرب الحجاز (مكة)', color: '#f472b6' },
 ];
 
 export default function IsaiahProphecyVisual({ className }: MiracleVisualProps) {

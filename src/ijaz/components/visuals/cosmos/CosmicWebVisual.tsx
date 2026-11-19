@@ -137,9 +137,9 @@ export default function CosmicWebVisual({ className }: MiracleVisualProps) {
         style={{ background: 'linear-gradient(to top, rgba(1,0,4,0.92) 0%, rgba(1,0,4,0.5) 60%, rgba(1,0,4,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🕸️', label: 'الشبكة الكونية', sub: 'Cosmic Web' },
-            { icon: '🌌', label: 'خيوط بلا مادة', sub: 'dark matter' },
-            { icon: '🔭', label: 'Sloan 2003', sub: 'SDSS' },
+            { icon: '🕸️', label: 'الشبكة الكونية', sub: 'الشبكة الكونية' },
+            { icon: '🌌', label: 'خيوط بلا مادة', sub: 'مادة مظلمة' },
+            { icon: '🔭', label: 'سلون ٢٠٠٣', sub: 'مسح سلون' },
             { icon: '🫧', label: 'فراغات كونية', sub: 'voids' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"

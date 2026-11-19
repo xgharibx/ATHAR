@@ -2,8 +2,12 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import LogicTree from '@/ijaz/components/ui/LogicTree';
+import { BookOpen } from 'lucide-react';
+import { IjazIcon } from '@/ijaz/components/ui/IjazIcon';
+import { useIjazPrefs } from '@/ijaz/lib/ijazPrefs';
 
 export default function RefutePage() {
+  const showEnglish = useIjazPrefs((s) => s.showEnglish);
   return (
     <main className="min-h-screen pt-28 pb-20">
       <div className="container mx-auto px-6">
@@ -12,7 +16,6 @@ export default function RefutePage() {
           <h1 className="font-amiri text-4xl md:text-5xl font-bold mb-4 gold-gradient-text">
             دحض الشبهات
           </h1>
-          <p className="text-text-secondary font-tajawal text-base mb-2">Refute Athiesm Sandbox</p>
           <p className="text-text-secondary font-tajawal text-sm max-w-3xl mx-auto">
             شجرة تفاعلية من البراهين المنطقية على وجود الله تعالى، مستخرجة من كتاب
             <span className="text-gold-primary font-bold"> بصائر </span>
@@ -30,14 +33,14 @@ export default function RefutePage() {
           <div className="glass-card p-8">
             <div className="flex items-start gap-4 mb-6">
               <div className="w-12 h-12 rounded-xl bg-gold-primary/15 flex items-center justify-center text-2xl shrink-0">
-                📖
+                <BookOpen size={22} aria-hidden="true" className="text-gold-primary" />
               </div>
               <div>
                 <h2 className="text-gold-primary font-amiri text-xl font-bold mb-2">
                   البرهان القرآني
                 </h2>
                 <p className="text-text-secondary font-tajawal text-sm leading-relaxed">
-                  يقول الله تعالى في سورة الطور (الآيات 35-36):
+                  يقول الله تعالى في سورة الطور (الآيتان ٣٥–٣٦):
                 </p>
               </div>
             </div>
@@ -46,12 +49,12 @@ export default function RefutePage() {
               <p className="font-amiri text-verse-green text-xl md:text-2xl leading-relaxed text-center" dir="rtl">
                 أَمْ خُلِقُوا مِنْ غَيْرِ شَيْءٍ أَمْ هُمُ الْخَالِقُونَ ۝ أَمْ خَلَقُوا السَّمَاوَاتِ وَالْأَرْضَ ۚ بَل لَّا يُوقِنُونَ
               </p>
-              <p className="text-text-secondary text-sm font-tajawal text-center mt-3 italic" dir="ltr">
+              {showEnglish && <p className="text-text-secondary text-sm font-tajawal text-center mt-3 italic" dir="ltr" lang="en">
                 &ldquo;Or were they created by nothing, or were they the creators [of themselves]?
                 Or did they create the heavens and the earth? Rather, they are not certain.&rdquo;
-              </p>
+              </p>}
               <p className="text-text-muted text-xs font-tajawal text-center mt-2">
-                سورة الطور : 35-36
+                سورة الطور: ٣٥–٣٦
               </p>
             </div>
 
@@ -88,7 +91,7 @@ export default function RefutePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
               {
-                icon: '🎯',
+                icon: 'cosmos',
                 titleAr: 'برهان الضبط الدقيق',
                 title: 'Fine-Tuning Argument',
                 descriptionAr: 'الثوابت الفيزيائية للكون مضبوطة بدقة متناهية لا يمكن أن تكون صدفة — دليل على المدبر الحكيم',
@@ -96,7 +99,7 @@ export default function RefutePage() {
                 slug: 'fine-tuning',
               },
               {
-                icon: '🧩',
+                icon: 'logic',
                 titleAr: 'برهان الإمكان والوجوب',
                 title: 'Contingency Argument',
                 descriptionAr: 'كل شيء ممكن الوجود يحتاج سبباً — لا بد من واجب الوجود الغني عن كل سبب',
@@ -104,7 +107,7 @@ export default function RefutePage() {
                 slug: 'contingency-argument',
               },
               {
-                icon: '⚖️',
+                icon: 'book',
                 titleAr: 'البرهان الأخلاقي',
                 title: 'Moral Argument',
                 descriptionAr: 'القيم الأخلاقية الموضوعية لا يمكن تفسيرها بدون مشرّع متعالٍ — الله',
@@ -112,7 +115,7 @@ export default function RefutePage() {
                 slug: 'moral-argument',
               },
               {
-                icon: '💭',
+                icon: 'spark',
                 titleAr: 'مشكلة الوعي',
                 title: 'Consciousness Problem',
                 descriptionAr: 'الوعي والعقل لا يمكن اختزالهما في مادة — دليل على البعد غير المادي والخالق',
@@ -127,13 +130,13 @@ export default function RefutePage() {
                       className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
                       style={{ background: `${arg.color}15` }}
                     >
-                      {arg.icon}
+                      <IjazIcon name={arg.icon} size={22} style={{ color: arg.color }} />
                     </div>
                     <div>
                       <h3 className="font-amiri text-lg font-bold mb-1" style={{ color: arg.color }}>
                         {arg.titleAr}
                       </h3>
-                      <p className="text-text-muted text-xs font-tajawal mb-2">{arg.title}</p>
+                      {showEnglish && <p className="text-text-muted text-xs font-tajawal mb-2" dir="ltr" lang="en">{arg.title}</p>}
                       <p className="text-text-secondary text-sm font-tajawal leading-relaxed">
                         {arg.descriptionAr}
                       </p>

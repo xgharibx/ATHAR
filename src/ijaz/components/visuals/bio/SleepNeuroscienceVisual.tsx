@@ -20,7 +20,7 @@ export default function SleepNeuroscienceVisual({ className }: MiracleVisualProp
     let time = 0;
 
     // Sleep stages cycling
-    const stages = ['يقظة\nAWAKE', 'NREM1\nخفيف', 'NREM2\nمتوسط', 'NREM3\nعميق', 'REM\nأحلام'];
+    const stages = ['يقظة\nAWAKE', 'NREM١\nخفيف', 'NREM٢\nمتوسط', 'NREM٣\nعميق', 'REM\nأحلام'];
     const stageColors = ['rgba(255,200,80,0.7)', 'rgba(120,180,255,0.6)', 'rgba(80,140,220,0.6)', 'rgba(40,80,200,0.7)', 'rgba(140,80,220,0.7)'];
 
     // Glymphatic flow particles
@@ -105,7 +105,7 @@ export default function SleepNeuroscienceVisual({ className }: MiracleVisualProp
       // EEG label
       ctx.font = `${8 * dpr}px monospace`; ctx.textAlign = 'left';
       ctx.fillStyle = 'rgba(120,100,200,0.45)';
-      ctx.fillText('EEG', w * 0.02, waveY - waveAmp - 8);
+      ctx.fillText('تخطيط الدماغ', w * 0.02, waveY - waveAmp - 8);
 
       // ── Glymphatic particles ──────────────────────────────────
       if (stageIdx >= 2 && Math.random() < 0.25 && gParticles.length < 80) spawnGlymph(w, h);
@@ -204,10 +204,10 @@ export default function SleepNeuroscienceVisual({ className }: MiracleVisualProp
         style={{ background: 'linear-gradient(to top, rgba(2,0,8,0.92) 0%, rgba(2,0,8,0.5) 60%, rgba(2,0,8,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🧠', label: 'الجليمفاوي', sub: 'Nedergaard 2013' },
-            { icon: '💜', label: 'NREM3 عميق', sub: 'وفاة صغرى' },
-            { icon: '🔬', label: 'DNA إصلاح', sub: 'ذروة النوم العميق' },
-            { icon: '💭', label: 'ذاكرة REM', sub: 'الهيبوكامبس' },
+            { icon: '🧠', label: 'الجليمفاوي', sub: 'نيدرغارد ٢٠١٣' },
+            { icon: '💜', label: 'النوم العميق', sub: 'وفاة صغرى' },
+            { icon: '🔬', label: 'إصلاح الحمض النووي', sub: 'ذروة النوم العميق' },
+            { icon: '💭', label: 'ذاكرة نوم الأحلام', sub: 'الهيبوكامبس' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(30,10,60,0.1)', border: '1px solid rgba(100,60,180,0.22)', backdropFilter: 'blur(8px)' }}>

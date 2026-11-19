@@ -203,10 +203,10 @@ export default function FigOliveNutritionVisual({ className }: MiracleVisualProp
         style={{ background: 'linear-gradient(to top, rgba(10,6,0,0.92) 0%, rgba(10,6,0,0.5) 60%, rgba(10,6,0,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🍒', label: 'تين = calcium', sub: 'عظم وقلب' },
-            { icon: '🫒', label: 'زيتون = Vit E', sub: 'antioxidant' },
+            { icon: '🍒', label: 'تين = كالسيوم', sub: 'عظم وقلب' },
+            { icon: '🫒', label: 'زيتون = فيتامين هـ', sub: 'antioxidant' },
             { icon: '🗄️', label: 'polyphenols', sub: 'مضاد إلتهاب' },
-            { icon: '🧪', label: 'oleic acid', sub: 'omega-9' },
+            { icon: '🧪', label: 'حمض الأوليك', sub: 'أوميغا ٩' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(15,10,0,0.1)', border: '1px solid rgba(120,100,40,0.22)', backdropFilter: 'blur(8px)' }}>

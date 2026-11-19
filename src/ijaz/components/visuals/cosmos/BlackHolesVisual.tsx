@@ -286,7 +286,7 @@ export default function BlackHolesVisual({ className }: MiracleVisualProps) {
             { icon: '⚫', label: 'خُنَّس = انهيار', sub: 'تراجع نحو الداخل' },
             { icon: '🌀', label: 'جَوَار = جذب هائل', sub: 'يسحب الضوء' },
             { icon: '👁️', label: 'كُنَّس = اختفاء', sub: 'لا يُرى' },
-            { icon: '📡', label: 'EHT صورة 2019م', sub: 'M87* أول صورة' },
+            { icon: '📡', label: 'صورة أفق الحدث ٢٠١٩م', sub: 'M٨٧* أول صورة' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(180,60,20,0.07)', border: '1px solid rgba(200,80,40,0.18)', backdropFilter: 'blur(8px)' }}>

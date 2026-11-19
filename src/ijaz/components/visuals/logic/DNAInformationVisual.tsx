@@ -217,7 +217,7 @@ export default function DNAInformationVisual({ className }: MiracleVisualProps) 
           ))}
         </div>
         <p className="text-center text-[9px] font-tajawal mt-2" style={{ color: 'rgba(180,200,190,0.5)' }}>
-          كود شبه مثالي · أفضل ١ في المليون متانة ضد الطفرات (Freeland &amp; Hurst 1998)
+          كود شبه مثالي · أفضل ١ في المليون متانة ضد الطفرات (Freeland &amp; Hurst ١٩٩٨)
         </p>
       </motion.div>
     </div>

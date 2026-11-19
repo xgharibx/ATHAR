@@ -21,13 +21,13 @@ export default function NumberNineteenVisual({ className }: MiracleVisualProps) 
 
     // 19-based patterns to orbit
     const orbitItems = [
-      { text: 'بِسْم الله', sub: '19 حرفًا', angle: 0, r: 0.33 },
+      { text: 'بِسْم الله', sub: '١٩ حرفًا', angle: 0, r: 0.33 },
       { text: '2698 = 19×142', sub: 'لفظ الله', angle: Math.PI * 2 / 7, r: 0.28 },
       { text: '114 = 19×6', sub: 'عدد السور', angle: Math.PI * 4 / 7, r: 0.32 },
       { text: '57 = 19×3', sub: 'الرحمن', angle: Math.PI * 6 / 7, r: 0.28 },
-      { text: '19 = prime', sub: 'عدد أولي', angle: Math.PI * 8 / 7, r: 0.33 },
-      { text: 'فَاتحة = 7 آيات', sub: '7 × 19 ... خط', angle: Math.PI * 10 / 7, r: 0.30 },
-      { text: '30 مديرًا', sub: 'متحدح', angle: Math.PI * 12 / 7, r: 0.28 },
+      { text: '١٩ عدد أولي', sub: 'عدد أولي', angle: Math.PI * 8 / 7, r: 0.33 },
+      { text: 'فَاتحة = ٧ آيات', sub: '٧ × ١٩ ... خط', angle: Math.PI * 10 / 7, r: 0.30 },
+      { text: '٣٠ مديرًا', sub: 'متحدح', angle: Math.PI * 12 / 7, r: 0.28 },
     ];
 
     // Floating digits
@@ -134,10 +134,10 @@ export default function NumberNineteenVisual({ className }: MiracleVisualProps) 
         style={{ background: 'linear-gradient(to top, rgba(2,0,8,0.92) 0%, rgba(2,0,8,0.5) 60%, rgba(2,0,8,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { d: 'M4 7V4h16v3 M9 20h6 M12 4v16', label: '19 حرفًا', sub: 'بسملة' },
+            { d: 'M4 7V4h16v3 M9 20h6 M12 4v16', label: '١٩ حرفًا', sub: 'بسملة' },
             { d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M4 19.5V5a2 2 0 0 1 2-2h14v14 M4 19.5A2.5 2.5 0 0 0 6.5 22H20', label: '114 = 19×6', sub: 'سورة' },
             { d: 'M12 3v18 M3 12h18 M6 6l12 12 M18 6 6 18', label: 'عدد أولي', sub: 'prime' },
-            { d: 'M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M12 2a10 10 0 0 1 8.7 5 M3.3 17A10 10 0 0 1 12 2 M20.7 17A10 10 0 0 1 5 21', label: 'Rashad 1974', sub: 'اكتشاف' },
+            { d: 'M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M12 2a10 10 0 0 1 8.7 5 M3.3 17A10 10 0 0 1 12 2 M20.7 17A10 10 0 0 1 5 21', label: 'رشاد خليفة ١٩٧٤', sub: 'اكتشاف' },
           ].map(({ d, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(8,4,20,0.1)', border: '1px solid rgba(100,80,200,0.22)', backdropFilter: 'blur(8px)' }}>
