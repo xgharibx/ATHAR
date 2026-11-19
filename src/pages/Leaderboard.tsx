@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Trophy, Send, RotateCw, Loader2, CheckCircle2, AlertCircle, Clock, ShieldCheck, Trash2, Users, BookMarked, Calendar, Check, Copy, Plus } from "lucide-react";
+import { Trophy, Send, RotateCw, Loader2, CheckCircle2, AlertCircle, Clock, ShieldCheck, Trash2, Users, BookMarked, Calendar, Check, Copy, Plus, Share2 } from "lucide-react";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -38,6 +38,12 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum, arFullDate } from "@/lib/formatNumber";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { writeClipboard } from "@/lib/nativeUI";
+import { shareOrCopy } from "@/lib/shareTargets";
+import { readFriendCode } from "@/lib/friendCode";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { getLocalDateKey } from "@/lib/dayBoundaries";
+import { WEEKLY_CHALLENGES, challengeOfWeek, challengeStatus, weekStartOf } from "@/lib/weeklyChallenge";
 
 
 const COOLDOWN_MS = 45_000;
@@ -547,7 +553,7 @@ export function LeaderboardPage() {
       ) : null}
 
       {/* L1: Local friends board */}
-      <LocalFriendsCard myStats={{ id: myStats.id, alias: myStats.name, score: myStats.score, dhikr: myStats.dhikr, quran: myStats.quran, prayers: myStats.prayers }} />
+      <LocalFriendsCard endpoint={endpoint} todayKey={todayKey} myStats={{ id: myStats.id, alias: myStats.name, score: myStats.score }} />
 
       {/* L2: Group khatma */}
       <GroupKhatmaCard />
@@ -1088,8 +1094,18 @@ function LeaderboardAdminCard(props: {
 
 // ─── L1: Local Friends Board ───────────────────────────────────────────────
 
+/**
+ * «لوحة الأصدقاء»: the reader and the friends they added, ranked by this
+ * week's (or month's) score, read live from the leaderboard.
+ *
+ * It used to rank the score each friend had on the day they shared their
+ * code — a number that never changed again — against the reader's own
+ * score of today.
+ */
 function LocalFriendsCard(props: {
-  myStats: Pick<LocalFriend, "id" | "alias" | "score" | "dhikr" | "quran" | "prayers">;
+  endpoint: string;
+  todayKey: string;
+  myStats: Pick<LocalFriend, "id" | "alias" | "score">;
 }) {
   const localFriends = useNoorStore((s) => s.localFriends);
   const addLocalFriend = useNoorStore((s) => s.addLocalFriend);
@@ -1099,15 +1115,34 @@ function LocalFriendsCard(props: {
   const [importError, setImportError] = React.useState("");
   const [copied, setCopied] = React.useState(false);
   const [expanded, setExpanded] = React.useState(false);
+  const [confirmRemove, setConfirmRemove] = React.useState<string | null>(null);
+  const [period, setPeriod] = React.useState<"weekly" | "monthly">("weekly");
+  // The live scores, and the request they answer (friends, period, day).
+  const [live, setLive] = React.useState<{ key: string; rows: Map<string, LeaderboardEntry> } | null>(null);
+  const [failedKey, setFailedKey] = React.useState<string | null>(null);
 
-  const myExportCode = React.useMemo(() => {
-    const payload: LocalFriend = { ...props.myStats, addedAt: new Date().toISOString() };
-    return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-  }, [props.myStats]);
+  const myCode = props.myStats.id;
+  const idsKey = [props.myStats.id, ...localFriends.map((f) => f.id)].join(",");
 
+  const requestKey = `${period}|${props.todayKey}|${idsKey}`;
+  React.useEffect(() => {
+    if (!props.endpoint || localFriends.length === 0) return;
+    let cancelled = false;
+    fetchBoardRows({ endpoint: props.endpoint, board: "global", period, day: props.todayKey, ids: idsKey.split(",") })
+      .then((rows) => { if (!cancelled) setLive({ key: requestKey, rows: new Map(rows.map((row) => [row.id, row])) }); })
+      .catch(() => { if (!cancelled) setFailedKey(requestKey); });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.endpoint, requestKey]);
+  const liveState = !props.endpoint ? "failed" : live?.key === requestKey ? "ready" : failedKey === requestKey ? "failed" : "loading";
+  const liveRows = live?.rows ?? null;
+
+  const share = async () => {
+    await shareOrCopy(`أضفني صديقًا في «أثر» لنتنافس في الخير 🤍\nلوحة الترتيب ← الأصدقاء ← إضافة صديق، ثم الصق الكود:\n${myCode}`, { title: "كود صداقتي في أثر", copiedMessage: "نُسخ الكود" });
+  };
   const copyMyCode = async () => {
     try {
-      await writeClipboard(myExportCode);
+      await writeClipboard(myCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -1117,40 +1152,36 @@ function LocalFriendsCard(props: {
 
   const handleImport = () => {
     setImportError("");
-    try {
-      const json = decodeURIComponent(escape(atob(importCode.trim())));
-      const data = JSON.parse(json) as Partial<LocalFriend>;
-      if (!data.id || !data.alias || typeof data.score !== "number") {
-        setImportError("الكود غير صالح أو غير مكتمل.");
-        return;
-      }
-      if (data.id === props.myStats.id) {
-        setImportError("لا يمكنك إضافة نفسك كصديق.");
-        return;
-      }
-      if (localFriends.some((f) => f.id === data.id)) {
-        setImportError("هذا الصديق مضاف مسبقًا.");
-        return;
-      }
-      addLocalFriend({
-        id: data.id,
-        alias: data.alias,
-        score: data.score,
-        dhikr: data.dhikr ?? 0,
-        quran: data.quran ?? 0,
-        prayers: data.prayers ?? 0,
-        addedAt: new Date().toISOString()
-      });
-      setImportCode("");
-    } catch {
+    const friend = readFriendCode(importCode);
+    if (!friend) {
       setImportError("الكود غير صالح. تحقق من أنك لصقت الكود كاملًا.");
+      return;
     }
+    if (friend.id === props.myStats.id) {
+      setImportError("هذا كودك أنت.");
+      return;
+    }
+    if (localFriends.some((f) => f.id === friend.id)) {
+      setImportError("هذا الصديق مضاف مسبقًا.");
+      return;
+    }
+    if (localFriends.length >= 49) {
+      setImportError("بلغت الحد الأقصى للأصدقاء (٤٩).");
+      return;
+    }
+    addLocalFriend({ id: friend.id, alias: friend.alias ?? "صديق", score: 0, dhikr: 0, quran: 0, prayers: 0, addedAt: new Date().toISOString() });
+    setImportCode("");
+    toast.success("أُضيف الصديق");
   };
 
-  const allRows = React.useMemo(() => {
-    const me: LocalFriend = { ...props.myStats, addedAt: "" };
-    return [...localFriends, me].sort((a, b) => b.score - a.score);
-  }, [localFriends, props.myStats]);
+  const ready = liveState === "ready" && liveRows !== null;
+  const rows = React.useMemo(() => {
+    const people = [
+      ...localFriends.map((f) => ({ id: f.id, name: liveRows?.get(f.id)?.name ?? f.alias, score: ready ? liveRows!.get(f.id)?.score ?? 0 : null, me: false })),
+      { id: props.myStats.id, name: liveRows?.get(props.myStats.id)?.name ?? props.myStats.alias, score: ready ? liveRows!.get(props.myStats.id)?.score ?? 0 : null, me: true },
+    ];
+    return people.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+  }, [localFriends, liveRows, ready, props.myStats.id, props.myStats.alias]);
 
   return (
     <Card className="p-5">
@@ -1162,65 +1193,86 @@ function LocalFriendsCard(props: {
             <span className="text-[10px] opacity-50 tabular-nums">{arNum(localFriends.length)} صديق</span>
           )}
         </div>
-        <Button variant="secondary" aria-expanded={expanded} aria-controls="lb-friends-import" onClick={() => setExpanded((v) => !v)}>
-          {expanded ? "إخفاء" : "إدارة"}
+        <Button variant="secondary" aria-expanded={expanded} aria-controls="lb-friends-manage" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? "إخفاء" : localFriends.length === 0 ? "إضافة صديق" : "إدارة"}
         </Button>
       </div>
 
-      {/* Friend list */}
-      <div className="mt-3 stack-y-2" role="list" aria-label="قائمة الأصدقاء">
-        {allRows.length === 0 ? (
-          <div className="text-xs opacity-50 text-center py-3">أضف أصدقاء لمقارنة تقدمكم المشترك.</div>
-        ) : (
-          allRows.map((f, idx) => (
-            <div
-              key={f.id}
-              role="listitem"
-              className={cn(
-                "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
-                f.id === props.myStats.id ? "border-accent-35 bg-accent-8" : "border-(--stroke)"
-              )}
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-(--card) border border-(--stroke) flex items-center justify-center text-xs">
-                  {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : arNum((idx + 1))}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate">{f.alias}</div>
-                  <div className="text-[10px] opacity-50 tabular-nums">ذكر {arNum(f.dhikr)}، قرآن {arNum(f.quran)}، مهام {arNum(f.prayers)}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-sm font-semibold tabular-nums">{arNum(f.score)}</div>
-                {f.id !== props.myStats.id && (
-                  <button type="button"
-                    onClick={() => removeLocalFriend(f.id)}
-                    className="text-(--danger) opacity-50 hover:opacity-100 transition"
-                    aria-label="حذف الصديق"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+      {localFriends.length > 0 ? (
+        <>
+          <div className="mt-3 flex items-center gap-1.5" role="group" aria-label="مدة المقارنة">
+            {([["weekly", "هذا الأسبوع"], ["monthly", "هذا الشهر"]] as const).map(([value, label]) => (
+              <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)}
+                className={cn("rounded-full border px-3 py-1 text-[11.5px] transition", period === value ? "border-accent-35 bg-accent-15 text-(--accent) font-semibold" : "border-(--stroke) bg-(--card) opacity-75")}>
+                {label}
+              </button>
+            ))}
+            {liveState === "loading" ? <Loader2 size={13} className="ms-auto animate-spin opacity-50" aria-label="جارٍ التحديث" /> : null}
+          </div>
+          {liveState === "failed" ? (
+            <div className="mt-2 text-[11px] text-(--muted)">تعذّر جلب نتائج الأصدقاء الآن. تحقق من الاتصال ثم أعد فتح الصفحة.</div>
+          ) : null}
+          <div className="mt-3 stack-y-2" role="list" aria-label="قائمة الأصدقاء">
+            {rows.map((f, idx) => (
+              <div
+                key={f.id}
+                role="listitem"
+                className={cn(
+                  "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
+                  f.me ? "border-accent-35 bg-accent-8" : "border-(--stroke)"
                 )}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-7 h-7 shrink-0 rounded-full bg-(--card) border border-(--stroke) flex items-center justify-center text-xs">
+                    {ready ? (idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : arNum(idx + 1)) : "·"}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{f.name}{f.me ? " (أنت)" : ""}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-semibold tabular-nums">{f.score === null ? "—" : arNum(f.score)}</div>
+                  {!f.me ? (
+                    confirmRemove === f.id ? (
+                      <span className="flex items-center gap-1">
+                        <button type="button" onClick={() => { removeLocalFriend(f.id); setConfirmRemove(null); }} className="rounded-lg px-2 py-1 text-[11px] font-semibold text-(--danger) bg-danger-10">حذف</button>
+                        <button type="button" onClick={() => setConfirmRemove(null)} className="rounded-lg px-2 py-1 text-[11px] opacity-60">إلغاء</button>
+                      </span>
+                    ) : (
+                      <button type="button"
+                        onClick={() => setConfirmRemove(f.id)}
+                        className="grid h-8 w-8 place-items-center rounded-lg text-(--danger) opacity-60 hover:opacity-100 transition"
+                        aria-label={`حذف ${f.name} من الأصدقاء`}
+                      >
+                        <Trash2 size={13} aria-hidden="true" />
+                      </button>
+                    )
+                  ) : null}
+                </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="mt-3 text-xs opacity-55 leading-6">أضف أصدقاءك بكودهم، وتنافسوا أسبوعيًا في الذكر والقرآن والمهام.</div>
+      )}
 
-      {/* Import / export area */}
       {expanded && (
-        <div id="lb-friends-import" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
+        <div id="lb-friends-manage" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
           <div>
-            <div className="text-xs font-semibold mb-2">كود مشاركتي</div>
+            <div className="text-xs font-semibold mb-2">كود صداقتي</div>
             <div className="flex gap-2">
-              <code className="flex-1 text-[10px] break-all bg-(--card) border border-(--stroke) rounded-2xl px-3 py-2 leading-5 opacity-70 select-all">
-                {myExportCode}
+              <code className="flex-1 min-w-0 truncate text-[11px] bg-(--card) border border-(--stroke) rounded-2xl px-3 py-2.5 opacity-80 select-all" dir="ltr">
+                {myCode}
               </code>
               <Button variant="secondary" onClick={() => void copyMyCode()} aria-label="نسخ الكود">
                 {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
               </Button>
+              <Button variant="secondary" onClick={() => void share()} aria-label="مشاركة الكود">
+                <Share2 size={14} aria-hidden="true" />
+              </Button>
             </div>
-            <div className="mt-1 text-[10px] opacity-40">شارك هذا الكود مع صديق ليضيفك إلى لوحته.</div>
+            <div className="mt-1 text-[10px] opacity-45">أرسله لصديقك ليضيفك، وأضِف كوده هنا لتريا نتائجكما معًا.</div>
           </div>
           <div>
             <div className="text-xs font-semibold mb-2">إضافة صديق</div>
@@ -1229,8 +1281,9 @@ function LocalFriendsCard(props: {
                 value={importCode}
                 onChange={(e) => { setImportCode(e.target.value); setImportError(""); }}
                 placeholder="الصق كود الصديق هنا"
-                aria-label="رمز الصديق للإضافة"
+                aria-label="كود الصديق"
                 aria-describedby="lb-friend-import-error"
+                dir="ltr"
               />
               <Button onClick={handleImport} disabled={!importCode.trim()}>
                 <Plus size={14} aria-hidden="true" />
@@ -1258,6 +1311,7 @@ function GroupKhatmaCard() {
   const [importError, setImportError] = React.useState("");
   const [copied, setCopied] = React.useState(false);
   const [mode, setMode] = React.useState<"view" | "create" | "import">("view");
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
 
   const MEMBER_COLORS = ["#fbbf24", "#34d399", "#f472b6", "#60a5fa", "#a78bfa", "#fb923c", "#2dd4bf"];
 
@@ -1302,6 +1356,10 @@ function GroupKhatmaCard() {
       setTimeout(() => setCopied(false), 2000);
     } catch { /* ignore */ }
   };
+  const shareKhatma = async () => {
+    if (!groupKhatma) return;
+    await shareOrCopy(`ختمة «${groupKhatma.groupName}» في أثر 📖\nلوحة الترتيب ← ختمة جماعية ← استيراد، ثم الصق الكود:\n${shareCode}`, { title: groupKhatma.groupName, copiedMessage: "نُسخ كود الختمة" });
+  };
 
   const handleImport = () => {
     setImportError("");
@@ -1342,24 +1400,34 @@ function GroupKhatmaCard() {
           </div>
         ) : (
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => void copyShareCode()} aria-label="مشاركة كود الختمة">
-              {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-              {copied ? "تم" : "كود المشاركة"}
+            <Button variant="secondary" onClick={() => void shareKhatma()} aria-label="مشاركة الختمة">
+              <Share2 size={14} aria-hidden="true" />
+              مشاركة
             </Button>
-            <button type="button"
-              onClick={() => setGroupKhatma(null)}
-              className="text-(--danger) opacity-50 hover:opacity-100 transition"
-              aria-label="حذف الختمة"
-            >
-              <Trash2 size={15} />
-            </button>
+            <Button variant="secondary" onClick={() => void copyShareCode()} aria-label="نسخ كود الختمة">
+              {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+            </Button>
+            {confirmDelete ? (
+              <span className="flex items-center gap-1">
+                <button type="button" onClick={() => { setGroupKhatma(null); setConfirmDelete(false); }} className="rounded-lg px-2 py-1 text-[11px] font-semibold text-(--danger) bg-danger-10">حذف</button>
+                <button type="button" onClick={() => setConfirmDelete(false)} className="rounded-lg px-2 py-1 text-[11px] opacity-60">إلغاء</button>
+              </span>
+            ) : (
+              <button type="button"
+                onClick={() => setConfirmDelete(true)}
+                className="grid h-9 w-9 place-items-center rounded-lg text-(--danger) opacity-60 hover:opacity-100 transition"
+                aria-label="حذف الختمة"
+              >
+                <Trash2 size={15} aria-hidden="true" />
+              </button>
+            )}
           </div>
         )}
       </div>
 
       {/* Create form */}
       {mode === "create" && !groupKhatma && (
-        <div id="lb-friends-import" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
+        <div id="lb-khatma-create" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
           <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="اسم الختمة (مثال: ختمة رمضان)" aria-label="اسم الختمة" />
           <textarea
             value={membersRaw}
@@ -1379,7 +1447,7 @@ function GroupKhatmaCard() {
 
       {/* Import form */}
       {mode === "import" && !groupKhatma && (
-        <div id="lb-friends-import" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
+        <div id="lb-khatma-import" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
           <Input value={importCode} onChange={(e) => { setImportCode(e.target.value); setImportError(""); }} placeholder="الصق كود الختمة هنا" aria-label="كود الختمة" aria-describedby="lb-khatma-import-error" />
           <div id="lb-khatma-import-error" role="alert" className="text-xs text-(--danger)">{importError}</div>
           <Button onClick={handleImport} disabled={!importCode.trim()}>استيراد الختمة</Button>
@@ -1457,68 +1525,43 @@ function WeeklyChallengeCard() {
   const weeklyChallenge = useNoorStore((s) => s.weeklyChallenge);
   const setWeeklyChallenge = useNoorStore((s) => s.setWeeklyChallenge);
   const toggleWeeklyChallengeDay = useNoorStore((s) => s.toggleWeeklyChallengeDay);
+  const sectionCompletions = useNoorStore((s) => s.sectionCompletions);
+  const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
+  const quranDailyGoal = useNoorStore((s) => s.prefs.quranDailyGoal);
+  const kahfReadOn = useNoorStore((s) => s.kahfReadOn);
+  const navigate = useNavigate();
 
-  const today = React.useMemo(() => new Date(), []);
-
-  const getISOWeek = (d: Date): number => {
-    const tmp = new Date(d.getTime());
-    tmp.setHours(0, 0, 0, 0);
-    tmp.setDate(tmp.getDate() + 3 - ((tmp.getDay() + 6) % 7));
-    const week1 = new Date(tmp.getFullYear(), 0, 4);
-    return 1 + Math.round(((tmp.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
-  };
-
-  const currentWeekISO = `${today.getFullYear()}-W${String(getISOWeek(today)).padStart(2, "0")}`;
-  const challengeType = getISOWeek(today) % 2 === 0 ? "al_kahf" : "morning_adhkar_5days";
-
-  // Auto-initialize / reset if week changed
+  // The phone's own date; re-read when the app comes back so a page left open
+  // overnight moves on to the new day (and, on Saturday, the new week).
+  const [today, setToday] = React.useState(() => getLocalDateKey());
   React.useEffect(() => {
-    if (!weeklyChallenge || weeklyChallenge.weekISO !== currentWeekISO || weeklyChallenge.type !== challengeType) {
-      setWeeklyChallenge({ type: challengeType, weekISO: currentWeekISO, progress: {}, completed: false });
+    const refresh = () => setToday(getLocalDateKey());
+    document.addEventListener("visibilitychange", refresh);
+    const timer = window.setInterval(refresh, 60_000);
+    return () => { document.removeEventListener("visibilitychange", refresh); window.clearInterval(timer); };
+  }, []);
+
+  const weekStart = weekStartOf(today);
+  const kind = challengeOfWeek(weekStart);
+  // A new week (or a challenge saved before this version) starts afresh.
+  React.useEffect(() => {
+    if (!weeklyChallenge || weeklyChallenge.weekISO !== weekStart || weeklyChallenge.type !== kind) {
+      setWeeklyChallenge({ type: kind, weekISO: weekStart, progress: {}, completed: false });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentWeekISO, challengeType]);
+  }, [weeklyChallenge, weekStart, kind, setWeeklyChallenge]);
 
-  const dateKey = (d: Date) => d.toISOString().slice(0, 10);
-
-  const last7Days = React.useMemo(() => {
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() - (6 - i));
-      return { key: dateKey(d), label: d.toLocaleDateString("ar-SA", { weekday: "short" }), isToday: i === 6 };
-    });
-  }, [today]);
-
-  const daysChecked = weeklyChallenge
-    ? last7Days.filter((d) => weeklyChallenge.progress[d.key]).length
-    : 0;
-  const isCompleted = weeklyChallenge?.completed ?? false;
-  const targetDays = challengeType === "morning_adhkar_5days" ? 5 : 1;
-
-  const challengeInfo = {
-    al_kahf: {
-      title: "اقرأ سورة الكهف",
-      desc: "أتمّ قراءة سورة الكهف هذا الأسبوع",
-      emoji: "📖",
-      target: "مرة واحدة هذا الأسبوع"
-    },
-    morning_adhkar_5days: {
-      title: "أذكار الصباح ٥ أيام",
-      desc: "داوم على أذكار الصباح ٥ أيام من هذا الأسبوع",
-      emoji: "🌅",
-      target: "٥ أيام من ٧"
-    }
-  } as const;
-
-  const info = challengeInfo[challengeType];
+  const manual = weeklyChallenge?.weekISO === weekStart ? weeklyChallenge.progress : {};
+  const status = challengeStatus(today, manual, { sectionCompletions, quranDailyAyahs, quranDailyGoal, kahfReadOn });
+  const info = WEEKLY_CHALLENGES[status.kind];
+  const once = status.target === 1;
 
   return (
     <Card className="p-5">
       <div className="flex items-center gap-2 mb-3">
         <Calendar size={15} aria-hidden="true" className="text-(--accent)" />
         <div className="text-sm font-semibold">تحدي الأسبوع</div>
-        {isCompleted && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-ok-15 border border-ok-30 text-(--ok) mr-auto">
+        {status.completed && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-ok-15 border border-ok-30 text-(--ok) ms-auto">
             ✓ مكتمل
           </span>
         )}
@@ -1527,20 +1570,25 @@ function WeeklyChallengeCard() {
       <div className="rounded-2xl border border-(--stroke) bg-(--card) p-4">
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border"
+            className="w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center text-xl border"
             style={{
-              background: isCompleted ? "rgba(52,211,153,0.15)" : "var(--card)",
-              borderColor: isCompleted ? "rgba(52,211,153,0.3)" : "var(--stroke)"
+              background: status.completed ? "rgba(52,211,153,0.15)" : "var(--card)",
+              borderColor: status.completed ? "rgba(52,211,153,0.3)" : "var(--stroke)"
             }}
           >
             {info.emoji}
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="text-sm font-semibold">{info.title}</div>
             <div className="text-[11px] opacity-55 mt-0.5">{info.desc}</div>
-            <div className="text-[11px] opacity-40 mt-0.5">الهدف: {info.target}</div>
+            <div className="text-[11px] opacity-40 mt-0.5">الهدف: {info.targetLabel}</div>
           </div>
         </div>
+        {!status.completed ? (
+          <Button variant="secondary" className="mt-3 w-full" onClick={() => navigate(info.route)}>
+            {info.action}
+          </Button>
+        ) : null}
       </div>
 
       {/* Progress bar */}
@@ -1548,49 +1596,62 @@ function WeeklyChallengeCard() {
         <div
           className="flex-1 h-1.5 rounded-full bg-(--card) overflow-hidden"
           role="progressbar"
-          aria-valuenow={daysChecked}
+          aria-valuenow={status.count}
           aria-valuemin={0}
-          aria-valuemax={targetDays}
-          aria-label={`تقدم التحدي: ${daysChecked} من ${targetDays} أيام`}
+          aria-valuemax={status.target}
+          aria-label={`تقدم التحدي: ${arNum(Math.min(status.count, status.target))} من ${arNum(status.target)}`}
         >
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{
-              width: `${Math.min(100, (daysChecked / targetDays) * 100)}%`,
-              background: isCompleted ? "var(--ok)" : "var(--accent)"
+              width: `${Math.min(100, (status.count / status.target) * 100)}%`,
+              background: status.completed ? "var(--ok)" : "var(--accent)"
             }}
           />
         </div>
-        <span className="text-[11px] opacity-60 tabular-nums">{arNum(daysChecked)}/{arNum(targetDays)}</span>
+        <span className="text-[11px] opacity-60 tabular-nums">{arNum(Math.min(status.count, status.target))}/{arNum(status.target)}</span>
       </div>
 
-      {/* Day toggles */}
+      {/* The week, Saturday to Friday. A day the app saw done is marked by
+          itself; a past day can be marked by hand (a printed mushaf, say). */}
       <div className="mt-3 grid grid-cols-7 gap-1.5">
-        {last7Days.map((day) => {
-          const done = weeklyChallenge?.progress[day.key] ?? false;
+        {status.days.map((day) => {
+          const done = day.auto || day.manual;
+          const locked = day.auto || day.isFuture;
           return (
             <button type="button"
               key={day.key}
+              disabled={locked}
               onClick={() => toggleWeeklyChallengeDay(day.key)}
-              className="flex flex-col items-center gap-1 py-2 rounded-xl border transition-all"
+              className={cn(
+                "flex flex-col items-center gap-1 py-2 rounded-xl border transition-all",
+                day.isFuture && "opacity-40",
+                day.isToday && !done && "ring-1 ring-(--accent)/50",
+              )}
               style={{
                 background: done ? "rgba(52,211,153,0.15)" : day.isToday ? "var(--card-2)" : "var(--card)",
-                borderColor: done ? "rgba(52,211,153,0.4)" : day.isToday ? "var(--stroke)" : "var(--stroke)"
+                borderColor: done ? "rgba(52,211,153,0.4)" : "var(--stroke)"
               }}
-              aria-label={`${day.label}: ${done ? "مكتمل" : "غير مكتمل"}`}
+              aria-pressed={done}
+              aria-label={`${day.label}: ${day.auto ? "تمّ في التطبيق" : day.manual ? "علّمته بنفسك" : day.isFuture ? "لم يأتِ بعد" : "لم يكتمل"}`}
             >
-              <span className="text-[8px] opacity-60">{day.label}</span>
+              <span className="text-[8.5px] opacity-60">{day.label}</span>
               <span className="text-xs">
                 {done
-                  ? <Check size={12} aria-hidden="true" strokeWidth={3} style={{ color: "var(--ok)" }} />
+                  ? <Check size={12} aria-hidden="true" strokeWidth={3} style={{ color: "var(--ok)", opacity: day.manual ? 0.7 : 1 }} />
                   : <span style={{ color: "var(--muted-2)", fontSize: "8px" }}>·</span>}
               </span>
             </button>
           );
         })}
       </div>
+      <p className="mt-2 text-[10.5px] leading-5 opacity-45">
+        {once
+          ? "يُحتسب تلقائيًا حين تبلغ آخر آية من سورة الكهف في المصحف، أو علّم اليوم الذي قرأتها فيه."
+          : "يُحتسب اليوم تلقائيًا حين تتمّه في التطبيق، ويمكنك تعليم يوم مضى بنفسك."}
+      </p>
 
-      {isCompleted && (
+      {status.completed && (
         <div className="mt-3 rounded-2xl border border-ok-25 bg-ok-8 px-4 py-3 text-sm text-center" style={{ color: "var(--ok)" }}>
           أحسنت! أتممت تحدي هذا الأسبوع 🎉
         </div>

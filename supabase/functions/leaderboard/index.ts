@@ -1019,6 +1019,17 @@ denoRuntime.serve(async (req) => {
       query = query.is("section_id", null);
     }
 
+    // `ids`: the scores of particular people (a reader's friends), whatever
+    // their rank. Same public data as the board itself — name and score —
+    // under the same moderation; at most 50 at a time.
+    const idsParam = url.searchParams.get("ids");
+    let ids: string[] | null = null;
+    if (idsParam !== null) {
+      ids = [...new Set(idsParam.split(",").map((id) => id.trim()).filter((id) => /^[A-Za-z0-9_-]{6,80}$/.test(id)))].slice(0, 50);
+      if (ids.length === 0) return json({ rows: [] });
+      query = query.in("user_id", ids);
+    }
+
     const rowsRes = await query;
     if (rowsRes.error) return json({ ok: false, error: "read-failed" }, 500);
 
@@ -1043,7 +1054,7 @@ denoRuntime.serve(async (req) => {
       }))
       .filter((row) => !(moderationMap.get(row.id)?.hidden))
       .sort((a, b) => b.score - a.score)
-      .slice(0, 30);
+      .slice(0, ids ? 50 : 30);
 
     return json({ rows: grouped });
   }

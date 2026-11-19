@@ -291,11 +291,11 @@ export type GroupKhatmaState = {
 };
 
 // L3: Weekly challenge
-export type WeeklyChallengeType = "al_kahf" | "morning_adhkar_5days";
+export type WeeklyChallengeType = "al_kahf" | "morning_adhkar_5days" | "evening_adhkar_5days" | "wird_5days";
 
 export type WeeklyChallengeState = {
   type: WeeklyChallengeType;
-  weekISO: string; // ISO date of week start (Monday)
+  weekISO: string; // date of the week's Saturday (src/lib/weeklyChallenge.ts)
   progress: Record<string, boolean>; // dateISO -> done
   completed: boolean;
 };
@@ -552,6 +552,8 @@ type NoorState = {
 
   // Tracks furthest ayah reached per surah (surahId string -> max ayahIndex)
   quranReadingHistory: Record<string, number>;
+  /** Days al-Kahf was read to its last verse (for the weekly challenge); the latest few. */
+  kahfReadOn: string[];
 
   // Quran reading streak
   quranStreak: number;
@@ -1750,13 +1752,19 @@ export const useNoorStore = create<NoorState>()(
         const newHistory = ayahIndex > prevMax
           ? { ...s.quranReadingHistory, [histKey]: ayahIndex }
           : s.quranReadingHistory;
-        return { quranLastRead: { surahId, ayahIndex }, quranReadingHistory: newHistory };
+        // Reaching al-Kahf's last verse (110) counts as reading it that day.
+        const today = todayISO();
+        const kahfReadOn = surahId === 18 && ayahIndex >= 110 && !s.kahfReadOn.includes(today)
+          ? [...s.kahfReadOn, today].slice(-12)
+          : s.kahfReadOn;
+        return { quranLastRead: { surahId, ayahIndex }, quranReadingHistory: newHistory, kahfReadOn };
       }),
 
       quranNotes: {},
       quranHighlights: {},
 
       quranReadingHistory: {},
+      kahfReadOn: [],
       reviewedPagesToday: [] as string[],
       mushafShowTranslation: false,
       quranTranslationId: "saheeh" as const,
@@ -2403,6 +2411,7 @@ export const useNoorStore = create<NoorState>()(
         quranNotes: {},
         quranHighlights: {},
         quranReadingHistory: {},
+        kahfReadOn: [],
         reviewedPagesToday: [] as string[],
         quranLastRead: null,
         quranDailyAyahs: {},
@@ -2666,10 +2675,7 @@ export const useNoorStore = create<NoorState>()(
             weeklyChallenge: {
               ...s.weeklyChallenge,
               progress: nextProgress,
-              completed:
-                s.weeklyChallenge.type === "morning_adhkar_5days"
-                  ? completedCount >= 5
-                  : completedCount >= 1,
+              completed: completedCount >= (s.weeklyChallenge.type === "al_kahf" ? 1 : 5),
             },
           };
         }),
@@ -2798,6 +2804,9 @@ export const useNoorStore = create<NoorState>()(
           localFriends: Array.isArray((state as Partial<NoorState>).localFriends) ? (state as Partial<NoorState>).localFriends! : [],
           groupKhatma: (state as Partial<NoorState>).groupKhatma ?? null,
           weeklyChallenge: (state as Partial<NoorState>).weeklyChallenge ?? null,
+          kahfReadOn: Array.isArray((state as Partial<NoorState>).kahfReadOn)
+            ? ((state as Partial<NoorState>).kahfReadOn as unknown[]).filter((d): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)).slice(-12)
+            : [],
           weeklyReportSentISO: (state as Partial<NoorState>).weeklyReportSentISO ?? null,
           onboardingDone: (state as Partial<NoorState>).onboardingDone ?? false,
           tasbeehLifetime: sanitizeNumberMap((state as Partial<NoorState>).tasbeehLifetime),
