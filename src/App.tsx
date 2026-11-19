@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import { usePrayerLiveActivity } from "@/hooks/usePrayerLiveActivity";
 import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels, type PrayerNotificationDay } from "@/lib/reminders";
 import { syncCustomReminders } from "@/lib/reminderSync";
+import { useKhatmaReminderSync } from "@/hooks/useKhatmaReminderSync";
 import { CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT } from "@/lib/customReminderNotifications";
 import { listenForAppResume } from "@/lib/reminderAppResume";
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
@@ -538,6 +539,9 @@ function AppContent() {
   // threaded through so prayer_aligned/sunnah_aligned reminders resolve to
   // a real time instead of silently never firing (they'd otherwise fall
   // back to their usually-unset `atTimeOfDay`).
+  // The Quran plan's daily reminder follows the plan (see khatmaReminder.ts).
+  useKhatmaReminderSync();
+
   React.useEffect(() => {
     const cleanup = syncCustomReminders(customReminders, { prayerTimes: prayerTimes.getPrayerTimingsForDate });
     return cleanup;

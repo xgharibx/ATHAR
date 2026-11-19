@@ -13,6 +13,11 @@ import { arNum } from "@/lib/formatNumber";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { countCompletedKhatmaDays, getKhatmaDayRange, getKhatmaPlanStatus, getKhatmaTimeline } from "@/lib/quranKhatma";
 import { shareOrCopy } from "@/lib/shareTargets";
+import { Switch } from "@/components/ui/Switch";
+import { TimeField } from "@/components/ui/Pickers";
+import { requestCustomReminderPermission } from "@/lib/customReminderNotifications";
+import { addCustomReminder, toggleCustomReminder, updateCustomReminder } from "@/store/customReminderActions";
+import { DEFAULT_KHATMA_REMINDER_TIME, findKhatmaReminder, newKhatmaReminder } from "@/lib/khatmaReminder";
 
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -113,6 +118,72 @@ function ProgressRing({ pct, size = 72 }: { pct: number; size?: number }) {
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
+
+// ── Daily reminder ────────────────────────────────────────────────────────────
+
+/**
+ * The plan's daily reminder: a phone notification at the reader's chosen
+ * time, skipped on days already read (see lib/khatmaReminder.ts).
+ */
+function KhatmaReminderRow({ today }: { today: string }) {
+  const reminder = useNoorStore((s) => findKhatmaReminder(s.customReminders));
+  const startISO = useNoorStore((s) => s.khatmaStartISO);
+  const days = useNoorStore((s) => s.khatmaDays);
+  const version = useNoorStore((s) => s.khatmaScheduleVersion);
+  const done = useNoorStore((s) => s.khatmaDone);
+  const dailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
+  const [busy, setBusy] = React.useState(false);
+  const on = Boolean(reminder?.enabled);
+  const time = reminder?.atTimeOfDay ?? DEFAULT_KHATMA_REMINDER_TIME;
+
+  const turn = async (next: boolean) => {
+    if (!next) {
+      if (reminder) toggleCustomReminder(reminder.id, false);
+      return;
+    }
+    setBusy(true);
+    try {
+      const granted = await requestCustomReminderPermission();
+      if (!granted) {
+        toast.error("اسمح لأثر بالإشعارات من إعدادات الهاتف ليصلك التذكير");
+        return;
+      }
+      if (reminder) toggleCustomReminder(reminder.id, true);
+      else {
+        const fresh = newKhatmaReminder({ startISO, days, version, done, dailyAyahs }, today, time);
+        if (!fresh) return;
+        addCustomReminder(fresh);
+      }
+      toast.success("سيصلك تذكير الورد كل يوم ✓");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl bg-(--card) p-3 stack-y-2">
+      <label className="flex items-center justify-between gap-3 min-h-[44px] cursor-pointer">
+        <span className="min-w-0">
+          <span className="block text-xs font-semibold">🔔 تذكير يومي بالورد</span>
+          <span className="block text-[10px] opacity-55 mt-0.5 leading-5">
+            إشعار في الوقت الذي تختاره، يفتح المصحف حيث توقفت، ولا يصلك يومَ تُتمّ وردك
+          </span>
+        </span>
+        <Switch checked={on} disabled={busy} onCheckedChange={(next) => void turn(next)} aria-label="تذكير يومي بالورد" />
+      </label>
+      {on && reminder && (
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs opacity-70">وقت التذكير</span>
+          <TimeField
+            value={time}
+            onChange={(e) => updateCustomReminder(reminder.id, { atTimeOfDay: e.target.value })}
+            aria-label="وقت تذكير الورد"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function QuranPlansPage() {
   const navigate = useNavigate();
@@ -402,6 +473,9 @@ export function QuranPlansPage() {
             </Button>
           </div>
           )}
+
+          {/* Daily reminder */}
+          {!activePlan.isFinished && <KhatmaReminderRow today={today} />}
 
           {/* 7-day strip */}
           <WeekStrip doneMap={khatmaDone ?? {}} />
