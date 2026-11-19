@@ -1,14 +1,20 @@
 ﻿/**
- * HadithBooks — Phase 7
- * Gallery of 9 hadith books with الأربعينيات hero (7E), full-corpus search (7B).
- * Route: /hadith
+ * «الأحاديث»: the library of books (with where you reached in each), today's
+ * hadith and «أكمل القراءة», the curated selections, what you saved with
+ * your notes, and one search across every book.
+ * Route: /hadith (?tab=curated|saved|search)
  */
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import Fuse from "fuse.js";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, Search, Library, BookOpen, Bookmark, BrainCircuit, Copy, Check, Heart, Share2, Sparkles } from "lucide-react";
-import { HADITH_BOOKS_STATIC, type HadithBookMeta } from "@/data/hadithTypes";
-import { useHadithIndex } from "@/data/useHadithBook";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useShallow } from "zustand/react/shallow";
+import { ArrowRight, ArrowUpRight, Search, Library, BookOpen, Bookmark, BrainCircuit, Copy, Check, Heart, History, Share2, Sparkles, StickyNote, Sun } from "lucide-react";
+import { HADITH_BOOKS_STATIC, type HadithBookMeta, type HadithPack } from "@/data/hadithTypes";
+import { loadHadithPack, useHadithIndex, useHadithPack } from "@/data/useHadithBook";
+import { loadChapterCounts } from "@/data/hadithChapters";
+import { useHadithPrefs } from "@/lib/hadithPrefs";
+import { splitHadithText } from "@/lib/hadithText";
+import { BOOK, CARD, HADITH, RESULT, countAr } from "@/lib/arabicCount";
 import { searchFullHadithCorpus, prewarmFullHadithSearch, type FullHadithSearchResult } from "@/lib/fullHadithSearch";
 import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
 import type { FlatLibraryEntry, LibraryCollection } from "@/data/libraryTypes";
@@ -26,14 +32,37 @@ import { arNum } from "@/lib/formatNumber";
 
 
 /* ------------------------------------------------------------------ */
-/* الأربعينيات hero card (7E)                                           */
+/* Book cards                                                            */
 /* ------------------------------------------------------------------ */
+
+/** Only the two Sahihs are sahih as whole books; the others hold every grade. */
+const SAHIH_BOOKS = new Set(["bukhari", "muslim"]);
+
+function useBookmarkCount(bookKey: string) {
+  return useNoorStore((s) => {
+    let c = 0;
+    for (const [k, v] of Object.entries(s.hadithBookmarks)) if (v && k.startsWith(`${bookKey}:`)) c++;
+    return c;
+  });
+}
+
+/** Where you reached in a book, as words and a thin bar. */
+function ReadingProgress({ book, lastN }: { book: HadithBookMeta; lastN: number | undefined }) {
+  if (!lastN) return <span className="text-[10.5px] text-(--muted)">ابدأ القراءة</span>;
+  const pct = Math.min(100, Math.max(2, (lastN / Math.max(1, book.count)) * 100));
+  return (
+    <span className="flex min-w-0 flex-1 items-center gap-2">
+      <span className="text-[10.5px] text-(--muted) whitespace-nowrap">وصلت إلى {arNum(lastN)}</span>
+      <span className="h-1 flex-1 overflow-hidden rounded-full bg-(--stroke)" aria-hidden="true">
+        <span className="block h-full rounded-full" style={{ width: `${pct}%`, background: book.color }} />
+      </span>
+    </span>
+  );
+}
 
 function ArbainiCard({ book }: { book: HadithBookMeta }) {
   const navigate = useNavigate();
-  const hadithProgress = useNoorStore((s) => s.hadithProgress);
-  const lastN = hadithProgress[book.key];
-  const isNawawi = book.key === "nawawi";
+  const lastN = useNoorStore((s) => s.hadithProgress[book.key]);
 
   return (
     <button type="button"
@@ -43,52 +72,25 @@ function ArbainiCard({ book }: { book: HadithBookMeta }) {
       style={{ borderColor: "color-mix(in srgb, var(--accent) 28%, transparent)" }}
     >
       <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-      <div className="absolute inset-y-0 right-0 w-1 opacity-80" style={{ background: "var(--accent)" }} />
+      <div className="absolute inset-y-0 right-0 w-1 opacity-80" style={{ background: book.color }} />
       <div className="relative p-4">
-        {/* Badge row */}
-        <div className="flex items-center justify-between mb-2">
-          {isNawawi ? (
-            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: book.color + "44", color: book.color }}>
-              الأربعون النووية
-            </span>
-          ) : (
-            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: book.color + "44", color: book.color }}>
-              الأحاديث القدسية
-            </span>
-          )}
-          <GradeChip grade="sahih" />
-        </div>
-        {/* Title */}
-        <p className="text-sm font-bold font-arabic text-(--fg) leading-tight mb-1">
-          {book.title}
-        </p>
-        <p className="text-[10px] text-(--muted) mb-3" lang="en">{book.titleEn}</p>
-        {/* Count + progress */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-arabic" style={{ color: book.color }}>
-            {book.count} حديث
-          </span>
-          {lastN ? (
-            <span className="text-[9px] text-(--muted)">ح{lastN}</span>
-          ) : (
-            <span className="text-[9px] text-(--muted) opacity-60">لم يُقرأ</span>
-          )}
+        <span className="mb-2 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: book.color + "33", color: book.color }}>
+          {book.key === "nawawi" ? "جوامع الكلم" : "كلام الله عز وجل"}
+        </span>
+        <p className="text-sm font-bold font-arabic text-(--fg) leading-tight mb-1">{book.title}</p>
+        <p className="text-[11px] mb-3" style={{ color: book.color }}>{countAr(book.count, HADITH)}</p>
+        <div className="flex items-center">
+          <ReadingProgress book={book} lastN={lastN} />
         </div>
       </div>
     </button>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Regular book card                                                     */
-/* ------------------------------------------------------------------ */
-
-function BookCard({ book }: { book: HadithBookMeta }) {
+function BookCard({ book, chapters }: { book: HadithBookMeta; chapters?: number }) {
   const navigate = useNavigate();
-  const hadithProgress = useNoorStore((s) => s.hadithProgress);
-  const lastN = hadithProgress[book.key];
-  const hadithBookmarks = useNoorStore((s) => s.hadithBookmarks);
-  const bookmarkCount = Object.keys(hadithBookmarks).filter((k) => k.startsWith(book.key + ":")).length;
+  const lastN = useNoorStore((s) => s.hadithProgress[book.key]);
+  const bookmarkCount = useBookmarkCount(book.key);
 
   return (
     <button type="button"
@@ -97,53 +99,35 @@ function BookCard({ book }: { book: HadithBookMeta }) {
       className="relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect cv-auto"
     >
       <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-      {/* Left accent bar */}
       <div className="absolute top-0 right-0 h-full w-1 opacity-75" style={{ background: book.color }} />
 
       <div className="relative px-4 py-3.5 pr-5">
         <div className="flex items-start gap-3">
-          {/* Color dot */}
-          <div className="mt-1 w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: book.color + "22" }}>
-            <span className="text-sm font-bold font-arabic" style={{ color: book.color }}>
-              {book.order}
-            </span>
+          <div className="mt-0.5 w-9 h-9 rounded-xl grid place-items-center shrink-0" style={{ background: book.color + "22", color: book.color }}>
+            <BookOpen size={17} aria-hidden="true" />
           </div>
-          {/* Text block */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <p className="text-sm font-bold font-arabic text-(--fg) leading-tight line-clamp-2">
-                {book.title}
-              </p>
-              <GradeChip grade={book.grade === "mixed" ? "hasan" : book.grade} />
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-[15px] font-bold font-arabic text-(--fg) leading-tight line-clamp-2">{book.title}</p>
+              {SAHIH_BOOKS.has(book.key) && <GradeChip grade="sahih" size="sm" />}
             </div>
-            <p className="text-[10px] text-(--muted) mb-2" lang="en">{book.titleEn}</p>
-            <p className="text-[11px] text-(--fg) opacity-70 leading-snug line-clamp-2 font-arabic">
-              {book.description}
+            <p className="text-[11.5px] text-(--fg) opacity-70 leading-snug line-clamp-2 font-arabic">{book.description}</p>
+            <p className="mt-1.5 text-[11px] text-(--muted)">
+              {countAr(book.count, HADITH)}
+              {chapters ? `، ${countAr(chapters, BOOK)}` : ""}
             </p>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-2.5 flex items-center justify-between border-t border-(--stroke) pt-2.5">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-[10px] text-(--muted)">
-              <BookOpen size={10} aria-hidden="true" />
-              {arNum(book.count)}
+        <div className="mt-2.5 flex items-center gap-3 border-t border-(--stroke) pt-2.5">
+          <ReadingProgress book={book} lastN={lastN} />
+          {bookmarkCount > 0 && (
+            <span className="flex items-center gap-1 text-[10.5px] shrink-0" style={{ color: book.color }} aria-label={`${arNum(bookmarkCount)} محفوظ`}>
+              <Bookmark size={11} aria-hidden="true" />
+              {arNum(bookmarkCount)}
             </span>
-            {bookmarkCount > 0 && (
-              <span className="flex items-center gap-1 text-[10px]" style={{ color: book.color }}>
-                <Bookmark size={10} aria-hidden="true" />
-                {bookmarkCount}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {lastN ? (
-              <span className="text-[9px] text-(--muted)">آخر: ح{lastN}</span>
-            ) : null}
-            <ArrowRight size={12} aria-hidden="true" className="text-(--muted) rotate-180" />
-          </div>
+          )}
+          <ArrowRight size={13} aria-hidden="true" className="text-(--muted) rotate-180 shrink-0 mr-auto" />
         </div>
       </div>
     </button>
@@ -333,7 +317,7 @@ function CuratedTab() {
           className="w-full text-right rounded-3xl border border-(--stroke) bg-(--card) p-4 hover:bg-(--card-2) transition"
         >
           <div className="flex items-center gap-2 mb-2"><Sparkles size={15} className="text-(--accent)" aria-hidden="true" /><span className="text-xs font-semibold opacity-60">بداية مقترحة</span></div>
-          {featured.title && <div className="text-xs font-semibold mb-1 font-arabic" style={{ color: featured.collectionAccent }}>{featured.collectionTitle} · {featured.title}</div>}
+          {featured.title && <div className="text-xs font-semibold mb-1 font-arabic" style={{ color: featured.collectionAccent }}>{featured.collectionTitle}، {featured.title}</div>}
           <div className="arabic-text leading-8 text-sm md:text-base line-clamp-3">{featured.arabic}</div>
           <div className="text-xs opacity-50 mt-2">{featured.source.title}</div>
         </button>
@@ -492,7 +476,8 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
       {!loading && !searched && (
         <div className="flex flex-col items-center py-12 gap-3">
           <Search size={36} aria-hidden="true" className="text-(--muted) opacity-20" />
-          <p className="text-sm text-(--muted) font-arabic">ابحث في جميع الكتب التسعة</p>
+          <p className="text-sm text-(--muted) font-arabic text-center">ابحث بكلمة من الحديث في الكتب كلها</p>
+          <p className="text-xs text-(--muted) font-arabic opacity-70 text-center">لا يهم التشكيل ولا الهمزات</p>
         </div>
       )}
 
@@ -500,7 +485,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
       {!loading && results.length > 0 && (
         <div className="stack-y-3 pb-6">
           <p className="text-xs text-(--muted) font-arabic" aria-live="polite" aria-atomic="true">
-            {results.length >= 50 ? "أكثر من 50" : results.length} نتيجة
+            {results.length >= 50 ? `أكثر من ${arNum(50)} نتيجة` : countAr(results.length, RESULT)}
           </p>
           {results.map((r) => {
             const meta = bookMeta(r.bookKey);
@@ -522,7 +507,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
                       style={{ background: (meta?.color ?? "#888") + "22", color: meta?.color ?? "#888" }}>
                       {meta?.title ?? r.bookKey}
                     </span>
-                    <span className="text-[10px] text-(--muted)">ح{r.n}</span>
+                    <span className="text-[10px] text-(--muted)">الحديث {arNum(r.n)}</span>
                     {r.grade && <GradeChip grade={r.grade} size="sm" />}
                     <button type="button"
                       onClick={async (e) => {
@@ -551,29 +536,210 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Today: continue reading + hadith of the day                           */
+/* ------------------------------------------------------------------ */
+
+function ContinueCard({ books }: { books: HadithBookMeta[] }) {
+  const navigate = useNavigate();
+  const last = useHadithPrefs((s) => s.last);
+  const book = last ? books.find((b) => b.key === last.bookKey) : undefined;
+  if (!last || !book) return null;
+  return (
+    <button type="button"
+      onClick={() => navigate(`/hadith/${last.bookKey}/${last.n}`)}
+      className="relative w-full overflow-hidden rounded-3xl text-right glass-strong glass-hover press-effect p-4 flex items-center gap-3"
+    >
+      <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
+      <div className="relative w-10 h-10 rounded-2xl grid place-items-center shrink-0" style={{ background: book.color + "26", color: book.color }}>
+        <History size={18} aria-hidden="true" />
+      </div>
+      <div className="relative min-w-0 flex-1">
+        <p className="text-[11px] text-(--muted)">أكمل من حيث توقفت</p>
+        <p className="text-sm font-bold text-(--fg) truncate">{book.title}، الحديث {arNum(last.n)}</p>
+      </div>
+      <ArrowRight size={16} aria-hidden="true" className="relative text-(--muted) rotate-180 shrink-0" />
+    </button>
+  );
+}
+
+/** One hadith a day from the two forties, the same one all day. */
+function HadithOfTheDay() {
+  const navigate = useNavigate();
+  const { data: nawawi } = useHadithPack("nawawi");
+  const { data: qudsi } = useHadithPack("qudsi");
+  const pick = useMemo(() => {
+    if (!nawawi || !qudsi) return null;
+    const pool = [
+      ...nawawi.hadiths.map((h) => ({ book: nawawi, h })),
+      ...qudsi.hadiths.map((h) => ({ book: qudsi, h })),
+    ].filter((x) => x.h.t.trim());
+    if (!pool.length) return null;
+    const d = new Date();
+    const day = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+    // A stride walks the pool so consecutive days alternate between the two books.
+    return pool[(day * 37) % pool.length]!;
+  }, [nawawi, qudsi]);
+  if (!pick) return <div className="skeleton h-36 w-full rounded-3xl" aria-hidden="true" />;
+  const { matn } = splitHadithText(pick.h.t);
+  const text = matn || pick.h.t;
+  return (
+    <button type="button"
+      onClick={() => navigate(`/hadith/${pick.book.key}/${pick.h.n}`)}
+      className="relative w-full overflow-hidden rounded-3xl text-right glass-strong glass-hover press-effect p-4"
+      style={{ borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)" }}
+    >
+      <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
+      <div className="relative">
+        <div className="mb-2 flex items-center gap-2">
+          <Sun size={15} aria-hidden="true" className="text-(--accent)" />
+          <span className="text-xs font-bold text-(--accent)">حديث اليوم</span>
+        </div>
+        <p className="arabic-text text-[15px] leading-8 text-(--fg) line-clamp-4">{text.length > 260 ? `${text.slice(0, 260)}…` : text}</p>
+        <p className="mt-2 text-[11px] text-(--muted)">{pick.book.title}، الحديث {arNum(pick.h.a)}</p>
+      </div>
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Saved: bookmarks and notes, with their text                           */
+/* ------------------------------------------------------------------ */
+
+function useSavedHadiths() {
+  const { bookmarks, notes } = useNoorStore(useShallow((s) => ({ bookmarks: s.hadithBookmarks, notes: s.hadithNotes })));
+  const keys = useMemo(() => {
+    const set = new Set<string>();
+    for (const [k, v] of Object.entries(bookmarks)) if (v) set.add(k);
+    for (const k of Object.keys(notes)) set.add(k);
+    return [...set];
+  }, [bookmarks, notes]);
+  const books = useMemo(() => [...new Set(keys.map((k) => k.split(":")[0]!))], [keys]);
+  const [packs, setPacks] = useState<Record<string, HadithPack>>({});
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const missing = books.filter((b) => !packs[b]);
+    if (!missing.length) return;
+    Promise.all(missing.map((b) => loadHadithPack(b).then((p) => [b, p] as const)))
+      .then((pairs) => {
+        if (alive) setPacks((prev) => ({ ...prev, ...Object.fromEntries(pairs) }));
+      })
+      .catch(() => alive && setFailed(true));
+    return () => {
+      alive = false;
+    };
+  }, [books, packs]);
+  const items = useMemo(() => {
+    return keys
+      .map((key) => {
+        const [bookKey, nStr] = key.split(":");
+        const pack = packs[bookKey!];
+        const item = pack?.hadiths.find((h) => h.n === Number(nStr));
+        return { key, bookKey: bookKey!, n: Number(nStr), pack, item, bookmarked: !!bookmarks[key], note: notes[key] ?? "" };
+      })
+      .sort((a, b) => a.bookKey.localeCompare(b.bookKey) || a.n - b.n);
+  }, [keys, packs, bookmarks, notes]);
+  const loading = books.some((b) => !packs[b]) && !failed;
+  return { items, loading, count: keys.length };
+}
+
+function SavedTab() {
+  const navigate = useNavigate();
+  const { items, loading } = useSavedHadiths();
+  const [filter, setFilter] = useState<"all" | "bookmarks" | "notes">("all");
+  const shown = items.filter((x) => (filter === "all" ? true : filter === "notes" ? !!x.note : x.bookmarked));
+
+  if (!items.length) {
+    return (
+      <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
+        <Bookmark size={36} aria-hidden="true" className="text-(--muted) opacity-30" />
+        <p className="text-sm font-bold text-(--fg)">لم تحفظ حديثًا بعد</p>
+        <p className="text-xs text-(--muted) leading-6">اضغط زر الحفظ أو الملاحظة في أي حديث، فتجده هنا مع ملاحظتك.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div dir="rtl" className="px-4 pt-2 stack-y-3 pb-6">
+      <div className="flex gap-2" role="radiogroup" aria-label="عرض">
+        {([["all", "الكل"], ["bookmarks", "المحفوظة"], ["notes", "ملاحظاتي"]] as const).map(([k, label]) => (
+          <button key={k} type="button" role="radio" aria-checked={filter === k} onClick={() => setFilter(k)}
+            className={cn("rounded-full px-3 py-1.5 border text-xs", filter === k ? "bg-(--accent) text-(--on-accent) border-transparent font-bold" : "bg-(--card) border-(--stroke)")}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {loading && <div className="skeleton h-24 w-full rounded-3xl" role="status" aria-label="جارٍ التحميل…" />}
+      {shown.map((x) => {
+        const text = x.item ? splitHadithText(x.item.t).matn || x.item.t : "";
+        return (
+          <button key={x.key} type="button" onClick={() => navigate(`/hadith/${x.bookKey}/${x.n}`)}
+            className="relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect p-4"
+          >
+            <div className="absolute inset-y-0 right-0 w-1 opacity-80" style={{ background: x.pack?.color ?? "var(--accent)" }} />
+            <div className="mb-1.5 flex items-center gap-2 text-[11px] text-(--muted)">
+              {x.bookmarked && <Bookmark size={12} aria-hidden="true" className="fill-current text-(--accent)" />}
+              {x.note && <StickyNote size={12} aria-hidden="true" className="text-(--accent)" />}
+              <span>{x.pack?.title ?? HADITH_BOOKS_STATIC.find((b) => b.key === x.bookKey)?.title}، الحديث {arNum(x.item?.a ?? x.n)}</span>
+            </div>
+            {text ? <p className="arabic-text text-[14px] leading-7 text-(--fg) line-clamp-3">{text}</p> : null}
+            {x.note ? (
+              <p className="mt-2 rounded-2xl px-3 py-2 text-[12.5px] leading-6 text-(--fg)" style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                {x.note}
+              </p>
+            ) : null}
+          </button>
+        );
+      })}
+      {!loading && !shown.length && <p className="py-8 text-center text-xs text-(--muted)">لا شيء هنا بعد.</p>}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Main page                                                             */
 /* ------------------------------------------------------------------ */
+
+type BooksTab = "library" | "curated" | "search" | "saved";
+const TABS: { id: BooksTab; label: string; icon: typeof BookOpen }[] = [
+  { id: "library", label: "المكتبة", icon: BookOpen },
+  { id: "curated", label: "المختارات", icon: Sparkles },
+  { id: "saved", label: "محفوظاتي", icon: Bookmark },
+  { id: "search", label: "البحث", icon: Search },
+];
 
 export function HadithBooksPage() {
   const navigate = useNavigate();
   useScrollRestoration();
+  const [params, setParams] = useSearchParams();
   const { data: indexBooks } = useHadithIndex();
   const books = indexBooks ?? HADITH_BOOKS_STATIC;
-  const [tab, setTab] = useState<"library" | "curated" | "search">("library");
+  const tabParam = params.get("tab") as BooksTab | null;
+  const tab: BooksTab = tabParam && TABS.some((t) => t.id === tabParam) ? tabParam : "library";
+  const setTab = (t: BooksTab) => setParams(t === "library" ? {} : { tab: t }, { replace: true });
+  const dueCount = useNoorStore((s) => {
+    const today = new Date();
+    const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    return Object.values(s.hadithMemoCards).filter((c) => c.due <= key).length;
+  });
+  const [chapterCounts, setChapterCounts] = useState<Record<string, number>>({});
+  useEffect(() => {
+    let alive = true;
+    void loadChapterCounts().then((c) => alive && setChapterCounts(c));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
-  // Sort by order
   const sorted = useMemo(() => [...books].sort((a, b) => a.order - b.order), [books]);
-
-  // Separate arba'iniyat from rest
   const arbaini = useMemo(() => sorted.filter((b) => b.key === "nawawi" || b.key === "qudsi"), [sorted]);
   const mainBooks = useMemo(() => sorted.filter((b) => b.key !== "nawawi" && b.key !== "qudsi"), [sorted]);
-
   const totalHadiths = useMemo(() => sorted.reduce((s, b) => s + b.count, 0), [sorted]);
 
   return (
     <div dir="rtl" className="relative min-h-screen-safe overflow-hidden pb-24 page-enter">
       <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
-      {/* Header Card */}
       <div className="relative z-10 px-4 pt-4">
         <Card className="relative overflow-hidden p-5">
           <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
@@ -584,32 +750,27 @@ export function HadithBooksPage() {
                 <Library size={19} aria-hidden="true" className="text-(--accent)" />
                 <h1 className="text-lg font-bold">الأحاديث</h1>
               </div>
-              <div className="text-xs opacity-55 mt-1">الكتب التسعة، مختارات نبوية، وبحث شامل — في مكان واحد</div>
+              <div className="text-xs opacity-60 mt-1 leading-5">الصحيحان والسنن والموطأ والأربعون، {countAr(totalHadiths, HADITH)}</div>
             </div>
-            <IconButton aria-label="بطاقات الحفظ" onClick={() => navigate("/hadith/memo")}>
-              <BrainCircuit size={18} aria-hidden="true" style={{ color: "var(--accent)" }} />
-            </IconButton>
           </div>
+          <button type="button"
+            onClick={() => navigate("/hadith/memo")}
+            className="relative mt-4 w-full flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-right press-effect"
+            style={{ borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)", background: "color-mix(in srgb, var(--accent) 9%, transparent)" }}
+          >
+            <BrainCircuit size={18} aria-hidden="true" className="text-(--accent) shrink-0" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[13px] font-bold text-(--fg)">احفظ الحديث</span>
+              <span className="block text-[11px] text-(--muted)">
+                {dueCount ? `${countAr(dueCount, CARD)} للمراجعة اليوم` : "بطاقات بالتكرار المتباعد، من أي كتاب"}
+              </span>
+            </span>
+            <ArrowRight size={15} aria-hidden="true" className="text-(--muted) rotate-180 shrink-0" />
+          </button>
         </Card>
       </div>
 
-      {/* Stats banner */}
-      <div className="relative z-10 mx-4 mt-4 mb-4 flex items-center gap-4 overflow-hidden rounded-3xl px-5 py-3.5 glass-strong">
-        <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-        <div className="relative flex-1 border-l border-(--stroke) text-center">
-          <p className="text-xl font-bold text-(--fg) font-arabic">{sorted.length}</p>
-          <p className="text-[10px] text-(--muted)">كتاب</p>
-        </div>
-        <div className="relative flex-1 text-center">
-          <p className="text-xl font-bold text-(--fg) font-arabic">
-            {totalHadiths >= 1000 ? `${Math.round(totalHadiths / 1000)}k` : arNum(totalHadiths)}
-          </p>
-          <p className="text-[10px] text-(--muted)">حديث نبوي</p>
-        </div>
-      </div>
-
-      {/* Tab bar */}
-      <div className="relative z-10 mx-4 mb-5 flex overflow-hidden rounded-2xl glass" role="tablist" aria-orientation="horizontal" aria-label="أقسام الحديث"
+      <div className="relative z-10 mx-4 mt-4 mb-5 grid grid-cols-4 overflow-hidden rounded-2xl glass" role="tablist" aria-orientation="horizontal" aria-label="أقسام الحديث"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);
@@ -619,80 +780,66 @@ export function HadithBooksPage() {
             else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
             else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
           }}>
-        {(["library", "curated", "search"] as const).map((t) => (
+        {TABS.map(({ id, label, icon: Icon }) => (
           <button type="button"
-            key={t}
-            id={`hadith-books-tab-${t}`}
+            key={id}
+            id={`hadith-books-tab-${id}`}
             role="tab"
-            aria-controls={`hadith-books-panel-${t}`}
-            aria-selected={tab === t}
-            onClick={() => setTab(t)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-arabic transition-colors"
-            style={tab === t
-              ? { background: "var(--accent)", color: "var(--on-accent)", fontWeight: 700 }
-              : { color: "var(--muted)" }
-            }
+            aria-controls={`hadith-books-panel-${id}`}
+            aria-selected={tab === id}
+            onClick={() => setTab(id)}
+            className="flex flex-col items-center justify-center gap-1 py-2 text-[12px] font-arabic transition-colors"
+            style={tab === id ? { background: "var(--accent)", color: "var(--on-accent)", fontWeight: 700 } : { color: "var(--muted)" }}
           >
-            {t === "library" ? <BookOpen size={14} aria-hidden="true" /> : t === "curated" ? <Sparkles size={14} aria-hidden="true" /> : <Search size={14} aria-hidden="true" />}
-            {t === "library" ? "المكتبة" : t === "curated" ? "المختارات" : "البحث"}
+            <Icon size={15} aria-hidden="true" />
+            {label}
           </button>
         ))}
       </div>
 
-      {/* Library tab */}
       {tab === "library" && (
         <div className="relative z-10" role="tabpanel" id="hadith-books-panel-library" aria-labelledby="hadith-books-tab-library" tabIndex={0}>
-          {/* 7E: الأربعينيات hero */}
+          <div className="px-4 mb-6 stack-y-3">
+            <ContinueCard books={sorted} />
+            <HadithOfTheDay />
+          </div>
+
           {arbaini.length > 0 && (
             <div className="px-4 mb-6">
-              {/* Section heading */}
-              <div className="relative mb-3 overflow-hidden rounded-3xl p-4 glass-strong">
-                <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg" aria-hidden="true">✨</span>
-                    <p className="text-base font-bold font-arabic text-(--fg)">الأربعينيات المباركة</p>
-                  </div>
-                  <p className="text-xs text-(--muted) font-arabic leading-relaxed">
-                    الأحاديث المختارة التي يحفظها كل مسلم
-                  </p>
-                </div>
+              <div className="mb-3 flex items-center gap-2 px-1">
+                <Sparkles size={16} aria-hidden="true" className="text-(--accent)" />
+                <h2 className="text-[15px] font-bold font-arabic text-(--fg)">الأربعون</h2>
+                <span className="text-[11px] text-(--muted)">أحاديث يحفظها كل مسلم</span>
               </div>
-              {/* Two arba'iniyat cards */}
               <div className="flex gap-3">
-                {arbaini.map((b) => (
-                  <ArbainiCard key={b.key} book={b} />
-                ))}
+                {arbaini.map((b) => <ArbainiCard key={b.key} book={b} />)}
               </div>
             </div>
           )}
 
-          {/* Main books */}
           <div className="px-4 stack-y-3 mb-4">
-            <p className="text-xs text-(--muted) font-arabic px-1">الكتب الكبرى</p>
-            <div role="list" aria-label="الكتب الكبرى">
+            <div className="flex items-center gap-2 px-1">
+              <Library size={16} aria-hidden="true" className="text-(--accent)" />
+              <h2 className="text-[15px] font-bold font-arabic text-(--fg)">أمهات كتب السنة</h2>
+            </div>
+            <div role="list" aria-label="أمهات كتب السنة" className="stack-y-3">
               {mainBooks.map((book) => (
                 <div key={book.key} role="listitem">
-                  <BookCard book={book} />
+                  <BookCard book={book} chapters={chapterCounts[book.key]} />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Attribution */}
-          <p className="text-center text-[10px] text-(--muted) mt-2 px-4 pb-4 leading-relaxed font-arabic">
-            المصدر: مشروع hadith-api (Unlicense) • fawazahmed0/hadith-api
+          <p className="text-center text-[10.5px] text-(--muted) mt-2 px-6 pb-4 leading-5 font-arabic">
+            النصوص من مشروع «hadith-api» المفتوح، وأسماء الكتب كما في طبعاتها، والتخريج من الدرر السنية، والشرح من موسوعة الأحاديث النبوية.
           </p>
         </div>
       )}
 
-      {/* Curated tab */}
       {tab === "curated" && <div role="tabpanel" id="hadith-books-panel-curated" aria-labelledby="hadith-books-tab-curated" tabIndex={0}><CuratedTab /></div>}
-
-      {/* Search tab */}
+      {tab === "saved" && <div role="tabpanel" id="hadith-books-panel-saved" aria-labelledby="hadith-books-tab-saved" tabIndex={0}><SavedTab /></div>}
       {tab === "search" && <div role="tabpanel" id="hadith-books-panel-search" aria-labelledby="hadith-books-tab-search" tabIndex={0}><SearchTab books={sorted} /></div>}
     </div>
   );
 }
-
-export default HadithBooksPage;

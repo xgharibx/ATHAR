@@ -6,6 +6,7 @@
  * for this hadith, it says so honestly instead of hiding the fact.
  */
 import * as React from "react";
+import { westernToArabicDigits } from "@/lib/formatNumber";
 import { BookOpenText, Loader2, Sparkles, WifiOff, ExternalLink, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/Card";
@@ -129,7 +130,7 @@ export function SharhSection({
             {data.reference && (
               <div>
                 <h3 className="mb-1 text-[11px] font-bold opacity-60">المراجع</h3>
-                <p className="whitespace-pre-wrap text-[11px] leading-6 opacity-55">{data.reference}</p>
+                <p className="whitespace-pre-wrap text-[11px] leading-6 opacity-55">{westernToArabicDigits(data.reference)}</p>
               </div>
             )}
 
@@ -156,7 +157,7 @@ export function SharhSection({
               </button>
             </div>
 
-            <p className="text-[10px] opacity-40">المصدر: الموسوعة الحديثية الميسّرة — hadeethenc.com</p>
+            <p className="text-[10.5px] opacity-50">الشرح من موسوعة الأحاديث النبوية، بمراجعة علمية.</p>
           </div>
         )}
       </div>

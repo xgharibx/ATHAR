@@ -340,7 +340,7 @@ const FEATURED_SECTIONS = ["morning", "evening", "sleep", "post_prayer", "waking
 
 const TILES = [
   { path: "/qibla", title: "القبلة", sub: "بوصلة دقيقة", icon: Compass },
-  { path: "/hadith", title: "الأحاديث", sub: "الكتب الستة", icon: Library },
+  { path: "/hadith", title: "الأحاديث", sub: "الصحيحان والسنن", icon: Library },
   { path: "/duas", title: "الأدعية", sub: "من القرآن والسنة", icon: HandHeart },
   { path: "/mosques", title: "المساجد", sub: "الأقرب إليك", icon: MapPin },
 ] as const;
