@@ -434,11 +434,18 @@ export type FinalReply = {
  *     but form, and only verified text may be presented as one;
  *   - a sentence whose quotation failed verification.
  */
+/** A line of the model's plan rather than its answer ("فقرة ١: …", "ختام بدعاء + نصيحة"). */
+const PLAN_LINE = /^[ \t*]*(?:ال)?فقرة[ \t]*(?:[٠-٩0-9]+|الأولى|الثانية|الثالثة|الرابعة|الأخيرة|عن)(?=[ \t:：.]|$)|^[^\n]{0,40}\+[^\n]{0,40}$/;
+/** A tip written out in prose, when the reply also has the tip in its own block. */
+const PROSE_TIP = /^[ \t*]*(?:نصيحة(?:\s+عملية)?|النصيحة)[ \t*]*:/;
+const EMOJI = /[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu;
+
 function tidyProse(checked: string): { text: string; damage: number; removed: number } {
   let damage = 0;
   let removed = 0;
   const out: string[] = [];
-  const lines = checked.split("\n");
+  const hasTipBlock = /^[ \t]*:{2,}[ \t]*tip\b/im.test(checked);
+  const lines = checked.split("\n").map((line) => (/^[ \t]*:{2,}/.test(line) ? line : line.replace(EMOJI, "").replace(/[ \t]+$/, "")));
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index]!;
     if (/^[ \t]*:{2,}[ \t]*[a-z]+/i.test(line)) {
@@ -465,6 +472,12 @@ function tidyProse(checked: string): { text: string; damage: number; removed: nu
       removed += 1;
       continue;
     }
+    // The model's outline, or a tip it also wrote in its block, is not part of the answer.
+    if (PLAN_LINE.test(line) && !line.includes("](http")) {
+      damage += 1;
+      continue;
+    }
+    if (hasTipBlock && PROSE_TIP.test(line)) continue;
     // Blank lines, the sources line, and a line made only of links pass through.
     if (!line.trim() || /^[ \t*]*المصادر[ \t*]*:/.test(line)
       || (line.includes("](http") && !/[\u0621-\u064A]/.test(line.replace(/\[[^\]]*\]\([^)]*\)/g, "")))) {
@@ -520,6 +533,39 @@ function tidyProse(checked: string): { text: string; damage: number; removed: nu
   return { text: cleaned.join("\n"), damage, removed };
 }
 
+/**
+ * The model sometimes starts a longer answer over, several times, before it
+ * finishes ("الحمد لله الذي وفّقك…" four times in a row, each a little
+ * longer). A prose paragraph that mostly repeats a later one is an abandoned
+ * draft: only the later, fuller version is kept.
+ */
+const MIN_DRAFT_WORDS = 6;
+const DRAFT_OVERLAP = 0.6;
+function paragraphWords(paragraph: string): Set<string> {
+  return new Set(plain(paragraph).replace(/\[[^\]]*\]\([^)]*\)/g, " ").split(/[^\u0621-\u064A]+/).filter((word) => word.length > 2));
+}
+export function dropRestartedParagraphs(text: string): { text: string; dropped: number } {
+  const paragraphs = text.split(/\n{2,}/);
+  const words = paragraphs.map((paragraph) => (/^[ \t]*:{2,}|^[ \t*]*المصادر[ \t*]*:/.test(paragraph) ? null : paragraphWords(paragraph)));
+  let dropped = 0;
+  const kept = paragraphs.filter((_paragraph, index) => {
+    const mine = words[index];
+    if (!mine || mine.size < MIN_DRAFT_WORDS) return true;
+    for (let later = index + 1; later < paragraphs.length; later += 1) {
+      const theirs = words[later];
+      if (!theirs || theirs.size < MIN_DRAFT_WORDS) continue;
+      let shared = 0;
+      for (const word of mine) if (theirs.has(word)) shared += 1;
+      if (shared / Math.min(mine.size, theirs.size) >= DRAFT_OVERLAP) {
+        dropped += 1;
+        return false;
+      }
+    }
+    return true;
+  });
+  return { text: kept.join("\n\n"), dropped };
+}
+
 /** Collect every source link into one sources line at the end of the reply. */
 function gatherSources(text: string): string {
   const links: string[] = [];
@@ -546,7 +592,7 @@ export function finalizeReplyDetailed(text: string, guard: ReplyGuard): FinalRep
     .replace(/[ \t]+([،.؛؟!])/g, "$1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
-  result = gatherSources(result);
+  result = gatherSources(dropRestartedParagraphs(result).text);
   if (tidy.removed > 0 && result) result += `\n\n${REMOVAL_FOOTNOTE}`;
   return { text: result, damage: tidy.damage + tidy.removed };
 }

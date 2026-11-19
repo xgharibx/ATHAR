@@ -11,6 +11,8 @@ export const EVIDENCE_TOOL_NAME = "find_evidence";
 const MAX_HADITH_QUERIES = 2;
 const MAX_QURAN_REFERENCES = 3;
 const MAX_HADITH_PER_QUERY = 2;
+const MAX_FOLLOW_UPS = 3;
+const MAX_FOLLOW_UP_CHARS = 70;
 // A reply quotes one narration; a short list lets the model pick the closest.
 const MAX_HADITH_TOTAL = 3;
 const DORAR_TIMEOUT_MS = 7_000;
@@ -46,6 +48,13 @@ export const EVIDENCE_TOOL = {
         description:
           "true when answering correctly requires a scholarly ruling or explanation (fiqh rulings, what is permitted or required, creed, interpretation of a verse or hadith, authenticity of a narration). false for greetings, encouragement, supplications, app usage, and personal conversation.",
       },
+      follow_ups: {
+        type: "array",
+        maxItems: MAX_FOLLOW_UPS,
+        items: { type: "string" },
+        description:
+          "Up to 3 short follow-up questions in Arabic (each under 9 words) that this user would most naturally ask next about the same topic, written in the user's own voice as questions to the assistant. Empty for greetings, thanks and small talk.",
+      },
       wants_wording: {
         type: "boolean",
         description:
@@ -61,9 +70,31 @@ Call the ${EVIDENCE_TOOL_NAME} tool exactly once and write nothing else.
 - hadith_queries: short Arabic keyword phrases for searching a hadith encyclopedia by wording. Use the words a hadith on this topic would actually contain, in plain Arabic without vowel marks.
 - quran_refs: numeric references of verses that directly address the question.
 - needs_sources: whether a scholarly ruling or explanation must be looked up.
+- follow_ups: up to three short questions, in Arabic, that this user would naturally ask next about the same topic.
 For greetings, thanks, small talk, or questions about using the app, pass empty arrays and false.`;
 
-export type EvidencePlan = { hadithQueries: string[]; quranReferences: string[]; needsSources: boolean; wantsWording: boolean };
+export type EvidencePlan = {
+  hadithQueries: string[];
+  quranReferences: string[];
+  needsSources: boolean;
+  wantsWording: boolean;
+  /** Questions offered to the reader after the answer, on the same topic. */
+  followUps?: string[];
+};
+
+/**
+ * A suggested question as shown on a button: Arabic letters and the usual
+ * punctuation only, one short line. Anything else is dropped.
+ */
+export function cleanFollowUp(value: unknown): string {
+  if (typeof value !== "string") return "";
+  // Line breaks and tabs become spaces; other invisible characters fail the check below.
+  const text = value.replace(/\s+/g, " ").trim();
+  if (!text || text.length > MAX_FOLLOW_UP_CHARS) return "";
+  if (/[A-Za-z<>{}[\]\\|`$#*_=]/.test(text) || [...text].some((ch) => ch.charCodeAt(0) < 32)) return "";
+  if (!/[\u0621-\u064a]{2}/.test(text)) return "";
+  return text;
+}
 
 /** Read the plan out of the evidence step's response content. */
 export function readEvidencePlan(content: unknown): EvidencePlan {
@@ -73,7 +104,15 @@ export function readEvidencePlan(content: unknown): EvidencePlan {
     if (!block || typeof block !== "object") continue;
     const candidate = block as { type?: unknown; name?: unknown; input?: unknown };
     if (candidate.type !== "tool_use" || candidate.name !== EVIDENCE_TOOL_NAME) continue;
-    const input = (candidate.input ?? {}) as { hadith_queries?: unknown; quran_refs?: unknown; needs_sources?: unknown; wants_wording?: unknown };
+    const input = (candidate.input ?? {}) as { hadith_queries?: unknown; quran_refs?: unknown; needs_sources?: unknown; wants_wording?: unknown; follow_ups?: unknown };
+    if (Array.isArray(input.follow_ups)) {
+      const followUps = plan.followUps ?? [];
+      for (const item of input.follow_ups) {
+        const cleaned = cleanFollowUp(item);
+        if (cleaned && !followUps.includes(cleaned) && followUps.length < MAX_FOLLOW_UPS) followUps.push(cleaned);
+      }
+      plan.followUps = followUps;
+    }
     if (input.needs_sources === true) plan.needsSources = true;
     if (input.wants_wording === true) plan.wantsWording = true;
     if (Array.isArray(input.hadith_queries)) {

@@ -79,9 +79,10 @@ describe("companionProfile", () => {
     expect(ctx).toContain("مبتدئ");
   });
 
-  it("buildCompanionProfileContext pre-onboarding message", () => {
+  it("buildCompanionProfileContext sends nothing before onboarding", () => {
+    // It used to tell the model to welcome the user and open a conversation,
+    // which pulled replies away from the question asked.
     const p = loadProfile();
-    const ctx = buildCompanionProfileContext(p);
-    expect(ctx).toContain("لم يُعرِّف نفسه بعد");
+    expect(buildCompanionProfileContext(p)).toBe("");
   });
 });

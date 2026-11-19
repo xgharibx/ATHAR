@@ -19,10 +19,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { getInternalAppRoute } from "@/lib/internalAppRoute";
 
 import {
-  ROUTE_LABELS,
   isCompanionReady,
   streamCompanionReply,
   type CompanionMessage,
+  type CompanionStage,
   type VerificationReport,
 } from "@/lib/companionAI";
 import {
@@ -36,8 +36,9 @@ import {
   titleFromMessages,
   type CompanionConversation,
 } from "@/lib/companionHistory";
-import { splitIntoSegments } from "@/lib/companionBlocks";
-import { injectReminderStoreIds } from "@/lib/companionReminderBlocks";
+import { ReplyContent } from "@/components/companion/ReplyContent";
+import { planReveal, prefersStillText } from "@/lib/companionReveal";
+import { injectReminderStoreIds, reminderCategory } from "@/lib/companionReminderBlocks";
 import { useStickToBottom } from "@/lib/useStickToBottom";
 import { useNoorStore } from "@/store/noorStore";
 import { hasCustomReminderPermission } from "@/lib/customReminderNotifications";
@@ -49,14 +50,6 @@ import {
 } from "@/store/customReminderActions";
 import type { AtharContext } from "@/components/companion/FloatingAthar";
 
-const CALLOUT_STYLES: Record<string, { border: string; bg: string; label: string; icon: string; accent: string }> = {
-  verse: { border: "border-sky-400/50", bg: "bg-sky-500/10", label: "آية", icon: "📖", accent: "text-sky-200" },
-  hadith: { border: "border-emerald-400/50", bg: "bg-emerald-500/10", label: "حديث", icon: "📜", accent: "text-emerald-200" },
-  dua: { border: "border-rose-400/50", bg: "bg-rose-500/10", label: "دعاء", icon: "🤲", accent: "text-rose-200" },
-  tip: { border: "border-amber-400/50", bg: "bg-amber-500/10", label: "نصيحة", icon: "💡", accent: "text-amber-200" },
-  warn: { border: "border-red-400/50", bg: "bg-red-500/10", label: "تنبيه", icon: "⚠️", accent: "text-red-200" },
-  info: { border: "border-violet-400/50", bg: "bg-violet-500/10", label: "معلومة", icon: "ℹ️", accent: "text-violet-200" },
-};
 
 function dispatchNavigate(route: string) {
   try { window.dispatchEvent(new CustomEvent("athar-companion-navigate", { detail: { route } })); } catch { /* ignore */ }
@@ -132,8 +125,8 @@ export function parseReminderToolCalls(text: string): ParsedReminder[] {
       if (typeof parsed.title !== "string") continue;
       const repeat = String(parsed.repeat ?? "") as ParsedReminder["repeat"];
       if (!VALID_REPEATS.includes(repeat)) continue;
-      const category = (VALID_CATEGORIES as string[]).includes(String(parsed.category))
-        ? (parsed.category as ParsedReminder["category"])
+      const category = (VALID_CATEGORIES as string[]).includes(reminderCategory(parsed.category))
+        ? (reminderCategory(parsed.category) as ParsedReminder["category"])
         : "custom";
       const anchorKey = (VALID_ANCHORS as string[]).includes(String(parsed.anchorKey ?? ""))
         ? (parsed.anchorKey as NonNullable<ParsedReminder["anchorKey"]>)
@@ -220,6 +213,12 @@ export function CompanionModal(props: {
   const [consentDialogOpen, setConsentDialogOpen] = React.useState(false);
   const [pendingConsentMessage, setPendingConsentMessage] = React.useState<string | null>(null);
   const [streamingText, setStreamingText] = React.useState<string | null>(null);
+  /** The step the server reports while the reply is prepared. */
+  const [stage, setStage] = React.useState<CompanionStage | null>(null);
+  /** The answer being written onto the screen, by its place in the conversation. */
+  const [writingIndex, setWritingIndex] = React.useState<number | null>(null);
+  const writingTimerRef = React.useRef<number | null>(null);
+  React.useEffect(() => () => { if (writingTimerRef.current) window.clearTimeout(writingTimerRef.current); }, []);
   const [verification, setVerification] = React.useState<VerificationReport | null>(null);
   const [showHistory, setShowHistory] = React.useState(false);
   const [history, setHistory] = React.useState<CompanionConversation[]>([]);
@@ -257,8 +256,9 @@ export function CompanionModal(props: {
   React.useEffect(() => {
     const last = messages[messages.length - 1];
     if (last?.role === "user") scrollToBottom("smooth");
-    else stickToBottom("smooth");
-  }, [messages.length, messages, scrollToBottom, stickToBottom]);
+    // A new answer is written from the top; jumping to its (still blank) end would hide it.
+    else if (writingIndex === null) stickToBottom("smooth");
+  }, [messages.length, messages, scrollToBottom, stickToBottom, writingIndex]);
 
   // Streaming tokens follow the reply only while the reader is at the bottom.
   React.useEffect(() => {
@@ -356,7 +356,9 @@ export function CompanionModal(props: {
     let acc = "";
     let done = false;
     try {
+      setStage(null);
       await streamCompanionReply(history, {
+        onStage: setStage,
         onText: (chunk) => {
           acc += chunk;
           setStreamingText(acc);
@@ -370,6 +372,11 @@ export function CompanionModal(props: {
         onDone: (fullText, ver) => {
           done = true;
           const withIds = injectReminderStoreIds(fullText, createdReminderIdsRef.current);
+          if (!prefersStillText()) {
+            if (writingTimerRef.current) window.clearTimeout(writingTimerRef.current);
+            setWritingIndex(history.length);
+            writingTimerRef.current = window.setTimeout(() => setWritingIndex(null), planReveal(withIds).totalMs);
+          }
           setMessages((m) => [...m, { role: "assistant", content: withIds }]);
           setVerification(ver);
           setStreamingText(null);
@@ -384,7 +391,7 @@ export function CompanionModal(props: {
             const repeat = (VALID_REPEATS as string[]).includes(repeatRaw)
               ? (repeatRaw as ParsedReminder["repeat"])
               : "once";
-            const categoryRaw = typeof c.input.category === "string" ? c.input.category : "";
+            const categoryRaw = reminderCategory(c.input.category);
             const category = (VALID_CATEGORIES as string[]).includes(categoryRaw)
               ? (categoryRaw as ParsedReminder["category"])
               : "custom";
@@ -618,12 +625,9 @@ export function CompanionModal(props: {
             </div>
           ) : null}
           {messages.map((m, i) => (
-            <ModalBubble key={i} role={m.role} text={m.content} onNavigate={navigateRoute} />
+            <ModalBubble key={i} role={m.role} text={m.content} writing={i === writingIndex} onNavigate={navigateRoute} />
           ))}
           {streamingText !== null ? (
-            streamingText
-              ? <ModalBubble role="assistant" text={streamingText} streaming onNavigate={navigateRoute} />
-              : (
                 <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-3.5 py-2.5 text-[11px] text-emerald-100">
                   <span className="relative grid h-6 w-6 place-items-center rounded-full">
                     <span
@@ -633,12 +637,11 @@ export function CompanionModal(props: {
                     <span className="absolute inset-0.5 rounded-full bg-emerald-900/40" />
                     <Sparkles className="relative h-3 w-3 text-emerald-200" aria-hidden="true" />
                   </span>
-                  <span>يفكّر معك…</span>
+                  <span aria-live="polite">{stage ? MODAL_STAGE_LABEL[stage] : "يقرأ سؤالك…"}</span>
                   <style>{`@keyframes athar-modal-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
                 </div>
-              )
           ) : null}
-          {verification?.flagged && streamingText === null ? (
+          {verification?.flagged && streamingText === null && writingIndex === null ? (
             <div className="flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
               <ul className="list-inside list-disc">{verification.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
@@ -705,31 +708,20 @@ export function CompanionModal(props: {
   );
 }
 
-function ModalCalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; children: React.ReactNode }) {
-  const s = CALLOUT_STYLES[kind];
-  return (
-    <div className={["my-1.5 overflow-hidden rounded-xl border", s.border, s.bg].join(" ")}>
-      <div className={["flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider", s.accent].join(" ")}>
-        <span>{s.icon}</span><span>{s.label}</span>
-      </div>
-      <div className="arabic-text px-2.5 pb-2.5 pt-0.5 text-[14px] leading-7 whitespace-pre-wrap">{children}</div>
-    </div>
-  );
-}
+const MODAL_STAGE_LABEL: Record<CompanionStage, string> = {
+  gathering: "يجمع الأدلة من القرآن والسنة…",
+  searching: "يراجع المصادر الموثوقة…",
+  writing: "يكتب الجواب…",
+  verifying: "يتحقق من الآيات والأحاديث…",
+};
 
-function ModalActionButton({ route, children, onNavigate }: { route: string; children: React.ReactNode; onNavigate: (route: string) => void }) {
-  const label = ROUTE_LABELS[route] ?? route;
-  return (
-    <button type="button" onClick={() => onNavigate(route)}
-      className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-xl border border-emerald-400/30 bg-linear-to-br from-emerald-500/20 to-teal-500/10 px-3 py-2 text-start text-[12.5px] font-semibold text-emerald-50 transition hover:from-emerald-500/30 hover:to-teal-500/20 active:scale-[0.99]">
-      <span className="flex items-center gap-2">
-        <Sparkles className="h-3 w-3 text-emerald-200" aria-hidden="true" />
-        <span>{children}</span>
-      </span>
-      <span className="text-[10px] uppercase tracking-wider text-emerald-200/70">{label} ←</span>
-    </button>
-  );
-}
+const MODAL_REPLY_COLOURS = {
+  "--fg": "#ecfdf5",
+  "--muted": "rgba(236, 253, 245, 0.72)",
+  "--muted-2": "rgba(236, 253, 245, 0.55)",
+  "--card-2": "rgba(255, 255, 255, 0.06)",
+  "--stroke": "rgba(255, 255, 255, 0.12)",
+} as React.CSSProperties;
 
 /** Resolves a parsed reminder chip back to its live store entry. Prefers the
  *  real store id (round-tripped via injectReminderStoreIds) so two reminders
@@ -745,21 +737,14 @@ function resolveActualReminder(r: ParsedReminder | undefined) {
   return store.customReminders.find((x) => x.title === r.title);
 }
 
-function ModalBubbleContent({ text, streaming, onNavigate }: { text: string; streaming?: boolean; onNavigate: (route: string) => void }) {
-  const segs = React.useMemo(() => splitIntoSegments(text), [text]);
-  const reminders = React.useMemo(() => (streaming ? [] : parseReminderToolCalls(text)), [text, streaming]);
+function ModalBubbleContent({ text, streaming, writing, onNavigate }: { text: string; streaming?: boolean; writing?: boolean; onNavigate: (route: string) => void }) {
+  const reminders = React.useMemo(() => (streaming || writing ? [] : parseReminderToolCalls(text)), [text, streaming, writing]);
   return (
     <>
-      {segs.map((s, i) => {
-        if (s.kind === "callout") return <ModalCalloutBlock key={i} kind={s.calloutKind}>{s.text}</ModalCalloutBlock>;
-        if (s.kind === "action") return <ModalActionButton key={i} route={s.route} onNavigate={onNavigate}>{s.label}</ModalActionButton>;
-        return (
-          <div key={i} className="prose-invert-arabic text-[14px] leading-7 text-emerald-50/95">
-            {/* This compact view shows plain text, so source links keep only their name. */}
-            <span style={{ whiteSpace: "pre-wrap" }}>{s.text.replace(/\[([^\]\n]+)\]\(https?:\/\/[^)\s]+\)/g, "$1")}</span>
-          </div>
-        );
-      })}
+      {/* The modal is always dark; its text colours are set for the shared view. */}
+      <div style={MODAL_REPLY_COLOURS}>
+        <ReplyContent text={text} size="compact" onNavigate={onNavigate} write={writing} />
+      </div>
       {!streaming && reminders.length > 0 ? (
         <ReminderChips
           reminders={reminders}
@@ -836,7 +821,7 @@ function ReminderChips({
   );
 }
 
-function ModalBubble(props: { role: "user" | "assistant"; text: string; streaming?: boolean; onNavigate: (route: string) => void }) {
+function ModalBubble(props: { role: "user" | "assistant"; text: string; streaming?: boolean; writing?: boolean; onNavigate: (route: string) => void }) {
   const isUser = props.role === "user";
   return (
     <div className={isUser ? "flex justify-end" : "flex justify-start"}>
@@ -848,7 +833,7 @@ function ModalBubble(props: { role: "user" | "assistant"; text: string; streamin
       ].join(" ")}>
         {isUser
           ? <span style={{ whiteSpace: "pre-wrap" }}>{props.text}</span>
-          : <ModalBubbleContent text={props.text} streaming={props.streaming} onNavigate={props.onNavigate} />}
+          : <ModalBubbleContent text={props.text} streaming={props.streaming} writing={props.writing} onNavigate={props.onNavigate} />}
       </div>
     </div>
   );

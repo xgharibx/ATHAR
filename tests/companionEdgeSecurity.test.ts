@@ -20,6 +20,8 @@ type Options = {
   answer?: string;
   retryAnswer?: string;
   searchFailure?: boolean;
+  upstreamStatus?: number;
+  sseAnswer?: string;
 };
 
 function edge(options: Options = {}) {
@@ -89,6 +91,22 @@ function edge(options: Options = {}) {
           status: 200,
           headers: { "Content-Type": "application/json" },
         });
+      }
+      if (options.upstreamStatus) {
+        return new Response(JSON.stringify({ type: "error", error: { type: "authentication_error", message: "token is unusable" } }), {
+          status: options.upstreamStatus,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (options.sseAnswer !== undefined && String(init.body).includes('"stream":true')) {
+        const ev = (type: string, data: Record<string, unknown>) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`;
+        const body = ev("message_start", { message: { id: "m", type: "message", role: "assistant", content: [], usage: { input_tokens: 1, output_tokens: 1 } } })
+          + ev("content_block_start", { index: 0, content_block: { type: "text", text: "" } })
+          + ev("content_block_delta", { index: 0, delta: { type: "text_delta", text: options.sseAnswer } })
+          + ev("content_block_stop", { index: 0 })
+          + ev("message_delta", { delta: { stop_reason: "end_turn" }, usage: { output_tokens: 5 } })
+          + ev("message_stop", {});
+        return new Response(body, { status: 200, headers: { "Content-Type": "text/event-stream" } });
       }
       if (options.answer !== undefined) {
         const retried = String(init.body).includes("تنبيه أخير");
@@ -633,5 +651,59 @@ describe("Companion Edge Function access controls", () => {
     expect(system).not.toContain("معرّف المصدر");
     expect(system).not.toContain("المسارات الصالحة في التطبيق (استخدم");
     expect(system).not.toContain("نص طويل غير متصل");
+  });
+
+  describe("streamed replies", () => {
+    const streamed = (content: string) => JSON.stringify({
+      stream: true,
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content }],
+    });
+    const events = (text: string) => text.split("\n\n").filter(Boolean).map((raw) => JSON.parse(raw.split("\n").find((line) => line.startsWith("data:"))!.slice(5)) as Record<string, unknown>);
+
+    it("shows each step while the reply is prepared, then the verified reply", async () => {
+      const planContent = [{ type: "tool_use", name: "find_evidence", input: { hadith_queries: [], quran_refs: [], follow_ups: ["ما فضل صيام الخميس؟", "bad <b>html</b>", "كيف أقضي ما فاتني من الصيام؟"] } }];
+      const app = edge({ planContent, sseAnswer: "الصيام يوم الجمعة وحده مكروه عند جمهور العلماء." });
+      const response = await app.sendRaw(streamed("ما حكم صيام يوم الجمعة منفردا؟"), "Bearer synthetic-user-token");
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toContain("text/event-stream");
+      const list = events(await response.text());
+      const stages = list.filter((event) => event.type === "athar_status").map((event) => event.stage);
+      expect(stages).toEqual(["gathering", "searching", "writing", "verifying"]);
+      const followUps = list.find((event) => event.type === "athar_followups");
+      expect(followUps?.items).toEqual(["ما فضل صيام الخميس؟", "كيف أقضي ما فاتني من الصيام؟"]);
+      const text = list.filter((event) => event.type === "content_block_delta").map((event) => (event.delta as { text: string }).text).join("");
+      expect(text).toBe("الصيام يوم الجمعة وحده مكروه عند جمهور العلماء.");
+      expect(list.at(-1)?.type).toBe("message_stop");
+      // The progress comes before the reply, the verifying step just before its text.
+      const indexOf = (predicate: (event: Record<string, unknown>) => boolean) => list.findIndex(predicate);
+      expect(indexOf((event) => event.stage === "verifying")).toBeLessThan(indexOf((event) => event.type === "content_block_delta"));
+    });
+
+    it("skips the steps for a greeting", async () => {
+      const app = edge({ sseAnswer: "وعليكم السلام ورحمة الله." });
+      const list = events(await (await app.sendRaw(streamed("السلام عليكم"), "Bearer synthetic-user-token")).text());
+      expect(list.filter((event) => event.type === "athar_status").map((event) => event.stage)).toEqual(["writing", "verifying"]);
+    });
+
+    it("reports a rejected service key as the service being unavailable, not as a sign-in problem", async () => {
+      const app = edge({ upstreamStatus: 401 });
+      const list = events(await (await app.sendRaw(streamed("السلام عليكم"), "Bearer synthetic-user-token")).text());
+      expect(list.at(-1)).toMatchObject({ type: "error", error: { type: "service_unavailable" } });
+      expect(JSON.stringify(list)).not.toContain("token is unusable");
+    });
+
+    it("does the same for a request that is not streamed", async () => {
+      const app = edge({ upstreamStatus: 401 });
+      const response = await app.send("Bearer synthetic-user-token");
+      expect(response.status).toBe(503);
+      expect(await response.json()).toMatchObject({ error: { type: "service_unavailable" } });
+    });
+
+    it("still refuses before streaming when the quota is spent", async () => {
+      const app = edge({ quotaAllowed: false });
+      const response = await app.sendRaw(streamed("السلام عليكم"), "Bearer synthetic-user-token");
+      expect(response.status).toBe(429);
+    });
   });
 });

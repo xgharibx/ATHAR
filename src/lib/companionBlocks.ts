@@ -41,7 +41,9 @@ export type Segment =
  *  recognised here too so it isn't mistaken for an unrecognised bare quote
  *  and re-rendered as a guessed verse/tip callout showing the raw JSON (see
  *  the `kind === "reminder"` no-op branch in splitIntoSegments below). */
-const CALLOUT_KEYWORDS = "verse|hadith|dua|tip|warn|info|cite|action|reminder";
+// "next_step" is how the model sometimes wrote a page button when it was also
+// offered a tool of that name; it is read as "action".
+const CALLOUT_KEYWORDS = "verse|hadith|dua|tip|warn|info|cite|action|next_step|reminder";
 
 const ARTEFACTS: Array<[RegExp, string]> = [
   // "[//]", "[ // ]", "[//-]", "→[ // ]" … the model sometimes leaves these
@@ -286,7 +288,7 @@ export function splitIntoSegments(rawText: string): Segment[] {
       const kind = String(pickMatch[1]).toLowerCase();
       const meta = String(pickMatch[2] ?? "").trim();
       const body = String(pickMatch[3] ?? "").trim();
-      if (kind === "action") {
+      if (kind === "action" || kind === "next_step") {
         // ":::action(/route)\nlabel\n:::" — the reliable multi-line form.
         if (body.length > 0) {
           const route = resolveActionRoute(meta, body);

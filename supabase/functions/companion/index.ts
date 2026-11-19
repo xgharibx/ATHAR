@@ -18,8 +18,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 import { companionCorsHeaders } from "./cors.ts";
 import { EVIDENCE_STEP_SYSTEM, EVIDENCE_TOOL, buildEvidenceBlock, gatherHadith, gatherVerses, loadQuran, readEvidencePlan } from "./evidence.ts";
-import { ReplyGuard, UNAVAILABLE_REPLY, finalizeReplyDetailed, isUsableReply } from "./guard.ts";
-import { CLIENT_BASE_PROMPT_OPENING, SERVER_SYSTEM_PROMPT, focusClientContext } from "./prompt.ts";
+import { type GuardContext, ReplyGuard, UNAVAILABLE_REPLY, finalizeReplyDetailed, isUsableReply } from "./guard.ts";
+import { CLIENT_BASE_PROMPT_OPENING, CLIENT_CONTEXT_HEADING, CREATE_REMINDER_TOOL, SERVER_SYSTEM_PROMPT, focusClientContext } from "./prompt.ts";
 import { SEARCH_STEP_SYSTEM, buildTrustedResultsBlock, selectTrustedResults } from "./sources.ts";
 import { guardMessage, guardSseStream } from "./stream.ts";
 
@@ -60,7 +60,7 @@ const EVIDENCE_CONTEXT_CHARS = 600;
 const RETRY_TIMEOUT_MS = 40_000;
 // Dropped clauses and sentences beyond which a reply is worth writing again.
 const RETRY_DAMAGE_THRESHOLD = 3;
-const RETRY_INSTRUCTION = "تنبيه أخير: اكتب الجواب كله بالعربية الفصحى، بحروف عربية فقط، في جمل قصيرة تامة المعنى. لا تكتب بأي لغة أخرى ولا بحروف لاتينية، ولا تروِ عن النبي ﷺ قولًا أو فعلًا بعبارتك؛ الدليل يظهر في كتلته فقط.";
+const RETRY_INSTRUCTION = "تنبيه أخير: اكتب الجواب النهائي وحده، بلا مخطط ولا ملاحظات، بالعربية الفصحى، بحروف عربية فقط، في جمل قصيرة تامة المعنى. لا تكتب بأي لغة أخرى ولا بحروف لاتينية، ولا تروِ عن النبي ﷺ قولًا أو فعلًا بعبارتك؛ الدليل يظهر في كتلته فقط.";
 const MAX_BODY_BYTES = 256 * 1024;
 const UPSTREAM_TIMEOUT_MS = 60_000;
 const WINDOW_MS = 60_000;
@@ -152,12 +152,38 @@ function rateLimit(req: Request, maxRequests = MAX_REQ_PER_WINDOW): boolean {
   return true;
 }
 
-function jsonError(req: Request, message: string, status: number): Response {
+function jsonError(req: Request, message: string, status: number, type = "invalid_request_error"): Response {
   return new Response(
-    JSON.stringify({ type: "error", error: { type: "invalid_request_error", message } }),
+    JSON.stringify({ type: "error", error: { type, message } }),
     { status, headers: { "Content-Type": "application/json", ...companionCorsHeaders(req) } },
   );
 }
+
+/**
+ * What the reader is told when the model service itself refuses the request.
+ *
+ * A rejected or exhausted service key is the server's problem, not the
+ * reader's: it is reported as the service being unavailable, never passed
+ * through as an authentication error (which the app would read as "sign in
+ * again" and which retrying can never fix).
+ */
+function upstreamFailure(status: number): { status: number; type: string; message: string } {
+  if (status === 401 || status === 403 || status === 402) {
+    return { status: 503, type: "service_unavailable", message: "model service unavailable" };
+  }
+  if (status === 429 || status === 529) return { status: 503, type: "overloaded_error", message: "model service busy" };
+  return { status: 502, type: "api_error", message: "model service error" };
+}
+
+function sseEvent(type: string, data: Record<string, unknown>): string {
+  return `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`;
+}
+
+/**
+ * Progress the app shows while a reply is prepared. Sent as events of their
+ * own type, which clients that do not know them skip.
+ */
+type Stage = "gathering" | "searching" | "writing" | "verifying";
 
 type BoundedBody = { ok: true; text: string; byteLength: number } | { ok: false; reason: "too-large" | "invalid-utf8" };
 
@@ -275,9 +301,11 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
       if (typeof name !== "string" || !COMPANION_TOOL_NAMES.has(name)) {
         return jsonError(req, "unrecognized tool definition", 400);
       }
-      // Library excerpts are no longer given to the model, so there is nothing
-      // for the citation tool to point at.
-      if (name !== "cite") clientTools.push(tool);
+      // Only reminders remain a tool, defined by the server. Buttons to a page
+      // are written as an action block (one way, not two that the model mixed
+      // up), and library excerpts are no longer given to the model, so there
+      // is nothing for the citation tool to point at.
+      if (name === "create_reminder" && !clientTools.includes(CREATE_REMINDER_TOOL)) clientTools.push(CREATE_REMINDER_TOOL);
     }
   }
 
@@ -301,7 +329,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
       .filter((text) => text && !text.trimStart().startsWith(CLIENT_BASE_PROMPT_OPENING))
       .map((text) => focusClientContext(text).slice(0, MAX_CLIENT_CONTEXT_CHARS))
       .filter(Boolean)
-      .map((text) => ({ type: "text", text }));
+      .map((text) => ({ type: "text", text: `${CLIENT_CONTEXT_HEADING}\n${text}` }));
     const system = [
       { type: "text", text: SERVER_SYSTEM_PROMPT },
       ...clientBlocks,
@@ -425,36 +453,48 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   // or not the client asked for a search. When the wording already shows
   // that, the search starts at once, alongside the evidence step.
   const searchEarly = webSearchRequested || RULING_QUESTION.test(question);
-  const earlySearch = searchTrustedSources(searchEarly).catch(() => []);
-  const [plan, quran] = await Promise.all([
-    planEvidence().catch(() => NO_PLAN),
-    loadQuran(denoRuntime.env.get("QURAN_DATA_URL")),
-  ]);
-  const [hadith, webResults] = await Promise.all([
-    gatherHadith(plan.hadithQueries, plan.wantsWording),
-    searchEarly ? earlySearch : searchTrustedSources(plan.needsSources).catch(() => []),
-  ]);
-  const verses = gatherVerses(quran, plan.quranReferences);
-
-  const guardContext = {
-    quran,
-    hadith,
-    // The app's own library excerpts arrive in the system prompt; together
-    // with the trusted web excerpts they are the only other quotable text.
-    trustedTexts: [systemText, ...webResults.map((result) => result.excerpt)],
-    sourceUrls: webResults.map((result) => result.url),
-    userTexts: boundedMessages.messages.filter((message) => message.role === "user").slice(-2).map((message) => message.content),
+  type Gathered = {
+    plan: typeof NO_PLAN & { followUps?: string[] };
+    guardContext: GuardContext;
+    serverBlocks: string[];
   };
-  const serverBlocks = [
-    webResults.length > 0 ? buildTrustedResultsBlock(webResults) : "",
-    buildEvidenceBlock(hadith, verses),
-  ];
+  const gather = async (onStage: (stage: Stage) => void): Promise<Gathered> => {
+    if (substantive) onStage("gathering");
+    if (searchEarly && substantive) onStage("searching");
+    const earlySearch = searchTrustedSources(searchEarly).catch(() => []);
+    const [plan, quran] = await Promise.all([
+      planEvidence().catch(() => NO_PLAN),
+      loadQuran(denoRuntime.env.get("QURAN_DATA_URL")),
+    ]);
+    if (!searchEarly && plan.needsSources) onStage("searching");
+    const [hadith, webResults] = await Promise.all([
+      gatherHadith(plan.hadithQueries, plan.wantsWording),
+      searchEarly ? earlySearch : searchTrustedSources(plan.needsSources).catch(() => []),
+    ]);
+    const verses = gatherVerses(quran, plan.quranReferences);
+    return {
+      plan,
+      guardContext: {
+        quran,
+        hadith,
+        // The app's own library excerpts arrive in the system prompt; together
+        // with the trusted web excerpts they are the only other quotable text.
+        trustedTexts: [systemText, ...webResults.map((result) => result.excerpt)],
+        sourceUrls: webResults.map((result) => result.url),
+        userTexts: boundedMessages.messages.filter((message) => message.role === "user").slice(-2).map((message) => message.content),
+      },
+      serverBlocks: [
+        webResults.length > 0 ? buildTrustedResultsBlock(webResults) : "",
+        buildEvidenceBlock(hadith, verses),
+      ],
+    };
+  };
 
   // Every reply is cleaned and verified before it reaches the reader. A reply
   // that is not usable Arabic, or that lost much of its content in cleaning,
   // is regenerated once and the better of the two is kept. If neither is
   // usable the reader gets a plain message instead of fragments.
-  const finalize = async (rawText: string): Promise<string> => {
+  const makeFinalize = ({ guardContext, serverBlocks }: Gathered) => async (rawText: string): Promise<string> => {
     if (!rawText.trim()) return "";
     const first = isUsableReply(rawText) ? finalizeReplyDetailed(rawText, new ReplyGuard(guardContext)) : null;
     if (first && first.text && first.damage < RETRY_DAMAGE_THRESHOLD) return first.text;
@@ -483,34 +523,96 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     return candidates.reduce((best, reply) => (reply.damage < best.damage ? reply : best)).text;
   };
 
-  const upstreamSignal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
-  let upstream: Response;
-  try {
-    upstream = await fetch(MINIMAX_UPSTREAM, {
-      method: "POST",
-      headers: upstreamHeaders,
-      body: JSON.stringify(buildUpstreamBody(serverBlocks)),
-      signal: upstreamSignal,
+  // The answering call. Its failures are reported, never passed through.
+  type Answer = { ok: true; upstream: Response; gathered: Gathered } | { ok: false; status: number; type: string; message: string };
+  const answer = async (onStage: (stage: Stage) => void): Promise<Answer> => {
+    const gathered = await gather(onStage);
+    onStage("writing");
+    const upstreamSignal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
+    let upstream: Response;
+    try {
+      upstream = await fetch(MINIMAX_UPSTREAM, {
+        method: "POST",
+        headers: upstreamHeaders,
+        body: JSON.stringify(buildUpstreamBody(gathered.serverBlocks)),
+        signal: upstreamSignal,
+      });
+    } catch {
+      return upstreamSignal.aborted
+        ? { ok: false, status: 504, type: "api_error", message: "model request timed out" }
+        : { ok: false, status: 502, type: "api_error", message: "model service unavailable" };
+    }
+    if (!upstream.ok || !upstream.body) {
+      await upstream.body?.cancel().catch(() => undefined);
+      const failure = upstreamFailure(upstream.status);
+      console.error(`companion: model service answered ${upstream.status}`);
+      return { ok: false, ...failure };
+    }
+    return { ok: true, upstream, gathered };
+  };
+
+  // A streamed request is answered at once, and the reader sees each step
+  // (gathering evidence, searching, writing, verifying) while it happens.
+  // The reply text itself still arrives only once it has been verified.
+  if (body.stream === true) {
+    const encoder = new TextEncoder();
+    const headers = new Headers(companionCorsHeaders(req));
+    headers.set("Content-Type", "text/event-stream; charset=utf-8");
+    headers.set("Cache-Control", "no-store");
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const send = (text: string) => {
+          try { controller.enqueue(encoder.encode(text)); } catch { /* reader gone */ }
+        };
+        const sent = new Set<Stage>();
+        const onStage = (stage: Stage) => {
+          if (sent.has(stage)) return;
+          sent.add(stage);
+          send(sseEvent("athar_status", { stage }));
+        };
+        try {
+          const result = await answer(onStage);
+          if (!result.ok) {
+            send(sseEvent("error", { error: { type: result.type, message: result.message } }));
+            return;
+          }
+          const followUps = result.gathered.plan.followUps ?? [];
+          if (followUps.length > 0) send(sseEvent("athar_followups", { items: followUps }));
+          const reader = guardSseStream(result.upstream.body!, makeFinalize(result.gathered), () => onStage("verifying")).getReader();
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            controller.enqueue(value);
+          }
+        } catch {
+          send(sseEvent("error", { error: { type: "api_error", message: "model service error" } }));
+        } finally {
+          try { controller.close(); } catch { /* already closed */ }
+        }
+      },
     });
-  } catch {
-    return jsonError(req, upstreamSignal.aborted ? "model request timed out" : "model service unavailable", upstreamSignal.aborted ? 504 : 502);
+    return new Response(stream, { status: 200, headers });
   }
+
+  const result = await answer(() => undefined);
+  if (!result.ok) return jsonError(req, result.message, result.status, result.type);
+  const { upstream } = result;
+  const finalize = makeFinalize(result.gathered);
 
   const headers = new Headers(companionCorsHeaders(req));
   const contentType = upstream.headers.get("content-type") ?? "";
   if (contentType) headers.set("Content-Type", contentType);
   headers.set("Cache-Control", "no-store");
-  if (!upstream.ok || !upstream.body) return new Response(upstream.body, { status: upstream.status, headers });
 
   // Every reply passes through the guard before it reaches the reader.
   if (contentType.includes("text/event-stream")) {
-    return new Response(guardSseStream(upstream.body, finalize), { status: upstream.status, headers });
+    return new Response(guardSseStream(upstream.body!, finalize), { status: upstream.status, headers });
   }
   if (contentType.includes("application/json")) {
     try {
       return new Response(JSON.stringify(await guardMessage(await upstream.json(), finalize)), { status: upstream.status, headers });
     } catch {
-      return jsonError(req, "model service unavailable", 502);
+      return jsonError(req, "model service unavailable", 502, "api_error");
     }
   }
   return new Response(upstream.body, { status: upstream.status, headers });

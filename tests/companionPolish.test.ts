@@ -23,7 +23,8 @@ import * as React from "react";
  */
 import type { CompanionConversation } from "@/lib/companionHistory";
 import { MemoryRouter } from "react-router-dom";
-import { CompanionPage } from "@/pages/Companion";
+import { CompanionPage, CompanionSettingsSheet } from "@/pages/Companion";
+import { loadProfile } from "@/lib/companionProfile";
 
 function makeConv(over: Partial<CompanionConversation> = {}): CompanionConversation {
   return {
@@ -57,19 +58,32 @@ describe("Companion page — integration smoke", () => {
   });
 
   it("keeps personal-context opt-in without verbose service explanations", () => {
-    const html = renderToString(
+    const page = renderToString(
       React.createElement(
         MemoryRouter,
         null,
         React.createElement(CompanionPage),
       ),
     );
+    expect(page).not.toContain("MiniMax");
+    expect(page).not.toContain("٤٨ ألف حرف");
+    // The switch lives in the page's settings sheet, off by default.
+    expect(page).toContain('aria-label="إعدادات أثر"');
 
-    expect(html).not.toContain("MiniMax");
-    expect(html).not.toContain("٤٨ ألف حرف");
-    expect(html).toContain("تخصيص الردود بسياقي الشخصي");
-    expect(html).toContain('role="switch"');
-    expect(html).toContain('aria-checked="false"');
+    const sheet = renderToString(
+      React.createElement(CompanionSettingsSheet, {
+        open: true,
+        onClose: () => undefined,
+        profile: loadProfile(),
+        onProfileChange: () => undefined,
+        onEditProfile: () => undefined,
+        onClearMemory: () => undefined,
+      }),
+    );
+    expect(sheet).toContain("تخصيص الردود بسياقي الشخصي");
+    expect(sheet).toContain('role="switch"');
+    expect(sheet).toContain('aria-checked="false"');
+    expect(sheet).not.toContain("MiniMax");
   });
 
   it("ships the Companion status footer markup in the source", () => {

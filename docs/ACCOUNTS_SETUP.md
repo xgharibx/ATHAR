@@ -184,10 +184,19 @@ Before deploying:
    and no `anon` or `authenticated` table grants.
 2. Set `MINIMAX_API_KEY` as an Edge Function secret only. Never use a `VITE_`
    variable for the provider key.
-3. Deploy with `supabase functions deploy companion`.
+3. Deploy with `supabase functions deploy companion`, or let the
+   `Deploy AI server` workflow do it on every change merged to `main`: save a
+   Supabase access token as the repository secret `SUPABASE_ACCESS_TOKEN`
+   (Supabase dashboard → Account → Access Tokens). Without the secret the
+   workflow only leaves a warning.
 4. Test guest and invalid-session handling, concurrent quota reservations,
    per-minute and per-day limits, and oversized request rejection against
    staging.
+
+If every question fails with «خدمة «اسأل أثر» متوقفة مؤقتًا», MiniMax refused
+the server's key (expired, revoked or out of credit). Check the key and its
+balance in the MiniMax console, then replace it with
+`supabase secrets set MINIMAX_API_KEY=…`; no app update or redeploy is needed.
 
 The production project already has the Companion quota and shared budget
 migrations and deployed function updates. Use the project migration ledger and
