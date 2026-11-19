@@ -141,8 +141,8 @@ export default function EmbryoBonesFieshVisual({ className }: MiracleVisualProps
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
             { icon: '🦴', label: 'عظام ثم لحم', sub: 'تسلسل دقيق' },
-            { icon: '🔬', label: 'Keith Moore 1986', sub: 'embryology' },
-            { icon: '👶', label: 'أسبوع 28–31', sub: 'ossification' },
+            { icon: '🔬', label: 'كيث مور ١٩٨٦', sub: 'embryology' },
+            { icon: '👶', label: 'أسبوع ٢٨–٣١', sub: 'ossification' },
             { icon: '💪', label: 'myogenesis', sub: 'بعد العظام' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"

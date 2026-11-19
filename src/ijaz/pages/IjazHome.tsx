@@ -9,79 +9,69 @@ import { verses } from '@/ijaz/data/verses';
 import { ScrollReveal, TextReveal, AnimatedCounter } from '@/ijaz/components/effects/ScrollAnimations';
 import { CinematicTypewriter, AnimatedGradientText } from '@/ijaz/components/effects/TextEffects';
 import { useIsMobile } from '@/ijaz/hooks/useIsMobile';
+import { CheckCircle2, HelpCircle } from 'lucide-react';
+import { IjazIcon } from '@/ijaz/components/ui/IjazIcon';
+import { IjazProgressCard } from '@/ijaz/components/ui/IjazProgressCard';
+import { useIjazPrefs } from '@/ijaz/lib/ijazPrefs';
+import { MIRACLE, REVELATION_YEAR, yearsAr, discoveryYear, verseRefAr, yearAr } from '@/ijaz/lib/utils';
+import { arNum } from '@/lib/formatNumber';
+import { countAr, type CountForms } from '@/lib/arabicCount';
+
+const PATHS: CountForms = { one: 'مسار واحد', two: 'مساران', few: 'مسارات', many: 'مسارًا' };
 
 /* ================================================================
    DATA
    ================================================================ */
-const beforeAfterShowcases = [
-  {
-    miracleSlug: 'universe-expansion',
-    quranText: '\u0648\u0627\u0644\u0633\u0645\u0627\u0621 \u0628\u0646\u064A\u0646\u0627\u0647\u0627 \u0628\u0623\u064A\u062F \u0648\u0625\u0646\u0627 \u0644\u0645\u0648\u0633\u0639\u0648\u0646',
-    surah: '\u0627\u0644\u0630\u0627\u0631\u064A\u0627\u062A : 47',
-    before: '\u0627\u0644\u0628\u0634\u0631\u064A\u0629 \u0643\u0644\u0647\u0627 \u0638\u0646\u062A \u0627\u0644\u0643\u0648\u0646 \u062B\u0627\u0628\u062A\u064B\u0627 \u0648\u0633\u0627\u0643\u0646\u064B\u0627',
-    beforeYear: '\u0627\u0644\u0642\u0631\u0646 7',
-    after: '\u0625\u062F\u0648\u064A\u0646 \u0647\u0627\u0628\u0644 \u0627\u0643\u062A\u0634\u0641 \u062A\u0648\u0633\u0639 \u0627\u0644\u0643\u0648\u0646',
-    afterYear: '1929',
-    gap: '1300 \u0633\u0646\u0629',
-    icon: '\u{1F30C}',
-  },
-  {
-    miracleSlug: 'embryology-stages',
-    quranText: '\u062E\u0644\u0642\u0646\u0627 \u0627\u0644\u0646\u0637\u0641\u0629 \u0639\u0644\u0642\u0629 \u0641\u062E\u0644\u0642\u0646\u0627 \u0627\u0644\u0639\u0644\u0642\u0629 \u0645\u0636\u063A\u0629',
-    surah: '\u0627\u0644\u0645\u0624\u0645\u0646\u0648\u0646 : 14',
-    before: '\u0644\u0645 \u064A\u0643\u0646 \u0644\u062F\u0649 \u0627\u0644\u0628\u0634\u0631 \u0645\u062C\u0627\u0647\u0631 \u0623\u0648 \u0639\u0644\u0645 \u0623\u062C\u0646\u0629',
-    beforeYear: '\u0627\u0644\u0642\u0631\u0646 7',
-    after: '\u0643\u064A\u062B \u0645\u0648\u0631 \u0648\u0635\u0641 \u0645\u0631\u0627\u062D\u0644 \u0627\u0644\u062C\u0646\u064A\u0646 \u0628\u0627\u0644\u0645\u062C\u0647\u0631',
-    afterYear: '1974',
-    gap: '1350 \u0633\u0646\u0629',
-    icon: '\u{1F9EC}',
-  },
-  {
-    miracleSlug: 'mountains-pegs',
-    quranText: '\u0623\u0644\u0645 \u0646\u062C\u0639\u0644 \u0627\u0644\u0623\u0631\u0636 \u0645\u0647\u0627\u062F\u064B\u0627 \u0648\u0627\u0644\u062C\u0628\u0627\u0644 \u0623\u0648\u062A\u0627\u062F\u064B\u0627',
-    surah: '\u0627\u0644\u0646\u0628\u0623 : 6-7',
-    before: '\u0627\u0644\u062C\u0628\u0627\u0644 \u0645\u062C\u0631\u062F \u062A\u0636\u0627\u0631\u064A\u0633 \u0639\u0644\u0649 \u0633\u0637\u062D \u0627\u0644\u0623\u0631\u0636',
-    beforeYear: '\u0627\u0644\u0642\u0631\u0646 7',
-    after: '\u0627\u0643\u062A\u0634\u0627\u0641 \u062C\u0630\u0648\u0631 \u0627\u0644\u062C\u0628\u0627\u0644 \u0628\u0627\u0644\u0645\u0648\u062C\u0627\u062A \u0627\u0644\u0632\u0644\u0632\u0627\u0644\u064A\u0629',
-    afterYear: '1906',
-    gap: '1270 \u0633\u0646\u0629',
-    icon: '\u26F0\uFE0F',
-  },
-  {
-    miracleSlug: 'deep-sea-darkness',
-    quranText: '\u0638\u0644\u0645\u0627\u062A \u0628\u0639\u0636\u0647\u0627 \u0641\u0648\u0642 \u0628\u0639\u0636',
-    surah: '\u0627\u0644\u0646\u0648\u0631 : 40',
-    before: '\u0644\u0627 \u0623\u062D\u062F \u063A\u0627\u0635 \u0625\u0644\u0649 \u0623\u0639\u0645\u0627\u0642 \u0627\u0644\u0628\u062D\u0631',
-    beforeYear: '\u0627\u0644\u0642\u0631\u0646 7',
-    after: '\u063A\u0648\u0627\u0635\u0627\u062A \u0627\u0644\u0623\u0639\u0645\u0627\u0642 \u0623\u062B\u0628\u062A\u062A \u0637\u0628\u0642\u0627\u062A \u0627\u0644\u0638\u0644\u0627\u0645',
-    afterYear: '1960',
-    gap: '1320 \u0633\u0646\u0629',
-    icon: '\u{1F30A}',
-  },
+/** Before/after spotlights. The verse, its reference, the year and the gap come from the miracle itself. */
+const SHOWCASE_SOURCE = [
+  { miracleSlug: 'universe-expansion', before: 'البشرية كلها ظنت الكون ثابتًا ساكنًا', after: 'إدوين هابل يرصد تباعد المجرات', icon: 'cosmos' },
+  { miracleSlug: 'embryology-stages', before: 'لم يكن لدى البشر مجاهر ولا علم أجنة', after: 'علم الأجنة يصف أطوار الجنين بالمجهر', icon: 'microscopic' },
+  { miracleSlug: 'mountains-as-pegs', before: 'الجبال تضاريس على سطح الأرض فحسب', after: 'المسوح الزلزالية تكشف جذور الجبال', icon: 'mountain' },
+  { miracleSlug: 'deep-sea-darkness', before: 'لم يغص أحد إلى أعماق البحر', after: 'علم البحار يثبت طبقات الظلام في الأعماق', icon: 'sea' },
 ];
 
+const beforeAfterShowcases = SHOWCASE_SOURCE.flatMap((x) => {
+  const m = miracles.find((mm) => mm.slug === x.miracleSlug);
+  const verse = m?.verses[0];
+  const year = m ? discoveryYear(m) : null;
+  if (!m || !verse || !year) return [];
+  return [{
+    ...x,
+    quranText: verse.arabicText,
+    surah: verseRefAr(verse.surah, verse.ayahNumber, verse.ayahNumberEnd),
+    beforeYear: 'القرن السابع',
+    afterYear: `${yearAr(year)}م`,
+    gap: yearsAr(year - REVELATION_YEAR),
+  }];
+});
+
+/** The longest head start in the whole section, counted from the data. */
+const LONGEST_GAP = Math.max(...miracles.map((m) => (discoveryYear(m) ?? REVELATION_YEAR) - REVELATION_YEAR));
+const TOTAL_PROOFS = miracles.reduce((n, m) => n + m.scientificEvidence.length, 0);
+const TOTAL_VERSES = new Set(miracles.flatMap((m) => m.verses.map((v) => `${v.surahNumber}:${v.ayahNumber}`))).size;
+
 const seekerPaths = [
-  { icon: '\u{1F52D}', titleAr: '\u0623\u0646\u0627 \u0639\u0627\u0644\u0650\u0645', titleEn: "I'm a scientist", descAr: '\u0627\u0643\u062A\u0634\u0641 \u0643\u064A\u0641 \u0633\u0628\u0642 \u0627\u0644\u0642\u0631\u0622\u0646 \u0643\u0644 \u0627\u0644\u0627\u0643\u062A\u0634\u0627\u0641\u0627\u062A', href: '/ijaz/categories/cosmological', color: '#4A90D9' },
-  { icon: '\u{1F9E0}', titleAr: '\u0623\u0646\u0627 \u0641\u064A\u0644\u0633\u0648\u0641', titleEn: "I'm a philosopher", descAr: '\u0628\u0631\u0627\u0647\u064A\u0646 \u0645\u0646\u0637\u0642\u064A\u0629 \u062A\u062B\u0628\u062A \u0648\u062C\u0648\u062F \u0627\u0644\u062E\u0627\u0644\u0642', href: '/ijaz/categories/logical-philosophical', color: '#9b59b6' },
-  { icon: '\u{1F914}', titleAr: '\u0623\u0646\u0627 \u0645\u062A\u0634\u0643\u0643', titleEn: "I'm a skeptic", descAr: '\u062A\u062D\u062F\u0651 \u0627\u0644\u0634\u0628\u0647\u0627\u062A \u0648\u0627\u062D\u062F\u0629 \u062A\u0644\u0648 \u0627\u0644\u0623\u062E\u0631\u0649', href: '/ijaz/refute', color: '#e74c3c' },
-  { icon: '\u2728', titleAr: '\u0623\u0646\u0627 \u0628\u0627\u062D\u062B \u0639\u0646 \u0627\u0644\u062D\u0642', titleEn: "I'm seeking truth", descAr: '\u0631\u062D\u0644\u0629 \u0645\u0631\u0634\u062F\u0629 \u0645\u0646 \u0627\u0644\u0634\u0643 \u0625\u0644\u0649 \u0627\u0644\u064A\u0642\u064A\u0646', href: '/ijaz/journey', color: '#2dd4a8' },
+  { icon: 'scientist', titleAr: 'أنا عالِم', descAr: 'اكتشف كيف سبق القرآن كل الاكتشافات', href: '/ijaz/categories/cosmological', color: '#4A90D9' },
+  { icon: 'logic', titleAr: 'أنا فيلسوف', descAr: 'براهين منطقية تثبت وجود الخالق', href: '/ijaz/categories/logical-philosophical', color: '#9b59b6' },
+  { icon: 'skeptic', titleAr: 'أنا متشكك', descAr: 'تحدّ الشبهات واحدة تلو الأخرى', href: '/ijaz/refute', color: '#e74c3c' },
+  { icon: 'seeker', titleAr: 'أنا باحث عن الحق', descAr: 'رحلة مرشدة من الشك إلى اليقين', href: '/ijaz/journey', color: '#2dd4a8' },
 ];
 
 const objections = [
   {
-    objection: '\u00AB\u0645\u062D\u0645\u062F \u0646\u0642\u0644 \u0645\u0646 \u062D\u0636\u0627\u0631\u0627\u062A \u0633\u0627\u0628\u0642\u0629\u00BB',
-    refutation: '\u0627\u0644\u062D\u0636\u0627\u0631\u0627\u062A \u0627\u0644\u0633\u0627\u0628\u0642\u0629 \u0643\u0627\u0644\u064A\u0648\u0646\u0627\u0646\u064A\u0629 \u0648\u0627\u0644\u0647\u0646\u062F\u064A\u0629 \u0643\u0627\u0646\u062A \u0645\u062E\u0637\u0626\u0629 \u0639\u0644\u0645\u064A\u064B\u0627. \u0627\u0644\u0642\u0631\u0622\u0646 \u0644\u0645 \u064A\u0623\u062E\u0630 \u0645\u0646\u0647\u0627 \u0628\u0644 \u062E\u0627\u0644\u0641\u0647\u0627 \u0648\u0623\u0635\u0627\u0628! \u063A\u0627\u0644\u064A\u0646\u0648\u0633 \u0642\u0627\u0644 \u0627\u0644\u0645\u0646\u064A \u064A\u0623\u062A\u064A \u0645\u0646 \u0627\u0644\u062F\u0645 \u2014 \u0627\u0644\u0642\u0631\u0622\u0646 \u0642\u0627\u0644 \u0645\u0646 \u0646\u0637\u0641\u0629. \u0623\u0631\u0633\u0637\u0648 \u0642\u0627\u0644 \u0627\u0644\u0643\u0648\u0646 \u0623\u0632\u0644\u064A \u2014 \u0627\u0644\u0642\u0631\u0622\u0646 \u0642\u0627\u0644 \u0644\u0647 \u0628\u062F\u0627\u064A\u0629.',
-    icon: '\u{1F4DA}',
+    objection: '«محمد نقل من حضارات سابقة»',
+    refutation: 'الحضارات السابقة كاليونانية والهندية كانت مخطئة علميًا. القرآن لم يأخذ منها بل خالفها وأصاب! غالينوس قال المني يأتي من الدم — القرآن قال من نطفة. أرسطو قال الكون أزلي — القرآن قال له بداية.',
+    icon: 'book',
   },
   {
-    objection: '\u00AB\u0647\u0630\u0647 \u0645\u062C\u0631\u062F \u062A\u0641\u0633\u064A\u0631\u0627\u062A \u0628\u0623\u062B\u0631 \u0631\u062C\u0639\u064A\u00BB',
-    refutation: '\u0627\u0644\u0623\u0644\u0641\u0627\u0638 \u0627\u0644\u0639\u0631\u0628\u064A\u0629 \u0641\u064A \u0627\u0644\u0622\u064A\u0627\u062A \u062F\u0642\u064A\u0642\u0629 \u0639\u0644\u0645\u064A\u064B\u0627 \u0628\u0634\u0643\u0644 \u0644\u0627 \u064A\u0642\u0628\u0644 \u0627\u0644\u062A\u0623\u0648\u064A\u0644. "\u0644\u0645\u0648\u0633\u0639\u0648\u0646" \u0627\u0633\u0645 \u0641\u0627\u0639\u0644 \u064A\u0641\u064A\u062F \u0627\u0644\u0627\u0633\u062A\u0645\u0631\u0627\u0631 \u2014 \u0647\u0630\u0627 \u0644\u0627 \u064A\u062D\u062A\u0645\u0644 \u0645\u0639\u0646\u0649 \u0622\u062E\u0631. "\u0639\u0644\u0642\u0629" \u062A\u0639\u0646\u064A \u062D\u0631\u0641\u064A\u064B\u0627 \u0634\u064A\u0626\u064B\u0627 \u0645\u0639\u0644\u0642\u064B\u0627 \u0643\u0627\u0644\u0639\u0644\u0642\u0629 \u2014 \u0648\u0647\u0630\u0627 \u0628\u0627\u0644\u0636\u0628\u0637 \u0645\u0627 \u0646\u0631\u0627\u0647 \u0628\u0627\u0644\u0645\u062C\u0647\u0631.',
-    icon: '\u{1F50D}',
+    objection: '«هذه مجرد تفسيرات بأثر رجعي»',
+    refutation: 'الألفاظ العربية في الآيات دقيقة علميًا بشكل لا يقبل التأويل. "لموسعون" اسم فاعل يفيد الاستمرار — هذا لا يحتمل معنى آخر. "علقة" تعني حرفيًا شيئًا معلقًا كالعلقة — وهذا بالضبط ما نراه بالمجهر.',
+    icon: 'skeptic',
   },
   {
-    objection: '\u00AB\u0627\u0644\u0625\u0635\u0627\u0628\u0629 \u0641\u064A 25 \u0637\u0644\u0642\u0629 \u0645\u062C\u0631\u062F \u062D\u0638\u00BB',
-    refutation: '\u0627\u062D\u062A\u0645\u0627\u0644 \u0625\u0635\u0627\u0628\u0629 \u0645\u0639\u062C\u0632\u0629 \u0648\u0627\u062D\u062F\u0629 \u0628\u0627\u0644\u0635\u062F\u0641\u0629 = 1/1000 \u062A\u0642\u0631\u064A\u0628\u064B\u0627. \u0627\u062D\u062A\u0645\u0627\u0644 25 \u0625\u0635\u0627\u0628\u0629 \u0645\u062A\u062A\u0627\u0644\u064A\u0629 = 1/10^26. \u0647\u0630\u0627 \u0623\u0642\u0644 \u0627\u062D\u062A\u0645\u0627\u0644\u064B\u0627 \u0645\u0646 \u0623\u0646 \u062A\u0642\u0641 \u0639\u0644\u0649 \u0630\u0631\u0629 \u0648\u0627\u062D\u062F\u0629 \u0628\u0639\u064A\u0646\u0647\u0627 \u0628\u064A\u0646 \u0643\u0644 \u0630\u0631\u0627\u062A \u0627\u0644\u0643\u0648\u0646.',
-    icon: '\u{1F3B0}',
+    objection: '«الإصابة في مواضع كثيرة مجرد حظ»',
+    refutation: 'قد تصيب عبارةٌ واحدة بالصدفة، أما أن تصيب عشرات العبارات في علوم متباعدة، من الفلك إلى الأجنة إلى البحار، في كتاب نزل قبل أربعة عشر قرنًا، ولا يأتي فيه ما يناقض حقيقة علمية ثابتة، فهذا ما لا تفسره الصدفة.',
+    icon: 'spark',
   },
 ];
 
@@ -109,14 +99,14 @@ function ScrollProgress() {
 function FloatingNav() {
   const [activeSection, setActiveSection] = useState(0);
   const sectionLabels = [
-    '\u0627\u0644\u0628\u062F\u0627\u064A\u0629',
-    '\u0627\u0644\u0645\u0642\u0627\u0631\u0646\u0629',
-    '\u0627\u0644\u0623\u0631\u0642\u0627\u0645',
-    '\u0645\u0633\u0627\u0631\u0643',
-    '\u0622\u064A\u0629',
-    '\u0627\u0644\u0634\u0628\u0647\u0627\u062A',
-    '\u0627\u0644\u0623\u0642\u0633\u0627\u0645',
-    '\u0627\u0644\u0645\u0635\u0627\u062F\u0631',
+    'البداية',
+    'المقارنة',
+    'الأرقام',
+    'مسارك',
+    'آية',
+    'الشبهات',
+    'الأقسام',
+    'المصادر',
   ];
 
   useEffect(() => {
@@ -461,17 +451,18 @@ function MobileGalaxyBackdrop() {
 export default function HomePage() {
   const [activeShowcase, setActiveShowcase] = useState(0);
   const isMobile = useIsMobile();
+  const showEnglish = useIjazPrefs((s) => s.showEnglish);
   const activeHeroShowcase = beforeAfterShowcases[activeShowcase];
 
   const heroBadges = [
-    { label: `${miracles.length}+ معجزة موثقة`, color: '#f0d68a', tone: 'rgba(212,168,83,0.12)', border: 'rgba(212,168,83,0.20)' },
-    { label: `${seekerPaths.length} مسارات للدخول`, color: '#8ef2d7', tone: 'rgba(45,212,168,0.10)', border: 'rgba(45,212,168,0.18)' },
+    { label: `${countAr(miracles.length, MIRACLE)} موثقة`, color: '#f0d68a', tone: 'rgba(212,168,83,0.12)', border: 'rgba(212,168,83,0.20)' },
+    { label: `${countAr(seekerPaths.length, PATHS)} للدخول`, color: '#8ef2d7', tone: 'rgba(45,212,168,0.10)', border: 'rgba(45,212,168,0.18)' },
     { label: `سبق حتى ${activeHeroShowcase.gap}`, color: '#9cc8ff', tone: 'rgba(74,144,217,0.10)', border: 'rgba(74,144,217,0.18)' },
   ] as const;
 
   const heroStats = [
-    { value: `${miracles.length}+`, label: 'دليلاً موثقاً', color: '#f0d68a', tone: 'rgba(212,168,83,0.12)', border: 'rgba(212,168,83,0.20)' },
-    { value: `${categories.length}`, label: 'أقسام كبرى', color: '#8ef2d7', tone: 'rgba(45,212,168,0.10)', border: 'rgba(45,212,168,0.18)' },
+    { value: arNum(miracles.length), label: 'معجزة موثقة', color: '#f0d68a', tone: 'rgba(212,168,83,0.12)', border: 'rgba(212,168,83,0.20)' },
+    { value: arNum(categories.length), label: 'أقسام كبرى', color: '#8ef2d7', tone: 'rgba(45,212,168,0.10)', border: 'rgba(45,212,168,0.18)' },
     { value: activeHeroShowcase.gap, label: 'سبق قرآني', color: '#9cc8ff', tone: 'rgba(74,144,217,0.10)', border: 'rgba(74,144,217,0.18)' },
   ] as const;
 
@@ -514,7 +505,7 @@ export default function HomePage() {
               transition={{ delay: 0.3, duration: 1 }}
               className="mb-4 md:mb-6 lg:mb-8"
             >
-              <span className="font-amiri text-gold-primary/40 text-2xl">{'\uFDFD'}</span>
+              <span className="font-amiri text-gold-primary/40 text-2xl">{'﷽'}</span>
             </motion.div>
 
             {/* Signal badges */}
@@ -561,7 +552,7 @@ export default function HomePage() {
                   className="w-1.5 h-1.5 rounded-full bg-gold-primary shrink-0"
                 />
                 <span className="font-tajawal text-gold-primary/85 text-sm md:text-lg tracking-wide">
-                  {'\u0647\u0644 \u062A\u062C\u0631\u0624 \u0639\u0644\u0649 \u0623\u0646 \u062A\u0633\u0623\u0644 \u0646\u0641\u0633\u0643...'}
+                  {'هل تجرؤ على أن تسأل نفسك...'}
                 </span>
               </div>
             </motion.div>
@@ -574,23 +565,23 @@ export default function HomePage() {
               transition={{ delay: 0.8, duration: 1 }}
             >
               <span className="text-text-primary">
-                {'\u0643\u064A\u0641 \u0639\u0631\u0641 \u0631\u062C\u0644'}
+                {'كيف عرف رجل'}
               </span>
               <AnimatedGradientText className="font-amiri text-3xl sm:text-4xl md:text-5xl lg:text-7xl 2xl:text-8xl font-bold">
-                {' \u0623\u064F\u0645\u0651\u064A\u0651 '}
+                {' أُمّيّ '}
               </AnimatedGradientText>
               <span className="text-text-primary">
-                {'\u0641\u064A \u0627\u0644\u0635\u062D\u0631\u0627\u0621'}
+                {'في الصحراء'}
               </span>
               <br />
               <span className="text-verse-green verse-glow-pulse">
-                {'\u0623\u0633\u0631\u0627\u0631 \u0627\u0644\u0643\u0648\u0646 '}
+                {'أسرار الكون '}
               </span>
               <span className="text-text-primary">
-                {'\u0642\u0628\u0644 \u0623\u0646 \u064A\u0639\u0631\u0641\u0647\u0627 '}
+                {'قبل أن يعرفها '}
               </span>
               <span className="text-gold-primary">
-                {'\u0623\u064A\u0651 \u0639\u0627\u0644\u0650\u0645\u061F'}
+                {'أيّ عالِم؟'}
               </span>
             </motion.h1>
 
@@ -602,9 +593,9 @@ export default function HomePage() {
               transition={{ delay: 1.2 }}
             >
               <p className="text-text-secondary font-tajawal text-lg md:text-xl leading-relaxed">
-                {'\u0645\u0627 \u0633\u062A\u0631\u0627\u0647 \u0647\u0646\u0627 \u0644\u064A\u0633 \u0643\u0644\u0627\u0645\u064B\u0627 \u2014 \u0625\u0646\u0647 \u0623\u062F\u0644\u0629 \u0639\u0644\u0645\u064A\u0629 \u0645\u0648\u062B\u0642\u0629 \u0645\u0646 '}
-                <span className="text-gold-primary font-bold">{miracles.length} {'\u0645\u0639\u062C\u0632\u0629'}</span>
-                {' \u062A\u062C\u0639\u0644\u0643 \u062A\u062A\u0633\u0627\u0621\u0644: \u0645\u0646 \u0627\u0644\u0630\u064A \u0623\u062E\u0628\u0631 \u0645\u062D\u0645\u062F\u064B\u0627 \uFDFA\u061F'}
+                {'ما ستراه هنا ليس كلامًا — إنه أدلة علمية موثقة من '}
+                <span className="text-gold-primary font-bold">{countAr(miracles.length, MIRACLE)}</span>
+                {' تجعلك تتساءل: من الذي أخبر محمدًا ﷺ؟'}
               </p>
             </motion.div>
 
@@ -655,7 +646,7 @@ export default function HomePage() {
                           <span className="w-1.5 h-1.5 rounded-full bg-gold-primary shadow-[0_0_10px_rgba(212,168,83,0.65)]" />
                           نافذة من الإعجاز
                         </span>
-                        <span className="text-3xl md:text-4xl leading-none">{activeHeroShowcase.icon}</span>
+                        <IjazIcon name={activeHeroShowcase.icon} size={34} className="text-gold-primary" />
                       </div>
 
                       <div className="relative z-10 mt-5">
@@ -757,14 +748,14 @@ export default function HomePage() {
               >
                 <span className="ijaz-cta-shine" aria-hidden />
                 <span className="relative z-10">
-                  {'\u0627\u0628\u062F\u0623 \u0631\u062D\u0644\u0629 \u0627\u0644\u064A\u0642\u064A\u0646'}
+                  {'ابدأ رحلة اليقين'}
                 </span>
               </Link>
               <Link
                 to="/ijaz/miracles"
                 className="px-8 py-4 rounded-2xl border border-gold-primary/30 text-gold-primary font-tajawal font-bold hover:bg-gold-primary/10 transition-all cosmic-border"
               >
-                {'\u0627\u0633\u062A\u0643\u0634\u0641 \u0627\u0644\u0623\u062F\u0644\u0629'}
+                {'استكشف الأدلة'}
               </Link>
             </motion.div>
 
@@ -782,17 +773,17 @@ export default function HomePage() {
               }}
             >
               <p className="text-text-muted text-xs font-tajawal mb-2">
-                {'\u0645\u0639\u062C\u0632\u0627\u062A \u062A\u0646\u062A\u0638\u0631\u0643:'}
+                {'معجزات تنتظرك:'}
               </p>
               <CinematicTypewriter
                 sequences={[
-                  '\u062A\u0648\u0633\u0639 \u0627\u0644\u0643\u0648\u0646 \u2014 \u0630\u064F\u0643\u0631 \u0642\u0628\u0644 \u0647\u0627\u0628\u0644 \u0628\u0640 1300 \u0633\u0646\u0629',
+                  `توسع الكون، ذُكر قبل هابل بـ${yearsAr(1929 - REVELATION_YEAR)}`,
                   2000,
-                  '\u0645\u0631\u0627\u062D\u0644 \u0627\u0644\u062C\u0646\u064A\u0646 \u2014 \u062F\u0642\u0629 \u0645\u0630\u0647\u0644\u0629 \u0628\u062F\u0648\u0646 \u0645\u062C\u0647\u0631',
+                  'مراحل الجنين — دقة مذهلة بدون مجهر',
                   2000,
-                  '\u0627\u0644\u062C\u0628\u0627\u0644 \u0623\u0648\u062A\u0627\u062F \u2014 \u062C\u0630\u0648\u0631 \u0639\u0645\u064A\u0642\u0629 \u062A\u062B\u0628\u062A \u0627\u0644\u0623\u0631\u0636',
+                  'الجبال أوتاد — جذور عميقة تثبت الأرض',
                   2000,
-                  '\u0627\u0644\u0628\u0631\u0647\u0627\u0646 \u0627\u0644\u0643\u0648\u0646\u064A \u2014 \u0627\u0644\u0643\u0648\u0646 \u0644\u0647 \u0628\u062F\u0627\u064A\u0629 \u0641\u0644\u0647 \u0645\u0628\u062F\u0626',
+                  'البرهان الكوني — الكون له بداية فله مبدئ',
                   2000,
                 ]}
                 className="text-gold-primary font-tajawal text-base"
@@ -817,7 +808,7 @@ export default function HomePage() {
             className="flex flex-col items-center gap-2"
           >
             <span className="text-[10px] font-tajawal text-text-muted/50">
-              {'\u0627\u0633\u062D\u0628 \u0644\u0623\u0633\u0641\u0644'}
+              {'اسحب لأسفل'}
             </span>
             <div className="w-5 h-8 rounded-full border border-gold-primary/30 flex justify-center pt-2">
               <motion.div
@@ -838,15 +829,15 @@ export default function HomePage() {
           <ScrollReveal variant="blur">
             <div className="text-center mb-16">
               <p className="text-gold-primary/60 font-tajawal text-sm tracking-widest uppercase mb-3">
-                {'\u0627\u0644\u062A\u062D\u062F\u064A \u0627\u0644\u0645\u0633\u062A\u062D\u064A\u0644'}
+                {'التحدي المستحيل'}
               </p>
               <TextReveal
-                text={'\u0645\u0627\u0630\u0627 \u0639\u0631\u0641 \u0627\u0644\u0628\u0634\u0631 \u0648\u0645\u0627\u0630\u0627 \u0642\u0627\u0644 \u0627\u0644\u0642\u0631\u0622\u0646\u061F'}
+                text={'ماذا عرف البشر وماذا قال القرآن؟'}
                 className="font-amiri text-3xl md:text-5xl font-bold gold-gradient-text"
                 tag="h2"
               />
               <p className="text-text-secondary font-tajawal max-w-2xl mx-auto mt-4">
-                {'\u0641\u064A \u0627\u0644\u0642\u0631\u0646 \u0627\u0644\u0633\u0627\u0628\u0639 \u0644\u0645 \u062A\u0643\u0646 \u062A\u0648\u062C\u062F \u0645\u062C\u0627\u0647\u0631 \u0648\u0644\u0627 \u062A\u0644\u0633\u0643\u0648\u0628\u0627\u062A \u0648\u0644\u0627 \u063A\u0648\u0627\u0635\u0627\u062A \u2014 \u0641\u0645\u0646 \u0623\u064A\u0646 \u062C\u0627\u0621\u062A \u0647\u0630\u0647 \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062A\u061F'}
+                {'في القرن السابع لم تكن توجد مجاهر ولا تلسكوبات ولا غواصات — فمن أين جاءت هذه المعلومات؟'}
               </p>
             </div>
           </ScrollReveal>
@@ -920,9 +911,9 @@ export default function HomePage() {
                                   className="w-20 h-20 md:w-28 md:h-28 rounded-full flex items-center justify-center text-4xl md:text-6xl"
                                   style={{ background: 'radial-gradient(circle, rgba(127,29,29,0.45) 0%, rgba(69,10,10,0.15) 100%)', border: '1px solid rgba(220,38,38,0.18)' }}
                                 >
-                                  {'\u2753'}
+                                  <HelpCircle size={30} aria-hidden="true" />
                                 </motion.div>
-                                <p className="text-red-300/40 text-[10px] font-tajawal uppercase tracking-[0.15em]">{'\u0645\u0627 \u0639\u0631\u0641\u0647 \u0627\u0644\u0628\u0634\u0631'}</p>
+                                <p className="text-red-300/40 text-[10px] font-tajawal uppercase tracking-[0.15em]">{'ما عرفه البشر'}</p>
                                 <p className="text-text-secondary/80 font-tajawal text-sm md:text-base leading-relaxed max-w-[170px]">{item.before}</p>
                               </div>
                             </div>
@@ -936,7 +927,7 @@ export default function HomePage() {
                                 className="text-4xl md:text-5xl relative z-10"
                                 style={{ filter: 'drop-shadow(0 0 12px rgba(212,168,83,0.5))' }}
                               >
-                                {item.icon}
+                                <IjazIcon name={item.icon} size={30} />
                               </motion.div>
                               <div
                                 className="relative z-10 rounded-2xl px-4 md:px-6 py-3 text-center"
@@ -954,7 +945,7 @@ export default function HomePage() {
                                 >
                                   {item.gap}
                                 </motion.p>
-                                <p className="text-text-muted text-[9px] font-tajawal tracking-widest mt-1.5">{'\u0627\u0644\u0641\u0627\u0631\u0642 \u0627\u0644\u0632\u0645\u0646\u064A'}</p>
+                                <p className="text-text-muted text-[9px] font-tajawal tracking-widest mt-1.5">{'الفارق الزمني'}</p>
                               </div>
                               <div className="w-2 h-2 rotate-45 border border-gold-primary/20 relative z-10" />
                             </div>
@@ -975,9 +966,9 @@ export default function HomePage() {
                                   className="w-20 h-20 md:w-28 md:h-28 rounded-full flex items-center justify-center text-4xl md:text-6xl"
                                   style={{ background: 'radial-gradient(circle, rgba(6,78,59,0.55) 0%, rgba(2,44,34,0.18) 100%)', border: '1px solid rgba(45,212,168,0.22)' }}
                                 >
-                                  {'\u2705'}
+                                  <CheckCircle2 size={30} aria-hidden="true" />
                                 </motion.div>
-                                <p className="text-verse-green/50 text-[10px] font-tajawal uppercase tracking-[0.15em]">{'\u0645\u0627 \u0623\u062B\u0628\u062A\u0647 \u0627\u0644\u0639\u0644\u0645'}</p>
+                                <p className="text-verse-green/50 text-[10px] font-tajawal uppercase tracking-[0.15em]">{'ما أثبته العلم'}</p>
                                 <p className="text-text-secondary/80 font-tajawal text-sm md:text-base leading-relaxed max-w-[170px]">{item.after}</p>
                               </div>
                             </div>
@@ -987,7 +978,7 @@ export default function HomePage() {
                           <div className="relative px-8 py-5 text-center">
                             <div className="absolute top-0 left-8 right-8 h-px bg-linear-to-r from-transparent via-gold-primary/10 to-transparent" />
                             <p className="text-text-muted/55 text-xs font-tajawal group-hover:text-gold-primary transition-colors duration-300 tracking-wide">
-                              {'\u0627\u0636\u063A\u0637 \u0644\u0627\u0633\u062A\u0643\u0634\u0627\u0641 \u0627\u0644\u062F\u0644\u064A\u0644 \u0627\u0644\u0643\u0627\u0645\u0644 \u2190'}
+                              {'اضغط لاستكشاف الدليل الكامل ←'}
                             </p>
                           </div>
                         </div>
@@ -1031,41 +1022,21 @@ export default function HomePage() {
             <div className="text-center mb-16">
               <h2 className="font-amiri text-3xl md:text-5xl font-bold mb-4">
                 <AnimatedGradientText className="font-amiri text-3xl md:text-5xl font-bold">
-                  {'\u0627\u062D\u062A\u0645\u0627\u0644 \u0627\u0644\u0635\u062F\u0641\u0629\u061F'}
+                  {'بالأرقام'}
                 </AnimatedGradientText>
               </h2>
               <p className="text-text-secondary font-tajawal max-w-2xl mx-auto text-lg">
-                {'\u0625\u0630\u0627 \u0643\u0627\u0646\u062A \u0645\u0639\u062C\u0632\u0629 \u0648\u0627\u062D\u062F\u0629 \u064A\u0645\u0643\u0646 \u0623\u0646 \u062A\u0643\u0648\u0646 \u0635\u062F\u0641\u0629... \u0641\u0645\u0627 \u0627\u062D\u062A\u0645\u0627\u0644 40 \u0645\u0639\u062C\u0632\u0629 \u0645\u062A\u0637\u0627\u0628\u0642\u0629 \u0645\u0639\u064B\u0627\u061F'}
+                {'ما في هذا القسم، محسوبًا من مادته نفسها'}
               </p>
             </div>
           </ScrollReveal>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             {[
-              {
-                target: miracles.length,
-                suffix: '+',
-                label: '\u0645\u0639\u062C\u0632\u0629 \u0639\u0644\u0645\u064A\u0629 \u0645\u0648\u062B\u0642\u0629',
-                color: '#a5b4fc',
-              },
-              {
-                target: 750,
-                suffix: '+',
-                label: '\u0622\u064A\u0629 \u0642\u0631\u0622\u0646\u064A\u0629 \u062F\u0642\u064A\u0642\u0629',
-                color: '#2dd4a8',
-              },
-              {
-                target: 1400,
-                suffix: '',
-                label: '\u0633\u0646\u0629 \u0633\u0628\u0642 \u0639\u0644\u0645\u064A',
-                color: '#4A90D9',
-              },
-              {
-                target: 0,
-                suffix: '',
-                label: '\u062A\u0641\u0633\u064A\u0631 \u0628\u062F\u064A\u0644 \u0645\u0639\u0642\u0648\u0644',
-                color: '#e74c3c',
-              },
+              { target: miracles.length, suffix: '', label: 'معجزة في خمسة أقسام', color: '#a5b4fc' },
+              { target: TOTAL_VERSES, suffix: '', label: 'آية مستشهد بها', color: '#2dd4a8' },
+              { target: TOTAL_PROOFS, suffix: '', label: 'دليلًا علميًّا موثّقًا', color: '#d4a853' },
+              { target: LONGEST_GAP, suffix: '', label: 'سنة، أطول سبق', color: '#4A90D9' },
             ].map((item, i) => (
               <ScrollReveal key={i} variant="fade-up" delay={i * 0.15}>
                 <div className="text-center glass-premium rounded-2xl p-6">
@@ -1082,19 +1053,7 @@ export default function HomePage() {
           </div>
 
           <ScrollReveal variant="fade-up" delay={0.6}>
-            <div className="mt-16 text-center">
-              <div className="inline-block glass-premium rounded-2xl px-10 py-6 cosmic-border">
-                <p className="text-text-muted text-xs font-tajawal mb-2">
-                  {'\u0627\u062D\u062A\u0645\u0627\u0644 \u0623\u0646 \u062A\u0643\u0648\u0646 \u0643\u0644 \u0647\u0630\u0647 \u0627\u0644\u0645\u0639\u062C\u0632\u0627\u062A \u0645\u062C\u0631\u062F \u0635\u062F\u0641:'}
-                </p>
-                <p className="font-mono text-3xl md:text-4xl text-red-400/90 font-bold">
-                  1 / 10<sup>50</sup>
-                </p>
-                <p className="text-text-muted text-xs font-tajawal mt-2">
-                  {'\u0623\u064A: \u0635\u0641\u0631 \u0639\u0645\u0644\u064A\u064B\u0627 \u2014 \u0645\u0633\u062A\u062D\u064A\u0644 \u0631\u064A\u0627\u0636\u064A\u064B\u0627'}
-                </p>
-              </div>
-            </div>
+            <IjazProgressCard />
           </ScrollReveal>
         </div>
       </section>
@@ -1105,13 +1064,13 @@ export default function HomePage() {
           <ScrollReveal variant="blur">
             <div className="text-center mb-16">
               <h2 className="font-amiri text-3xl md:text-5xl font-bold mb-4">
-                <span className="text-text-primary">{'\u0645\u0646 '}</span>
+                <span className="text-text-primary">{'من '}</span>
                 <AnimatedGradientText className="font-amiri text-3xl md:text-5xl font-bold">
-                  {'\u0623\u0646\u062A\u061F'}
+                  {'أنت؟'}
                 </AnimatedGradientText>
               </h2>
               <p className="text-text-secondary font-tajawal text-lg">
-                {'\u0627\u062E\u062A\u0631 \u0637\u0631\u064A\u0642\u0643 \u2014 \u0643\u0644 \u0645\u0633\u0627\u0631 \u0645\u0635\u0645\u0645 \u0644\u0643'}
+                {'اختر طريقك — كل مسار مصمم لك'}
               </p>
             </div>
           </ScrollReveal>
@@ -1128,12 +1087,11 @@ export default function HomePage() {
                       className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
                       style={{ background: path.color + '12' }}
                     >
-                      {path.icon}
+                      <IjazIcon name={path.icon} size={28} style={{ color: path.color }} />
                     </div>
                     <h3 className="font-amiri text-lg font-bold mb-1" style={{ color: path.color }}>
                       {path.titleAr}
                     </h3>
-                    <p className="text-text-muted text-xs font-tajawal mb-2">{path.titleEn}</p>
                     <p className="text-text-secondary text-sm font-tajawal">{path.descAr}</p>
                   </div>
                 </Link>
@@ -1161,14 +1119,14 @@ export default function HomePage() {
           <ScrollReveal variant="blur">
             <div className="text-center mb-16">
               <p className="text-red-400/60 text-xs font-tajawal tracking-widest uppercase mb-3">
-                {'\u0623\u0634\u0647\u0631 \u0627\u0644\u0634\u0628\u0647\u0627\u062A'}
+                {'أشهر الشبهات'}
               </p>
               <h2 className="font-amiri text-3xl md:text-5xl font-bold mb-4">
                 <span className="text-text-primary">
-                  {'\u0631\u0628\u0645\u0627 \u062A\u0642\u0648\u0644: '}
+                  {'ربما تقول: '}
                 </span>
                 <span className="text-red-400/80">
-                  {'\u00AB\u0647\u0630\u0647 \u0645\u062C\u0631\u062F \u0635\u062F\u0641\u00BB'}
+                  {'«هذه مجرد صدف»'}
                 </span>
               </h2>
             </div>
@@ -1179,7 +1137,7 @@ export default function HomePage() {
               <ScrollReveal key={i} variant="fade-left" delay={i * 0.15}>
                 <div className="glass-premium rounded-2xl overflow-hidden holographic-card">
                   <div className="px-6 py-4 bg-red-500/5 border-b border-red-500/10 flex items-center gap-3">
-                    <span className="text-xl">{item.icon}</span>
+                    <IjazIcon name={item.icon} size={20} className="text-gold-primary" />
                     <p className="font-amiri text-red-400/80 text-lg font-bold">{item.objection}</p>
                   </div>
                   <div className="px-6 py-5">
@@ -1202,7 +1160,7 @@ export default function HomePage() {
                   to="/ijaz/refute"
                   className="px-8 py-3 rounded-2xl border border-[rgba(99,102,241,0.40)] text-indigo-300 font-tajawal text-sm font-bold hover:bg-indigo-500/10 transition-all cosmic-border"
                 >
-                  {'\u0627\u0633\u062A\u0643\u0634\u0641 \u062C\u0645\u064A\u0639 \u0627\u0644\u0631\u062F\u0648\u062F \u2190'}
+                  {'استكشف جميع الردود ←'}
                 </Link>
               </div>
             </ScrollReveal>
@@ -1216,10 +1174,10 @@ export default function HomePage() {
           <ScrollReveal variant="blur">
             <div className="text-center mb-16">
               <h2 className="font-amiri text-3xl md:text-5xl font-bold mb-4 gold-gradient-text">
-                {'\u0623\u0642\u0633\u0627\u0645 \u0627\u0644\u0625\u0639\u062C\u0627\u0632'}
+                {'أقسام الإعجاز'}
               </h2>
               <p className="text-text-secondary font-tajawal text-lg max-w-2xl mx-auto">
-                {'\u062E\u0645\u0633\u0629 \u0645\u062C\u0627\u0644\u0627\u062A \u0645\u0646 \u0627\u0644\u0623\u062F\u0644\u0629 \u0627\u0644\u0633\u0627\u062D\u0642\u0629 \u0627\u0644\u062A\u064A \u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u0641\u0633\u064A\u0631\u0647\u0627 \u0628\u063A\u064A\u0631 \u0627\u0644\u0648\u062D\u064A'}
+                {'خمسة مجالات من الأدلة الساحقة التي لا يمكن تفسيرها بغير الوحي'}
               </p>
             </div>
           </ScrollReveal>
@@ -1236,17 +1194,16 @@ export default function HomePage() {
                       className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
                       style={{ background: cat.color + '15' }}
                     >
-                      {cat.icon}
+                      <IjazIcon name={cat.id} size={28} style={{ color: cat.color }} />
                     </div>
                     <h3 className="text-text-primary font-amiri text-lg font-bold mb-1">{cat.nameAr}</h3>
-                    <p className="text-text-muted text-xs font-tajawal">{cat.name}</p>
+                    {showEnglish && <p className="text-text-muted text-xs font-tajawal" dir="ltr" lang="en">{cat.name}</p>}
                     <p className="text-text-muted text-xs font-tajawal mt-2 line-clamp-2">{cat.descriptionAr}</p>
                     <span
                       className="inline-block mt-3 text-xs font-tajawal font-semibold px-3 py-1 rounded-full"
                       style={{ background: cat.color + '15', color: cat.color }}
                     >
-                      {miracles.filter((m) => m.category === cat.id).length}{' '}
-                      {'\u0645\u0639\u062C\u0632\u0629'}
+                      {countAr(miracles.filter((m) => m.category === cat.id).length, MIRACLE)}
                     </span>
                   </div>
                 </Link>
@@ -1262,10 +1219,10 @@ export default function HomePage() {
           <ScrollReveal variant="blur">
             <div className="text-center mb-16">
               <h2 className="font-amiri text-3xl md:text-5xl font-bold mb-4 gold-gradient-text">
-                {'\u0627\u0644\u0645\u0635\u0627\u062F\u0631'}
+                {'المصادر'}
               </h2>
               <p className="text-text-secondary font-tajawal text-lg">
-                {'\u0645\u062D\u062A\u0648\u0649 \u0647\u0630\u0627 \u0627\u0644\u0645\u0648\u0642\u0639 \u0645\u0633\u062A\u062E\u0631\u062C \u0628\u0627\u0644\u0643\u0627\u0645\u0644 \u0645\u0646 \u0645\u0624\u0644\u0641\u0627\u062A \u062F. \u0647\u064A\u062B\u0645 \u0637\u0644\u0639\u062A'}
+                {'مادة هذا القسم مستخرجة من مؤلفات د. هيثم طلعت'}
               </p>
             </div>
           </ScrollReveal>
@@ -1273,37 +1230,37 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {[
               {
-                titleAr: '\u0628\u0635\u0627\u0626\u0631',
+                titleAr: 'بصائر',
                 title: 'Basaer',
                 descAr:
-                  '\u0628\u0631\u0627\u0647\u064A\u0646 \u0639\u0642\u0644\u064A\u0629 \u0639\u0644\u0649 \u0648\u062C\u0648\u062F \u0627\u0644\u062E\u0627\u0644\u0642 \u0648\u062F\u062D\u0636 \u0627\u0644\u0625\u0644\u062D\u0627\u062F',
-                icon: '\u{1F9E0}',
+                  'براهين عقلية على وجود الخالق ودحض الإلحاد',
+                icon: 'logic',
                 color: '#a5b4fc',
               },
               {
-                titleAr: '\u0627\u0644\u0625\u0639\u062C\u0627\u0632 \u0627\u0644\u0639\u0644\u0645\u064A',
+                titleAr: 'الإعجاز العلمي',
                 title: 'Scientific Miracles',
                 descAr:
-                  '\u062A\u0648\u062B\u064A\u0642 \u0634\u0627\u0645\u0644 \u0644\u0644\u0625\u0639\u062C\u0627\u0632 \u0627\u0644\u0639\u0644\u0645\u064A \u0641\u064A \u0627\u0644\u0642\u0631\u0622\u0646 \u0648\u0627\u0644\u0633\u0646\u0629',
-                icon: '\u{1F30C}',
+                  'توثيق شامل للإعجاز العلمي في القرآن والسنة',
+                icon: 'cosmos',
                 color: '#4A90D9',
               },
               {
                 titleAr:
-                  '\u0639\u0644\u0645 \u0627\u0644\u0643\u062A\u0627\u0628',
+                  'علم الكتاب',
                 title: 'Science of the Book',
                 descAr:
-                  '\u062F\u0631\u0627\u0633\u0629 \u0645\u0639\u0645\u0642\u0629 \u0641\u064A \u0639\u0644\u0648\u0645 \u0627\u0644\u0642\u0631\u0622\u0646 \u0648\u0625\u062B\u0628\u0627\u062A \u0635\u062F\u0642 \u0627\u0644\u0648\u062D\u064A',
-                icon: '\u{1F4D6}',
+                  'دراسة معمقة في علوم القرآن وإثبات صدق الوحي',
+                icon: 'book',
                 color: '#2dd4a8',
               },
               {
                 titleAr:
-                  '\u0631\u0633\u0648\u0644 \u0627\u0644\u0623\u0645\u064A\u064A\u0646',
+                  'رسول الأميين',
                 title: 'Prophet of the Unlettered',
                 descAr:
-                  '\u0625\u062B\u0628\u0627\u062A \u0646\u0628\u0648\u0629 \u0645\u062D\u0645\u062F \uFDFA \u0628\u0627\u0644\u0623\u062F\u0644\u0629 \u0627\u0644\u0639\u0642\u0644\u064A\u0629 \u0648\u0627\u0644\u062A\u0627\u0631\u064A\u062E\u064A\u0629',
-                icon: '\u{1F30D}',
+                  'إثبات نبوة محمد ﷺ بالأدلة العقلية والتاريخية',
+                icon: 'seeker',
                 color: '#9b59b6',
               },
             ].map((book, i) => (
@@ -1313,11 +1270,11 @@ export default function HomePage() {
                     className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
                     style={{ background: book.color + '15' }}
                   >
-                    {book.icon}
+                    <IjazIcon name={book.icon} size={24} style={{ color: book.color }} />
                   </div>
                   <div>
                     <h3 className="text-text-primary font-amiri text-xl font-bold">{book.titleAr}</h3>
-                    <p className="text-text-muted text-xs font-tajawal">{book.title}</p>
+                    {showEnglish && <p className="text-text-muted text-xs font-tajawal" dir="ltr" lang="en">{book.title}</p>}
                     <p className="text-text-secondary text-sm font-tajawal mt-2">{book.descAr}</p>
                   </div>
                 </div>
@@ -1328,7 +1285,7 @@ export default function HomePage() {
           <ScrollReveal variant="fade-up" delay={0.4}>
             <div className="text-center mt-10">
               <p className="text-text-muted text-sm font-tajawal">
-                {'\u062F. \u0647\u064A\u062B\u0645 \u0637\u0644\u0639\u062A \u2014 \u0628\u0627\u062D\u062B \u0641\u064A \u0645\u062C\u0627\u0644 \u0645\u0642\u0627\u0631\u0646\u0629 \u0627\u0644\u0623\u062F\u064A\u0627\u0646 \u0648\u0625\u062B\u0628\u0627\u062A \u0648\u062C\u0648\u062F \u0627\u0644\u0644\u0647'}
+                {'د. هيثم طلعت — باحث في مجال مقارنة الأديان وإثبات وجود الله'}
               </p>
               <a
                 href="https://www.youtube.com/@Dr.HaithamTalaat"
@@ -1340,7 +1297,7 @@ export default function HomePage() {
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" />
                   <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#0a0a0f" />
                 </svg>
-                {'\u0642\u0646\u0627\u0629 \u062F. \u0647\u064A\u062B\u0645 \u0637\u0644\u0639\u062A \u0639\u0644\u0649 \u064A\u0648\u062A\u064A\u0648\u0628'}
+                {'قناة د. هيثم طلعت على يوتيوب'}
               </a>
             </div>
           </ScrollReveal>
@@ -1355,10 +1312,10 @@ export default function HomePage() {
         <div className="container mx-auto px-6 text-center relative z-10">
           <ScrollReveal variant="scale">
             <p className="font-amiri text-verse-green text-2xl md:text-4xl leading-relaxed mb-8 verse-glow-pulse">
-              {'\u0623\u0641\u0644\u0627 \u064A\u062A\u062F\u0628\u0631\u0648\u0646 \u0627\u0644\u0642\u0631\u0622\u0646 \u0623\u0645 \u0639\u0644\u0649 \u0642\u0644\u0648\u0628 \u0623\u0642\u0641\u0627\u0644\u0647\u0627'}
+              {'أفلا يتدبرون القرآن أم على قلوب أقفالها'}
             </p>
             <p className="text-gold-primary/40 text-sm font-tajawal mb-14">
-              {'\u0645\u062D\u0645\u062F : 24'}
+              {'محمد: ٢٤'}
             </p>
             <Link
               to="/ijaz/journey"
@@ -1366,7 +1323,7 @@ export default function HomePage() {
               style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #e879f9)' }}
             >
               <span className="relative z-10">
-                {'\u0627\u0628\u062F\u0623 \u0631\u062D\u0644\u062A\u0643 \u0627\u0644\u0622\u0646'}
+                {'ابدأ رحلتك الآن'}
               </span>
               <svg
                 width="20"

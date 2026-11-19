@@ -50,7 +50,7 @@ export default function PainReceptorsSkinVisual({ className }: MiracleVisualProp
       ctx.strokeStyle = 'rgba(180,120,80,0.2)'; ctx.lineWidth = 0.5;
       ctx.beginPath(); ctx.moveTo(0, h * 0.32); ctx.lineTo(w, h * 0.32); ctx.stroke();
       ctx.fillStyle = 'rgba(180,120,80,0.25)'; ctx.font = `7px sans-serif`; ctx.textAlign = 'right';
-      ctx.fillText('بشرة — epidermis', w * 0.96, h * 0.37);
+      ctx.fillText('البشرة', w * 0.96, h * 0.37);
 
       // Dermis
       const derGrad = ctx.createLinearGradient(0, h * 0.48, 0, h * 0.72);
@@ -60,7 +60,7 @@ export default function PainReceptorsSkinVisual({ className }: MiracleVisualProp
       ctx.strokeStyle = 'rgba(160,80,50,0.2)'; ctx.lineWidth = 0.5;
       ctx.beginPath(); ctx.moveTo(0, h * 0.48); ctx.lineTo(w, h * 0.48); ctx.stroke();
       ctx.fillStyle = 'rgba(160,80,50,0.2)'; ctx.font = `7px sans-serif`; ctx.textAlign = 'right';
-      ctx.fillText('أدمة — dermis', w * 0.96, h * 0.57);
+      ctx.fillText('الأدمة', w * 0.96, h * 0.57);
 
       // Subcutaneous
       ctx.fillStyle = 'rgba(80,50,30,0.5)'; ctx.fillRect(0, h * 0.72, w, h * 0.28);
@@ -146,10 +146,10 @@ export default function PainReceptorsSkinVisual({ className }: MiracleVisualProp
         style={{ background: 'linear-gradient(to top, rgba(15,4,3,0.92) 0%, rgba(15,4,3,0.5) 60%, rgba(15,4,3,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🦶', label: 'nociceptors', sub: 'Sherrington 1906' },
+            { icon: '🦶', label: 'nociceptors', sub: 'شيرنغتون ١٩٠٦' },
             { icon: '⚡', label: 'ألم = جلد', sub: 'ليس عظم' },
-            { icon: '🔥', label: 'تجديد = إحساس', sub: 'regenerate pain' },
-            { icon: '🔬', label: 'TRPV1', sub: 'حرارة = ألم' },
+            { icon: '🔥', label: 'تجديد = إحساس', sub: 'يتجدد الألم' },
+            { icon: '🔬', label: 'مستقبل TRPV1', sub: 'حرارة = ألم' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(30,8,4,0.1)', border: '1px solid rgba(180,80,40,0.22)', backdropFilter: 'blur(8px)' }}>

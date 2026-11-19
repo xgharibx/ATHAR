@@ -1,7 +1,8 @@
 
 import { motion } from 'framer-motion';
 import { QuranicVerse } from '@/ijaz/types';
-import { formatVerseReference } from '@/ijaz/lib/utils';
+import { verseRefAr } from '@/ijaz/lib/utils';
+import { useIjazPrefs } from '@/ijaz/lib/ijazPrefs';
 
 interface VerseDisplayProps {
   verse: QuranicVerse;
@@ -18,6 +19,8 @@ export default function VerseDisplay({
   animated = true,
   className = '',
 }: VerseDisplayProps) {
+  // The English lines only when the reader asked for them.
+  const showEnglish = useIjazPrefs((s) => s.showEnglish);
   const sizeClasses = {
     sm: 'text-lg md:text-xl',
     md: 'text-xl md:text-2xl',
@@ -77,22 +80,22 @@ export default function VerseDisplay({
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
             </svg>
-            سورة {formatVerseReference(verse.surah, verse.ayahNumber, verse.ayahNumberEnd)}
+            سورة {verseRefAr(verse.surah, verse.ayahNumber, verse.ayahNumberEnd)}
           </span>
         </div>
 
         {/* Translation */}
-        {showTranslation && (
+        {showTranslation && showEnglish && verse.translation && (
           <div className="mt-6 pt-4 border-t border-border-subtle">
-            <p className="text-text-secondary text-sm md:text-base font-tajawal leading-relaxed text-center italic" dir="ltr">
+            <p className="text-text-secondary text-sm md:text-base font-tajawal leading-relaxed text-center italic" dir="ltr" lang="en">
               &ldquo;{verse.translation}&rdquo;
             </p>
           </div>
         )}
 
         {/* Transliteration */}
-        {verse.transliteration && (
-          <p className="text-text-muted text-xs mt-3 text-center font-tajawal" dir="ltr">
+        {showEnglish && verse.transliteration && (
+          <p className="text-text-muted text-xs mt-3 text-center font-tajawal" dir="ltr" lang="en">
             {verse.transliteration}
           </p>
         )}

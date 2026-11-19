@@ -10,9 +10,9 @@ import type { MiracleVisualProps } from '../MiracleVisualRegistry';
 
 export default function ThreeDarknessesVisual({ className }: MiracleVisualProps) {
   const layers = [
-    { label: 'جدار البطن', labelEn: 'Abdominal Wall', radius: 90, color: '#8B5E3C', opacity: 0.35, delay: 0.5 },
-    { label: 'جدار الرحم', labelEn: 'Uterine Wall', radius: 68, color: '#A0404B', opacity: 0.45, delay: 1.0 },
-    { label: 'الغشاء الأمنيوسي', labelEn: 'Amniotic Membrane', radius: 48, color: '#5A7AA0', opacity: 0.5, delay: 1.5 },
+    { label: 'جدار البطن', labelEn: 'جدار البطن', radius: 90, color: '#8B5E3C', opacity: 0.35, delay: 0.5 },
+    { label: 'جدار الرحم', labelEn: 'جدار الرحم', radius: 68, color: '#A0404B', opacity: 0.45, delay: 1.0 },
+    { label: 'الغشاء الأمنيوسي', labelEn: 'الغشاء الأمنيوسي', radius: 48, color: '#5A7AA0', opacity: 0.5, delay: 1.5 },
   ];
 
   return (
@@ -141,7 +141,7 @@ export default function ThreeDarknessesVisual({ className }: MiracleVisualProps)
         <p className="font-amiri text-lg md:text-xl text-verse-green/80 px-4" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           فِي ظُلُمَاتٍ ثَلَاثٍ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الزمر : 6</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الزمر: ٦</p>
       </motion.div>
     </div>
   );

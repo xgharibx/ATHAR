@@ -6,6 +6,9 @@ import { searchMiracles } from '@/ijaz/lib/search';
 import { miracles } from '@/ijaz/data/miracles';
 import { categories } from '@/ijaz/data/categories';
 import { SearchResult } from '@/ijaz/types';
+import { IjazIcon } from '@/ijaz/components/ui/IjazIcon';
+import { MIRACLE } from '@/ijaz/lib/utils';
+import { RESULT, countAr } from '@/lib/arabicCount';
 
 const presetQueries = [
   { label: 'توسع الكون', queryText: 'توسع الكون' },
@@ -42,9 +45,8 @@ export default function SearchPage() {
           <h1 className="font-amiri text-4xl md:text-5xl font-bold mb-4 gold-gradient-text">
             محرك البراهين
           </h1>
-          <p className="text-text-secondary font-tajawal text-base mb-2">Proof Engine</p>
           <p className="text-text-secondary font-tajawal text-sm max-w-2xl mx-auto">
-            ابحث عن أي معجزة علمية أو دليل عقلي أو آية قرآنية — البحث يشمل العناوين والأوصاف والآيات والكلمات المفتاحية
+            ابحث عن معجزة أو دليل أو آية، في العناوين والشروح والآيات والكلمات المفتاحية
           </p>
         </motion.div>
 
@@ -108,7 +110,7 @@ export default function SearchPage() {
         {hasSearched && (
           <div>
             <p className="text-text-muted text-sm font-tajawal mb-6">
-              {results.length} نتيجة للبحث عن &ldquo;{query}&rdquo;
+              {countAr(results.length, RESULT)} للبحث عن «{query}»
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {results.map((result, i) => (
@@ -146,11 +148,11 @@ export default function SearchPage() {
                       className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
                       style={{ background: `${cat.color}15` }}
                     >
-                      {cat.icon}
+                      <IjazIcon name={cat.id} size={22} style={{ color: cat.color }} />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-text-primary font-amiri text-base font-bold">{cat.nameAr}</h3>
-                      <p className="text-text-muted text-xs font-tajawal">{count} معجزة</p>
+                      <p className="text-text-muted text-xs font-tajawal">{countAr(count, MIRACLE)}</p>
                     </div>
                   </button>
                 );

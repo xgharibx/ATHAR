@@ -128,10 +128,10 @@ export default function CloudFormationVisual({ className }: MiracleVisualProps) 
 
       // ── Stage labels (4 Quranic stages) ──────────────────────
       const stages = [
-        { arabic: 'يُزْجِي', desc: 'يدفع السحاب', en: 'Drives', x: 0.12, y: 0.35, color: '#88ccff' },
-        { arabic: 'يُؤَلِّفُ', desc: 'يجمع الجزيئات', en: 'Gathers', x: 0.35, y: 0.25, color: '#aaddff' },
-        { arabic: 'رُكَامًا', desc: 'يتراكم 15km', en: 'Stacks', x: 0.66, y: 0.22, color: '#cceeff' },
-        { arabic: 'وَدْق + بَرَد', desc: 'مطر وبرد من داخله', en: 'Rain+Hail', x: 0.88, y: 0.7, color: '#88bbff' },
+        { arabic: 'يُزْجِي', desc: 'يدفع السحاب', en: 'يُزجي', x: 0.12, y: 0.35, color: '#88ccff' },
+        { arabic: 'يُؤَلِّفُ', desc: 'يجمع الجزيئات', en: 'يؤلّف', x: 0.35, y: 0.25, color: '#aaddff' },
+        { arabic: 'رُكَامًا', desc: 'يتراكم ١٥km', en: 'يركم', x: 0.66, y: 0.22, color: '#cceeff' },
+        { arabic: 'وَدْق + بَرَد', desc: 'مطر وبرد من داخله', en: 'مطر وبَرَد', x: 0.88, y: 0.7, color: '#88bbff' },
       ];
 
       stages.forEach(({ arabic, desc, x, y, color }) => {
@@ -209,10 +209,10 @@ export default function CloudFormationVisual({ className }: MiracleVisualProps) 
         style={{ background: 'linear-gradient(to top, rgba(10,14,26,0.92) 0%, rgba(10,14,26,0.5) 60%, rgba(10,14,26,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '💨', label: 'يُزجي = تيار صاعد', sub: 'updraft drive' },
-            { icon: '🌧️', label: 'ودق = مطر من داخله', sub: 'internal rain' },
-            { icon: '🧊', label: 'برد = جبال داخلية', sub: 'internal hail' },
-            { icon: '📡', label: 'رادار دوبلر 1963م', sub: 'Browning' },
+            { icon: '💨', label: 'يُزجي = تيار صاعد', sub: 'تيار صاعد يدفعه' },
+            { icon: '🌧️', label: 'ودق = مطر من داخله', sub: 'مطر في داخله' },
+            { icon: '🧊', label: 'برد = جبال داخلية', sub: 'بَرَد في داخله' },
+            { icon: '📡', label: 'رادار دوبلر ١٩٦٣م', sub: 'براوننغ' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(40,70,160,0.08)', border: '1px solid rgba(80,120,200,0.2)', backdropFilter: 'blur(8px)' }}>

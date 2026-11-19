@@ -141,10 +141,10 @@ export default function DeepOceanDarknessVisual({ className }: MiracleVisualProp
         style={{ background: 'linear-gradient(to top, rgba(0,2,8,0.92) 0%, rgba(0,2,8,0.5) 60%, rgba(0,2,8,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🌊', label: '3 طبقات ظلام', sub: 'zones' },
+            { icon: '🌊', label: '٣ طبقات ظلام', sub: 'zones' },
             { icon: '🔦', label: 'أحياء مضيئة', sub: 'bioluminescence' },
-            { icon: '🚶‍♂️', label: 'لا يرى بلا مضيء', sub: 'Cousteau 1960' },
-            { icon: '🌋', label: 'أمواج داخلية', sub: 'internal waves' },
+            { icon: '🚶‍♂️', label: 'لا يرى بلا مضيء', sub: 'كوستو ١٩٦٠' },
+            { icon: '🌋', label: 'أمواج داخلية', sub: 'أمواج داخلية' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(0,5,20,0.1)', border: '1px solid rgba(30,70,130,0.22)', backdropFilter: 'blur(8px)' }}>

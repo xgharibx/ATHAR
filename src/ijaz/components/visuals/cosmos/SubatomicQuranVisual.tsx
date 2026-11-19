@@ -80,7 +80,7 @@ export default function SubatomicQuranVisual({ className }: MiracleVisualProps) 
         ctx.fillStyle = '#ffd85a'; ctx.shadowColor = '#ffd85a'; ctx.shadowBlur = 8;
         ctx.fillText('ذَرَّة — الذَّرة', cx, cy + atomR * 1.65);
         ctx.font = `${9 * dpr}px sans-serif`; ctx.fillStyle = 'rgba(180,180,200,0.6)'; ctx.shadowBlur = 0;
-        ctx.fillText('"indivisible" — Greek & 7th century belief', cx, cy + atomR * 1.65 + 14 * dpr);
+        ctx.fillText('«لا تنقسم»: اعتقاد الإغريق والقرن السابع', cx, cy + atomR * 1.65 + 14 * dpr);
 
       } else if (phase === 1) {
         const nucR = Math.min(w, h) * 0.1;
@@ -99,9 +99,9 @@ export default function SubatomicQuranVisual({ className }: MiracleVisualProps) 
         });
         ctx.font = `bold ${12 * dpr}px serif`; ctx.textAlign = 'center';
         ctx.fillStyle = '#ff9966'; ctx.shadowColor = '#ff8844'; ctx.shadowBlur = 8;
-        ctx.fillText('النواة — Nucleus', cx, cy + nucR * 1.65);
+        ctx.fillText('النواة', cx, cy + nucR * 1.65);
         ctx.font = `${9 * dpr}px sans-serif`; ctx.fillStyle = 'rgba(180,180,200,0.6)'; ctx.shadowBlur = 0;
-        ctx.fillText('Rutherford 1911 — protons + neutrons inside atom', cx, cy + nucR * 1.65 + 14 * dpr);
+        ctx.fillText('رذرفورد ١٩١١: بروتونات ونيوترونات داخل الذرة', cx, cy + nucR * 1.65 + 14 * dpr);
 
       } else if (phase === 2) {
         const proR = Math.min(w, h) * 0.1;
@@ -129,9 +129,9 @@ export default function SubatomicQuranVisual({ className }: MiracleVisualProps) 
         });
         ctx.font = `bold ${12 * dpr}px serif`; ctx.textAlign = 'center';
         ctx.fillStyle = '#ffcc44'; ctx.shadowColor = '#ffcc44'; ctx.shadowBlur = 8;
-        ctx.fillText('كواركات — Quarks', cx, cy + proR * 1.7);
+        ctx.fillText('الكواركات', cx, cy + proR * 1.7);
         ctx.font = `${9 * dpr}px sans-serif`; ctx.fillStyle = 'rgba(180,180,200,0.6)'; ctx.shadowBlur = 0;
-        ctx.fillText('Gell-Mann 1964 — smaller than proton', cx, cy + proR * 1.7 + 14 * dpr);
+        ctx.fillText('غيل-مان ١٩٦٤: أصغر من البروتون', cx, cy + proR * 1.7 + 14 * dpr);
 
       } else {
         const fR = Math.min(w, h) * 0.2;
@@ -151,9 +151,9 @@ export default function SubatomicQuranVisual({ className }: MiracleVisualProps) 
         });
         ctx.font = `bold ${11 * dpr}px serif`; ctx.textAlign = 'center';
         ctx.fillStyle = 'rgba(150,220,255,0.88)'; ctx.shadowColor = '#88ddff'; ctx.shadowBlur = 8;
-        ctx.fillText('17 جسيماً — القياسي', cx, cy + fR * 0.88);
+        ctx.fillText('١٧ جسيماً — القياسي', cx, cy + fR * 0.88);
         ctx.font = `${9 * dpr}px sans-serif`; ctx.fillStyle = 'rgba(180,180,200,0.6)'; ctx.shadowBlur = 0;
-        ctx.fillText('All smaller than the Quran\'s ذرة', cx, cy + fR * 0.88 + 14 * dpr);
+        ctx.fillText('كلها أصغر من «الذرة»', cx, cy + fR * 0.88 + 14 * dpr);
       }
 
       ctx.restore();
@@ -209,10 +209,10 @@ export default function SubatomicQuranVisual({ className }: MiracleVisualProps) 
         style={{ background: 'linear-gradient(to top, rgba(1,3,8,0.92) 0%, rgba(1,3,8,0.5) 60%, rgba(1,3,8,0) 100%)', paddingTop: 28 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '⚛️', label: 'إلكترون 1897م', sub: 'J.J. Thomson' },
-            { icon: '🔵', label: 'كوارك 1964م', sub: 'Gell-Mann' },
-            { icon: '📋', label: '17 جسيماً', sub: 'النموذج القياسي' },
-            { icon: '📅', label: '1300 عام قبل', sub: 'القرآن ← العلم' },
+            { icon: '⚛️', label: 'إلكترون ١٨٩٧م', sub: 'طومسون' },
+            { icon: '🔵', label: 'كوارك ١٩٦٤م', sub: 'غيل-مان' },
+            { icon: '📋', label: '١٧ جسيماً', sub: 'النموذج القياسي' },
+            { icon: '📅', label: '١٣٠٠ عام قبل', sub: 'القرآن ← العلم' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(40,60,160,0.08)', border: '1px solid rgba(80,120,200,0.2)', backdropFilter: 'blur(8px)' }}>

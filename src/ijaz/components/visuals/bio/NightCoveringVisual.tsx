@@ -234,7 +234,7 @@ export default function NightCoveringVisual({ className }: MiracleVisualProps) {
       ctx.fillText('لِبَاسًا', earthCx, earthCy - earthR * 1.5);
       ctx.font = `${9 * dpr}px sans-serif`;
       ctx.fillStyle = 'rgba(140,160,255,0.5)'; ctx.shadowBlur = 0;
-      ctx.fillText('garment · cloak · covering', earthCx, earthCy - earthR * 1.5 + 18 * dpr);
+      ctx.fillText('لباس، غطاء، ستر', earthCx, earthCy - earthR * 1.5 + 18 * dpr);
       ctx.restore();
 
       animId = requestAnimationFrame(draw);
@@ -284,10 +284,10 @@ export default function NightCoveringVisual({ className }: MiracleVisualProps) {
         </p>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🧬', label: 'إصلاح DNA', sub: 'فقط في الظلام' },
+            { icon: '🧬', label: 'إصلاح الحمض النووي', sub: 'فقط في الظلام' },
             { icon: '🌀', label: 'ميلاتونين', sub: 'الغدة الصنوبرية' },
-            { icon: '🧠', label: 'جهاز لمفي دماغي', sub: 'نيدرغارد 2013م' },
-            { icon: '🏅', label: 'نوبل 2017م', sub: 'الإيقاع اليومي' },
+            { icon: '🧠', label: 'جهاز لمفي دماغي', sub: 'نيدرغارد ٢٠١٣م' },
+            { icon: '🏅', label: 'نوبل ٢٠١٧م', sub: 'الإيقاع اليومي' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(60,80,180,0.08)', border: '1px solid rgba(80,100,200,0.2)', backdropFilter: 'blur(8px)' }}>

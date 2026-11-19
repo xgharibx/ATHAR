@@ -3,16 +3,24 @@ import { categories } from '@/ijaz/data/categories';
 import { getMiraclesByCategory } from '@/ijaz/data/miracles';
 import MiracleCard from '@/ijaz/components/ui/MiracleCard';
 import type { MiracleCategory } from '@/ijaz/types';
+import { IjazIcon } from '@/ijaz/components/ui/IjazIcon';
+import { useIjazPrefs } from '@/ijaz/lib/ijazPrefs';
+import { MIRACLE } from '@/ijaz/lib/utils';
+import { arNum } from '@/lib/formatNumber';
+import { countAr } from '@/lib/arabicCount';
 
 export default function CategoryPage() {
   const { category: categoryId } = useParams<{ category: string }>();
   const category = categories.find((item) => item.id === categoryId);
+  const showEnglish = useIjazPrefs((s) => s.showEnglish);
+  const read = useIjazPrefs((s) => s.read);
 
   if (!category) {
     return <Navigate to="/ijaz" replace />;
   }
 
   const miraclesList = getMiraclesByCategory(category.id as MiracleCategory);
+  const readHere = miraclesList.filter((m) => read[m.slug]).length;
 
   return (
     <main className="min-h-screen" dir="rtl">
@@ -58,12 +66,12 @@ export default function CategoryPage() {
               className="inline-flex items-center gap-3 px-4 py-2 rounded-xl mb-4"
               style={{ background: `${category.color}15`, border: `1px solid ${category.color}30` }}
             >
-              <span className="text-3xl">{category.icon}</span>
+              <IjazIcon name={category.id} size={30} style={{ color: category.color }} />
               <div>
                 <h1 className="font-amiri text-3xl md:text-4xl font-bold" style={{ color: category.color }}>
                   {category.nameAr}
                 </h1>
-                <p className="text-text-muted text-sm font-tajawal">{category.name}</p>
+                {showEnglish && <p className="text-text-muted text-sm font-tajawal" dir="ltr" lang="en">{category.name}</p>}
               </div>
             </div>
             <p className="text-text-secondary font-tajawal text-base max-w-2xl">
@@ -76,7 +84,7 @@ export default function CategoryPage() {
       <section className="py-16">
         <div className="container mx-auto px-6">
           <p className="text-text-muted text-sm font-tajawal mb-8">
-            {miraclesList.length} معجزة في هذا القسم
+            {countAr(miraclesList.length, MIRACLE)} في هذا القسم{readHere ? `، قرأت منها ${arNum(readHere)}` : ""}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {miraclesList.map((miracle, index) => (

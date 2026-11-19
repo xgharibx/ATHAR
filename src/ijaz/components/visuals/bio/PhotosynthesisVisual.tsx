@@ -212,10 +212,10 @@ export default function PhotosynthesisVisual({ className }: MiracleVisualProps) 
         style={{ background: 'linear-gradient(to top, rgba(1,14,4,0.92) 0%, rgba(1,14,4,0.5) 60%, rgba(1,14,4,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🌞', label: 'photons', sub: 'chlorophyll absorb' },
+            { icon: '🌞', label: 'photons', sub: 'اليخضور يمتص' },
             { icon: '🌿', label: 'C\u2086H\u2081\u2082O\u2086', sub: 'سكر = طاقة' },
-            { icon: '💨', label: 'O\u2082 out', sub: 'byproduct' },
-            { icon: '🐧', label: '3.5B yrs', sub: 'photosynthesis' },
+            { icon: '💨', label: 'يخرج الأكسجين', sub: 'byproduct' },
+            { icon: '🐧', label: '٣٫٥ مليار سنة', sub: 'photosynthesis' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(2,12,3,0.1)', border: '1px solid rgba(30,100,30,0.22)', backdropFilter: 'blur(8px)' }}>

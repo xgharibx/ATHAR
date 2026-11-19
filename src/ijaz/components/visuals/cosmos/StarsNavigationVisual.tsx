@@ -289,10 +289,10 @@ export default function StarsNavigationVisual({ className }: MiracleVisualProps)
         style={{ background: 'linear-gradient(to top, rgba(1,0,8,0.92) 0%, rgba(1,0,8,0.5) 60%, rgba(1,0,8,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '⭐', label: 'الجدي = الشمال', sub: 'Polaris' },
-            { icon: '🧭', label: 'ملاحة فلكية', sub: '3000 سنة' },
-            { icon: '🚀', label: 'GPS عبر أقمار', sub: 'نفس المبدأ' },
-            { icon: '🌌', label: 'Big Dipper', sub: 'دب أكبر' },
+            { icon: '⭐', label: 'الجدي = الشمال', sub: 'نجم القطب' },
+            { icon: '🧭', label: 'ملاحة فلكية', sub: '٣٠٠٠ سنة' },
+            { icon: '🚀', label: 'تحديد المواقع بالأقمار', sub: 'نفس المبدأ' },
+            { icon: '🌌', label: 'الدب الأكبر', sub: 'دب أكبر' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(30,20,5,0.1)', border: '1px solid rgba(160,130,40,0.22)', backdropFilter: 'blur(8px)' }}>

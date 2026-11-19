@@ -334,10 +334,10 @@ export default function WaterCycleVisual({ className }: MiracleVisualProps) {
       // Labels
       ctx.font = `${Math.max(10, w * 0.011)}px sans-serif`;
       ctx.fillStyle = `rgba(136,204,255,${0.25 + Math.sin(time * 0.015) * 0.1})`;
-      ctx.fillText('Evaporation', w * 0.08, h * 0.55);
-      ctx.fillText('Condensation', w * 0.45, h * 0.12);
-      ctx.fillText('Precipitation', w * 0.7, h * 0.28);
-      ctx.fillText('Collection', w * 0.08, h * 0.88);
+      ctx.fillText('التبخر', w * 0.08, h * 0.55);
+      ctx.fillText('التكاثف', w * 0.45, h * 0.12);
+      ctx.fillText('الهطول', w * 0.7, h * 0.28);
+      ctx.fillText('التجمّع', w * 0.08, h * 0.88);
 
       animId = requestAnimationFrame(draw);
     };

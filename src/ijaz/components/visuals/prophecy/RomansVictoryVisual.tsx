@@ -189,11 +189,11 @@ export default function RomansVictoryVisual({ className }: MiracleVisualProps) {
       {/* Side labels */}
       <div className="absolute top-[32%] left-3 z-10 pointer-events-none">
         <p className="font-amiri text-sm text-[#5aa0dc]">الروم</p>
-        <p className="text-[8px] text-text-muted font-tajawal">Byzantines</p>
+        <p className="text-[8px] text-text-muted font-tajawal">الروم</p>
       </div>
       <div className="absolute top-[32%] right-3 z-10 pointer-events-none text-right">
         <p className="font-amiri text-sm text-[#dc6a5a]">الفرس</p>
-        <p className="text-[8px] text-text-muted font-tajawal">Persians</p>
+        <p className="text-[8px] text-text-muted font-tajawal">الفرس</p>
       </div>
 
       {/* Dead sea caption */}
@@ -228,7 +228,7 @@ export default function RomansVictoryVisual({ className }: MiracleVisualProps) {
         <p className="font-amiri text-xs md:text-sm text-verse-green/75 px-4" style={{ textShadow: '0 0 20px rgba(45,212,168,0.3)' }}>
           غُلِبَتِ الرُّومُ ۝ فِي أَدْنَى الْأَرْضِ وَهُم مِّن بَعْدِ غَلَبِهِمْ سَيَغْلِبُونَ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الروم : 2-4</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الروم: ٢–٤</p>
       </motion.div>
     </div>
   );

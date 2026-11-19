@@ -143,7 +143,7 @@ export default function UniverseFateVisual({ className }: MiracleVisualProps) {
         ctx.fillText('كَطَيِّ السِّجِلِّ', cx, cy - 20 * dpr);
         ctx.font = `${9 * dpr}px sans-serif`; ctx.shadowBlur = 0;
         ctx.fillStyle = 'rgba(140,120,200,0.5)';
-        ctx.fillText('like a scroll being folded', cx, cy - 4 * dpr);
+        ctx.fillText('كَطَيِّ السِّجِلِّ لِلْكُتُبِ', cx, cy - 4 * dpr);
         ctx.restore();
       }
 
@@ -165,7 +165,7 @@ export default function UniverseFateVisual({ className }: MiracleVisualProps) {
         ctx.fillText('نُعِيدُهُ', cx, cy - 14 * dpr);
         ctx.font = `${9 * dpr}px sans-serif`; ctx.shadowBlur = 0;
         ctx.fillStyle = 'rgba(200,180,120,0.5)';
-        ctx.fillText('We shall bring it back', cx, cy + 2 * dpr);
+        ctx.fillText('كَمَا بَدَأْنَا أَوَّلَ خَلْقٍ نُّعِيدُهُ', cx, cy + 2 * dpr);
         ctx.restore();
       }
 
@@ -222,10 +222,10 @@ export default function UniverseFateVisual({ className }: MiracleVisualProps) {
         style={{ background: 'linear-gradient(to top, rgba(2,0,8,0.92) 0%, rgba(2,0,8,0.5) 60%, rgba(2,0,8,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '📜', label: 'كطي السجل', sub: 'scroll fold metaphor' },
-            { icon: '⚡', label: 'Einstein GR 1916', sub: 'spacetime curvature' },
-            { icon: '🔄', label: 'Penrose CCC 2010', sub: 'cyclic cosmology' },
-            { icon: '💥', label: 'نُعِيدُهُ — إعادة', sub: 'cyclic rebirth' },
+            { icon: '📜', label: 'كطي السجل', sub: 'صورة طيّ السجل' },
+            { icon: '⚡', label: 'النسبية العامة ١٩١٦', sub: 'انحناء الزمكان' },
+            { icon: '🔄', label: 'بنروز ٢٠١٠', sub: 'كون دوري' },
+            { icon: '💥', label: 'نُعِيدُهُ — إعادة', sub: 'إعادة الخلق' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(40,20,80,0.08)', border: '1px solid rgba(100,60,180,0.22)', backdropFilter: 'blur(8px)' }}>

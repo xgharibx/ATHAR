@@ -8,8 +8,8 @@ import type { MiracleVisualProps } from '../MiracleVisualRegistry';
 // Visualization: cosmic dials/sliders showing critical constants at exact values
 
 const constants = [
-  { name: 'ثابت الجاذبية', nameEn: 'Gravitational Constant', value: '6.674 × 10⁻¹¹', precision: 'دقة 1 من 10⁶⁰', percent: 0.83, color: '#d4a853' },
-  { name: 'القوة النووية القوية', nameEn: 'Strong Nuclear Force', value: '0.007', precision: 'تغيير 0.001 = لا نجوم', percent: 0.91, color: '#4A90D9' },
+  { name: 'ثابت الجاذبية', nameEn: 'Gravitational Constant', value: '6.674 × 10⁻¹¹', precision: 'دقة ١ من ١٠⁶⁰', percent: 0.83, color: '#d4a853' },
+  { name: 'القوة النووية القوية', nameEn: 'Strong Nuclear Force', value: '0.007', precision: 'تغيير ٠.٠٠١ = لا نجوم', percent: 0.91, color: '#4A90D9' },
   { name: 'ثابت الكون', nameEn: 'Cosmological Constant', value: '10⁻¹²²', precision: 'أدق قيمة في الفيزياء', percent: 0.97, color: '#2dd4a8' },
   { name: 'كتلة الإلكترون', nameEn: 'Electron Mass', value: '9.109 × 10⁻³¹', precision: 'تغيير = لا كيمياء', percent: 0.88, color: '#e67e22' },
   { name: 'نسبة المادة للمادة المضادة', nameEn: 'Matter-Antimatter Ratio', value: '1:10⁹ + 1', precision: 'فائض واحد بالمليار', percent: 0.95, color: '#9b59b6' },
@@ -117,7 +117,7 @@ export default function FineTuningVisual({ className }: MiracleVisualProps) {
         <p className="font-amiri text-lg text-gold-primary" style={{ textShadow: '0 0 20px rgba(212,168,83,0.3)' }}>
           إِنَّا كُلَّ شَيْءٍ خَلَقْنَاهُ بِقَدَرٍ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">القمر : 49</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">القمر: ٤٩</p>
       </motion.div>
     </div>
   );

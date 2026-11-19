@@ -145,9 +145,9 @@ export default function SpiderWebWeaknessVisual({ className }: MiracleVisualProp
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
             { icon: '🕸️', label: 'بيت = هيكل', sub: 'ليس خيطان' },
-            { icon: '🔬', label: 'خيط = أقوى فولاذ', sub: 'per kg' },
+            { icon: '🔬', label: 'خيط = أقوى فولاذ', sub: 'لكل كيلوغرام' },
             { icon: '🧵', label: 'هيكل = أضعف', sub: 'structure' },
-            { icon: '⚡', label: 'Silk ≠ Web', sub: 'الفرق مهم' },
+            { icon: '⚡', label: 'الخيط غير البيت', sub: 'الفرق مهم' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(5,20,3,0.1)', border: '1px solid rgba(80,120,40,0.22)', backdropFilter: 'blur(8px)' }}>

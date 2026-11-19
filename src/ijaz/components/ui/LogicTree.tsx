@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogicNode } from '@/ijaz/types';
+import { useIjazPrefs } from '@/ijaz/lib/ijazPrefs';
 
 // Logic tree data from "بصائر" (Basaar) book
 const logicNodes: LogicNode[] = [
@@ -32,7 +33,7 @@ const logicNodes: LogicNode[] = [
     claimAr: 'مدحوض: العدم لا يُنتج شيئاً',
     type: 'refutation',
     content: 'Absolute nothing has no properties, no potential, no laws. It cannot "do" anything. From nothing, nothing comes (ex nihilo nihil fit). This is a foundational principle of logic and science. Quran (52:35): "Or were they created by nothing?"',
-    contentAr: 'العدم المطلق لا خصائص له ولا قدرة ولا قوانين. لا يمكنه "فعل" أي شيء. من العدم لا يأتي شيء. هذا مبدأ أساسي في المنطق والعلم. القرآن (52:35): "أَمْ خُلِقُوا مِنْ غَيْرِ شَيْءٍ"',
+    contentAr: 'العدم المطلق لا خصائص له ولا قدرة ولا قوانين. لا يمكنه "فعل" أي شيء. من العدم لا يأتي شيء. هذا مبدأ أساسي في المنطق والعلم. القرآن (٥٢:٣٥): "أَمْ خُلِقُوا مِنْ غَيْرِ شَيْءٍ"',
     children: ['evidence-nothing'],
     parentId: 'atheist-nothing',
     source: 'بصائر',
@@ -65,7 +66,7 @@ const logicNodes: LogicNode[] = [
     claimAr: 'مدحوض: استحالة منطقية',
     type: 'refutation',
     content: 'For the universe to create itself, it would need to exist before it existed—a logical contradiction. Something cannot be both cause and effect of itself simultaneously. This violates the law of non-contradiction. Quran (52:35): "Or were they the creators [of themselves]?"',
-    contentAr: 'لكي يخلق الكون نفسه، يجب أن يكون موجوداً قبل أن يوجد — وهذا تناقض منطقي. الشيء لا يمكن أن يكون سبباً ومسبَّباً لنفسه في آن واحد. هذا ينتهك قانون عدم التناقض. القرآن (52:35): "أَمْ هُمُ الْخَالِقُونَ"',
+    contentAr: 'لكي يخلق الكون نفسه، يجب أن يكون موجوداً قبل أن يوجد — وهذا تناقض منطقي. الشيء لا يمكن أن يكون سبباً ومسبَّباً لنفسه في آن واحد. هذا ينتهك قانون عدم التناقض. القرآن (٥٢:٣٥): "أَمْ هُمُ الْخَالِقُونَ"',
     children: ['evidence-self'],
     parentId: 'atheist-self',
     source: 'بصائر',
@@ -98,7 +99,7 @@ const logicNodes: LogicNode[] = [
     claimAr: 'مدحوض: العلم يثبت البداية',
     type: 'refutation',
     content: 'Multiple independent lines of evidence prove the universe began: (1) The Big Bang, (2) Second Law of Thermodynamics (heat death hasn\'t occurred), (3) Borde-Guth-Vilenkin theorem (any expanding universe must have had a beginning), (4) Impossibility of actual infinites.',
-    contentAr: 'خطوط متعددة مستقلة من الأدلة تثبت أن الكون بدأ: (1) الانفجار العظيم، (2) القانون الثاني للديناميكا الحرارية (لم يحدث الموت الحراري)، (3) نظرية بورد-غوث-فيلنكين، (4) استحالة اللانهائيات الفعلية.',
+    contentAr: 'خطوط متعددة مستقلة من الأدلة تثبت أن الكون بدأ: (١) الانفجار العظيم، (٢) القانون الثاني للديناميكا الحرارية (لم يحدث الموت الحراري)، (٣) نظرية بورد-غوث-فيلنكين، (٤) استحالة اللانهائيات الفعلية.',
     children: ['conclusion'],
     parentId: 'atheist-eternal',
     source: 'بصائر',
@@ -109,7 +110,7 @@ const logicNodes: LogicNode[] = [
     claimAr: 'الخلاصة: لا بد من وجود خالق متعالٍ',
     type: 'conclusion',
     content: 'Since the universe (1) didn\'t come from nothing, (2) didn\'t create itself, and (3) isn\'t eternal—it MUST have been created by a transcendent cause that is: timeless, spaceless, immaterial, immensely powerful, and personal (possessing will). This matches the Quranic description of Allah.',
-    contentAr: 'بما أن الكون (1) لم يأتِ من العدم، (2) ولم يخلق نفسه، (3) وليس أزلياً — فلا بد أن يكون قد خُلق بسبب متعالٍ: خارج الزمان والمكان، غير مادي، ذو قدرة عظيمة، وذو إرادة. وهذا يتطابق مع وصف القرآن لله تعالى.',
+    contentAr: 'بما أن الكون (١) لم يأتِ من العدم، (٢) ولم يخلق نفسه، (٣) وليس أزلياً — فلا بد أن يكون قد خُلق بسبب متعالٍ: خارج الزمان والمكان، غير مادي، ذو قدرة عظيمة، وذو إرادة. وهذا يتطابق مع وصف القرآن لله تعالى.',
     children: [],
     parentId: 'refute-eternal',
     source: 'بصائر',
@@ -157,6 +158,7 @@ function getNodeColor(type: LogicNode['type']): { bg: string; border: string; te
 }
 
 function LogicNodeCard({ node, depth = 0 }: { node: LogicNode; depth?: number }) {
+  const showEnglish = useIjazPrefs((s) => s.showEnglish);
   const [isExpanded, setIsExpanded] = useState(depth === 0);
   const colors = getNodeColor(node.type);
   const children = logicNodes.filter((n) => node.children.includes(n.id));
@@ -191,10 +193,10 @@ function LogicNodeCard({ node, depth = 0 }: { node: LogicNode; depth?: number })
               className="px-3 py-1 rounded-full text-xs font-tajawal font-semibold"
               style={{ background: `${colors.text}20`, color: colors.text }}
             >
-              {node.type === 'atheist-claim' && '🔴 ادّعاء إلحادي'}
-              {node.type === 'refutation' && '✅ دحض'}
-              {node.type === 'evidence' && '📚 دليل'}
-              {node.type === 'conclusion' && '⭐ خلاصة'}
+              {node.type === 'atheist-claim' && 'سؤال أو شبهة'}
+              {node.type === 'refutation' && 'الرد'}
+              {node.type === 'evidence' && 'دليل'}
+              {node.type === 'conclusion' && 'الخلاصة'}
             </span>
             <svg
               width="16"
@@ -213,7 +215,7 @@ function LogicNodeCard({ node, depth = 0 }: { node: LogicNode; depth?: number })
           <h3 className="font-amiri text-lg font-bold mb-1" style={{ color: colors.text }}>
             {node.claimAr}
           </h3>
-          <p className="text-text-secondary text-sm font-tajawal">{node.claim}</p>
+          {showEnglish && <p className="text-text-secondary text-sm font-tajawal" dir="ltr" lang="en">{node.claim}</p>}
 
           {/* Expanded Content */}
           <AnimatePresence>
@@ -229,9 +231,11 @@ function LogicNodeCard({ node, depth = 0 }: { node: LogicNode; depth?: number })
                   <p className="text-text-primary text-sm font-tajawal leading-relaxed">
                     {node.contentAr}
                   </p>
-                  <p className="text-text-muted text-xs font-tajawal leading-relaxed mt-2 italic" dir="ltr">
-                    {node.content}
-                  </p>
+                  {showEnglish && (
+                    <p className="text-text-muted text-xs font-tajawal leading-relaxed mt-2 italic" dir="ltr" lang="en">
+                      {node.content}
+                    </p>
+                  )}
                   <p className="text-text-muted text-xs font-tajawal mt-3">
                     المصدر: {node.source}
                   </p>

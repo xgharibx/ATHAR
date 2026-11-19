@@ -180,7 +180,7 @@ export default function MilkProductionVisual({ className }: MiracleVisualProps) 
         className="absolute bottom-4 left-0 right-0 text-center font-amiri text-xs md:text-sm text-verse-green/80 px-4 z-10 pointer-events-none"
         style={{ textShadow: '0 0 20px rgba(45,212,168,0.3)' }}
       >
-        مِّن بَيْنِ فَرْثٍ وَدَمٍ لَّبَنًا خَالِصًا سَائِغًا لِّلشَّارِبِينَ — النحل : 66
+        مِّن بَيْنِ فَرْثٍ وَدَمٍ لَّبَنًا خَالِصًا سَائِغًا لِّلشَّارِبِينَ — النحل: ٦٦
       </motion.p>
     </div>
   );

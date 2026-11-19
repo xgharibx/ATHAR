@@ -136,7 +136,7 @@ export default function BlackHolesQuranVisual({ className }: MiracleVisualProps)
             { icon: '⚫', label: 'خنس = يتقهقر', sub: 'recede' },
             { icon: '🌀', label: 'جوار = تجري', sub: 'orbit' },
             { icon: '🕳️', label: 'كنس = تختفي', sub: 'hide' },
-            { icon: '🔭', label: 'EHT 2019', sub: 'first image' },
+            { icon: '🔭', label: 'تلسكوب أفق الحدث ٢٠١٩', sub: 'أول صورة' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(5,3,15,0.1)', border: '1px solid rgba(80,60,160,0.22)', backdropFilter: 'blur(8px)' }}>

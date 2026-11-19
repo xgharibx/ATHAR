@@ -142,8 +142,8 @@ export default function PairsCreationVisual({ className }: MiracleVisualProps) {
           {[
             { icon: '⚛️', label: '+/− جسيمات', sub: 'antimatter' },
             { icon: '🦲', label: 'ذكر/أنثى', sub: 'كل كائن' },
-            { icon: '🔌', label: '+/− شحنة', sub: 'Dirac 1928' },
-            { icon: '🌌', label: 'N/S مغناطيس', sub: 'Higgs pairs' },
+            { icon: '🔌', label: '+/− شحنة', sub: 'ديراك ١٩٢٨' },
+            { icon: '🌌', label: 'N/S مغناطيس', sub: 'أزواج الجسيمات' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(10,8,25,0.1)', border: '1px solid rgba(100,100,200,0.22)', backdropFilter: 'blur(8px)' }}>

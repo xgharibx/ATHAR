@@ -156,7 +156,7 @@ export default function UnletteredProphetVisual({ className }: MiracleVisualProp
         <p className="font-amiri text-xs md:text-sm text-verse-green/75 px-4" style={{ textShadow: '0 0 20px rgba(45,212,168,0.3)' }}>
           وَمَا كُنتَ تَتْلُو مِن قَبْلِهِ مِن كِتَابٍ وَلَا تَخُطُّهُ بِيَمِينِكَ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">العنكبوت : 48</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">العنكبوت: ٤٨</p>
       </motion.div>
     </div>
   );

@@ -106,7 +106,7 @@ export default function HydrologicalCycleQuranVisual({ className }: MiracleVisua
       });
       ctx.font = `7px sans-serif`; ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(80,140,220,0.3)';
-      ctx.fillText('ينابيع — aquifer', w * 0.5, aquiferY - 6);
+      ctx.fillText('ينابيع جوفية', w * 0.5, aquiferY - 6);
 
       // ── Cycle arrows ───────────────────────────────────────
       ctx.strokeStyle = 'rgba(100,180,255,0.12)'; ctx.lineWidth = 0.8; ctx.setLineDash([3, 6]);
@@ -165,7 +165,7 @@ export default function HydrologicalCycleQuranVisual({ className }: MiracleVisua
             { icon: '☁️', label: 'تبخّر → سحاب', sub: 'evaporation' },
             { icon: '🌧️', label: 'مطر → تربة', sub: 'infiltration' },
             { icon: '💧', label: 'ينابيع', sub: 'aquifer' },
-            { icon: '🔄', label: 'دورة متكاملة', sub: 'Halley 1690' },
+            { icon: '🔄', label: 'دورة متكاملة', sub: 'هالي ١٦٩٠' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(5,15,30,0.1)', border: '1px solid rgba(50,100,160,0.22)', backdropFilter: 'blur(8px)' }}>

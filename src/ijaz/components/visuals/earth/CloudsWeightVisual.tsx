@@ -270,7 +270,7 @@ export default function CloudsWeightVisual({ className }: MiracleVisualProps) {
         <p className="font-amiri text-sm md:text-lg text-verse-green/80 px-4" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           حَتَّىٰ إِذَا أَقَلَّتْ سَحَابًا ثِقَالًا سُقْنَاهُ لِبَلَدٍ مَّيِّتٍ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الأعراف : 57</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الأعراف: ٥٧</p>
       </motion.div>
     </motion.div>
   );

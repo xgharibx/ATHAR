@@ -161,7 +161,7 @@ export default function BigBangVisual({ className }: MiracleVisualProps) {
         <p className="font-amiri text-xl md:text-2xl text-verse-green/80" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           ثُمَّ اسْتَوَىٰ إِلَى السَّمَاءِ وَهِيَ دُخَانٌ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">فصلت : 11</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">فصلت: ١١</p>
       </motion.div>
     </div>
   );

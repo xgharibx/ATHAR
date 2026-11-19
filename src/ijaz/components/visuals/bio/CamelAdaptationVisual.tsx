@@ -165,9 +165,9 @@ export default function CamelAdaptationVisual({ className }: MiracleVisualProps)
 
       // callout adaptations
       const callouts = [
-        { x: camX + 0.6 * Math.min(w, h) * 0.012, y: camY - 4.6 * Math.min(w, h) * 0.012, lx: w * 0.12, ly: h * 0.2, en: 'سَنام = دهون', sub: 'fat, not water' },
-        { x: camX + 6.2 * Math.min(w, h) * 0.012, y: camY - 7.6 * Math.min(w, h) * 0.012, lx: w * 0.86, ly: h * 0.46, en: 'مَنخران يُغلَقان', sub: 'closing nostrils' },
-        { x: camX - 3 * Math.min(w, h) * 0.012, y: camY + 3 * Math.min(w, h) * 0.012, lx: w * 0.12, ly: h * 0.55, en: 'أقدام عريضة', sub: 'wide soft feet' },
+        { x: camX + 0.6 * Math.min(w, h) * 0.012, y: camY - 4.6 * Math.min(w, h) * 0.012, lx: w * 0.12, ly: h * 0.2, en: 'سَنام = دهون', sub: 'دهن لا ماء' },
+        { x: camX + 6.2 * Math.min(w, h) * 0.012, y: camY - 7.6 * Math.min(w, h) * 0.012, lx: w * 0.86, ly: h * 0.46, en: 'مَنخران يُغلَقان', sub: 'منخران ينغلقان' },
+        { x: camX - 3 * Math.min(w, h) * 0.012, y: camY + 3 * Math.min(w, h) * 0.012, lx: w * 0.12, ly: h * 0.55, en: 'أقدام عريضة', sub: 'خفّ عريض لين' },
       ];
       callouts.forEach((c, i) => {
         const on = (Math.sin(time * 0.9 - i * 1.6) * 0.5 + 0.5);
@@ -193,7 +193,7 @@ export default function CamelAdaptationVisual({ className }: MiracleVisualProps)
       ctx.fillText('50°C', w * 0.97, h * 0.12);
       ctx.font = '7px monospace';
       ctx.fillStyle = 'rgba(255,180,100,0.5)';
-      ctx.fillText('±6°C body tolerance', w * 0.97, h * 0.165);
+      ctx.fillText('يتحمل ±٦ درجات في حرارة جسمه', w * 0.97, h * 0.165);
 
       // verse label
       ctx.font = 'bold 11px serif'; ctx.textAlign = 'center';
@@ -234,10 +234,10 @@ export default function CamelAdaptationVisual({ className }: MiracleVisualProps)
         style={{ background: 'linear-gradient(to top, rgba(13,8,0,0.92) 0%, rgba(13,8,0,0.5) 60%, rgba(13,8,0,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🐪', label: '8 تكيفات', sub: 'دم/كلى/جلد' },
-            { icon: '👻', label: 'دهون ليس ماء', sub: 'hump = fat store' },
-            { icon: '🌡️', label: '+/- 6 C', sub: 'temp tolerance' },
-            { icon: '💧', label: 'يدخر 150L', sub: 'بول مركز' },
+            { icon: '🐪', label: '٨ تكيفات', sub: 'دم/كلى/جلد' },
+            { icon: '👻', label: 'دهون ليس ماء', sub: 'السنام مخزن دهن' },
+            { icon: '🌡️', label: '+/- 6 C', sub: 'تحمّل الحرارة' },
+            { icon: '💧', label: 'يدخر ١٥٠L', sub: 'بول مركز' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(20,10,0,0.1)', border: '1px solid rgba(120,80,20,0.22)', backdropFilter: 'blur(8px)' }}>

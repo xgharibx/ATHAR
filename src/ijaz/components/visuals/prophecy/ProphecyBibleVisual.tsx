@@ -7,14 +7,14 @@ import type { MiracleVisualProps } from '../MiracleVisualRegistry';
 type Tok = { t: string; c?: string };
 const VERSE: Tok[] = [
   { t: 'And I will ask the Father, and he will give you another' },
-  { t: 'Paraclete', c: '#d4a853' }, { t: ', to be with you' },
+  { t: 'باراكليتوس', c: '#d4a853' }, { t: ', to be with you' },
   { t: 'forever', c: '#2dd4a8' }, { t: '.' },
 ];
 
 const MATCHES = [
-  { ref: 'يوحنا 14:16', text: '“another Paraclete”', match: 'παράκλητος Paraklētos = المُعزِّي', color: '#d4a853' },
-  { ref: 'Greek', text: 'περικλυτός Periklytos', match: 'الأكثر حمدًا · المُمَجَّد', color: '#f472b6' },
-  { ref: 'الصف 6', text: '“اسمه أحمد”', match: 'أحمد ﷺ = الأكثر حمدًا (= Periklytos)', color: '#2dd4a8' },
+  { ref: 'يوحنا ١٤:١٦', text: '«معزّيًا آخر»', match: 'παράκλητος Paraklētos = المُعزِّي', color: '#d4a853' },
+  { ref: 'Greek', text: 'περικλυτός (المحمود)', match: 'الأكثر حمدًا · المُمَجَّد', color: '#f472b6' },
+  { ref: 'الصف ٦', text: '“اسمه أحمد”', match: 'أحمد ﷺ = الأكثر حمدًا (= Periklytos)', color: '#2dd4a8' },
 ];
 
 export default function ProphecyBibleVisual({ className }: MiracleVisualProps) {

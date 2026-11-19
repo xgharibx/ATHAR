@@ -187,7 +187,7 @@ export default function HumanProportionVisual({ className }: MiracleVisualProps)
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
             { icon: '🥇', label: 'φ = 1.618', sub: 'نسبة ذهبية' },
-            { icon: '🧑', label: 'طول = بسط', sub: 'Vitruvian' },
+            { icon: '🧑', label: 'طول = بسط', sub: 'الرجل الفيتروفي' },
             { icon: '🌀', label: 'دوامة فيبوناتشي', sub: 'في الجسم' },
             { icon: '🔢', label: 'نسب جسد', sub: 'ratios' },
           ].map(({ icon, label, sub }) => (

@@ -109,9 +109,9 @@ export default function SkinPainReceptorsVisual({ className }: MiracleVisualProp
       // Layer labels
       ctx.font = `${Math.max(14, w * 0.014)}px sans-serif`;
       ctx.fillStyle = 'rgba(255,200,180,0.35)';
-      ctx.fillText('Epidermis', w * 0.02, h * 0.2);
-      ctx.fillText('Dermis', w * 0.02, h * 0.55);
-      ctx.fillText('Subcutaneous', w * 0.02, h * 0.82);
+      ctx.fillText('البشرة', w * 0.02, h * 0.2);
+      ctx.fillText('الأدمة', w * 0.02, h * 0.55);
+      ctx.fillText('تحت الجلد', w * 0.02, h * 0.82);
 
       // Cellular texture
       for (const c of cells) {

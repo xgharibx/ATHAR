@@ -191,7 +191,7 @@ export default function HeartNeuroscienceVisual({ className }: MiracleVisualProp
       // 40k label
       ctx.font = `bold ${9 * dpr}px sans-serif`; ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(255,200,100,0.55)'; ctx.shadowColor = 'rgba(255,160,60,0.4)'; ctx.shadowBlur = 8;
-      ctx.fillText('40,000 خلية عصبية', heartX, heartY + heartSize * 1.6);
+      ctx.fillText('٤٠,٠٠٠ خلية عصبية', heartX, heartY + heartSize * 1.6);
       ctx.font = `${7.5 * dpr}px sans-serif`; ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(200,160,80,0.35)';
       ctx.fillText('دماغ القلب', heartX, heartY + heartSize * 1.85);
@@ -260,10 +260,10 @@ export default function HeartNeuroscienceVisual({ className }: MiracleVisualProp
         style={{ background: 'linear-gradient(to top, rgba(15,0,5,0.92) 0%, rgba(15,0,5,0.5) 60%, rgba(15,0,5,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🧠', label: '40,000 خلية عصبية', sub: 'دماغ القلب' },
+            { icon: '🧠', label: '٤٠,٠٠٠ خلية عصبية', sub: 'دماغ القلب' },
             { icon: '📡', label: 'القلب → الدماغ', sub: 'إشارات أكثر' },
-            { icon: '💓', label: 'HRV — اطمئنان', sub: 'HeartMath 2009' },
-            { icon: '⚡', label: 'Armour 1994', sub: 'Neurocardiology' },
+            { icon: '💓', label: 'تقلّب النبض، اطمئنان', sub: 'هارت ماث ٢٠٠٩' },
+            { icon: '⚡', label: 'آرمور ١٩٩٤', sub: 'علم أعصاب القلب' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(80,10,20,0.1)', border: '1px solid rgba(180,40,60,0.22)', backdropFilter: 'blur(8px)' }}>

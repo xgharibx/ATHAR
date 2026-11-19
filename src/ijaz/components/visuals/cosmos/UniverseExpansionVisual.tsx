@@ -162,7 +162,7 @@ export default function UniverseExpansionVisual({ className }: MiracleVisualProp
         <p className="font-amiri text-xl md:text-2xl text-verse-green/80" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           وَإِنَّا لَمُوسِعُونَ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الذاريات : 47</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الذاريات: ٤٧</p>
       </motion.div>
     </div>
   );

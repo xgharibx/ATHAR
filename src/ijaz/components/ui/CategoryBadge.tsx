@@ -1,3 +1,4 @@
+import { IjazIcon } from '@/ijaz/components/ui/IjazIcon';
 
 import { MiracleCategory } from '@/ijaz/types';
 import { getCategoryLabel, getVisualizationColor } from '@/ijaz/lib/utils';
@@ -10,13 +11,6 @@ interface CategoryBadgeProps {
   onClick?: () => void;
 }
 
-const categoryIcons: Record<MiracleCategory, string> = {
-  cosmological: '🌌',
-  biological: '🧬',
-  'earth-sciences': '🌍',
-  prophecies: '📜',
-  'logical-philosophical': '🧠',
-};
 
 export default function CategoryBadge({
   category,
@@ -55,7 +49,7 @@ export default function CategoryBadge({
   };
   const content = (
     <>
-      <span className={size === 'lg' ? 'text-lg' : 'text-base'}>{categoryIcons[category]}</span>
+      <IjazIcon name={category} size={size === 'lg' ? 18 : 14} />
       <span>{getCategoryLabel(category)}</span>
     </>
   );

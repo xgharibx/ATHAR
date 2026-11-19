@@ -110,7 +110,7 @@ export default function RomanLowestLandVisual({ className }: MiracleVisualProps)
       ctx.setLineDash([]);
       ctx.font = `${7.5 * dpr}px monospace`; ctx.textAlign = 'left';
       ctx.fillStyle = 'rgba(100,160,220,0.3)';
-      ctx.fillText('مستوى سطح البحر 0m', w * 0.01, seaLevelY - 4);
+      ctx.fillText('مستوى سطح البحر ٠m', w * 0.01, seaLevelY - 4);
 
       // -430m arrow
       const arrowY = toY(-430);
@@ -142,7 +142,7 @@ export default function RomanLowestLandVisual({ className }: MiracleVisualProps)
       // Battle label
       ctx.font = `${7.5 * dpr}px sans-serif`; ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(220,120,100,0.45)';
-      ctx.fillText('معركة 614م', battleX, battleY - 14 * dpr);
+      ctx.fillText('معركة ٦١٤م', battleX, battleY - 14 * dpr);
 
       // أدنى label
       ctx.font = `bold ${11 * dpr}px serif`; ctx.textAlign = 'center';
@@ -191,10 +191,10 @@ export default function RomanLowestLandVisual({ className }: MiracleVisualProps)
         style={{ background: 'linear-gradient(to top, rgba(4,8,10,0.92) 0%, rgba(4,8,10,0.5) 60%, rgba(4,8,10,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '📉', label: '−430 متر', sub: 'Dead Sea' },
-            { icon: '🌍', label: 'أدنى = الأخفض', sub: 'lowest on Earth' },
-            { icon: '⚔️', label: 'معركة 614م', sub: 'Persia vs Rome' },
-            { icon: '🔮', label: 'نبوءة تحققت', sub: '622–628م' },
+            { icon: '📉', label: '−٤٣٠ متر', sub: 'البحر الميت' },
+            { icon: '🌍', label: 'أدنى = الأخفض', sub: 'أخفض الأرض' },
+            { icon: '⚔️', label: 'معركة ٦١٤م', sub: 'الروم والفرس' },
+            { icon: '🔮', label: 'نبوءة تحققت', sub: '٦٢٢–٦٢٨م' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(60,50,10,0.1)', border: '1px solid rgba(160,130,40,0.22)', backdropFilter: 'blur(8px)' }}>

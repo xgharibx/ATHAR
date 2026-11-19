@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { searchMiracles, getSemanticSuggestions } from '@/ijaz/lib/search';
 import { SearchResult } from '@/ijaz/types';
 import { getVisualizationColor, truncate } from '@/ijaz/lib/utils';
+import { RESULT, countAr } from '@/lib/arabicCount';
 
 interface SearchBarProps {
   large?: boolean;
@@ -193,9 +194,6 @@ export default function SearchBar({ large = false, autoFocus = false }: SearchBa
                       <h4 className="text-gold-primary font-amiri text-base font-bold truncate">
                         {result.miracle.titleAr}
                       </h4>
-                      <p className="text-text-secondary text-xs font-tajawal mt-0.5">
-                        {result.miracle.title}
-                      </p>
                       <p className="text-text-muted text-xs font-tajawal mt-1 line-clamp-1">
                         {truncate(result.miracle.summaryAr, 100)}
                       </p>
@@ -220,7 +218,7 @@ export default function SearchBar({ large = false, autoFocus = false }: SearchBa
             {/* Footer */}
             <div className="border-t border-border-subtle px-4 py-2 text-center">
               <span className="text-text-muted text-xs font-tajawal">
-                {results.length} نتيجة • اضغط Enter للاختيار
+                {countAr(results.length, RESULT)}
               </span>
             </div>
           </motion.div>

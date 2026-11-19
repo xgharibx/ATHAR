@@ -186,7 +186,7 @@ export default function LifeFromWaterVisual({ className }: MiracleVisualProps) {
         <p className="font-amiri text-xl md:text-2xl text-verse-green/80" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الأنبياء : 30</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الأنبياء: ٣٠</p>
       </motion.div>
     </div>
   );

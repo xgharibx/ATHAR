@@ -1,4 +1,6 @@
 import { Miracle, MiracleCategory } from '@/ijaz/types';
+import { EVIDENCE_AR } from '@/ijaz/data/evidenceAr';
+import { westernToArabicDigits } from '@/lib/formatNumber';
 
 export const miracles: Miracle[] = [
   // ================================================================
@@ -12508,6 +12510,31 @@ What did 7th-century people know about fire and wood? Dry wood burns; wet wood d
     order: 85,
   },
 ];
+
+// Arabic for the evidence cards that came in English only, and Arabic
+// digits in every Arabic text (the English stays as written).
+const ar = (t: string) => westernToArabicDigits(t);
+for (const m of miracles) {
+  m.scientificEvidence.forEach((e, i) => {
+    const t = EVIDENCE_AR[`${m.slug}#${i}`];
+    if (t) {
+      e.titleAr ||= t[0];
+      e.descriptionAr ||= t[1];
+    }
+    if (e.titleAr) e.titleAr = ar(e.titleAr);
+    if (e.descriptionAr) e.descriptionAr = ar(e.descriptionAr);
+  });
+  m.titleAr = ar(m.titleAr);
+  m.summaryAr = ar(m.summaryAr);
+  m.descriptionAr = ar(m.descriptionAr);
+  if (m.deepDiveAr) m.deepDiveAr = ar(m.deepDiveAr);
+  m.bookSource.fullTextAr = ar(m.bookSource.fullTextAr);
+  if (m.bookSource.chapterAr) m.bookSource.chapterAr = ar(m.bookSource.chapterAr);
+}
+
+/** 1…86 in reading order (the data's own `order` has a 22.5). */
+const NUMBER = new Map([...miracles].sort((a, b) => a.order - b.order).map((m, i) => [m.slug, i + 1]));
+export const miracleNumber = (slug: string): number => NUMBER.get(slug) ?? 0;
 
 export const getMiracleBySlug = (slug: string): Miracle | undefined => {
   return miracles.find((m) => m.slug === slug);

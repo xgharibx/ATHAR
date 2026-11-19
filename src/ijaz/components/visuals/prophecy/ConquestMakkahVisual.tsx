@@ -160,7 +160,7 @@ export default function ConquestMakkahVisual({ className }: MiracleVisualProps) 
         <p className="font-amiri text-lg md:text-xl text-verse-green/80" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           إِنَّا فَتَحْنَا لَكَ فَتْحًا مُّبِينًا
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الفتح : 1</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الفتح: ١</p>
       </motion.div>
     </div>
   );

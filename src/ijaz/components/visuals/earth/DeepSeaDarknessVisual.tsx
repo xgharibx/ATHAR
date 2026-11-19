@@ -241,7 +241,7 @@ export default function DeepSeaDarknessVisual({ className }: MiracleVisualProps)
         <p className="font-amiri text-sm md:text-lg text-verse-green/70 leading-relaxed px-4" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           ظُلُمَاتٌ بَعْضُهَا فَوْقَ بَعْضٍ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">النور : 40</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">النور: ٤٠</p>
       </motion.div>
     </div>
   );

@@ -219,7 +219,7 @@ export default function ConsciousnessVisual({ className }: MiracleVisualProps) {
         <p className="font-amiri text-sm md:text-lg text-verse-green/70" style={{ textShadow: '0 0 20px rgba(45,212,168,0.2)' }}>
           وَيَسْأَلُونَكَ عَنِ الرُّوحِ ۖ قُلِ الرُّوحُ مِنْ أَمْرِ رَبِّي
         </p>
-        <p className="text-gold-primary/40 text-xs font-tajawal mt-1">الإسراء : 85</p>
+        <p className="text-gold-primary/40 text-xs font-tajawal mt-1">الإسراء: ٨٥</p>
       </motion.div>
     </div>
   );

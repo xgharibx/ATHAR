@@ -221,7 +221,7 @@ export default function HoneyHealingVisual({ className }: MiracleVisualProps) {
         <p className="font-amiri text-lg md:text-xl text-verse-green/80 px-4" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
           يَخْرُجُ مِن بُطُونِهَا شَرَابٌ مُّخْتَلِفٌ أَلْوَانُهُ فِيهِ شِفَاءٌ لِّلنَّاسِ
         </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">النحل : 69</p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">النحل: ٦٩</p>
       </motion.div>
     </div>
   );

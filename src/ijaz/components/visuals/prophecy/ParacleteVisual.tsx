@@ -56,21 +56,21 @@ export default function ParacleteVisual({ className }: MiracleVisualProps) {
             className="rounded-xl p-3 text-center"
             style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.25)' }}
           >
-            <p className="text-blue-400 font-bold text-[10px] uppercase tracking-widest mb-2">Gospel of John</p>
+            <p className="text-blue-400 font-bold text-[10px] uppercase tracking-widest mb-2">إنجيل يوحنا</p>
             <p className="text-white text-[11px] leading-relaxed italic">
               &ldquo;another{' '}
-              <span className="text-gold-primary font-semibold not-italic">Paraclete</span>&rdquo;
+              <span className="text-gold-primary font-semibold not-italic">باراكليتوس</span>&rdquo;
             </p>
-            <p className="text-gray-500 text-[10px] mt-1.5">— John 14:16</p>
+            <p className="text-gray-500 text-[10px] mt-1.5">، يوحنا ١٤:١٦</p>
             <div className="mt-2 pt-2 border-t border-blue-400/20">
               <motion.p
                 className="text-blue-300 text-[11px]"
                 animate={{ textShadow: ['0 0 0px transparent', '0 0 10px rgba(96,165,250,0.8)', '0 0 0px transparent'] }}
                 transition={{ duration: 2.6, repeat: Infinity }}
               >
-                <span className="font-mono">Periklytos</span>
+                <span className="font-mono">بيريكليتوس</span>
               </motion.p>
-              <p className="text-gray-400 text-[10px]">= &ldquo;The Praised One&rdquo;</p>
+              <p className="text-gray-400 text-[10px]">= «المحمود»</p>
             </div>
           </motion.div>
 
@@ -82,7 +82,7 @@ export default function ParacleteVisual({ className }: MiracleVisualProps) {
             className="rounded-xl p-3 text-center"
             style={{ background: 'rgba(212,168,83,0.08)', border: '1px solid rgba(212,168,83,0.25)' }}
           >
-            <p className="text-gold-primary font-bold text-[10px] uppercase tracking-widest mb-2">Quran 61:6</p>
+            <p className="text-gold-primary font-bold text-[10px] uppercase tracking-widest mb-2">الصف: ٦</p>
             <p className="text-white font-arabic text-sm leading-relaxed" dir="rtl">
               وَمُبَشِّرًا بِرَسُولٍ
               <br />
@@ -95,9 +95,9 @@ export default function ParacleteVisual({ className }: MiracleVisualProps) {
                 animate={{ textShadow: ['0 0 0px transparent', '0 0 10px rgba(212,168,83,0.8)', '0 0 0px transparent'] }}
                 transition={{ duration: 2.6, repeat: Infinity, delay: 1.1 }}
               >
-                <span className="text-gold-primary font-bold">Ahmad</span>
+                <span className="text-gold-primary font-bold">أحمد</span>
               </motion.p>
-              <p className="text-gray-400 text-[10px]">= &ldquo;The Most Praised&rdquo;</p>
+              <p className="text-gray-400 text-[10px]">= «الأحمد»</p>
             </div>
           </motion.div>
         </div>
@@ -116,7 +116,7 @@ export default function ParacleteVisual({ className }: MiracleVisualProps) {
           animate={{ boxShadow: ['0 0 0px rgba(255,255,255,0)', '0 0 14px rgba(212,168,83,0.45)', '0 0 0px rgba(255,255,255,0)'] }}
           transition={{ duration: 2.4, repeat: Infinity }}
         >
-          Periklytos = Ahmad
+          بيريكليتوس = أحمد
           <CheckIcon color="#2dd4a8" />
         </motion.span>
       </motion.div>
@@ -129,7 +129,7 @@ export default function ParacleteVisual({ className }: MiracleVisualProps) {
         className="relative z-10 w-full max-w-sm rounded-xl p-3"
         style={{ background: 'rgba(45,212,168,0.05)', border: '1px solid rgba(45,212,168,0.18)' }}
       >
-        <p className="text-verse-green text-[11px] font-semibold mb-2 text-center">John 16:13 — وصف يطابق محمداً ﷺ</p>
+        <p className="text-verse-green text-[11px] font-semibold mb-2 text-center">يوحنا ١٦:١٣، وصف يطابق محمدًا ﷺ</p>
         <div className="grid grid-cols-1 gap-1">
           {[
             '"He will guide you into all the truth" → الهداية الخاتمة',

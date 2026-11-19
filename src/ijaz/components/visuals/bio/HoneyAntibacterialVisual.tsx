@@ -261,9 +261,9 @@ export default function HoneyAntibacterialVisual({ className }: MiracleVisualPro
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
             { icon: '🍯', label: 'H₂O₂', sub: 'أكسجين مضاد' },
-            { icon: '🔬', label: 'Defensin-1', sub: 'ببتيد مضاد' },
+            { icon: '🔬', label: 'ديفنسين-١', sub: 'ببتيد مضاد' },
             { icon: '⚗️', label: 'pH 3.2–4.5', sub: 'حمضية قاتلة' },
-            { icon: '💊', label: 'MGO مانوكا', sub: 'مضاد قوي' },
+            { icon: '💊', label: 'ميثيل غليوكسال المانوكا', sub: 'مضاد قوي' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(40,20,0,0.1)', border: '1px solid rgba(180,130,30,0.22)', backdropFilter: 'blur(8px)' }}>

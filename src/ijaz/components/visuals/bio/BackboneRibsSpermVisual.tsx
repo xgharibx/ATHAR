@@ -117,10 +117,10 @@ export default function BackboneRibsSpermVisual({ className }: MiracleVisualProp
         style={{ background: 'linear-gradient(to top, rgba(4,8,12,0.92) 0%, rgba(4,8,12,0.5) 60%, rgba(4,8,12,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🦴', label: 'صلب = vertebra', sub: 'عظم الظهر' },
-            { icon: '🧲', label: 'ترائب = ribs', sub: 'sacrum area' },
-            { icon: '🧬', label: 'sperm origin', sub: 'testes near spine' },
-            { icon: '🔬', label: 'anatomy 1543', sub: 'Vesalius' },
+            { icon: '🦴', label: 'صلب = فقرات', sub: 'عظم الظهر' },
+            { icon: '🧲', label: 'ترائب = أضلاع', sub: 'منطقة العجز' },
+            { icon: '🧬', label: 'منشأ النطفة', sub: 'الخصيتان قرب الصلب' },
+            { icon: '🔬', label: 'تشريح ١٥٤٣', sub: 'فيزاليوس' },
           ].map(({ icon, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(5,10,18,0.1)', border: '1px solid rgba(40,80,130,0.22)', backdropFilter: 'blur(8px)' }}>
