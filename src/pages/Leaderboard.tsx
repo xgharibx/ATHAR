@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Trophy, Send, RotateCw, Loader2, CheckCircle2, AlertCircle, Clock, ShieldCheck, Trash2, Users, BookMarked, Calendar, Check, Copy, Plus, Share2 } from "lucide-react";
+import { Trophy, Send, RotateCw, Loader2, CheckCircle2, AlertCircle, Clock, ShieldCheck, Trash2, Users, Calendar, Check, Copy, Plus, Share2 } from "lucide-react";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -8,11 +8,10 @@ import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
-import { useNoorStore, type LocalFriend, type GroupKhatmaState } from "@/store/noorStore";
+import { useNoorStore, type LocalFriend } from "@/store/noorStore";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { cn } from "@/lib/utils";
-import { createRandomId } from "@/lib/randomId";
 import {
   type LeaderboardBoard,
   type LeaderboardEntry,
@@ -41,7 +40,9 @@ import { writeClipboard } from "@/lib/nativeUI";
 import { shareOrCopy } from "@/lib/shareTargets";
 import { readFriendCode } from "@/lib/friendCode";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { SharedKhatmaCard } from "@/components/leaderboard/SharedKhatmaCard";
+import { isKhatmaCode, normalizeKhatmaCode } from "@/lib/groupKhatma";
 import { getLocalDateKey } from "@/lib/dayBoundaries";
 import { WEEKLY_CHALLENGES, challengeOfWeek, challengeStatus, weekStartOf } from "@/lib/weeklyChallenge";
 
@@ -54,6 +55,15 @@ type BoardLoadState = "idle" | "loading" | "ok" | "error";
 export function LeaderboardPage() {
   const { data } = useAdhkarDB();
   useScrollRestoration();
+  // An invitation link («/leaderboard?khatma=ABCD2345») opens the khatma's join form.
+  const [searchParams] = useSearchParams();
+  const khatmaParam = searchParams.get("khatma");
+  const khatmaInvite = khatmaParam && isKhatmaCode(khatmaParam) ? normalizeKhatmaCode(khatmaParam) : null;
+  React.useEffect(() => {
+    if (!khatmaInvite) return;
+    const timer = window.setTimeout(() => document.getElementById("group-khatma")?.scrollIntoView({ behavior: "smooth", block: "start" }), 400);
+    return () => window.clearTimeout(timer);
+  }, [khatmaInvite]);
   const prayerTimes = usePrayerTimes();
   const lastKnownFajrTime = useNoorStore((s) => s.lastKnownFajrTime);
   const effectiveFajr = prayerTimes.data?.data?.timings?.Fajr ?? lastKnownFajrTime ?? undefined;
@@ -555,8 +565,8 @@ export function LeaderboardPage() {
       {/* L1: Local friends board */}
       <LocalFriendsCard endpoint={endpoint} todayKey={todayKey} myStats={{ id: myStats.id, alias: myStats.name, score: myStats.score }} />
 
-      {/* L2: Group khatma */}
-      <GroupKhatmaCard />
+      {/* L2: Group khatma, shared between friends' phones */}
+      <SharedKhatmaCard initialCode={khatmaInvite} />
 
       {/* L3: Weekly challenge */}
       <WeeklyChallengeCard />
@@ -1298,226 +1308,6 @@ function LocalFriendsCard(props: {
   );
 }
 
-// ─── L2: Group Khatma ──────────────────────────────────────────────────────
-
-function GroupKhatmaCard() {
-  const groupKhatma = useNoorStore((s) => s.groupKhatma);
-  const setGroupKhatma = useNoorStore((s) => s.setGroupKhatma);
-  const toggleGroupKhatmaJuz = useNoorStore((s) => s.toggleGroupKhatmaJuz);
-
-  const [groupName, setGroupName] = React.useState("");
-  const [membersRaw, setMembersRaw] = React.useState("");
-  const [importCode, setImportCode] = React.useState("");
-  const [importError, setImportError] = React.useState("");
-  const [copied, setCopied] = React.useState(false);
-  const [mode, setMode] = React.useState<"view" | "create" | "import">("view");
-  const [confirmDelete, setConfirmDelete] = React.useState(false);
-
-  const MEMBER_COLORS = ["#fbbf24", "#34d399", "#f472b6", "#60a5fa", "#a78bfa", "#fb923c", "#2dd4bf"];
-
-  const createGroup = () => {
-    const names = membersRaw
-      .split(/\n|،|,/)
-      .map((n) => n.trim())
-      .filter(Boolean);
-    if (!groupName.trim() || names.length < 2) return;
-
-    const juzPerMember = Math.floor(30 / names.length);
-    const extra = 30 - juzPerMember * names.length;
-
-    let juzCursor = 1;
-    const members = names.map((name, i) => {
-      const count = juzPerMember + (i < extra ? 1 : 0);
-      const assignedJuz: number[] = [];
-      for (let j = 0; j < count; j++) assignedJuz.push(juzCursor++);
-      return { memberId: `m${i}`, name, assignedJuz, completedJuz: [] as number[] };
-    });
-
-    setGroupKhatma({
-      groupId: createRandomId().replace(/-/g, "").slice(0, 16),
-      groupName: groupName.trim(),
-      members,
-      createdAt: new Date().toISOString()
-    });
-    setMode("view");
-    setGroupName("");
-    setMembersRaw("");
-  };
-
-  const shareCode = React.useMemo(() => {
-    if (!groupKhatma) return "";
-    return btoa(unescape(encodeURIComponent(JSON.stringify(groupKhatma))));
-  }, [groupKhatma]);
-
-  const copyShareCode = async () => {
-    try {
-      await writeClipboard(shareCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch { /* ignore */ }
-  };
-  const shareKhatma = async () => {
-    if (!groupKhatma) return;
-    await shareOrCopy(`ختمة «${groupKhatma.groupName}» في أثر 📖\nلوحة الترتيب ← ختمة جماعية ← استيراد، ثم الصق الكود:\n${shareCode}`, { title: groupKhatma.groupName, copiedMessage: "نُسخ كود الختمة" });
-  };
-
-  const handleImport = () => {
-    setImportError("");
-    try {
-      const json = decodeURIComponent(escape(atob(importCode.trim())));
-      const data = JSON.parse(json) as { groupId?: string; groupName?: string; members?: unknown[] };
-      if (!data.groupId || !data.groupName || !Array.isArray(data.members)) {
-        setImportError("كود المجموعة غير صالح.");
-        return;
-      }
-      setGroupKhatma(data as GroupKhatmaState);
-      setImportCode("");
-      setMode("view");
-    } catch {
-      setImportError("الكود غير صالح.");
-    }
-  };
-
-  const totalJuz = groupKhatma
-    ? groupKhatma.members.reduce((s, m) => s + m.completedJuz.length, 0)
-    : 0;
-  const completionPct = groupKhatma ? Math.round((totalJuz / 30) * 100) : 0;
-
-  return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <BookMarked size={16} aria-hidden="true" className="text-(--accent)" />
-          <div className="text-sm font-semibold">ختمة جماعية</div>
-          {groupKhatma && (
-            <span className="text-[10px] opacity-50">{groupKhatma.groupName}</span>
-          )}
-        </div>
-        {!groupKhatma ? (
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => setMode(mode === "create" ? "view" : "create")}>إنشاء</Button>
-            <Button variant="outline" onClick={() => setMode(mode === "import" ? "view" : "import")}>استيراد</Button>
-          </div>
-        ) : (
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => void shareKhatma()} aria-label="مشاركة الختمة">
-              <Share2 size={14} aria-hidden="true" />
-              مشاركة
-            </Button>
-            <Button variant="secondary" onClick={() => void copyShareCode()} aria-label="نسخ كود الختمة">
-              {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-            </Button>
-            {confirmDelete ? (
-              <span className="flex items-center gap-1">
-                <button type="button" onClick={() => { setGroupKhatma(null); setConfirmDelete(false); }} className="rounded-lg px-2 py-1 text-[11px] font-semibold text-(--danger) bg-danger-10">حذف</button>
-                <button type="button" onClick={() => setConfirmDelete(false)} className="rounded-lg px-2 py-1 text-[11px] opacity-60">إلغاء</button>
-              </span>
-            ) : (
-              <button type="button"
-                onClick={() => setConfirmDelete(true)}
-                className="grid h-9 w-9 place-items-center rounded-lg text-(--danger) opacity-60 hover:opacity-100 transition"
-                aria-label="حذف الختمة"
-              >
-                <Trash2 size={15} aria-hidden="true" />
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Create form */}
-      {mode === "create" && !groupKhatma && (
-        <div id="lb-khatma-create" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
-          <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="اسم الختمة (مثال: ختمة رمضان)" aria-label="اسم الختمة" />
-          <textarea
-            value={membersRaw}
-            onChange={(e) => setMembersRaw(e.target.value)}
-            placeholder={"أسماء الأعضاء (سطر لكل اسم)\nمثال:\nعبدالله\nفاطمة\nأحمد"}
-            aria-label="أسماء أعضاء الختمة"
-            dir="rtl"
-            spellCheck={false}
-            className="w-full min-h-[90px] rounded-3xl bg-(--card) border border-(--stroke) p-4 text-sm leading-7 outline-hidden focus:border-(--stroke)"
-          />
-          <div className="text-[11px] opacity-45">سيتم توزيع الأجزاء الثلاثين تلقائيًا على الأعضاء.</div>
-          <Button onClick={createGroup} disabled={!groupName.trim() || membersRaw.trim().split(/\n|،|,/).filter(Boolean).length < 2}>
-            إنشاء الختمة
-          </Button>
-        </div>
-      )}
-
-      {/* Import form */}
-      {mode === "import" && !groupKhatma && (
-        <div id="lb-khatma-import" className="mt-4 stack-y-3 border-t border-(--stroke) pt-4">
-          <Input value={importCode} onChange={(e) => { setImportCode(e.target.value); setImportError(""); }} placeholder="الصق كود الختمة هنا" aria-label="كود الختمة" aria-describedby="lb-khatma-import-error" />
-          <div id="lb-khatma-import-error" role="alert" className="text-xs text-(--danger)">{importError}</div>
-          <Button onClick={handleImport} disabled={!importCode.trim()}>استيراد الختمة</Button>
-        </div>
-      )}
-
-      {/* Khatma view */}
-      {groupKhatma && (
-        <div className="mt-4">
-          {/* Progress bar */}
-          <div className="flex items-center gap-2 mb-3">
-            <div
-              className="flex-1 h-2 rounded-full bg-(--card) overflow-hidden"
-              role="progressbar"
-              aria-valuenow={totalJuz}
-              aria-valuemin={0}
-              aria-valuemax={30}
-              aria-label={`تقدم الختمة الجماعية: ${totalJuz} من ٣٠ جزءًا`}
-            >
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${completionPct}%`, background: "var(--ok)" }}
-              />
-            </div>
-            <span className="text-xs font-semibold tabular-nums" style={{ color: completionPct >= 100 ? "var(--ok)" : undefined }}>
-              {arNum(totalJuz)}/٣٠
-            </span>
-          </div>
-
-          {/* Members legend */}
-          <div className="flex flex-wrap gap-2 mb-3">
-            {groupKhatma.members.map((m, mi) => (
-              <div key={m.memberId} className="flex items-center gap-1.5 text-xs">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: MEMBER_COLORS[mi % MEMBER_COLORS.length] }} />
-                <span className="opacity-75">{m.name}</span>
-                <span className="opacity-45 tabular-nums">({arNum(m.completedJuz.length)}/{arNum(m.assignedJuz.length)})</span>
-              </div>
-            ))}
-          </div>
-
-          {/* 30-Juz grid */}
-          <div className="grid grid-cols-6 gap-1.5">
-            {Array.from({ length: 30 }, (_, i) => i + 1).map((juz) => {
-              const owner = groupKhatma.members.find((m) => m.assignedJuz.includes(juz));
-              const ownerIdx = owner ? groupKhatma.members.indexOf(owner) : -1;
-              const done = owner ? owner.completedJuz.includes(juz) : false;
-              const color = owner ? MEMBER_COLORS[ownerIdx % MEMBER_COLORS.length] : "#ffffff22";
-
-              return (
-                <button type="button"
-                  key={juz}
-                  onClick={() => { if (owner) toggleGroupKhatmaJuz(owner.memberId, juz); }}
-                  className="relative aspect-square rounded-xl border text-xs font-semibold flex items-center justify-center transition-all"
-                  style={{
-                    background: done ? `${color}40` : "var(--card)",
-                    borderColor: done ? color : "var(--stroke)",
-                    color: done ? color : "var(--muted-2)",
-                  }}
-                  title={owner ? `${owner.name} — جزء ${arNum(juz)}` : `جزء ${arNum(juz)}`}
-                >
-                  {done ? <Check size={10} aria-hidden="true" strokeWidth={3} style={{ color }} /> : arNum(juz)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </Card>
-  );
-}
 
 // ─── L3: Weekly Challenge ──────────────────────────────────────────────────
 

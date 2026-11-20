@@ -283,6 +283,8 @@ export type GroupKhatmaMember = {
   completedJuz: number[];
 };
 
+export type SharedKhatmaKeys = { code: string; memberToken: string | null; ownerToken: string | null; name?: string };
+
 export type GroupKhatmaState = {
   groupId: string;
   groupName: string;
@@ -624,6 +626,10 @@ type NoorState = {
 
   // L2: Group khatma
   groupKhatma: GroupKhatmaState | null;
+  /** Shared group khatmas this phone belongs to: their codes and its keys (server: functions/khatma). */
+  sharedKhatmas: SharedKhatmaKeys[];
+  saveSharedKhatma: (keys: SharedKhatmaKeys) => void;
+  forgetSharedKhatma: (code: string) => void;
   setGroupKhatma: (g: GroupKhatmaState | null) => void;
   toggleGroupKhatmaJuz: (memberId: string, juzNum: number) => void;
 
@@ -2643,6 +2649,19 @@ export const useNoorStore = create<NoorState>()(
 
       groupKhatma: null,
       setGroupKhatma: (g) => set({ groupKhatma: g }),
+      sharedKhatmas: [],
+      saveSharedKhatma: (keys) =>
+        set((s) => {
+          const prev = s.sharedKhatmas.find((k) => k.code === keys.code);
+          const merged: SharedKhatmaKeys = {
+            code: keys.code,
+            memberToken: keys.memberToken ?? prev?.memberToken ?? null,
+            ownerToken: keys.ownerToken ?? prev?.ownerToken ?? null,
+            name: keys.name ?? prev?.name,
+          };
+          return { sharedKhatmas: [merged, ...s.sharedKhatmas.filter((k) => k.code !== keys.code)].slice(0, 10) };
+        }),
+      forgetSharedKhatma: (code) => set((s) => ({ sharedKhatmas: s.sharedKhatmas.filter((k) => k.code !== code) })),
       toggleGroupKhatmaJuz: (memberId, juzNum) =>
         set((s) => {
           if (!s.groupKhatma) return {};
@@ -2803,6 +2822,11 @@ export const useNoorStore = create<NoorState>()(
           customAdhanBase64: (state as Partial<NoorState>).customAdhanBase64 ?? null,
           localFriends: Array.isArray((state as Partial<NoorState>).localFriends) ? (state as Partial<NoorState>).localFriends! : [],
           groupKhatma: (state as Partial<NoorState>).groupKhatma ?? null,
+          sharedKhatmas: Array.isArray((state as Partial<NoorState>).sharedKhatmas)
+            ? ((state as Partial<NoorState>).sharedKhatmas as unknown[]).filter(
+                (k): k is SharedKhatmaKeys => !!k && typeof (k as SharedKhatmaKeys).code === "string" && /^[A-HJ-NP-Z2-9]{8}$/.test((k as SharedKhatmaKeys).code),
+              ).slice(0, 10)
+            : [],
           weeklyChallenge: (state as Partial<NoorState>).weeklyChallenge ?? null,
           kahfReadOn: Array.isArray((state as Partial<NoorState>).kahfReadOn)
             ? ((state as Partial<NoorState>).kahfReadOn as unknown[]).filter((d): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)).slice(-12)
