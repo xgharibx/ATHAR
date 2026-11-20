@@ -353,7 +353,8 @@ public class QuranAudioPlugin extends Plugin {
         Context context = getContext();
         downloads.execute(() -> {
             try {
-                String batch = RecitationDownloadWorker.enqueue(context, urls, maxBytes, call.getString("title"));
+                String kind = "tafsir".equals(call.getString("kind")) ? "tafsir" : "audio";
+                String batch = RecitationDownloadWorker.enqueue(context, urls, maxBytes, call.getString("title"), kind);
                 waiting.put(batch, call);
             } catch (Exception e) {
                 call.reject("The download could not start", e);
@@ -367,6 +368,56 @@ public class QuranAudioPlugin extends Plugin {
         downloads.execute(() -> {
             JSObject result = new JSObject();
             result.put("bytes", RecitationDownloads.totalBytes(context));
+            call.resolve(result);
+        });
+    }
+
+    private static List<String> urlsOf(PluginCall call) {
+        List<String> urls = new ArrayList<>();
+        JSArray raw = call.getArray("urls");
+        if (raw == null) return urls;
+        for (int i = 0; i < raw.length(); i++) {
+            String url = raw.optString(i, null);
+            if (url != null) urls.add(url);
+        }
+        return urls;
+    }
+
+    /** How many of `urls` are saved on the phone. */
+    @PluginMethod
+    public void savedCount(PluginCall call) {
+        List<String> urls = urlsOf(call);
+        Context context = getContext();
+        downloads.execute(() -> {
+            int count = 0;
+            for (String url : urls) if (RecitationDownloads.existing(context, url) != null) count++;
+            JSObject result = new JSObject();
+            result.put("count", count);
+            call.resolve(result);
+        });
+    }
+
+    /** The saved copy of a text file (a tafsir surah), or nothing. */
+    @PluginMethod
+    public void readDownloaded(PluginCall call) {
+        String url = call.getString("url", "");
+        Context context = getContext();
+        // Not on the downloads thread: reading must not wait behind a batch being queued.
+        new Thread(() -> {
+            JSObject result = new JSObject();
+            String text = url == null ? null : RecitationDownloads.readText(context, url);
+            if (text != null) result.put("text", text);
+            call.resolve(result);
+        }).start();
+    }
+
+    @PluginMethod
+    public void removeDownloads(PluginCall call) {
+        List<String> urls = urlsOf(call);
+        Context context = getContext();
+        downloads.execute(() -> {
+            JSObject result = new JSObject();
+            result.put("removed", RecitationDownloads.remove(context, urls));
             call.resolve(result);
         });
     }

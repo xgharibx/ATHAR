@@ -50,6 +50,9 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "download", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "downloadedBytes", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearDownloads", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "savedCount", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "readDownloaded", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "removeDownloads", returnType: CAPPluginReturnPromise),
     ]
 
     private struct Verse {
@@ -451,6 +454,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let urls = (call.getArray("urls", String.self) ?? []).compactMap { URL(string: $0) }
         let maxBytes = Int64(call.getDouble("maxBytes") ?? Double(1024 * 1024 * 1024))
         let title = call.getString("title") ?? ""
+        let kind = call.getString("kind") == "tafsir" ? "tafsir" : "audio"
         DispatchQueue.main.async {
             let downloads = RecitationBackgroundDownloads.shared
             downloads.onProgress = { [weak self] batch, done, total in
@@ -462,7 +466,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
                 waiting.resolve(["saved": result.saved, "failed": result.failed, "evicted": result.evicted])
             }
             // Waiting before the batch starts, in case it is already complete.
-            downloads.start(urls: urls, maxBytes: max(1, maxBytes), title: title) { batch in
+            downloads.start(urls: urls, maxBytes: max(1, maxBytes), title: title, kind: kind) { batch in
                 self.waitingDownloads[batch] = call
             }
         }
@@ -480,6 +484,42 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve()
         }
     }
+
+    /// How many of `urls` are saved on the phone.
+    @objc func savedCount(_ call: CAPPluginCall) {
+        let urls = (call.getArray("urls", String.self) ?? []).compactMap { URL(string: $0) }
+        DispatchQueue.global(qos: .utility).async {
+            call.resolve(["count": urls.filter { RecitationFiles.existing(for: $0) != nil }.count])
+        }
+    }
+
+    /// The saved copy of a text file (a tafsir surah), or nothing.
+    @objc func readDownloaded(_ call: CAPPluginCall) {
+        guard let url = URL(string: call.getString("url") ?? "") else {
+            call.resolve([:])
+            return
+        }
+        DispatchQueue.global(qos: .userInitiated).async {
+            if let text = RecitationFiles.readText(for: url) {
+                call.resolve(["text": text])
+            } else {
+                call.resolve([:])
+            }
+        }
+    }
+
+    @objc func removeDownloads(_ call: CAPPluginCall) {
+        let urls = (call.getArray("urls", String.self) ?? []).compactMap { URL(string: $0) }
+        DispatchQueue.global(qos: .utility).async {
+            var removed = 0
+            for url in urls {
+                if let file = RecitationFiles.existing(for: url), (try? FileManager.default.removeItem(at: file)) != nil {
+                    removed += 1
+                }
+            }
+            call.resolve(["removed": removed])
+        }
+    }
 }
 
 /// Recitation files saved for listening offline, under Application Support
@@ -492,12 +532,47 @@ enum RecitationFiles {
         return base.appendingPathComponent("QuranAudio", isDirectory: true)
     }
 
+    /// Text saved for reading offline (tafsir surahs, as .json). Kept apart from
+    /// the recitations so the audio budget never removes it and clearing the
+    /// recitations leaves it in place.
+    static var textRoot: URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        return base.appendingPathComponent("OfflineText", isDirectory: true)
+    }
+
+    static func rootFor(_ url: URL) -> URL {
+        url.pathExtension.lowercased() == "json" ? textRoot : root
+    }
+
+    /// Keep saved files out of iCloud backups; they can always be downloaded again.
+    static func excludeFromBackup(_ folder: URL) {
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        var excluded = folder
+        try? excluded.setResourceValues(values)
+    }
+
+    /// The longest tafsir surah (al-Tabari on al-Baqarah) is about 7.4 MB.
+    static let maxTextBytes: Int64 = 16 * 1024 * 1024
+
+    static func maxBytes(for url: URL) -> Int64 {
+        rootFor(url) == textRoot ? maxTextBytes : maxFileBytes
+    }
+
+    static func readText(for url: URL) -> String? {
+        guard rootFor(url) == textRoot, let file = existing(for: url),
+              let size = try? FileManager.default.attributesOfItem(atPath: file.path)[.size] as? Int64,
+              size <= maxTextBytes,
+              let data = try? Data(contentsOf: file) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
     /// Where a recitation URL is (or would be) saved; nil for anything but a plain https file URL.
     static func file(for url: URL) -> URL? {
         guard url.scheme?.lowercased() == "https", let host = url.host?.lowercased() else { return nil }
         let segments = url.pathComponents.filter { $0 != "/" }.suffix(2)
         guard !segments.isEmpty else { return nil }
-        var file = root.appendingPathComponent(host, isDirectory: true)
+        var file = rootFor(url).appendingPathComponent(host, isDirectory: true)
         for segment in segments {
             guard segment != ".", segment != "..",
                   segment.range(of: "^[A-Za-z0-9._-]+$", options: .regularExpression) != nil else { return nil }
@@ -526,14 +601,11 @@ enum RecitationFiles {
             defer { try? fileManager.removeItem(at: temporary) }
             guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { return false }
             let size = (try? fileManager.attributesOfItem(atPath: temporary.path)[.size] as? Int64) ?? 0
-            guard size > 0, size <= maxFileBytes else { return false }
+            guard size > 0, size <= maxBytes(for: url) else { return false }
             try fileManager.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
             if fileManager.fileExists(atPath: target.path) { try fileManager.removeItem(at: target) }
             try fileManager.moveItem(at: temporary, to: target)
-            var values = URLResourceValues()
-            values.isExcludedFromBackup = true
-            var excluded = root
-            try? excluded.setResourceValues(values)
+            excludeFromBackup(rootFor(url))
             return true
         } catch {
             return false

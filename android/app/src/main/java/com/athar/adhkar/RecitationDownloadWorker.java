@@ -75,12 +75,13 @@ public class RecitationDownloadWorker extends Worker {
     }
 
     /** Queue a batch; returns its id. */
-    static String enqueue(Context context, List<String> urls, long maxBytes, @Nullable String title) throws Exception {
+    static String enqueue(Context context, List<String> urls, long maxBytes, @Nullable String title, String kind) throws Exception {
         String batch = UUID.randomUUID().toString();
         JSONObject job = new JSONObject();
         job.put("urls", new JSONArray(urls));
         job.put("maxBytes", maxBytes);
         job.put("title", title == null ? "" : title);
+        job.put("kind", kind);
         File dir = queueDir(context);
         if (!dir.isDirectory() && !dir.mkdirs()) throw new IllegalStateException("no queue folder");
         try (OutputStream out = new FileOutputStream(new File(dir, batch + ".json"))) {
@@ -139,11 +140,12 @@ public class RecitationDownloadWorker extends Worker {
         jobFile.delete();
         Listener current = listener;
         if (current != null) current.finished(batch, saved, failed, evicted);
-        if (!appVisible && saved > 0) notifyDone(context, job.optString("title", ""), saved, total);
+        if (!appVisible && saved > 0) notifyDone(context, job.optString("title", ""), saved, total, job.optString("kind", "audio"));
         return Result.success();
     }
 
-    private static void notifyDone(Context context, String title, int saved, int total) {
+    private static void notifyDone(Context context, String title, int saved, int total, String kind) {
+        boolean tafsir = "tafsir".equals(kind);
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
         if (!manager.areNotificationsEnabled()) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -155,16 +157,22 @@ public class RecitationDownloadWorker extends Worker {
         }
         Intent open = new Intent(context, AtharActivity.class)
             .setAction(Intent.ACTION_VIEW)
-            .putExtra(AtharWidgetProvider.EXTRA_ROUTE, "/mushaf");
+            .putExtra(AtharWidgetProvider.EXTRA_ROUTE, tafsir ? "/tafsir" : "/mushaf");
         PendingIntent tap = PendingIntent.getActivity(context, NOTIFICATION_ID, open,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        String body = saved == total
-            ? context.getString(R.string.downloads_done_all, saved)
-            : context.getString(R.string.downloads_done_some, saved, total);
+        String body = tafsir
+            ? (saved == total
+                ? context.getString(R.string.downloads_tafsir_done_all)
+                : context.getString(R.string.downloads_tafsir_done_some, saved, total))
+            : saved == total
+                ? context.getString(R.string.downloads_done_all, saved)
+                : context.getString(R.string.downloads_done_some, saved, total);
         try {
             manager.notify(NOTIFICATION_ID, new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_athar_notification)
-                .setContentTitle(title.isEmpty() ? context.getString(R.string.downloads_title) : title)
+                .setContentTitle(title.isEmpty()
+                    ? context.getString(tafsir ? R.string.downloads_tafsir_title : R.string.downloads_title)
+                    : title)
                 .setContentText(body)
                 .setContentIntent(tap)
                 .setAutoCancel(true)

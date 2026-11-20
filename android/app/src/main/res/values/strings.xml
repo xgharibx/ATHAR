@@ -63,4 +63,7 @@
     <string name="downloads_title">Recitation saved</string>
     <string name="downloads_done_all">Saved %1$d verses for listening offline</string>
     <string name="downloads_done_some">Saved %1$d of %2$d verses for listening offline</string>
+    <string name="downloads_tafsir_title">Tafsir saved</string>
+    <string name="downloads_tafsir_done_all">Saved the tafsir for reading offline</string>
+    <string name="downloads_tafsir_done_some">Saved the tafsir of %1$d of %2$d surahs for reading offline</string>
 </resources>

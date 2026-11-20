@@ -30,6 +30,9 @@ vi.mock("@/lib/tafsirEditions", () => ({
   getTafsirEditionSlug: (source: string | null) =>
     source === "ar-tafsir-al-tabari" ? source : null,
   loadTafsirSurah: fixtures.loadTafsirSurah,
+  TAFSIR_API_BASE: "https://cdn.example/tafsir",
+  countCachedTafsirSurahs: async () => 0,
+  removeCachedTafsirEdition: async () => {},
 }));
 
 import { TafsirPage } from "@/pages/Tafsir";
@@ -72,6 +75,8 @@ describe("Tafsir page navigation", () => {
     fixtures.loadTafsirSurah.mockImplementationOnce(
       () => new Promise<string[]>((resolve) => { resolveOldRequest = resolve; }),
     );
+    // Changing the surah keeps the chosen commentator.
+    fixtures.loadTafsirSurah.mockImplementationOnce(async () => ["", "BAQARA-TABARI"]);
 
     await renderTafsir("/tafsir?surah=1&source=ar-tafsir-al-tabari");
     await vi.waitFor(() => expect(fixtures.loadTafsirSurah).toHaveBeenCalledWith("ar-tafsir-al-tabari", 1));
@@ -84,7 +89,8 @@ describe("Tafsir page navigation", () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    await vi.waitFor(() => expect(container.textContent).toContain("BAQARA-MUYASSAR"));
+    await vi.waitFor(() => expect(container.textContent).toContain("BAQARA-TABARI"));
+    expect(fixtures.loadTafsirSurah).toHaveBeenLastCalledWith("ar-tafsir-al-tabari", 2);
 
     await act(async () => {
       resolveOldRequest(["", "FATIHA-TABARI"]);
@@ -92,7 +98,7 @@ describe("Tafsir page navigation", () => {
     });
 
     expect(container.querySelector("h2")?.textContent).toBe("البقرة");
-    expect(container.textContent).toContain("BAQARA-MUYASSAR");
+    expect(container.textContent).toContain("BAQARA-TABARI");
     expect(container.textContent).not.toContain("FATIHA-TABARI");
   });
 

@@ -15,8 +15,21 @@ const PERMISSIVE = /^(MIT|ISC|0BSD|BSD-2-Clause|BSD-3-Clause|Apache-2\.0|Zlib|Un
  * - @fontsource/ibm-plex-sans-arabic: the typeface of the «أفق» design, under the SIL
  *   Open Font License 1.1, which allows bundling the font in any app, commercial or
  *   not; it only forbids selling the font files on their own.
+ * - The app's Arabic fonts (src/styles/fonts.css): Amiri, Amiri Quran, Scheherazade New,
+ *   Noto Naskh Arabic, Cairo and Tajawal, under the same SIL Open Font License 1.1.
  */
-const REVIEWED = new Set(["gsap", "webgl-constants", "@capgo/capacitor-media-session", "@fontsource/ibm-plex-sans-arabic"]);
+const REVIEWED = new Set([
+  "gsap",
+  "webgl-constants",
+  "@capgo/capacitor-media-session",
+  "@fontsource/ibm-plex-sans-arabic",
+  "@fontsource/amiri",
+  "@fontsource/amiri-quran",
+  "@fontsource/scheherazade-new",
+  "@fontsource/tajawal",
+  "@fontsource-variable/noto-naskh-arabic",
+  "@fontsource-variable/cairo",
+]);
 
 describe("third-party notices", () => {
   it("covers the packages the app ships", () => {

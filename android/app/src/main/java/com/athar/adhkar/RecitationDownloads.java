@@ -34,6 +34,49 @@ final class RecitationDownloads {
         return new File(context.getFilesDir(), "quran-audio");
     }
 
+    /**
+     * Text saved for reading offline (tafsir surahs, as .json). Kept apart from
+     * the recitations, so the audio budget never removes it and clearing the
+     * recitations leaves it in place.
+     */
+    static File textRoot(Context context) {
+        return new File(context.getFilesDir(), "offline-text");
+    }
+
+    /** The longest tafsir surah (al-Tabari on al-Baqarah) is about 7.4 MB. */
+    static final long MAX_TEXT_BYTES = 16L * 1024 * 1024;
+
+    private static boolean isText(String path) {
+        return path.toLowerCase(java.util.Locale.ROOT).endsWith(".json");
+    }
+
+    /** The saved copy of a text file as UTF-8, or null. */
+    @Nullable
+    static String readText(Context context, String url) {
+        File file = existing(context, url);
+        if (file == null || !file.getAbsolutePath().startsWith(textRoot(context).getAbsolutePath())) return null;
+        if (file.length() > MAX_TEXT_BYTES) return null;
+        try (InputStream in = new java.io.FileInputStream(file)) {
+            java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream((int) file.length());
+            byte[] buffer = new byte[64 * 1024];
+            int read;
+            while ((read = in.read(buffer)) != -1) bytes.write(buffer, 0, read);
+            return new String(bytes.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /** Remove the saved copies of `urls`; returns how many were removed. */
+    static int remove(Context context, List<String> urls) {
+        int removed = 0;
+        for (String url : urls) {
+            File file = existing(context, url);
+            if (file != null && file.delete()) removed++;
+        }
+        return removed;
+    }
+
     /** Where a recitation URL is (or would be) saved; null for anything but a plain https file URL. */
     @Nullable
     static File fileFor(Context context, String url) {
@@ -52,7 +95,7 @@ final class RecitationDownloads {
                 kept.add(segment);
             }
             if (kept.isEmpty()) return null;
-            File file = new File(root(context), parsed.getHost().toLowerCase());
+            File file = new File(isText(path) ? textRoot(context) : root(context), parsed.getHost().toLowerCase());
             for (String segment : kept) file = new File(file, segment);
             return file;
         } catch (IOException | IllegalArgumentException e) {
@@ -86,15 +129,16 @@ final class RecitationDownloads {
             connection.setReadTimeout(30000);
             connection.setInstanceFollowRedirects(true);
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) return false;
+            long limit = isText(target.getName()) ? MAX_TEXT_BYTES : MAX_FILE_BYTES;
             long declared = connection.getContentLengthLong();
-            if (declared > MAX_FILE_BYTES) return false;
+            if (declared > limit) return false;
             long written = 0;
             try (InputStream in = connection.getInputStream(); OutputStream out = new FileOutputStream(partial)) {
                 byte[] buffer = new byte[64 * 1024];
                 int read;
                 while ((read = in.read(buffer)) != -1) {
                     written += read;
-                    if (written > MAX_FILE_BYTES) throw new IOException("file too large");
+                    if (written > limit) throw new IOException("file too large");
                     out.write(buffer, 0, read);
                 }
             }
