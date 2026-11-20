@@ -4,13 +4,13 @@ export const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O, 1/I
 export const MAX_MEMBERS = 30;
 export const JUZ_COUNT = 30;
 
-const INVISIBLE = /[​-‏⁠﻿]/g;
+const INVISIBLE = /[\u200B-\u200F\u2060\uFEFF]/g;
 
 /** A display name: trimmed, single spaces, no invisible marks, at most `max` characters. */
 export function cleanName(input: unknown, max = 40): string | null {
   if (typeof input !== "string") return null;
   const name = input.replace(INVISIBLE, "").replace(/\s+/g, " ").trim().slice(0, max);
-  if (!name || !/^[\p{L}\p{N}\p{M} _.'()\-]+$/u.test(name)) return null;
+  if (!name || !/^[\p{L}\p{N}\p{M} _.'()-]+$/u.test(name)) return null;
   return name;
 }
 
