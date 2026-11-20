@@ -43,6 +43,7 @@
 		A62F5D8330BB8E6F49B43C6A /* WidgetRefreshPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */; };
 		A6FAA9B3C0FFE763C7AA776D /* AppShortcuts.strings in Resources */ = {isa = PBXBuildFile; fileRef = B860B345560F1E6A23920DF9 /* AppShortcuts.strings */; };
 		A7D84291C0A24D96A7A11001 /* AuthBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */; };
+		A7D84291C0A24D96A7A1A001 /* AppleSignInPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A1B001 /* AppleSignInPlugin.swift */; };
 		A7D84291C0A24D96A7A11002 /* ShareBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */; };
 		A7D84291C0A24D96A7A11003 /* AtharBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12003 /* AtharBridgeViewController.swift */; };
 		A7D84291C0A24D96A7A11004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12004 /* PrivacyInfo.xcprivacy */; };
@@ -118,6 +119,7 @@
 		9304B4C812915D80B649FE0E /* ScreenAwakePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenAwakePlugin.swift; sourceTree = "<group>"; };
 		A74ED43392A70614103F986D /* MindfulHealthPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MindfulHealthPlugin.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthBridgePlugin.swift; sourceTree = "<group>"; };
+		A7D84291C0A24D96A7A1B001 /* AppleSignInPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInPlugin.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareBridgePlugin.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12003 /* AtharBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtharBridgeViewController.swift; sourceTree = "<group>"; };
 		A7D84291C0A24D96A7A12004 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -206,6 +208,7 @@
 			isa = PBXGroup;
 			children = (
 				A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */,
+				A7D84291C0A24D96A7A1B001 /* AppleSignInPlugin.swift */,
 				A7D84291C0A24D96A7A12002 /* ShareBridgePlugin.swift */,
 				A7D84291C0A24D96A7A12003 /* AtharBridgeViewController.swift */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
@@ -399,6 +402,7 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				A7D84291C0A24D96A7A11001 /* AuthBridgePlugin.swift in Sources */,
+				A7D84291C0A24D96A7A1A001 /* AppleSignInPlugin.swift in Sources */,
 				A7D84291C0A24D96A7A11002 /* ShareBridgePlugin.swift in Sources */,
 				A7D84291C0A24D96A7A11003 /* AtharBridgeViewController.swift in Sources */,
 				C3A8C972A619C4FD7C74D5F7 /* PrayerActivityAttributes.swift in Sources */,

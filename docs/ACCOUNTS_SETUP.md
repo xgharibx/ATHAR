@@ -216,10 +216,17 @@ Once accounts ship you are collecting personal data, so:
   Location coordinates are also sent to Aladhan when online prayer-time
   calculation is used.
 
-> **iOS note:** offering Google/email sign-in means the App Store build will
-> need **Sign in with Apple** (App Store rule 4.8) before it can be approved.
-> This does not affect the website or the iOS add-to-home-screen web app —
-> only a native App Store submission.
+> **iOS — Sign in with Apple (App Store rule 4.8):** the iPhone app signs in
+> with Apple's own sheet (`ios/App/App/AppleSignInPlugin.swift`) and hands the
+> identity token to Supabase (`signInWithIdToken`). Setup:
+> - Supabase → Authentication → Providers → **Apple**: enabled, with the app's
+>   bundle id `com.athar.adhkar` as the Client ID. The native token flow needs
+>   no Apple secret key (that is only for the web redirect flow).
+> - The app's entitlements declare `com.apple.developer.applesignin`; automatic
+>   signing (`-allowProvisioningUpdates` in the iOS workflow) adds the
+>   capability to the App ID.
+> With Apple in place, the iPhone app offers Google too. The website and the
+> Android app are unchanged (Google + email link).
 
 ---
 

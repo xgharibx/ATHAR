@@ -16,9 +16,11 @@ import { Capacitor } from "@capacitor/core";
 import { LogIn, LogOut, Mail, ShieldCheck, Trash2, Loader2, Check, RefreshCw, CloudOff, AlertTriangle } from "lucide-react";
 
 import {
+  canSignInWithApple,
   deleteAccount,
   displayNameOf,
   isAuthConfigured,
+  signInWithApple,
   signInWithEmail,
   signInWithGoogle,
   signOut,
@@ -44,7 +46,7 @@ export function AccountPanel() {
   const { session, loading, configured } = useAuthSession();
   const sync = useSyncStatus();
   const [email, setEmail] = React.useState("");
-  const [busy, setBusy] = React.useState<null | "google" | "email" | "out" | "delete">(null);
+  const [busy, setBusy] = React.useState<null | "apple" | "google" | "email" | "out" | "delete">(null);
   const [linkSent, setLinkSent] = React.useState(false);
   const [confirmDeleteFor, setConfirmDeleteFor] = React.useState<string | null>(null);
   const [showSignOutAnyway, setShowSignOutAnyway] = React.useState(false);
@@ -57,8 +59,9 @@ export function AccountPanel() {
   if (!configured || !isAuthConfigured()) return null;
 
   // App Store guideline 4.8: an app that offers a third-party login must also offer Sign in with
-  // Apple or an equivalent. On iOS the account is the app's own email link only, which is exempt.
-  const showGoogle = Capacitor.getPlatform() !== "ios";
+  // Apple. The iPhone app now has it (native sheet), so Google is offered there too.
+  const showApple = canSignInWithApple();
+  const showGoogle = showApple || Capacitor.getPlatform() !== "ios";
 
   const user = session?.user ?? null;
   const confirmDelete = Boolean(user?.id && confirmDeleteFor === user.id);
@@ -68,6 +71,13 @@ export function AccountPanel() {
     const res = await signInWithGoogle();
     setBusy(null);
     if (!res.ok) toast.error(res.error ?? "تعذّر تسجيل الدخول");
+  };
+
+  const doApple = async () => {
+    setBusy("apple");
+    const res = await signInWithApple();
+    setBusy(null);
+    if (!res.ok && res.error) toast.error(res.error);
   };
 
   const doEmail = async () => {
@@ -257,6 +267,23 @@ export function AccountPanel() {
             يمكنك استخدام القرآن والأذكار و«أثر» دون حساب؛ الحساب اختياري لمزامنة بياناتك بين أجهزتك.
           </p>
 
+          {showApple && (
+            <button
+              type="button"
+              onClick={doApple}
+              disabled={busy !== null}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-black/15 bg-white px-4 py-2.5 min-h-[44px] text-sm font-semibold text-black transition active:scale-95 disabled:opacity-50"
+            >
+              {busy === "apple" ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <svg viewBox="0 0 384 512" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+                </svg>
+              )}
+              المتابعة باستخدام Apple
+            </button>
+          )}
           {showGoogle && (<>
           <button
             type="button"
