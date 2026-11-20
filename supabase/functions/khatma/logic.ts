@@ -33,9 +33,14 @@ export function isJuz(input: unknown): input is number {
   return Number.isInteger(input) && (input as number) >= 1 && (input as number) <= JUZ_COUNT;
 }
 
+/**
+ * Eight characters from 32: each takes the top five bits of a random byte, so
+ * every character is exactly equally likely (no modulo bias).
+ */
 export function makeCode(randomBytes: Uint8Array): string {
+  if (CODE_ALPHABET.length !== 32) throw new Error("the code alphabet must have 32 characters");
   let out = "";
-  for (let i = 0; i < 8; i++) out += CODE_ALPHABET[randomBytes[i]! % CODE_ALPHABET.length];
+  for (let i = 0; i < 8; i++) out += CODE_ALPHABET[(randomBytes[i]! >>> 3) & 31];
   return out;
 }
 

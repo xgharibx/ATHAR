@@ -184,3 +184,16 @@ describe("khatma request checks", () => {
     expect(parseAction({ action: "drop_table", code: "ABCD2345" })).toBeNull();
   });
 });
+
+describe("khatma codes", () => {
+  it("uses every one of the 32 characters equally across all byte values", async () => {
+    const { makeCode, CODE_ALPHABET } = await import("../supabase/functions/khatma/logic");
+    const counts = new Map<string, number>();
+    for (let b = 0; b < 256; b++) {
+      const ch = makeCode(new Uint8Array(8).fill(b))[0]!;
+      counts.set(ch, (counts.get(ch) ?? 0) + 1);
+    }
+    expect(counts.size).toBe(CODE_ALPHABET.length);
+    expect(new Set(counts.values())).toEqual(new Set([8]));
+  });
+});
