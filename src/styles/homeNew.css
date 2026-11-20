@@ -1,0 +1,421 @@
+/*
+ * «الكلاسيكي الجديد» — the home's own styles (src/pages/HomeNew.tsx).
+ * Built on the classic theme variables, so it follows every classic theme;
+ * nothing here touches the original classic home.
+ *
+ * Amiri for titles and texts, the app's sans for the rest; one ornament (✦);
+ * surfaces only where something is held (the sky, the wird, the mushaf).
+ */
+.nh {
+  --nh-ink: var(--accent);
+  --nh-tint: color-mix(in srgb, var(--accent) 14%, transparent);
+  --nh-sun: #f6c453;
+  --nh-serif: "Amiri", "Amiri Quran", "Noto Naskh Arabic", serif;
+  --nh-line: color-mix(in srgb, var(--fg) 10%, transparent);
+  --nh-soft: color-mix(in srgb, var(--fg) 58%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  padding-bottom: 28px;
+}
+/* A pale accent (gold, white) disappears as text on a light page: deepen it. */
+html.light .nh {
+  --nh-ink: color-mix(in srgb, var(--accent) 42%, var(--fg));
+  --nh-tint: color-mix(in srgb, var(--accent) 30%, transparent);
+  --nh-sun: #e9a316;
+}
+
+.nh-press { transition: transform 0.14s ease, opacity 0.2s ease; -webkit-tap-highlight-color: transparent; }
+.nh-press:active { transform: scale(0.98); }
+
+.nh-eyebrow { font-size: 12.5px; font-weight: 600; color: var(--nh-soft); }
+.nh-orn { color: var(--nh-ink); font-size: 0.62em; opacity: 0.85; }
+
+.nh-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 4px 12px; }
+.nh-h {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--nh-serif);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--fg);
+}
+.nh-aside-link {
+  min-height: 36px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--nh-ink);
+}
+
+.nh-bar { display: block; height: 3px; border-radius: 99px; background: var(--nh-line); overflow: hidden; }
+.nh-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--nh-ink); transition: width 0.5s ease; }
+
+.nh-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--nh-ink);
+}
+
+/* ── I. The sky ────────────────────────────────────────────────────── */
+.nh-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 18px 14px;
+  border-radius: 30px;
+  border: 1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+  background:
+    radial-gradient(90% 70% at 85% 0%, color-mix(in srgb, var(--nh-sun) 12%, transparent), transparent 70%),
+    color-mix(in srgb, var(--card) 90%, transparent);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+}
+/* The eight-pointed star, as a faint lattice behind the title. */
+.nh-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 45% 0;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='white' stroke-width='1'%3E%3Crect x='12' y='12' width='20' height='20'/%3E%3Crect x='12' y='12' width='20' height='20' transform='rotate(45 22 22)'/%3E%3Cpath d='M0 22h7.9M36.1 22H44M22 0v7.9M22 36.1V44'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 44px 44px;
+  -webkit-mask-image: linear-gradient(to left, black, transparent 75%);
+  mask-image: linear-gradient(to left, black, transparent 75%);
+}
+html.light .nh-hero::before {
+  opacity: 0.09;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='black' stroke-width='1'%3E%3Crect x='12' y='12' width='20' height='20'/%3E%3Crect x='12' y='12' width='20' height='20' transform='rotate(45 22 22)'/%3E%3Cpath d='M0 22h7.9M36.1 22H44M22 0v7.9M22 36.1V44'/%3E%3C/g%3E%3C/svg%3E");
+}
+.nh-hero > * { position: relative; }
+.nh-hero-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--nh-serif);
+  font-size: 14.5px;
+  color: color-mix(in srgb, var(--fg) 72%, transparent);
+}
+.nh-hero-friday { font-size: 13px; color: var(--nh-ink); }
+.nh-hero-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  margin-top: 14px;
+  text-align: start;
+}
+.nh-hero-name {
+  font-family: var(--nh-serif);
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--fg);
+}
+.nh-hero-until { font-size: 15px; font-weight: 700; color: var(--nh-ink); }
+
+.nh-sky { display: block; width: 100%; height: auto; margin: 6px 0 2px; overflow: visible; }
+.nh-sky-horizon { stroke: color-mix(in srgb, var(--fg) 16%, transparent); stroke-width: 1; }
+.nh-sky-tick { stroke: color-mix(in srgb, var(--fg) 35%, transparent); stroke-width: 1.2; }
+.nh-sky-past { fill: none; stroke: var(--nh-sun); stroke-width: 2; stroke-linecap: round; opacity: 0.9; }
+.nh-sky-future { fill: none; stroke: color-mix(in srgb, var(--fg) 30%, transparent); stroke-width: 1.4; stroke-dasharray: 2 5; stroke-linecap: round; }
+.nh-sky-dot { fill: var(--bg, #0b0d12); stroke: color-mix(in srgb, var(--fg) 55%, transparent); stroke-width: 1.4; }
+.nh-sky-dot.is-prayed { fill: var(--ok); stroke: var(--ok); }
+.nh-sky-dot.is-next { stroke: var(--nh-ink); stroke-width: 2; }
+.nh-moon { fill: #e8ecf5; filter: drop-shadow(0 0 6px rgba(232, 236, 245, 0.55)); }
+.nh-sun { animation: nh-glow 4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes nh-glow { 50% { opacity: 0.82; } }
+
+.nh-prayers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.nh-prayer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 64px;
+  padding: 6px 0 4px;
+  border-radius: 16px;
+  color: var(--nh-soft);
+  -webkit-tap-highlight-color: transparent;
+}
+.nh-prayer:disabled { opacity: 1; cursor: default; }
+.nh-prayer-mark {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 99px;
+  border: 1.5px dashed color-mix(in srgb, var(--fg) 22%, transparent);
+  color: #fff;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.nh-prayer.is-due .nh-prayer-mark { border-style: solid; border-color: color-mix(in srgb, var(--fg) 45%, transparent); }
+.nh-prayer.is-done .nh-prayer-mark { background: var(--ok); border-color: var(--ok); transform: scale(1.06); }
+.nh-prayer-name { font-size: 12px; font-weight: 600; }
+.nh-prayer-time { font-size: 12.5px; font-weight: 700; color: color-mix(in srgb, var(--fg) 82%, transparent); font-variant-numeric: tabular-nums; }
+.nh-prayer.is-next { background: var(--nh-tint); }
+.nh-prayer.is-next .nh-prayer-name,
+.nh-prayer.is-next .nh-prayer-time { color: var(--nh-ink); }
+.nh-prayer.is-due:active .nh-prayer-mark { transform: scale(0.9); }
+
+/* ── II. The wird of the hour ──────────────────────────────────────── */
+.nh-wird {
+  padding: 18px 18px 14px;
+  border-radius: 26px;
+  border: 1px solid color-mix(in srgb, var(--stroke) 70%, transparent);
+  background: color-mix(in srgb, var(--card) 86%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.nh-wird-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.nh-wird-title { font-family: var(--nh-serif); font-size: 22px; font-weight: 700; color: var(--fg); text-align: start; }
+.nh-wird-count { font-size: 12.5px; font-weight: 600; color: var(--nh-soft); white-space: nowrap; }
+.nh-wird .nh-bar { margin-top: 10px; }
+.nh-wird-text {
+  margin-top: 16px;
+  font-family: var(--nh-serif);
+  font-size: 20px;
+  line-height: 2;
+  color: var(--fg);
+  text-align: start;
+  white-space: pre-line;
+  animation: nh-in 0.35s ease;
+}
+.nh-wird-text.is-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent);
+  mask-image: linear-gradient(to bottom, black 70%, transparent);
+}
+@keyframes nh-in { from { opacity: 0; transform: translateY(4px); } }
+.nh-more-text { display: inline-flex; align-items: center; gap: 4px; min-height: 34px; font-size: 12.5px; font-weight: 700; color: var(--nh-soft); }
+.nh-wird-actions { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.nh-counter { position: relative; width: 72px; height: 72px; flex-shrink: 0; border-radius: 99px; -webkit-tap-highlight-color: transparent; }
+.nh-counter svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.nh-counter-track { fill: var(--nh-tint); stroke: var(--nh-line); stroke-width: 3; }
+.nh-counter-arc { fill: none; stroke: var(--nh-ink); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 0.25s ease; }
+.nh-counter-label { position: relative; display: flex; align-items: baseline; justify-content: center; height: 100%; align-items: center; color: var(--fg); font-variant-numeric: tabular-nums; }
+.nh-counter-label b { font-size: 21px; font-weight: 800; }
+.nh-counter-label small { font-size: 12px; color: var(--nh-soft); }
+.nh-counter-label .nh-counter-once { font-size: 13.5px; font-weight: 800; color: var(--nh-ink); }
+.nh-counter:active { transform: scale(0.93); }
+
+.nh-wird.is-done { text-align: center; padding: 22px 18px 12px; }
+.nh-wird-done-mark {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 99px;
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 16%, transparent);
+}
+.nh-wird.is-done .nh-wird-title { text-align: center; }
+.nh-wird-dua { margin-top: 2px; font-family: var(--nh-serif); font-size: 17px; color: color-mix(in srgb, var(--fg) 75%, transparent); }
+.nh-wird-next { margin-top: 10px; font-size: 12.5px; color: var(--nh-soft); }
+
+/* ── III. Today's trace ────────────────────────────────────────────── */
+.nh-streak { font-size: 12.5px; font-weight: 700; color: var(--nh-ink); white-space: nowrap; }
+.nh-trace {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  padding: 14px 4px;
+  border-radius: 22px;
+  border: 1px solid var(--nh-line);
+  text-align: center;
+}
+.nh-trace-cell { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 0 10px; }
+.nh-trace-cell + .nh-trace-cell { border-inline-start: 1px solid var(--nh-line); }
+.nh-trace-value { color: var(--fg); font-variant-numeric: tabular-nums; line-height: 1; }
+.nh-trace-value b { font-size: 22px; font-weight: 800; }
+.nh-trace-value small { font-size: 11.5px; color: var(--nh-soft); }
+.nh-trace-label { font-size: 12px; color: var(--nh-soft); }
+.nh-trace-cell .nh-bar { width: 100%; max-width: 46px; }
+.nh-trace-cell.is-full .nh-bar > span { background: var(--ok); }
+
+/* ── IV. The Quran ─────────────────────────────────────────────────── */
+.nh-quran {
+  padding: 14px;
+  border-radius: 26px;
+  border: 1px solid color-mix(in srgb, var(--stroke) 70%, transparent);
+  background: color-mix(in srgb, var(--card) 86%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+/* The surah banner of a printed mushaf: a double rule around the name. */
+.nh-banner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 16px 12px 14px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--nh-ink) 45%, transparent);
+  background: color-mix(in srgb, var(--nh-ink) 5%, transparent);
+}
+.nh-banner::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--nh-ink) 22%, transparent);
+  pointer-events: none;
+}
+.nh-banner-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--nh-serif);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--fg);
+}
+.nh-banner-sub { font-size: 13px; color: var(--nh-soft); font-variant-numeric: tabular-nums; }
+.nh-khatma {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  margin-top: 6px;
+  padding: 0 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--nh-soft);
+}
+.nh-quran-actions { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+.nh-primary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border-radius: 99px;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--on-accent, #0a0a0c);
+  background: var(--accent);
+}
+.nh-round {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 99px;
+  color: var(--fg);
+  border: 1px solid var(--nh-line);
+  background: color-mix(in srgb, var(--fg) 4%, transparent);
+}
+.nh-round.is-live { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 50%, transparent); background: color-mix(in srgb, var(--ok) 14%, transparent); }
+
+/* ── V. Your adhkar ────────────────────────────────────────────────── */
+.nh-shelf {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  margin: 0 -16px;
+  padding: 2px 16px 4px;
+  /* Snap to the page's edge, not the screen's. */
+  scroll-padding-inline: 16px;
+}
+.nh-shelf::-webkit-scrollbar { display: none; }
+.nh-book {
+  flex: 0 0 104px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 106px;
+  padding: 12px;
+  border-radius: 20px;
+  text-align: start;
+  border: 1px solid var(--nh-line);
+  background: color-mix(in srgb, var(--book) 7%, color-mix(in srgb, var(--card) 70%, transparent));
+}
+.nh-book-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 18px;
+  line-height: 1;
+  background: color-mix(in srgb, var(--book) 16%, transparent);
+}
+.nh-book-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--fg);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.nh-book-bar { display: block; width: 100%; height: 3px; border-radius: 99px; background: var(--nh-line); overflow: hidden; }
+.nh-book-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--book); }
+
+/* ── VI. Tools ─────────────────────────────────────────────────────── */
+.nh-tools { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.nh-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-height: 80px;
+  font-size: 12px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--fg) 82%, transparent);
+  text-align: center;
+}
+.nh-tool-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 99px;
+  color: var(--nh-ink);
+  border: 1px solid var(--nh-line);
+  background: color-mix(in srgb, var(--card) 70%, transparent);
+}
+
+/* ── VII. The verse of the day ─────────────────────────────────────── */
+.nh-verse { text-align: center; padding: 0 6px; }
+.nh-verse-rule { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.nh-verse-rule > span:not(.nh-orn) { flex: 1; height: 1px; background: var(--nh-line); }
+.nh-verse-rule .nh-orn { font-size: 13px; }
+.nh-verse-text {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  font-family: var(--font-quran, "Amiri Quran", "Amiri", serif);
+  font-size: 23px;
+  line-height: 2.1;
+  color: var(--fg);
+}
+.nh-verse-foot { margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12.5px; color: var(--nh-soft); }
+.nh-verse-share { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 99px; color: var(--nh-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nh-press, .nh-sun, .nh-wird-text, .nh-counter-arc, .nh-bar > span { animation: none !important; transition: none !important; }
+}
