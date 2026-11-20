@@ -9,10 +9,21 @@ import { cn } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { shareOrCopy } from "@/lib/shareTargets";
 import { writeClipboard } from "@/lib/nativeUI";
+import { arNum, westernToArabicDigits } from "@/lib/formatNumber";
+import { vibrate } from "@/lib/haptics";
+import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
+import { useNoorStore } from "@/store/noorStore";
 
 function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
   const [count, setCount] = React.useState(0);
   const done = count >= item.count;
+  const haptics = useNoorStore((s) => s.prefs.enableHaptics !== false);
+  // A tap for each repetition, and a fuller one when the dhikr is complete.
+  const countTo = (next: number) => {
+    const value = Math.max(0, Math.min(next, item.count));
+    if (haptics && value > count) vibrate(value >= item.count ? [15, 60, 30] : 10);
+    setCount(value);
+  };
 
   const doShare = React.useCallback(async () => {
     const text = item.arabic;
@@ -45,12 +56,12 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs px-2.5 py-1 rounded-full bg-accent-12 border border-accent-20 font-semibold text-(--accent)">
-            {idx + 1}
+            {arNum(idx + 1)}
           </span>
-          <span className="text-xs opacity-55">{item.source}</span>
+          <span className="text-xs opacity-55">{westernToArabicDigits(item.source)}</span>
           {item.count > 1 && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-(--card) border border-(--stroke) opacity-70">
-              × {item.count}
+              × {arNum(item.count)}
               {item.countNote ? ` — ${item.countNote}` : ""}
             </span>
           )}
@@ -72,10 +83,13 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
         tabIndex={done ? -1 : 0}
         aria-label="اضغط لزيادة العداد"
         onClick={() => {
-          if (!done) setCount((c) => Math.min(c + 1, item.count));
+          if (!done) countTo(count + 1);
         }}
         onKeyDown={(e) => {
-          if (!done && (e.key === "Enter" || e.key === " ")) setCount((c) => Math.min(c + 1, item.count));
+          if (!done && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            countTo(count + 1);
+          }
         }}
       >
         {item.arabic}
@@ -89,21 +103,21 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
 
       {/* Progress counter */}
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {Array.from({ length: item.count }).map((_, i) => (
             <button type="button"
               key={i}
-              aria-label={i < count ? `تم — خطوة ${i + 1}` : `خطوة ${i + 1}`}
+              aria-label={i < count ? `تم — المرة ${arNum(i + 1)}` : `المرة ${arNum(i + 1)}`}
               aria-pressed={i < count}
-              onClick={() => setCount(i < count ? i : i + 1)}
+              onClick={() => countTo(i < count ? i : i + 1)}
               className={cn(
-                "w-7 h-7 rounded-full border transition-all text-xs font-bold",
+                "w-9 h-9 rounded-full border transition-all text-xs font-bold",
                 i < count
                   ? "bg-ok-20 border-ok-40 text-(--ok)"
                   : "bg-(--card) border-(--stroke) opacity-50"
               )}
             >
-              {i < count ? "✓" : i + 1}
+              {i < count ? "✓" : arNum(i + 1)}
             </button>
           ))}
         </div>
@@ -113,7 +127,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
         {!done && count > 0 && (
           <button type="button"
             onClick={() => setCount(0)}
-            className="text-[11px] opacity-40 hover:opacity-70 transition px-2 py-1 rounded-lg"
+            className="text-[11px] opacity-50 hover:opacity-80 transition px-3 min-h-[36px] rounded-lg shrink-0"
           >
             إعادة
           </button>
@@ -146,7 +160,7 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[11px] opacity-40 tabular-nums">{section.items.length}</span>
+          <span className="text-[11px] opacity-40 tabular-nums">{arNum(section.items.length)}</span>
           {expanded ? <ChevronUp size={15} aria-hidden="true" className="opacity-50" /> : <ChevronDown size={15} aria-hidden="true" className="opacity-50" />}
         </div>
       </button>
@@ -163,6 +177,8 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
 export function RuqyahPage() {
   const navigate = useNavigate();
   useScrollRestoration();
+  // Ruqyah is read slowly, often with the phone set down: keep the screen on.
+  useKeepScreenAwake(true);
 
   return (
     <div className="stack-y-4 page-enter" dir="rtl">

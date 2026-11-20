@@ -8,6 +8,9 @@ import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { shareOrCopy } from "@/lib/shareTargets";
 import { writeClipboard } from "@/lib/nativeUI";
+import { arNum } from "@/lib/formatNumber";
+import { normalizeArabicSearch } from "@/lib/arabic";
+import { vibrate } from "@/lib/haptics";
 
 type FilterTab = "all" | "memorized" | "favorites";
 
@@ -28,6 +31,7 @@ export function AsmaAlHusnaPage() {
   const favorites = useNoorStore((s) => s.asmaHusnaFavorites);
   const toggleMemorized = useNoorStore((s) => s.toggleAsmaMemorized);
   const toggleFavorite = useNoorStore((s) => s.toggleAsmaFavorite);
+  const haptics = useNoorStore((s) => s.prefs.enableHaptics !== false);
 
   const dailyAsmaId = React.useMemo(() => getDailyAsmaId(), []);
 
@@ -45,12 +49,13 @@ export function AsmaAlHusnaPage() {
     if (tab === "memorized") list = list.filter((n) => memorized.includes(n.id));
     else if (tab === "favorites") list = list.filter((n) => favorites.includes(n.id));
     if (!query.trim()) return list;
-    const q = query.trim().toLowerCase();
+    // The names are voweled: «الرحمن» must find «الرَّحْمَٰنُ».
+    const q = normalizeArabicSearch(query.trim().toLowerCase());
     return list.filter(
       (n) =>
-        n.arabic.includes(q) ||
+        normalizeArabicSearch(n.arabic).includes(q) ||
         n.transliteration.toLowerCase().includes(q) ||
-        n.meaning.toLowerCase().includes(q)
+        normalizeArabicSearch(n.meaning.toLowerCase()).includes(q)
     );
   }, [query, tab, memorized, favorites]);
 
@@ -82,7 +87,7 @@ export function AsmaAlHusnaPage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl shrink-0"
+                className="mt-1 p-2 rounded-xl shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -95,7 +100,7 @@ export function AsmaAlHusnaPage() {
                 <h1 className="text-xl font-semibold" style={{ color: "#f59e0b" }}>أسماء الله الحسنى</h1>
                 <div className="text-sm opacity-70 mt-1 tabular-nums">
                   ٩٩ اسمًا من أسماء الله تعالى
-                  {memorizedCount > 0 && `، حفظ ${memorizedCount}/99 (${pct}%)`}
+                  {memorizedCount > 0 && `، حفظت ${arNum(memorizedCount)} من ٩٩ (${arNum(pct)}٪)`}
                 </div>
               </div>
             </div>
@@ -128,7 +133,7 @@ export function AsmaAlHusnaPage() {
                 style={{ color: "var(--fg)" }}
               />
               {query && (
-                <button type="button" onClick={() => { setQuery(""); setExpandedId(null); }} className="opacity-50 text-xs" aria-label="مسح البحث">✕</button>
+                <button type="button" onClick={() => { setQuery(""); setExpandedId(null); }} className="opacity-50 text-xs min-w-[36px] min-h-[36px] -my-2 flex items-center justify-center" aria-label="مسح البحث">✕</button>
               )}
             </div>
             {/* Filter tabs */}
@@ -149,14 +154,14 @@ export function AsmaAlHusnaPage() {
                   role="tab"
                   aria-selected={tab === t}
                   onClick={() => { setTab(t); setExpandedId(null); }}
-                  className="shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
+                  className="shrink-0 px-3 min-h-[36px] rounded-full text-xs font-medium transition-all"
                   style={{
                     background: tab === t ? "#f59e0b" : "var(--card)",
                     color: tab === t ? "var(--on-accent)" : "var(--fg)",
                     border: "1px solid var(--stroke)",
                   }}
                 >
-                  {t === "all" ? `الكل (${ASMA_AL_HUSNA.length})` : t === "memorized" ? `🧠 محفوظة (${memorized.length})` : `❤️ مفضلة (${favorites.length})`}
+                  {t === "all" ? `الكل (${arNum(ASMA_AL_HUSNA.length)})` : t === "memorized" ? `🧠 محفوظة (${arNum(memorized.length)})` : `❤️ مفضلة (${arNum(favorites.length)})`}
                 </button>
               ))}
             </div>
@@ -166,7 +171,7 @@ export function AsmaAlHusnaPage() {
 
       {/* Visually hidden live region for search result count */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {query ? `نتائج البحث: ${filtered.length} من أسماء الله الحسنى` : null}
+        {query ? `نتائج البحث: ${arNum(filtered.length)} من أسماء الله الحسنى` : null}
       </div>
       {/* Grid */}
       <div className="px-4 pt-4 grid grid-cols-2 gap-3" role="list" aria-label="أسماء الله الحسنى">
@@ -180,9 +185,9 @@ export function AsmaAlHusnaPage() {
               role="listitem"
               className={`rounded-2xl transition-all duration-200${!isExpanded ? " cv-auto" : ""}`}
               style={{
-                background: isExpanded ? "var(--accent)" : "var(--card)",
-                border: `1px solid ${isExpanded ? "transparent" : "var(--stroke)"}`,
-                color: isExpanded ? "var(--on-accent)" : "var(--fg)",
+                background: isExpanded ? "color-mix(in srgb, var(--accent) 13%, var(--card))" : "var(--card)",
+                border: `1px solid ${isExpanded ? "color-mix(in srgb, var(--accent) 45%, var(--stroke))" : "var(--stroke)"}`,
+                color: "var(--fg)",
                 gridColumn: isExpanded ? "span 2" : undefined,
               }}
             >
@@ -197,15 +202,15 @@ export function AsmaAlHusnaPage() {
                 <div className="flex items-start justify-between">
                   <span
                     className="text-xs opacity-60 mt-1"
-                    style={{ color: isExpanded ? "color-mix(in srgb, var(--on-accent) 55%, transparent)" : "var(--fg)" }}
+                    style={{ color: "var(--fg)" }}
                   >
-                    {name.id}
+                    {arNum(name.id)}
                   </span>
                   <div className="flex-1 text-center">
                     {name.id === dailyAsmaId && (
                       <div className="flex items-center justify-center gap-1 mb-1">
-                        <Star size={10} aria-hidden="true" className="fill-current" style={{ color: isExpanded ? "var(--on-accent)" : "var(--accent)" }} />
-                        <span className="text-[10px] font-semibold" style={{ color: isExpanded ? "var(--on-accent)" : "var(--accent)" }}>اسم اليوم</span>
+                        <Star size={10} aria-hidden="true" className="fill-current" style={{ color: "var(--accent)" }} />
+                        <span className="text-[10px] font-semibold" style={{ color: "var(--accent)" }}>اسم اليوم</span>
                       </div>
                     )}
                     <div className="text-2xl font-bold mb-1" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
@@ -227,7 +232,7 @@ export function AsmaAlHusnaPage() {
                 style={{
                   maxHeight: isExpanded ? "400px" : "0",
                   paddingBottom: isExpanded ? "12px" : "0",
-                  color: "color-mix(in srgb, var(--on-accent) 88%, transparent)",
+                  color: "var(--fg)",
                 }}
               >
                 {name.benefit}
@@ -239,27 +244,27 @@ export function AsmaAlHusnaPage() {
                   onClick={(e) => { e.stopPropagation(); void shareAsma(name); }}
                   aria-label="مشاركة"
                   className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-black/10"
-                  style={{ color: isExpanded ? "color-mix(in srgb, var(--on-accent) 50%, transparent)" : "var(--fg)", opacity: 0.5 }}
+                  style={{ color: "var(--fg)", opacity: 0.5 }}
                 >
                   <Share2 size={16} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); toggleMemorized(name.id); }}
+                  onClick={(e) => { e.stopPropagation(); if (haptics) vibrate(isMem ? 6 : [12, 50, 12]); toggleMemorized(name.id); }}
                   aria-label={isMem ? "إلغاء الحفظ" : "تمييز كمحفوظ"}
                   aria-pressed={isMem}
                   className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-black/10"
-                  style={{ color: isMem ? (isExpanded ? "var(--on-accent)" : "var(--accent)") : (isExpanded ? "color-mix(in srgb, var(--on-accent) 40%, transparent)" : "var(--fg)"), opacity: isMem ? 1 : 0.4 }}
+                  style={{ color: isMem ? ("var(--accent)") : ("var(--fg)"), opacity: isMem ? 1 : 0.4 }}
                 >
                   <Brain size={16} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); toggleFavorite(name.id); }}
+                  onClick={(e) => { e.stopPropagation(); if (haptics) vibrate(isFav ? 6 : 12); toggleFavorite(name.id); }}
                   aria-label={isFav ? "إلغاء التفضيل" : "إضافة للمفضلة"}
                   aria-pressed={isFav}
                   className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-black/10"
-                  style={{ color: isFav ? "#ef4444" : (isExpanded ? "color-mix(in srgb, var(--on-accent) 40%, transparent)" : "var(--fg)"), opacity: isFav ? 1 : 0.4 }}
+                  style={{ color: isFav ? "#ef4444" : ("var(--fg)"), opacity: isFav ? 1 : 0.4 }}
                 >
                   <Heart size={16} aria-hidden="true" fill={isFav ? "#ef4444" : "none"} />
                 </button>
