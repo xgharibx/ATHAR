@@ -913,10 +913,10 @@ export function InsightsPage() {
               type="button"
               onClick={shareIbadatCard}
               disabled={ibadatSharing}
-              className="text-[10px] opacity-60 hover:opacity-100 flex items-center gap-1 transition"
+              className="text-[11px] opacity-60 hover:opacity-100 flex items-center gap-1 transition min-h-[44px] px-2 -my-2 rounded-xl"
               aria-label="مشاركة بطاقة العبادة"
             >
-              <Share2 size={11} />
+              <Share2 size={12} aria-hidden="true" />
               <span>{ibadatSharing ? "..." : "شارك"}</span>
             </button>
           </div>
@@ -1186,7 +1186,7 @@ export function InsightsPage() {
                 type="button"
                 onClick={() => setHeatmapView(v)}
                 aria-pressed={heatmapView === v}
-                className={`text-[10px] px-2 py-0.5 rounded-full border transition ${
+                className={`text-[11px] px-3 min-h-[36px] rounded-full border transition ${
                   heatmapView === v
                     ? "border-accent-40 bg-accent-15 text-(--accent)"
                     : "border-(--stroke) opacity-50"

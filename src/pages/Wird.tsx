@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Pickers";
-import { arNum } from "@/lib/formatNumber";
+import { arCount, arNum } from "@/lib/formatNumber";
+import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useNoorStore, ibadahDayKeyOf } from "@/store/noorStore";
@@ -53,7 +54,13 @@ export function WirdPage() {
   const days = React.useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(today, i - 6)), [today]);
   const upsert = useNoorStore((s) => s.upsertWirdItem);
   const remove = useNoorStore((s) => s.removeWirdItem);
-  const adjust = useNoorStore((s) => s.adjustWird);
+  const adjustInStore = useNoorStore((s) => s.adjustWird);
+  const haptics = useNoorStore((s) => s.prefs.enableHaptics !== false);
+  // A light tap for each step, and a fuller one when an item reaches its target.
+  const adjust = (id: string, delta: number, onDay: string, completes = false) => {
+    if (haptics) vibrate(completes ? [15, 60, 30] : delta > 0 ? 10 : 6);
+    adjustInStore(id, delta, onDay);
+  };
   const external = useExternal();
 
   const [historicalDay, setHistoricalDay] = React.useState<string | null>(null);
@@ -299,15 +306,18 @@ export function WirdPage() {
                   <button type="button" aria-label={`إنقاص ${it.title}`} disabled={(log[`${day}|${it.id}`] ?? 0) <= 0}
                     onClick={() => adjust(it.id, -step, day)}
                     className="w-10 h-9 rounded-xl border border-(--stroke) flex items-center justify-center disabled:opacity-30"><Minus size={15} /></button>
-                  <button type="button" aria-label={`زيادة ${it.title}`} onClick={() => adjust(it.id, step, day)}
+                  <button type="button" aria-label={`زيادة ${it.title}`} onClick={() => adjust(it.id, step, day, r < 1 && count + step >= it.target)}
                     className="w-12 h-9 rounded-xl bg-(--accent) text-(--on-accent) flex items-center justify-center"><Plus size={16} /></button>
                   {r < 1 ? (
-                    <button type="button" className="text-[11px] text-(--muted) underline" onClick={() => adjust(it.id, it.target - count, day)}>إتمام</button>
+                    <button type="button" className="text-[11px] text-(--muted) underline min-h-[36px] px-2" onClick={() => adjust(it.id, it.target - count, day, true)}>إتمام</button>
                   ) : (
                     <span className="text-[11px] text-(--accent) flex items-center gap-1"><Check size={13} /> تمّ</span>
                   )}
                   {linked && <span className="text-[10px] text-(--muted) mr-auto">من التطبيق</span>}
-                  <span className="text-[10px] text-(--muted) mr-auto">{streak(log, it, today, external) > 1 ? `${arNum(streak(log, it, today, external))} أيام متتابعة` : ""}</span>
+                  <span className="text-[10px] text-(--muted) mr-auto">{(() => {
+                    const run = streak(log, it, today, external);
+                    return run > 1 ? arCount(run, { one: "يومًا متتابعًا", two: "يومان متتابعان", few: "أيام متتابعة" }) : "";
+                  })()}</span>
                 </div>
               </div>
             );
@@ -332,7 +342,7 @@ export function WirdPage() {
                   {weekRow(log, it, today, external).map((c) => (
                     <td key={c.day} className="py-1">
                       <span
-                        aria-label={c.due ? `${c.day}: ${Math.round(c.ratio * 100)}٪` : `${c.day}: غير مستحق`}
+                        aria-label={c.due ? `${dayName(c.day)} ${arNum(Number(c.day.slice(8)))}: ${arNum(Math.round(c.ratio * 100))}٪` : `${dayName(c.day)} ${arNum(Number(c.day.slice(8)))}: ليس من أيامه`}
                         className={cn("inline-block w-4 h-4 rounded-full align-middle",
                           !c.due ? "border border-dashed border-(--stroke)" : c.done ? "bg-(--accent)" : c.ratio > 0 ? "bg-(--accent) opacity-40" : "bg-(--stroke)")}
                       />
