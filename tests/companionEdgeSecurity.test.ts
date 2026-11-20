@@ -486,6 +486,18 @@ describe("Companion Edge Function access controls", () => {
     expect(body).toMatchObject({ model: "MiniMax-M3.1-Flash", output_config: { effort: "low" } });
   });
 
+  it("thinks deeper, with the full token room, only for questions that deserve it", async () => {
+    const ask = async (content: string) => {
+      const app = edge();
+      await app.sendRaw(JSON.stringify({ max_tokens: 512, system: "synthetic system prompt", messages: [{ role: "user", content }] }), "Bearer synthetic-user-token");
+      return upstreamBodies(app).at(-1) ?? {};
+    };
+    expect(await ask("السلام عليكم")).toMatchObject({ output_config: { effort: "low" }, max_tokens: 4096 });
+    expect(await ask("اشرح لي الفرق بين الفرض والواجب بالتفصيل")).toMatchObject({ output_config: { effort: "medium" }, max_tokens: 8192 });
+    expect(await ask("ما حكم قضاء الصلاة الفائتة لمن تركها سنوات عمدًا؟")).toMatchObject({ output_config: { effort: "medium" } });
+    expect(await ask("كم مرة أقول سبحان الله؟")).toMatchObject({ output_config: { effort: "low" } });
+  });
+
   const searchQuestion = {
     system: "synthetic system prompt",
     messages: [{ role: "user", content: "synthetic question that is long enough to search" }],

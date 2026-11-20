@@ -9,3 +9,6 @@ verify_jwt = false
 
 [functions.leaderboard]
 verify_jwt = false
+
+[functions.khatma]
+verify_jwt = false

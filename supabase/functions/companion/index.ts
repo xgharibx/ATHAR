@@ -31,7 +31,14 @@ const MAX_MESSAGES = 16;
 const MAX_HISTORY_CHARS = 48_000;
 const MAX_LATEST_USER_MESSAGE_CHARS = 8_000;
 
-const MINIMAX_MODEL: string = "MiniMax-M3.1-Flash";
+const DEFAULT_MODEL = "MiniMax-M3.1-Flash";
+// The answering model, chosen on the server (COMPANION_MODEL secret): the
+// default Flash model reasons at a tunable depth; MiniMax-M3 (twice the price)
+// takes reasoning on or off. Anything else falls back to the default.
+const MINIMAX_MODEL: string = (() => {
+  const chosen = (globalThis as { Deno?: { env?: { get(k: string): string | undefined } } }).Deno?.env?.get("COMPANION_MODEL")?.trim();
+  return chosen === "MiniMax-M3" || chosen === DEFAULT_MODEL ? chosen : DEFAULT_MODEL;
+})();
 const MINIMAX_UPSTREAM = "https://api.minimax.io/anthropic/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
 
@@ -43,6 +50,15 @@ const ANTHROPIC_VERSION = "2023-06-01";
 const MAX_TOKENS_CAP = 8192;
 const MIN_MAX_TOKENS = 4096;
 const REASONING_EFFORT = "low";
+// A question that deserves more thought (a ruling with its evidence, a long
+// question, a comparison, a plan, a request for detail) is answered with
+// deeper reasoning; everything else stays fast. Deeper reasoning takes longer,
+// so its request may run longer too, and a regenerated reply is always fast.
+const DEEP_REASONING_EFFORT = "medium";
+const DEEP_UPSTREAM_TIMEOUT_MS = 100_000;
+const DEEP_QUESTION_MIN_CHARS = 280;
+const DETAIL_REQUEST =
+  /بالتفصيل|تفصيل|فصّل|فصل لي|اشرح|اشرحي|وضّح|وضح لي|ما الفرق|الفرق بين|قارن|مقارنة|خطة|برنامج|جدول|رتب لي|رتّب لي|خطوات|أدلة|الأدلة|أقوال العلماء|الخلاف|المذاهب/;
 // The quota functions accept at most this many output tokens per reservation.
 const MAX_RESERVED_OUTPUT_TOKENS = 4096;
 const WEB_SEARCH_TOOL_NAME = "web_search";
@@ -71,9 +87,17 @@ const limiter = new Map<string, { count: number; startAt: number }>();
 
 /** The two supported models take different reasoning controls. */
 function reasoningSettings(effort: string): Record<string, unknown> {
-  return MINIMAX_MODEL === "MiniMax-M3.1-Flash"
-    ? { output_config: { effort } }
-    : {};
+  if (MINIMAX_MODEL === "MiniMax-M3.1-Flash") return { output_config: { effort } };
+  // MiniMax-M3 has no depth setting: it reasons only when asked to.
+  return effort === REASONING_EFFORT ? {} : { thinking: { type: "adaptive" } };
+}
+
+/** Whether a question is worth deeper reasoning. */
+function wantsDeepReasoning(question: string): boolean {
+  const text = question.trim();
+  if (text.length >= DEEP_QUESTION_MIN_CHARS) return true;
+  if (DETAIL_REQUEST.test(text)) return true;
+  return RULING_QUESTION.test(text) && text.length >= 40;
 }
 
 /** Wording that marks a question as needing a scholarly ruling or explanation. */
@@ -321,7 +345,9 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   // model; whatever a caller names is replaced with it. The provider's own
   // search tool is never handed to the answering call: its results are
   // unfiltered, so the search runs as a separate step below.
-  const buildUpstreamBody = (serverBlocks: string[]): Record<string, unknown> => {
+  const deep = wantsDeepReasoning(boundedMessages.messages[boundedMessages.messages.length - 1]?.content ?? "");
+  const buildUpstreamBody = (serverBlocks: string[], fast = false): Record<string, unknown> => {
+    const thinkDeeper = deep && !fast;
     // The base instructions are the server's. Of what a client sends after
     // its own base instructions, the description of the moment is kept.
     const clientBlocks: Array<{ type: string; text: string }> = (Array.isArray(body.system) ? body.system : [body.system])
@@ -337,12 +363,13 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     ];
     return {
       model: MINIMAX_MODEL,
-      max_tokens: maxOutputTokens,
+      // Reasoning counts toward max_tokens: a deeper answer gets the full room.
+      max_tokens: thinkDeeper ? MAX_TOKENS_CAP : maxOutputTokens,
       stream: body.stream === true,
       system,
       messages: boundedMessages.messages,
       ...(clientTools.length > 0 ? { tools: clientTools } : {}),
-      ...reasoningSettings(REASONING_EFFORT),
+      ...reasoningSettings(thinkDeeper ? DEEP_REASONING_EFFORT : REASONING_EFFORT),
     };
   };
 
@@ -503,7 +530,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
       const retry = await fetch(MINIMAX_UPSTREAM, {
         method: "POST",
         headers: upstreamHeaders,
-        body: JSON.stringify({ ...buildUpstreamBody([...serverBlocks, RETRY_INSTRUCTION]), stream: false, tools: undefined }),
+        body: JSON.stringify({ ...buildUpstreamBody([...serverBlocks, RETRY_INSTRUCTION], true), stream: false, tools: undefined }),
         signal: AbortSignal.timeout(RETRY_TIMEOUT_MS),
       });
       if (retry.ok) {
@@ -528,7 +555,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   const answer = async (onStage: (stage: Stage) => void): Promise<Answer> => {
     const gathered = await gather(onStage);
     onStage("writing");
-    const upstreamSignal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
+    const upstreamSignal = AbortSignal.timeout(deep ? DEEP_UPSTREAM_TIMEOUT_MS : UPSTREAM_TIMEOUT_MS);
     let upstream: Response;
     try {
       upstream = await fetch(MINIMAX_UPSTREAM, {

@@ -1,5 +1,5 @@
 /**
- * Choosing between the two designs (src/lib/design.ts). Each choice is drawn
+ * Choosing between the designs (src/lib/design.ts). Each choice is drawn
  * as a small phone so the difference is seen, not described.
  */
 import * as React from "react";
@@ -37,9 +37,12 @@ function useSetDesign() {
   const setPrefs = useNoorStore((s) => s.setPrefs);
   return React.useCallback((mode: DesignMode) => {
     // «أفق» opens at night, its most beautiful hour; the palette can be changed after.
-    setPrefs(mode === "ufuq" ? { designMode: mode, ufuqPalette: "night" } : { designMode: mode });
+    setPrefs(mode === "ufuq" ? { designMode: mode, ufuqPalette: "night" } : { designMode: mode, lastClassicDesign: mode });
     vibrate(12);
-    toast.success(mode === "ufuq" ? "أهلًا بك في «أُفُق»" : "عدتَ إلى التصميم الكلاسيكي", { duration: 1800 });
+    toast.success(
+      mode === "ufuq" ? "أهلًا بك في «أُفُق»" : mode === "classic-new" ? "جرّب «الكلاسيكي الجديد»: صفحة رئيسية مرتّبة" : "عدتَ إلى التصميم الكلاسيكي",
+      { duration: 1800 },
+    );
   }, [setPrefs]);
 }
 
@@ -63,7 +66,7 @@ export function DesignPicker() {
             <span className="design-choice-label">
               <span className="design-choice-check" aria-hidden="true">{active ? <Check size={12} strokeWidth={3} /> : null}</span>
               {mode.label}
-              {mode.id === "ufuq" ? <span className="design-choice-new">جديد</span> : null}
+              {mode.id === "classic-new" ? <span className="design-choice-new">تجريبي</span> : null}
             </span>
             <span className="design-choice-hint">{mode.hint}</span>
           </button>

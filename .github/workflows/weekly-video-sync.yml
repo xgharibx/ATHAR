@@ -1,0 +1,95 @@
+name: Weekly video sync
+
+# Every Friday: add the videos the library's channels posted this week
+# (tools/scripts/sync-new-videos.mjs — public endpoints, no API key; existing
+# records are never changed or removed) and open a pull request with them.
+# Nothing reaches the app until that pull request is reviewed and merged.
+#
+# A pull request opened with the workflow token does not start other
+# workflows by itself, so this one starts CI on the new branch explicitly
+# (workflow_dispatch is the one event that token may trigger).
+#
+# Opening the pull request needs Settings → Actions → General → "Allow GitHub
+# Actions to create and approve pull requests". Without it, the branch is
+# still pushed and the run's summary links to open the pull request by hand.
+on:
+  schedule:
+    - cron: "23 1 * * 5" # Friday 01:23 UTC (04:23 in Cairo and Riyadh)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: weekly-video-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Add this week's videos
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 26
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Sync new videos
+        id: sync
+        run: |
+          node tools/scripts/sync-new-videos.mjs | tee "$RUNNER_TEMP/sync.log"
+          summary="$(grep -E '^\+[0-9]+ videos' "$RUNNER_TEMP/sync.log" | tail -1 || true)"
+          echo "summary=${summary}" >> "$GITHUB_OUTPUT"
+          if git diff --quiet -- public/data; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check the updated library
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          node -e 'for (const f of ["public/data/video-library.json", "public/data/shorts.json"]) JSON.parse(require("fs").readFileSync(f, "utf8")); console.log("library files parse")'
+          npx vitest run tests/shortsFeed.test.ts tests/shortsTopics.test.ts tests/shortsHistory.test.ts
+
+      - name: Open the pull request
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUMMARY: ${{ steps.sync.outputs.summary }}
+        run: |
+          branch="auto/videos-$(date -u +%Y-%m-%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add public/data/video-library.json public/data/shorts.json
+          git commit -m "Video library: this week's new videos" -m "${SUMMARY:-New videos from the library's channels.}" -m "Added by the weekly video sync (tools/scripts/sync-new-videos.mjs). Existing records are unchanged."
+          git push --force-with-lease -u origin "$branch"
+
+          body="$(printf '%s\n\n%s\n\n%s\n' \
+            "Weekly sync of the video library: ${SUMMARY:-new videos from the library's channels}." \
+            "Made by \`.github/workflows/weekly-video-sync.yml\` with \`tools/scripts/sync-new-videos.mjs\`: it only adds videos the channels posted since the last sync; existing records are never changed or removed. The Shorts index was rebuilt." \
+            "Merge to publish them in the app and on the site.")"
+          if gh pr create --base main --head "$branch" --title "Video library: new videos ($(date -u +%Y-%m-%d))" --body "$body"; then
+            gh workflow run ci.yml --ref "$branch" || echo "::warning::Could not start CI on $branch"
+            echo "Opened a pull request for $branch. ${SUMMARY}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Could not open the pull request (allow Actions to create pull requests in the repository settings)."
+            echo "Branch pushed: open the pull request at ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/main...${branch}?expand=1 — ${SUMMARY}" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Nothing new
+        if: steps.sync.outputs.changed != 'true'
+        run: echo "No new videos this week; nothing to open." >> "$GITHUB_STEP_SUMMARY"
