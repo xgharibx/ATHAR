@@ -8,6 +8,8 @@
  *   byArtist     time per reciter or munshid (your most listened)
  *   favorites    tracks and reciters you saved
  *   playlists    your own lists
+ *   downloads    tracks saved on the phone for listening offline (the apps)
+ *   autoSave     save what you listen to as you listen (the apps)
  */
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
@@ -29,6 +31,8 @@ type ListenData = {
   dailyGoalMinutes: number;
   preferred: { reciterId: number; moshafId: number } | null;
   rate: number;
+  downloads: Record<string, ListenTrack & { savedAt: number }>;
+  autoSave: boolean;
 };
 
 type ListenActions = {
@@ -47,6 +51,9 @@ type ListenActions = {
   setDailyGoal(minutes: number): void;
   setPreferred(reciterId: number, moshafId: number): void;
   setRate(rate: number): void;
+  markDownloaded(tracks: ListenTrack[]): void;
+  forgetDownloads(ids: string[]): void;
+  setAutoSave(on: boolean): void;
 };
 
 export type ListenState = ListenData & ListenActions;
@@ -73,6 +80,8 @@ const initial: ListenData = {
   dailyGoalMinutes: 15,
   preferred: null,
   rate: 1,
+  downloads: {},
+  autoSave: true,
 };
 
 export const useListenStore = create<ListenState>()(
@@ -173,6 +182,29 @@ export const useListenStore = create<ListenState>()(
 
       setRate(rate) {
         set({ rate: Math.max(0.5, Math.min(2, rate)) });
+      },
+
+      markDownloaded(tracks) {
+        if (!tracks.length) return;
+        set((s) => {
+          const downloads = { ...s.downloads };
+          const at = Date.now();
+          for (const t of tracks) downloads[t.id] = { ...t, savedAt: downloads[t.id]?.savedAt ?? at };
+          return { downloads };
+        });
+      },
+
+      forgetDownloads(ids) {
+        if (!ids.length) return;
+        set((s) => {
+          const downloads = { ...s.downloads };
+          for (const id of ids) delete downloads[id];
+          return { downloads };
+        });
+      },
+
+      setAutoSave(on) {
+        set({ autoSave: on });
       },
     }),
     {

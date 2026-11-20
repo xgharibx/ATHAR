@@ -51,6 +51,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "downloadedBytes", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearDownloads", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "savedCount", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "savedUrls", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "readDownloaded", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "removeDownloads", returnType: CAPPluginReturnPromise),
     ]
@@ -454,7 +455,9 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let urls = (call.getArray("urls", String.self) ?? []).compactMap { URL(string: $0) }
         let maxBytes = Int64(call.getDouble("maxBytes") ?? Double(1024 * 1024 * 1024))
         let title = call.getString("title") ?? ""
-        let kind = call.getString("kind") == "tafsir" ? "tafsir" : "audio"
+        let requested = call.getString("kind") ?? ""
+        let kind = requested == "tafsir" || requested == "listen" ? requested : "audio"
+        let maxFileBytes = Int64(max(0, call.getDouble("maxFileBytes") ?? 0))
         DispatchQueue.main.async {
             let downloads = RecitationBackgroundDownloads.shared
             downloads.onProgress = { [weak self] batch, done, total in
@@ -466,7 +469,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
                 waiting.resolve(["saved": result.saved, "failed": result.failed, "evicted": result.evicted])
             }
             // Waiting before the batch starts, in case it is already complete.
-            downloads.start(urls: urls, maxBytes: max(1, maxBytes), title: title, kind: kind) { batch in
+            downloads.start(urls: urls, maxBytes: max(1, maxBytes), title: title, kind: kind, maxFileBytes: maxFileBytes) { batch in
                 self.waitingDownloads[batch] = call
             }
         }
@@ -490,6 +493,18 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let urls = (call.getArray("urls", String.self) ?? []).compactMap { URL(string: $0) }
         DispatchQueue.global(qos: .utility).async {
             call.resolve(["count": urls.filter { RecitationFiles.existing(for: $0) != nil }.count])
+        }
+    }
+
+    /// Which of `urls` are saved on the phone.
+    @objc func savedUrls(_ call: CAPPluginCall) {
+        let urls = call.getArray("urls", String.self) ?? []
+        DispatchQueue.global(qos: .userInitiated).async {
+            let saved = urls.filter { text in
+                guard let url = URL(string: text) else { return false }
+                return RecitationFiles.existing(for: url) != nil
+            }
+            call.resolve(["saved": saved])
         }
     }
 
@@ -569,17 +584,28 @@ enum RecitationFiles {
 
     /// Where a recitation URL is (or would be) saved; nil for anything but a plain https file URL.
     static func file(for url: URL) -> URL? {
-        guard url.scheme?.lowercased() == "https", let host = url.host?.lowercased() else { return nil }
-        let segments = url.pathComponents.filter { $0 != "/" }.suffix(2)
-        guard !segments.isEmpty else { return nil }
+        guard url.scheme?.lowercased() == "https", let host = url.host?.lowercased(),
+              let encodedPath = URLComponents(url: url, resolvingAgainstBaseURL: false)?.percentEncodedPath else { return nil }
+        // Verses (everyayah) and tafsir surahs keep their last two segments, as
+        // they always have. Whole surahs and other long recordings keep their
+        // whole path: several reciters' folders end alike (".../r1/001.mp3"),
+        // and one must never play for another. Segments stay percent-encoded,
+        // so Arabic file names are safe.
+        let all = encodedPath.split(separator: "/").map(String.init)
+        let shortPath = rootFor(url) == textRoot || host == "everyayah.com" || host.hasSuffix(".everyayah.com")
+        let segments = shortPath ? Array(all.suffix(2)) : all
+        guard !segments.isEmpty, segments.count <= 10 else { return nil }
         var file = rootFor(url).appendingPathComponent(host, isDirectory: true)
         for segment in segments {
-            guard segment != ".", segment != "..",
-                  segment.range(of: "^[A-Za-z0-9._-]+$", options: .regularExpression) != nil else { return nil }
+            guard segment != ".", segment != "..", segment.count <= 200,
+                  segment.range(of: "^[A-Za-z0-9._%-]+$", options: .regularExpression) != nil else { return nil }
             file.appendPathComponent(segment)
         }
         return file
     }
+
+    /// The most a batch may allow per file: a whole surah in high quality.
+    static let maxLongFileBytes: Int64 = 600 * 1024 * 1024
 
     static func existing(for url: URL) -> URL? {
         guard let file = file(for: url),

@@ -210,3 +210,32 @@ export function formatListened(totalSeconds: number): string {
   const m = minutes % 60;
   return m ? `${arabicDigits(h)} س ${arabicDigits(m)} د` : `${arabicDigits(h)} س`;
 }
+
+/**
+ * «عشوائي من كل القرّاء»: a mix of whole surahs across every reciter and
+ * every surah — a random reciter, one of their recitations, one of the surahs
+ * it has — never the same reciter twice in a row, nor the same surah twice.
+ */
+export function randomMix(catalog: Pick<ListenCatalog, "reciters">, count = 80, random: () => number = Math.random): ListenTrack[] {
+  const choices = catalog.reciters
+    .map((reciter) => ({ reciter, moshafs: reciter.m.map((m) => ({ m, surahs: parseSurahList(m.l) })).filter((x) => x.surahs.length) }))
+    .filter((x) => x.moshafs.length);
+  if (!choices.length) return [];
+  const pick = <T,>(items: readonly T[]): T => items[Math.floor(random() * items.length) % items.length]!;
+  const out: ListenTrack[] = [];
+  const usedSurahs = new Set<number>();
+  let lastReciter = -1;
+  for (let guard = 0; out.length < count && guard < count * 20; guard++) {
+    const { reciter, moshafs } = pick(choices);
+    if (reciter.id === lastReciter && choices.length > 1) continue;
+    const { m, surahs } = pick(moshafs);
+    const fresh = surahs.filter((n) => !usedSurahs.has(n));
+    if (!fresh.length) continue;
+    const surah = pick(fresh);
+    usedSurahs.add(surah);
+    if (usedSurahs.size >= 114) usedSurahs.clear();
+    lastReciter = reciter.id;
+    out.push(surahTrack(reciter, m, surah));
+  }
+  return out;
+}

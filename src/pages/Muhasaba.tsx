@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { arNum } from "@/lib/formatNumber";
+import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useNoorStore, ibadahDayKeyOf } from "@/store/noorStore";
@@ -51,6 +52,7 @@ export function MuhasabaPage() {
   const prayerLog = useNoorStore((s) => s.prayerLog);
   const today = useNoorStore((s) => ibadahDayKeyOf(s));
   const setMuhasaba = useNoorStore((s) => s.setMuhasaba);
+  const haptics = useNoorStore((s) => s.prefs.enableHaptics !== false);
   const setGender = useNoorStore((s) => s.setMuhasabaGender);
   const toggleHidden = useNoorStore((s) => s.toggleMuhasabaHidden);
 
@@ -309,7 +311,7 @@ export function MuhasabaPage() {
                 return (
                   <button
                     key={label} type="button" aria-pressed={sheetLevel === n}
-                    onClick={() => { setMuhasaba(sheetDay, sheetDeed.id, n); setOpen(null); }}
+                    onClick={() => { if (haptics) vibrate(10); setMuhasaba(sheetDay, sheetDeed.id, n); setOpen(null); }}
                     className={cn("flex items-center gap-3 rounded-2xl px-4 py-3 text-start text-sm border", sheetLevel === n ? "border-(--accent) bg-(--card-2) font-semibold" : "border-transparent bg-(--card)")}
                   >
                     <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[11px]", on ? "bg-(--accent) text-(--on-accent)" : "bg-(--stroke)")}>

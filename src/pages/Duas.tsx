@@ -8,6 +8,9 @@ import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { shareOrCopy } from "@/lib/shareTargets";
 import { writeClipboard } from "@/lib/nativeUI";
+import { arNum, westernToArabicDigits } from "@/lib/formatNumber";
+import { normalizeArabicSearch } from "@/lib/arabic";
+import { vibrate } from "@/lib/haptics";
 
 export function DuasPage() {
   const navigate = useNavigate();
@@ -27,6 +30,7 @@ export function DuasPage() {
 
   const duaFavorites = useNoorStore((s) => s.duaFavorites);
   const toggleDuaFavorite = useNoorStore((s) => s.toggleDuaFavorite);
+  const haptics = useNoorStore((s) => s.prefs.enableHaptics !== false);
 
   const showFavorites = activeTab === "__favorites__";
 
@@ -34,16 +38,25 @@ export function DuasPage() {
     DUAS_CATEGORIES.find((c) => c.id === activeTab) ?? DUAS_CATEGORIES[0]!;
 
   const displayedDuas = React.useMemo(() => {
+    const searching = query.trim().length > 0;
     let list = showFavorites
       ? DUAS_CATEGORIES.flatMap((c) => c.duas).filter((d) => duaFavorites.includes(d.id))
-      : category.duas;
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
+      : searching
+        ? DUAS_CATEGORIES.flatMap((c) => c.duas)
+        : category.duas;
+    if (searching) {
+      // The duas are fully voweled: «ربنا» must find «رَبَّنَا». A category's
+      // name («الكرب») finds the duas filed under it.
+      const q = normalizeArabicSearch(query.trim().toLowerCase());
+      const inCategory = new Set(
+        DUAS_CATEGORIES.filter((c) => normalizeArabicSearch(c.label).includes(q)).flatMap((c) => c.duas.map((d) => d.id)),
+      );
       list = list.filter(
         (d) =>
-          d.arabic.includes(q) ||
-          (d.meaning ?? "").toLowerCase().includes(q) ||
-          (d.source ?? "").toLowerCase().includes(q)
+          inCategory.has(d.id) ||
+          normalizeArabicSearch(d.arabic).includes(q) ||
+          normalizeArabicSearch((d.meaning ?? "").toLowerCase()).includes(q) ||
+          normalizeArabicSearch((d.source ?? "").toLowerCase()).includes(q)
       );
     }
     return list;
@@ -82,7 +95,7 @@ export function DuasPage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl shrink-0"
+                className="mt-1 p-2 rounded-xl shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -117,7 +130,7 @@ export function DuasPage() {
                 style={{ color: "var(--fg)" }}
               />
               {query && (
-                <button type="button" onClick={() => setQuery("")} className="opacity-50 text-xs" aria-label="مسح البحث">✕</button>
+                <button type="button" onClick={() => setQuery("")} className="opacity-50 text-xs min-w-[36px] min-h-[36px] -my-2 flex items-center justify-center" aria-label="مسح البحث">✕</button>
               )}
             </div>
             {/* Tabs */}
@@ -138,14 +151,14 @@ export function DuasPage() {
                   aria-controls="duas-list-panel"
                   aria-selected={activeTab === cat.id}
                   onClick={(e) => selectTab(cat.id, e.currentTarget)}
-                  className="shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
+                  className="shrink-0 px-3 min-h-[40px] rounded-full text-sm font-medium transition-all"
                   style={{
                     background: activeTab === cat.id ? "#059669" : "var(--card)",
                     color: activeTab === cat.id ? "#fff" : "var(--fg)",
                     border: "1px solid var(--stroke)",
                   }}
                 >
-                  {cat.icon} {cat.label} <span className="opacity-60 text-xs">({cat.duas.length})</span>
+                  {cat.icon} {cat.label} <span className="opacity-60 text-xs">({arNum(cat.duas.length)})</span>
                 </button>
               ))}
               <button type="button"
@@ -154,14 +167,14 @@ export function DuasPage() {
                 aria-controls="duas-list-panel"
                 aria-selected={activeTab === "__favorites__"}
                 onClick={(e) => selectTab("__favorites__", e.currentTarget)}
-                className="shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
+                className="shrink-0 px-3 min-h-[40px] rounded-full text-sm font-medium transition-all"
                 style={{
                   background: activeTab === "__favorites__" ? "#ef4444" : "var(--card)",
                   color: activeTab === "__favorites__" ? "#fff" : "var(--fg)",
                   border: "1px solid var(--stroke)",
                 }}
               >
-                ❤️ المفضلة ({duaFavorites.length})
+                ❤️ المفضلة ({arNum(duaFavorites.length)})
               </button>
             </div>
           </div>
@@ -170,7 +183,7 @@ export function DuasPage() {
 
       {/* Visually hidden live region for result count */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {query ? `نتائج البحث: ${displayedDuas.length} دعاء` : null}
+        {query ? `نتائج البحث: ${arNum(displayedDuas.length)}` : null}
       </div>
       {/* Duas list */}
       <div id="duas-list-panel" className="px-4 pt-4 stack-y-4" role="list" aria-label="قائمة الأدعية">
@@ -178,7 +191,7 @@ export function DuasPage() {
         {!showFavorites && !query && (
           <div className="flex items-center justify-between pb-1">
             <span className="text-xs opacity-50" style={{ color: "var(--fg)" }}>
-              {displayedDuas.length} دعاء
+              {arNum(displayedDuas.length)} دعاء
             </span>
             <span className="text-xs opacity-40 font-arabic" style={{ color: "var(--fg)" }}>
               {category.icon} {category.label}
@@ -205,7 +218,7 @@ export function DuasPage() {
                   <button type="button"
                     aria-label="مشاركة الدعاء"
                     onClick={() => void shareDua(dua.arabic, dua.source)}
-                    className="p-1.5 rounded-lg transition-colors"
+                    className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg transition-colors"
                     style={{ color: "var(--fg)", opacity: 0.45 }}
                   >
                     <Share2 size={14} aria-hidden="true" />
@@ -213,7 +226,7 @@ export function DuasPage() {
                   <button type="button"
                     aria-label={copied === dua.id ? "تم النسخ" : "نسخ الدعاء"}
                     onClick={() => copyDua(dua.id, dua.arabic)}
-                    className="p-1.5 rounded-lg transition-colors"
+                    className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg transition-colors"
                     style={{ color: "var(--accent)" }}
                   >
                     {copied === dua.id ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
@@ -221,8 +234,8 @@ export function DuasPage() {
                   <button type="button"
                     aria-label={isFav ? "إلغاء التفضيل" : "إضافة للمفضلة"}
                     aria-pressed={isFav}
-                    onClick={() => toggleDuaFavorite(dua.id)}
-                    className="p-1.5 rounded-lg transition-colors"
+                    onClick={() => { if (haptics) vibrate(isFav ? 6 : 12); toggleDuaFavorite(dua.id); }}
+                    className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg transition-colors"
                     style={{ color: isFav ? "#ef4444" : "var(--fg)", opacity: isFav ? 1 : 0.4 }}
                   >
                     <Heart size={14} aria-hidden="true" fill={isFav ? "#ef4444" : "none"} />
@@ -232,7 +245,7 @@ export function DuasPage() {
                   className="text-xs px-2 py-0.5 rounded-full"
                   style={{ background: "var(--accent)", color: "var(--on-accent)", opacity: 0.85 }}
                 >
-                  {idx + 1}
+                  {arNum(idx + 1)}
                 </span>
               </div>
 
@@ -257,7 +270,7 @@ export function DuasPage() {
                 className="text-xs px-2 py-0.5 rounded-full"
                 style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
               >
-                {dua.source}
+                {westernToArabicDigits(dua.source ?? "")}
               </span>
             </div>
           );

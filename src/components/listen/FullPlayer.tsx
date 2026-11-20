@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   ChevronDown,
+  CloudDownload,
   Gauge,
   Heart,
   ListMusic,
@@ -44,6 +45,8 @@ import {
   toggleShuffle,
 } from "@/lib/listen/player";
 import { useListenStore } from "@/lib/listen/store";
+import { canDownloadListening, downloadTracks } from "@/lib/listen/downloads";
+import toast from "react-hot-toast";
 import { closeFullPlayer } from "@/lib/listen/ui";
 import { useListenPlayer } from "@/lib/listen/useListen";
 import { ayahAt, loadAyahTimings, type AyahTiming } from "@/lib/listen/timing";
@@ -360,6 +363,9 @@ export default function FullPlayer() {
             <span>المصحف</span>
           </button>
         ) : null}
+        {canDownloadListening() ? (
+          <DownloadExtra track={track} />
+        ) : null}
         <button type="button" onClick={() => void shareText(`أستمع إلى ${track.title} بصوت ${track.artist}`, "السماع")}>
           <Share2 size={19} aria-hidden="true" />
           <span>مشاركة</span>
@@ -370,5 +376,30 @@ export default function FullPlayer() {
       {sheet === "queue" ? <QueueSheet onClose={() => setSheet(null)} /> : null}
     </div>,
     document.body,
+  );
+}
+
+/** «تنزيل» for what is playing: saved on the phone, in the background. */
+function DownloadExtra({ track }: { track: import("@/lib/listen/catalog").ListenTrack }) {
+  const saved = useListenStore((s) => Boolean(s.downloads[track.id]));
+  const [busy, setBusy] = React.useState(false);
+  return (
+    <button
+      type="button"
+      className={saved ? "is-on" : ""}
+      disabled={saved || busy}
+      onClick={() => {
+        setBusy(true);
+        void downloadTracks([track], { title: track.title })
+          .then((r) => {
+            if (r && r.saved >= r.total) toast.success("حُفظت للاستماع دون إنترنت", { duration: 1800 });
+            else if (r) toast.error("تعذّر التنزيل، أعد المحاولة عند توفر الاتصال");
+          })
+          .finally(() => setBusy(false));
+      }}
+    >
+      <CloudDownload size={19} aria-hidden="true" />
+      <span>{saved ? "على الهاتف" : busy ? "جارٍ التنزيل…" : "تنزيل"}</span>
+    </button>
   );
 }

@@ -8,6 +8,7 @@ import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { shareOrCopy } from "@/lib/shareTargets";
 import { arCount, arNum } from "@/lib/formatNumber";
 import { entryBadge } from "@/lib/knowledgeEntry";
+import { normalizeArabicSearch } from "@/lib/arabic";
 
 
 /** Shared shape for every knowledge-library entry (mirrors ProphetStory). */
@@ -272,11 +273,12 @@ export function KnowledgeSectionPage({ config }: { config: KnowledgeSectionConfi
     let list = entries;
     if (showBookmarksOnly) list = list.filter((s) => bookmarks.has(s.id));
     if (!query.trim()) return list;
-    const q = query.trim();
+    const q = normalizeArabicSearch(query.trim());
+    const has = (text: string) => normalizeArabicSearch(text).includes(q);
     return list.filter((s) =>
-      s.nameAr.includes(q) ||
-      s.summary.includes(q) ||
-      (s.lessons ?? []).some((l) => l.includes(q))
+      has(s.nameAr) ||
+      has(s.summary) ||
+      (s.lessons ?? []).some(has)
     );
   }, [entries, query, showBookmarksOnly, bookmarks]);
 

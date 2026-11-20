@@ -83,6 +83,7 @@ export function QadaaPage() {
   useScrollRestoration();
   const q = useQadaa();
   const logQadaa = useNoorStore((s) => s.logQadaa);
+  const haptics = useNoorStore((s) => s.prefs.enableHaptics !== false);
   const logQadaaBatch = useNoorStore((s) => s.logQadaaBatch);
   const undoQadaa = useNoorStore((s) => s.undoQadaa);
   const setQadaaSettings = useNoorStore((s) => s.setQadaaSettings);
@@ -162,7 +163,7 @@ export function QadaaPage() {
 
   const bump = (k: PrayerKey) => {
     logQadaa(prayerKey(k), 1);
-    vibrate(8);
+    if (haptics) vibrate(8);
   };
 
   const planModes: Array<{ id: PlanMode; label: string }> = [
@@ -416,7 +417,7 @@ export function QadaaPage() {
                       type="button"
                       aria-label={`صمتُ يومًا من ${arYear(f.year)}`}
                       disabled={f.remaining <= 0}
-                      onClick={() => logQadaa(fastKey(f.year), 1)}
+                      onClick={() => { logQadaa(fastKey(f.year), 1); if (haptics) vibrate(8); }}
                       className="w-12 h-10 rounded-2xl flex items-center justify-center bg-(--accent) text-(--on-accent) disabled:opacity-30"
                     >
                       <Plus size={18} />

@@ -175,6 +175,54 @@ export async function signInWithGoogle(): Promise<AuthResult> {
   return { ok: true };
 }
 
+/** Whether this device offers «تسجيل الدخول عبر Apple»: the iPhone and iPad app. */
+export function canSignInWithApple(): boolean {
+  return Capacitor.getPlatform() === "ios";
+}
+
+type AppleSignInResult = { identityToken: string; user: string; email?: string; givenName?: string; familyName?: string };
+
+/** A random nonce: Apple signs its SHA-256 into the token, Supabase checks it against this. */
+export function makeNonce(bytes = 32): string {
+  const values = new Uint8Array(bytes);
+  crypto.getRandomValues(values);
+  return Array.from(values, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * «تسجيل الدخول عبر Apple», with the system sheet (Face ID, Hide My Email) —
+ * no browser. Apple's identity token goes to Supabase, which verifies it
+ * (signature, audience = the app's bundle id, nonce) and signs the person in.
+ * Apple shares the name only the first time, so it is saved then.
+ */
+export async function signInWithApple(): Promise<AuthResult> {
+  const supabase = getSupabase();
+  if (!supabase) return { ok: false, error: "الحسابات غير مُهيّأة بعد" };
+  if (!canSignInWithApple()) return { ok: false, error: "تسجيل الدخول عبر Apple متاح في تطبيق iPhone" };
+
+  const nonce = makeNonce();
+  let apple: AppleSignInResult;
+  try {
+    const { registerPlugin } = await import("@capacitor/core");
+    const AppleSignIn = registerPlugin<{ signIn(o: { nonce: string }): Promise<AppleSignInResult> }>("AppleSignIn");
+    apple = await AppleSignIn.signIn({ nonce });
+  } catch (error) {
+    const code = (error as { code?: string } | null)?.code;
+    // Closing the sheet is the person's choice, not an error.
+    if (code === "CANCELED") return { ok: false };
+    return { ok: false, error: "تعذّر تسجيل الدخول عبر Apple. حاول مجددًا" };
+  }
+
+  const { error } = await supabase.auth.signInWithIdToken({ provider: "apple", token: apple.identityToken, nonce });
+  if (error) return { ok: false, error: error.message };
+
+  const fullName = [apple.givenName, apple.familyName].filter(Boolean).join(" ").trim();
+  if (fullName) {
+    await supabase.auth.updateUser({ data: { full_name: fullName, name: fullName } }).catch(() => {});
+  }
+  return { ok: true };
+}
+
 /** Send a passwordless magic link. */
 export async function signInWithEmail(email: string): Promise<AuthResult> {
   const supabase = getSupabase();

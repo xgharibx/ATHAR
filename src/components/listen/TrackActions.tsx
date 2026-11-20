@@ -5,11 +5,12 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
-import { BookOpen, Heart, ListEnd, ListPlus, ListStart, Plus } from "lucide-react";
+import { BookOpen, CloudDownload, Heart, ListEnd, ListPlus, ListStart, Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { ListenTrack } from "@/lib/listen/catalog";
 import { enqueue, playNext } from "@/lib/listen/player";
 import { useListenStore } from "@/lib/listen/store";
+import { canDownloadListening, downloadTracks, removeDownloadedTracks } from "@/lib/listen/downloads";
 
 export function TrackActions({ track, onClose }: { track: ListenTrack; onClose: () => void }) {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export function TrackActions({ track, onClose }: { track: ListenTrack; onClose: 
   const playlists = useListenStore((s) => s.playlists);
   const addToPlaylist = useListenStore((s) => s.addToPlaylist);
   const createPlaylist = useListenStore((s) => s.createPlaylist);
+  const downloaded = useListenStore((s) => Boolean(s.downloads[track.id]));
   const [picking, setPicking] = React.useState(false);
   const [newName, setNewName] = React.useState("");
 
@@ -53,6 +55,31 @@ export function TrackActions({ track, onClose }: { track: ListenTrack; onClose: 
             <button type="button" className="ls-option" onClick={() => setPicking(true)}>
               <ListPlus size={19} aria-hidden="true" /> إضافة إلى قائمة من قوائمك
             </button>
+            {canDownloadListening() ? (
+              downloaded ? (
+                <button
+                  type="button"
+                  className="ls-option"
+                  onClick={() => { void removeDownloadedTracks([track]); done("حُذف التنزيل"); }}
+                >
+                  <Trash2 size={19} aria-hidden="true" /> حذف التنزيل من الهاتف
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="ls-option"
+                  onClick={() => {
+                    done("بدأ التنزيل — يكمل في الخلفية");
+                    void downloadTracks([track], { title: track.title }).then((r) => {
+                      if (r && r.saved >= r.total) toast.success(`حُفظت «${track.title}» للاستماع دون إنترنت`, { duration: 2200 });
+                      else if (r) toast.error("تعذّر التنزيل، أعد المحاولة عند توفر الاتصال");
+                    });
+                  }}
+                >
+                  <CloudDownload size={19} aria-hidden="true" /> تنزيل للاستماع دون إنترنت
+                </button>
+              )
+            ) : null}
             {track.surah ? (
               <button type="button" className="ls-option" onClick={() => { onClose(); navigate(`/mushaf?surah=${track.surah}&ayah=1`); }}>
                 <BookOpen size={19} aria-hidden="true" /> قراءتها في المصحف

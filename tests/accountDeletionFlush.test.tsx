@@ -11,6 +11,8 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/authClient", () => ({
+  canSignInWithApple: () => false,
+  signInWithApple: vi.fn(),
   deleteAccount: mocks.deleteAccount,
   displayNameOf: () => "Synthetic account",
   isAuthConfigured: () => true,

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Check, MoreVertical, Pause, Play } from "lucide-react";
+import { Check, CloudDownload, MoreVertical, Pause, Play } from "lucide-react";
 import { arabicDigits, formatDuration, type ListenTrack } from "@/lib/listen/catalog";
 import { toggleListen } from "@/lib/listen/player";
 import { useListenStore } from "@/lib/listen/store";
@@ -16,6 +16,7 @@ export function TrackRow({ track, n, onPlay, meta }: { track: ListenTrack; n: nu
   const playing = isCurrent && (now.status === "playing" || now.status === "loading");
   const saved = useListenStore((s) => s.history.find((h) => h.track.id === track.id));
   const heard = useListenStore((s) => (track.surah ? (s.heard[String(track.surah)] ?? 0) > 0 && track.kind !== "tawsheeh" : false));
+  const downloaded = useListenStore((s) => Boolean(s.downloads[track.id]));
   const [actions, setActions] = React.useState(false);
   const resumePct = saved && saved.durationMs && saved.positionMs > 20_000 ? Math.min(100, (saved.positionMs / saved.durationMs) * 100) : 0;
 
@@ -30,6 +31,11 @@ export function TrackRow({ track, n, onPlay, meta }: { track: ListenTrack; n: nu
           <span className="ls-row-meta">
             {meta}
             {track.durationS ? <span>{formatDuration(track.durationS)}</span> : null}
+            {downloaded ? (
+              <span className="inline-flex items-center gap-0.5 text-(--accent)">
+                <CloudDownload size={12} aria-hidden="true" /> على الهاتف
+              </span>
+            ) : null}
             {heard ? (
               <span className="inline-flex items-center gap-0.5 text-(--accent)">
                 <Check size={12} aria-hidden="true" /> سمعتها
