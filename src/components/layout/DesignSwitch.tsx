@@ -52,8 +52,10 @@ export function DesignSwitch({ className }: { className?: string }) {
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const [seen, setSeen] = React.useState(hasSeen);
   const ref = React.useRef<HTMLButtonElement>(null);
+  const lastClassic = useNoorStore((s) => s.prefs.lastClassicDesign) ?? "classic";
   const ufuq = design === "ufuq";
-  const target: DesignMode = ufuq ? "classic" : "ufuq";
+  // Back from «أفق» to whichever classic design was in use.
+  const target: DesignMode = ufuq ? lastClassic : "ufuq";
 
   const change = () => {
     vibrate(14);
@@ -65,7 +67,7 @@ export function DesignSwitch({ className }: { className?: string }) {
         // Not remembered; the hint shows again next time, which is harmless.
       }
     }
-    const apply = () => setPrefs({ designMode: target });
+    const apply = () => setPrefs(ufuq ? { designMode: target } : { designMode: target, lastClassicDesign: design === "classic-new" ? "classic-new" : "classic" });
     const doc = document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
     const root = document.documentElement;
     const rect = ref.current?.getBoundingClientRect();

@@ -149,6 +149,8 @@ export type Preferences = {
   theme: NoorTheme;
   /** «الكلاسيكي» or the new «أفق» design (src/lib/design.ts). Absent means classic. */
   designMode?: DesignMode;
+  /** The classic design last used, for the quick switch back from «أفق». */
+  lastClassicDesign?: "classic" | "classic-new";
   /** «أفق» palette: follow the phone or the prayer times, or always day / night. */
   ufuqPalette?: UfuqPalette;
   /** The look inside «أفق»: the living garden (default) or plain paper. */
@@ -835,6 +837,7 @@ function normalizePrefs(value: unknown): Preferences {
     clearReading: typeof source.clearReading === "boolean" ? source.clearReading : DEFAULT_PREFS.clearReading,
     keepScreenAwake: typeof source.keepScreenAwake === "boolean" ? source.keepScreenAwake : DEFAULT_PREFS.keepScreenAwake,
     designMode: normalizeDesignMode(source.designMode),
+    lastClassicDesign: source.lastClassicDesign === "classic-new" ? "classic-new" : "classic",
     ufuqPalette: normalizeUfuqPalette(source.ufuqPalette),
     ufuqLook: normalizeUfuqLook(source.ufuqLook),
     gardenLive: typeof source.gardenLive === "boolean" ? source.gardenLive : true,

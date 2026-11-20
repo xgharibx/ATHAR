@@ -13,7 +13,13 @@
  * design reads that attribute.
  */
 
-export type DesignMode = "classic" | "ufuq";
+/**
+ * «الكلاسيكي الجديد» ("classic-new") is the classic design with a reorganised
+ * home (src/pages/HomeNew.tsx), offered on trial beside the two. Everything
+ * except the home is the classic design's, since nothing outside «أفق» reads
+ * more than whether the design is «أفق».
+ */
+export type DesignMode = "classic" | "classic-new" | "ufuq";
 
 /**
  * «أفق» has a day and a night palette, chosen outright or followed: from the
@@ -32,6 +38,7 @@ export type UfuqResolvedPalette = "day" | "night";
 
 export const DESIGN_MODES: ReadonlyArray<{ id: DesignMode; label: string; hint: string }> = [
   { id: "classic", label: "الكلاسيكي", hint: "تصميم أثر المعتاد بسماته الكثيرة" },
+  { id: "classic-new", label: "الكلاسيكي الجديد", hint: "الكلاسيكي نفسه بصفحة رئيسية مرتّبة من جديد" },
   { id: "ufuq", label: "أُفُق", hint: "تصميم جديد كليًّا: هادئ، واضح، فاخر" },
 ];
 
@@ -63,7 +70,12 @@ export const UFUQ_GARDEN_META_COLORS: Record<UfuqResolvedPalette, string> = {
 export const DESIGN_BOOTSTRAP_STORAGE_KEY = "athar_design_v1";
 
 export function normalizeDesignMode(value: unknown): DesignMode {
-  return value === "ufuq" ? "ufuq" : "classic";
+  return value === "ufuq" || value === "classic-new" ? value : "classic";
+}
+
+/** The two classic designs share everything but their home. */
+export function isClassicFamily(mode: DesignMode | undefined): boolean {
+  return mode !== "ufuq";
 }
 
 /** «أفق» opens at night unless the person chose otherwise. */

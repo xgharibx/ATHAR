@@ -145,7 +145,7 @@ function useGroupSummaries(): Record<SettingsGroupId, string> {
         { live: "الحديقة الحيّة", plain: "بسيط" }[prefs.ufuqLook ?? "live"],
         prefs.ufuqPalette === "day" ? "نهار" : prefs.ufuqPalette === "night" ? "ليل" : prefs.ufuqPalette === "time" ? "حسب الوقت" : "حسب الهاتف",
       ].join(" · ")
-      : `الكلاسيكي، ${themeLabel(prefs.theme)}`,
+      : `${prefs.designMode === "classic-new" ? "الكلاسيكي الجديد" : "الكلاسيكي"}، ${themeLabel(prefs.theme)}`,
     home: `${arNum(shownCards)} من ${arNum(order.length)} بطاقات`,
     privacy: Capacitor.isNativePlatform() ? (prefs.biometricLock ? "القفل مفعّل" : "القفل متوقف") : "الذكاء الاصطناعي",
     data: "النسخ الاحتياطي والمسح",

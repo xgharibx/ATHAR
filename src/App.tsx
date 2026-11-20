@@ -59,12 +59,15 @@ function S({ children }: { children: React.ReactNode }) {
 const loadHomeRoute = () => import("@/pages/Home").then((m) => ({ default: m.HomePage }));
 const ClassicHomePage = React.lazy(loadHomeRoute);
 const UfuqHomePage = React.lazy(() => import("@/components/ufuq/UfuqHome"));
+const ClassicNewHomePage = React.lazy(() => import("@/pages/HomeNew").then((m) => ({ default: m.ClassicNewHomePage })));
 const ExplorePage = React.lazy(() => import("@/pages/Explore"));
 
-/** «اليوم» in the new design, the classic home otherwise. */
+/** «اليوم» in «أفق», the reorganised home in «الكلاسيكي الجديد», the classic home otherwise. */
 function HomePage() {
-  const ufuq = useNoorStore((s) => s.prefs.designMode === "ufuq");
-  return ufuq ? <UfuqHomePage /> : <ClassicHomePage />;
+  const design = useNoorStore((s) => s.prefs.designMode);
+  if (design === "ufuq") return <UfuqHomePage />;
+  if (design === "classic-new") return <ClassicNewHomePage />;
+  return <ClassicHomePage />;
 }
 const CategoryPage = React.lazy(() => import("@/pages/Category").then((m) => ({ default: m.CategoryPage })));
 const SearchPage = React.lazy(() => import("@/pages/Search").then((m) => ({ default: m.SearchPage })));

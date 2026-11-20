@@ -35,6 +35,8 @@ describe("choosing a design", () => {
     expect(normalizeDesignMode(undefined)).toBe("classic");
     expect(normalizeDesignMode("something")).toBe("classic");
     expect(normalizeDesignMode("ufuq")).toBe("ufuq");
+    // The reorganised classic home, a third design on trial.
+    expect(normalizeDesignMode("classic-new")).toBe("classic-new");
     expect(normalizeUfuqPalette("night")).toBe("night");
     expect(normalizeUfuqPalette("blue")).toBe("night");
     expect(normalizeUfuqPalette("auto")).toBe("auto");
