@@ -55,7 +55,7 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
     }
 
     /// Queue a batch; `registered` gets its id before anything can finish.
-    func start(urls: [URL], maxBytes: Int64, title: String, registered: (String) -> Void) {
+    func start(urls: [URL], maxBytes: Int64, title: String, kind: String = "audio", registered: (String) -> Void) {
         let batch = UUID().uuidString
         registered(batch)
         var pending: [URL] = []
@@ -81,6 +81,7 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
                 "failed": failedUpfront,
                 "maxBytes": NSNumber(value: maxBytes),
                 "title": title,
+                "kind": kind,
             ]
             store(all)
         }
@@ -117,7 +118,7 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
     }
 
     private func finishIfComplete(_ batch: String) {
-        var finished: (Result, String, Int)?
+        var finished: (Result, String, Int, String)?
         queue.sync {
             var all = batches()
             guard let entry = all[batch],
@@ -127,25 +128,33 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
             let maxBytes = (entry["maxBytes"] as? NSNumber)?.int64Value ?? Int64(1024 * 1024 * 1024)
             let evicted = RecitationFiles.enforceBudget(maxBytes: max(1, maxBytes), keeping: [])
             finished = (Result(saved: entry["saved"] as? Int ?? 0, failed: entry["failed"] as? Int ?? 0, evicted: evicted),
-                        entry["title"] as? String ?? "", total)
+                        entry["title"] as? String ?? "", total, entry["kind"] as? String ?? "audio")
         }
         guard let finished else { return }
-        let (result, title, total) = finished
+        let (result, title, total, kind) = finished
         DispatchQueue.main.async {
             self.onFinished?(batch, result)
             if UIApplication.shared.applicationState != .active, result.saved > 0 {
-                Self.notifyDone(title: title, saved: result.saved, total: total)
+                Self.notifyDone(title: title, saved: result.saved, total: total, kind: kind)
             }
         }
     }
 
-    private static func notifyDone(title: String, saved: Int, total: Int) {
+    private static func notifyDone(title: String, saved: Int, total: Int, kind: String) {
         let content = UNMutableNotificationContent()
-        content.title = title.isEmpty ? "اكتمل تنزيل التلاوة" : title
-        content.body = saved == total
-            ? "حُفظت \(saved) آية للاستماع دون إنترنت"
-            : "حُفظت \(saved) من \(total) آية للاستماع دون إنترنت"
-        content.userInfo = ["cap_extra": ["route": "/mushaf"]]
+        if kind == "tafsir" {
+            content.title = title.isEmpty ? "اكتمل تنزيل التفسير" : title
+            content.body = saved == total
+                ? "حُفظ التفسير للقراءة دون إنترنت"
+                : "حُفظ تفسير \(saved) من \(total) سورة للقراءة دون إنترنت"
+            content.userInfo = ["cap_extra": ["route": "/tafsir"]]
+        } else {
+            content.title = title.isEmpty ? "اكتمل تنزيل التلاوة" : title
+            content.body = saved == total
+                ? "حُفظت \(saved) آية للاستماع دون إنترنت"
+                : "حُفظت \(saved) من \(total) آية للاستماع دون إنترنت"
+            content.userInfo = ["cap_extra": ["route": "/mushaf"]]
+        }
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "athar-downloads", content: content, trigger: nil))
     }
 
@@ -166,15 +175,12 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
            let target = RecitationFiles.file(for: url) {
             let fileManager = FileManager.default
             let size = (try? fileManager.attributesOfItem(atPath: location.path)[.size] as? Int64) ?? 0
-            if size > 0, size <= RecitationFiles.maxFileBytes {
+            if size > 0, size <= RecitationFiles.maxBytes(for: url) {
                 do {
                     try fileManager.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
                     if fileManager.fileExists(atPath: target.path) { try fileManager.removeItem(at: target) }
                     try fileManager.moveItem(at: location, to: target)
-                    var values = URLResourceValues()
-                    values.isExcludedFromBackup = true
-                    var root = RecitationFiles.root
-                    try? root.setResourceValues(values)
+                    RecitationFiles.excludeFromBackup(RecitationFiles.rootFor(url))
                     saved = true
                 } catch {
                     saved = false

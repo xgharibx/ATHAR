@@ -42,4 +42,7 @@
     <string name="downloads_title">اكتمل تنزيل التلاوة</string>
     <string name="downloads_done_all">حُفظت %1$d آية للاستماع دون إنترنت</string>
     <string name="downloads_done_some">حُفظت %1$d من %2$d آية للاستماع دون إنترنت</string>
+    <string name="downloads_tafsir_title">اكتمل تنزيل التفسير</string>
+    <string name="downloads_tafsir_done_all">حُفظ التفسير للقراءة دون إنترنت</string>
+    <string name="downloads_tafsir_done_some">حُفظ تفسير %1$d من %2$d سورة للقراءة دون إنترنت</string>
 </resources>

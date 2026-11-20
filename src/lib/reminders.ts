@@ -7,6 +7,8 @@ import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
 import { parseWebReminderClickDetail } from "@/lib/webReminderActions";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 import { useNoorStore } from "@/store/noorStore";
+import { KHATMA_REMINDER_ROUTE } from "@/lib/khatmaReminder";
+import { localTodayISO } from "@/lib/qadaa";
 import { getLocalDateKey, parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { DEFAULT_PRAYER_COORDINATES, readCachedPrayerCoordinates } from "@/lib/prayerLocation";
 import { adhanAlarmPreferences, adhanAlarmStatus, alarmPrayers } from "@/lib/adhanAlarm";
@@ -1584,6 +1586,14 @@ export async function applyNotificationAction(pending: PendingAction): Promise<b
     // Insights and the streak read, instead of only dismissing the shade.
     // The reminder's own deep link tells us WHICH adhkar section it was.
     const target = typeof route === "string" ? route : typeof extra?.route === "string" ? extra.route : "";
+    // The Quran plan's reminder: «تم» records today's wird as read.
+    if (target === KHATMA_REMINDER_ROUTE) {
+      const state = useNoorStore.getState();
+      const today = localTodayISO();
+      if (!state.khatmaStartISO || !state.khatmaDays) return false;
+      state.setKhatmaDone(today, true);
+      return Boolean(useNoorStore.getState().khatmaDone?.[today]);
+    }
     const match = /^\/c\/([A-Za-z0-9_-]+)/.exec(target);
     if (match?.[1]) {
       useNoorStore.getState().recordSectionCompletion(match[1]);

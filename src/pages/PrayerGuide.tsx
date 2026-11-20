@@ -7,6 +7,10 @@ import { PRAYER_STEPS } from "@/data/prayerGuide";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { shareOrCopy } from "@/lib/shareTargets";
 import { writeClipboard } from "@/lib/nativeUI";
+import { arNum } from "@/lib/formatNumber";
+import { vibrate } from "@/lib/haptics";
+import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
+import { useNoorStore } from "@/store/noorStore";
 
 async function sharePrayerStep(step: { title: string; arabic?: string; description: string }) {
   const text = [step.title, step.arabic, step.description].filter(Boolean).join("\n\n");
@@ -16,11 +20,20 @@ async function sharePrayerStep(step: { title: string; arabic?: string; descripti
 export function PrayerGuidePage() {
   const navigate = useNavigate();
   const [expandedId, setExpandedId] = React.useState<number | null>(1);
+  const haptics = useNoorStore((s) => s.prefs.enableHaptics !== false);
   useScrollRestoration();
+  // Someone learning the prayer reads a step, stands to do it, and looks
+  // back: the screen stays on while the guide is open.
+  useKeepScreenAwake(true);
+
+  const toggleStep = (id: number, isOpen: boolean) => {
+    if (!isOpen && haptics) vibrate(10);
+    setExpandedId(isOpen ? null : id);
+  };
 
   const shareFullGuide = async () => {
     const lines = PRAYER_STEPS.map((s) => {
-      const parts = [`${s.id}. ${s.title}`, s.arabic, s.description].filter(Boolean);
+      const parts = [`${arNum(s.id)}. ${s.title}`, s.arabic, s.description].filter(Boolean);
       return parts.join("\n");
     });
     const text = `دليل الصلاة خطوة بخطوة\n\n${lines.join("\n\n")}`;
@@ -43,7 +56,7 @@ export function PrayerGuidePage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl shrink-0"
+                className="mt-1 p-2 rounded-xl shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -59,11 +72,11 @@ export function PrayerGuidePage() {
               <button
                 type="button"
                 onClick={shareFullGuide}
-                className="mt-1 p-2 rounded-xl opacity-60 hover:opacity-100 transition"
+                className="mt-1 p-2 rounded-xl opacity-60 hover:opacity-100 transition min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
                 aria-label="مشاركة الدليل"
               >
-                <Share2 size={16} />
+                <Share2 size={16} aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -91,36 +104,34 @@ export function PrayerGuidePage() {
               role="listitem"
               className="rounded-2xl overflow-hidden transition-all duration-200"
               style={{
-                background: isOpen ? "var(--accent)" : "var(--card)",
-                border: "1px solid var(--stroke)",
-                color: isOpen ? "var(--on-accent)" : "var(--fg)",
+                background: isOpen ? "color-mix(in srgb, var(--accent) 13%, var(--card))" : "var(--card)",
+                border: isOpen ? "1px solid color-mix(in srgb, var(--accent) 45%, var(--stroke))" : "1px solid var(--stroke)",
+                color: "var(--fg)",
               }}
             >
               <button type="button"
-                onClick={() => setExpandedId(isOpen ? null : step.id)}
+                onClick={() => toggleStep(step.id, isOpen)}
                 className="w-full flex items-center gap-3 p-4 text-right"
                 aria-expanded={isOpen}
                 aria-controls={`prayer-step-panel-${step.id}`}
               >
                 <div className="flex items-center gap-2">
                   {isOpen ? (
-                    <ChevronUp size={16} aria-hidden="true" style={{ color: isOpen ? "color-mix(in srgb, var(--on-accent) 55%, transparent)" : "var(--accent)" }} />
+                    <ChevronUp size={16} aria-hidden="true" style={{ color: "var(--accent)" }} />
                   ) : (
                     <ChevronDown size={16} aria-hidden="true" style={{ color: "var(--accent)" }} />
                   )}
                 </div>
-                <span className="text-xl">{step.position}</span>
+                <span className="text-xl" aria-hidden="true">{step.position}</span>
                 <div className="flex-1 text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <span className="font-bold text-sm">{step.title}</span>
                     <span
-                      className="text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold shrink-0"
-                      style={{
-                        background: isOpen ? "color-mix(in srgb, var(--on-accent) 12%, transparent)" : "var(--accent)",
-                        color: "var(--on-accent)",
-                      }}
+                      className="text-xs h-6 min-w-6 px-1 rounded-full flex items-center justify-center font-bold shrink-0"
+                      style={{ background: "var(--accent)", color: "var(--on-accent)" }}
+                      aria-hidden="true"
                     >
-                      {step.id}
+                      {arNum(step.id)}
                     </span>
                   </div>
                   {step.arabic && (
@@ -135,16 +146,16 @@ export function PrayerGuidePage() {
               </button>
 
               <div id={`prayer-step-panel-${step.id}`} hidden={!isOpen} className="px-4 pb-4">
-                  <div className="h-px mb-3" style={{ background: "color-mix(in srgb, var(--on-accent) 18%, transparent)" }} />
+                  <div className="h-px mb-3" style={{ background: "color-mix(in srgb, var(--accent) 25%, var(--stroke))" }} />
                   {step.arabic && (
                     <p
                       className="text-base leading-loose text-right mb-3 font-medium"
-                      style={{ fontFamily: "var(--font-arabic, inherit)", color: "color-mix(in srgb, var(--on-accent) 88%, transparent)" }}
+                      style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}
                     >
                       {step.arabic}
                     </p>
                   )}
-                  <p className="text-sm leading-relaxed text-right" style={{ color: "color-mix(in srgb, var(--on-accent) 75%, transparent)" }}>
+                  <p className="text-sm leading-relaxed text-right" style={{ color: "color-mix(in srgb, var(--fg) 78%, transparent)" }}>
                     {step.description}
                   </p>
                   <div className="flex items-center gap-2 justify-end mt-3">
@@ -154,8 +165,8 @@ export function PrayerGuidePage() {
                         try { const systemConfirmed = await writeClipboard([step.title, step.arabic, step.description].filter(Boolean).join("\n\n")); if (!systemConfirmed) toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
                       }}
                       aria-label="نسخ الخطوة"
-                      className="p-2 rounded-xl transition-opacity hover:opacity-75"
-                      style={{ background: "color-mix(in srgb, var(--on-accent) 10%, transparent)", color: "var(--on-accent)" }}
+                      className="p-2 rounded-xl transition-opacity hover:opacity-75 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)", color: "var(--accent)" }}
                     >
                       <Copy size={14} aria-hidden="true" />
                     </button>
@@ -163,10 +174,10 @@ export function PrayerGuidePage() {
                       type="button"
                       onClick={() => sharePrayerStep(step)}
                       aria-label="مشاركة الخطوة"
-                      className="p-2 rounded-xl transition-opacity hover:opacity-75"
-                      style={{ background: "color-mix(in srgb, var(--on-accent) 10%, transparent)", color: "var(--on-accent)" }}
+                      className="p-2 rounded-xl transition-opacity hover:opacity-75 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)", color: "var(--accent)" }}
                     >
-                      <Share2 size={14} />
+                      <Share2 size={14} aria-hidden="true" />
                     </button>
                   </div>
                 </div>

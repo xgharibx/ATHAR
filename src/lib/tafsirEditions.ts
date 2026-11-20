@@ -12,6 +12,7 @@
 import Dexie, { type Table } from "dexie";
 import { LOOKUP_CACHE_STALE_GRACE_MS, pruneLookupCacheRows } from "@/lib/lookupCacheRetention";
 import { getSurahAyahCount } from "@/data/quranSurahCounts";
+import { parseSavedTafsirSurah, readSavedTafsirSurah } from "@/lib/tafsirOffline";
 
 export interface TafsirEdition {
   slug: string;
@@ -48,7 +49,7 @@ interface TafsirApiAyah {
 }
 
 export const TAFSIR_API_VERSION = "v1.2.2";
-const TAFSIR_API_BASE = `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@${TAFSIR_API_VERSION}/tafsir`;
+export const TAFSIR_API_BASE = `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@${TAFSIR_API_VERSION}/tafsir`;
 const REQUEST_TIMEOUT_MS = 15_000;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -238,6 +239,10 @@ export async function loadTafsirSurah(slug: string, surahId: number): Promise<Su
   if (!editionSlug) throw new Error("Unknown tafsir edition");
   if (!Number.isInteger(surahId) || surahId < 1 || surahId > 114) throw new Error("Invalid surah number");
 
+  // An edition saved on the phone (tafsirOffline.ts) is read from its files.
+  const saved = await readSavedTafsirSurah(TAFSIR_API_BASE, editionSlug, surahId).catch(() => null);
+  if (saved) return saved;
+
   const cached = await readCache(editionSlug, surahId);
   const cacheAge = cached ? Date.now() - cached.cachedAt : null;
   if (
@@ -258,16 +263,23 @@ export async function loadTafsirSurah(slug: string, surahId: number): Promise<Su
     ]);
     if (!response.ok) throw new Error(`Tafsir fetch failed: ${response.status}`);
 
+    let ayahs: SurahTafsir;
     let emptyAyahs: number[] = [];
-    if (emptyResponse.status !== 404) {
-      if (!emptyResponse.ok) throw new Error(`Tafsir metadata fetch failed: ${emptyResponse.status}`);
-      emptyAyahs = parseTafsirEmptyAyahs(await emptyResponse.json(), surahId);
-    }
-    const data = parseTafsirApiResponse(await response.json(), surahId, emptyAyahs);
-
-    const ayahs: SurahTafsir = Array.from({ length: getSurahAyahCount(surahId) + 1 }, () => "");
-    for (const item of data) {
-      ayahs[item.ayah] = item.text;
+    if (emptyResponse.ok || emptyResponse.status === 404) {
+      if (emptyResponse.ok) emptyAyahs = parseTafsirEmptyAyahs(await emptyResponse.json(), surahId);
+      const data = parseTafsirApiResponse(await response.json(), surahId, emptyAyahs);
+      ayahs = Array.from({ length: getSurahAyahCount(surahId) + 1 }, () => "");
+      for (const item of data) {
+        ayahs[item.ayah] = item.text;
+      }
+    } else {
+      // The list of ayahs without commentary could not be fetched (the CDN
+      // refuses it now and then): read the surah anyway, as a saved file is
+      // read, an ayah the file leaves out being one without commentary.
+      const lenient = parseSavedTafsirSurah(await response.text(), surahId);
+      if (!lenient) throw new Error("Invalid tafsir response");
+      ayahs = lenient.map((text) => (text.trim() ? text : ""));
+      emptyAyahs = ayahs.flatMap((text, ayah) => (ayah > 0 && !text.trim() ? [ayah] : []));
     }
 
     await writeCache(editionSlug, surahId, ayahs, emptyAyahs);
@@ -277,5 +289,23 @@ export async function loadTafsirSurah(slug: string, surahId: number): Promise<Su
     throw error;
   } finally {
     clearTimeout(timeoutId);
+  }
+}
+
+/** Surahs of an edition held in this browser's tafsir database (the web's offline copy). */
+export async function countCachedTafsirSurahs(slug: string): Promise<number> {
+  try {
+    const keys = await getDB().cache.where("key").startsWith(`${slug}:`).primaryKeys();
+    return keys.length;
+  } catch {
+    return 0;
+  }
+}
+
+export async function removeCachedTafsirEdition(slug: string): Promise<void> {
+  try {
+    await getDB().cache.where("key").startsWith(`${slug}:`).delete();
+  } catch {
+    // non-fatal
   }
 }

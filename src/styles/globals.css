@@ -4346,7 +4346,9 @@ body:has([role="dialog"][data-state="open"]) .fab {
    ------------------------------------------------------- */
   .cv-auto {
     content-visibility: auto;
-    contain-intrinsic-size: auto 200px;
+    /* Height only: a placeholder width would set the width of a card that
+       sizes to its content (a button) while it is off screen. */
+    contain-intrinsic-size: auto none auto 200px;
   }
 
   /* -------------------------------------------------------

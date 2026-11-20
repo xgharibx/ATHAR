@@ -19,7 +19,7 @@ import { toast } from "react-hot-toast";
 import { loadQuranDB } from "@/data/quranLoad";
 import type { QuranDB } from "@/data/quranTypes";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
-import { arNum } from "@/lib/formatNumber";
+import { arCount, arNum } from "@/lib/formatNumber";
 import { createRecitationFollower } from "@/lib/recitationFollower";
 import { normalizeArabic, speechAvailable, startSpeechStream } from "@/lib/voiceTasbeeh";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
@@ -210,7 +210,7 @@ export function TasmeePage() {
           >
             {(db ?? []).map((s) => (
               <option key={s.id} value={s.id}>
-                {s.id}. {s.name} — {arNum(s.ayahs.length)} آية
+                {arNum(s.id)}. {s.name} — {arCount(s.ayahs.length, { one: "آية", two: "آيتان", few: "آيات" })}
               </option>
             ))}
           </Select>

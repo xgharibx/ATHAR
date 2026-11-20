@@ -963,15 +963,19 @@ export async function fetchBoardRows(opts: {
   period: LeaderboardPeriod;
   sectionId?: string;
   day?: string;
+  ids?: string[];
 }) {
-  const { endpoint, board, period, sectionId, day } = opts;
+  const { endpoint, board, period, sectionId, day, ids } = opts;
   if (!endpoint) return [] as LeaderboardEntry[];
+  if (ids && ids.length === 0) return [] as LeaderboardEntry[];
 
   const url = new URL(endpoint);
   url.searchParams.set("board", board);
   url.searchParams.set("period", period);
   if (sectionId) url.searchParams.set("sectionId", sectionId);
   if (day) url.searchParams.set("day", day);
+  // Particular people (friends), whatever their rank; the server caps it at 50.
+  if (ids) url.searchParams.set("ids", ids.slice(0, 50).join(","));
 
   const headers = getLeaderboardHeaders(false);
   const hasApiKey = Boolean(headers.apikey);

@@ -7,6 +7,7 @@ import { toast, Toaster } from "react-hot-toast";
 // Must run before any module that validates data.
 import "@/lib/validationConfig";
 import App from "./App";
+import "./styles/fonts.css";
 import "./styles/globals.css";
 import "./styles/ufuq.css";
 import "./pwa";

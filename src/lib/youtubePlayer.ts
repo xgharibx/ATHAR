@@ -10,6 +10,8 @@
  * would fetch it dozens of times over a session.
  */
 
+import { Capacitor } from "@capacitor/core";
+
 export type YTPlayer = {
   playVideo: () => void;
   pauseVideo: () => void;
@@ -97,57 +99,179 @@ export type CreatePlayerOptions = {
   onUnplayable?: (code: number) => void;
 };
 
+/* ─── The apps play through athark.org ──────────────────────────────────────
+   YouTube refuses an embedded player whose page sends no referrer it accepts,
+   and the apps' pages have none (capacitor://localhost on iPhone): the player
+   showed "Error 153" instead of the video. In the apps the player is held by
+   a page on athark.org (public/embed/youtube.html), which YouTube accepts;
+   BridgedPlayer below drives it with the same controls the YouTube player
+   has, so every caller works unchanged. In a browser nothing changes. */
+
+export const PLAYER_PAGE = "https://www.athark.org/embed/youtube.html";
+const PLAYER_ORIGIN = new URL(PLAYER_PAGE).origin;
+
+/** True where videos play through the athark.org player page (the apps). */
+export function playsThroughAtharPage(): boolean {
+  return Capacitor.isNativePlatform();
+}
+
+type PlayerVars = Record<string, string | number>;
+
+/** The address of a plain embedded player, for when no controls are needed. */
+export function embedSrc(videoId: string, vars: PlayerVars): string {
+  if (playsThroughAtharPage()) {
+    return `${PLAYER_PAGE}?v=${encodeURIComponent(videoId)}&vars=${encodeURIComponent(JSON.stringify(vars))}`;
+  }
+  const params = new URLSearchParams(Object.entries(vars).map(([key, value]) => [key, String(value)]));
+  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params.toString()}`;
+}
+
+export type PlayerEvents = {
+  onReady?: (event: { target: YTPlayer }) => void;
+  onStateChange?: (event: { data: number; target: YTPlayer }) => void;
+  onError?: (event: { data: number; target: YTPlayer }) => void;
+};
+
+type BridgeMessage = { source?: string; type?: string; time?: number; duration?: number; state?: number; code?: number };
+
+/** The YouTube player held by the athark.org page, driven by messages. */
+export class BridgedPlayer implements YTPlayer {
+  private readonly frame: HTMLIFrameElement;
+  private readonly listener: (event: MessageEvent) => void;
+  private state: number = YT_STATE.UNSTARTED;
+  private time = 0;
+  private duration = 0;
+  private reportedAt = 0;
+  private ready = false;
+  private readonly pending: Array<[string, Array<number | boolean>]> = [];
+
+  constructor(host: HTMLElement, videoId: string, vars: PlayerVars, events: PlayerEvents = {}) {
+    const frame = document.createElement("iframe");
+    frame.src = embedSrc(videoId, vars);
+    frame.title = "YouTube";
+    frame.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+    frame.setAttribute("allowfullscreen", "");
+    frame.style.cssText = "position:absolute;inset:0;width:100%;height:100%;border:0";
+    host.appendChild(frame);
+    this.frame = frame;
+    this.listener = (event: MessageEvent) => {
+      if (event.source !== frame.contentWindow || event.origin !== PLAYER_ORIGIN) return;
+      const data = event.data as BridgeMessage;
+      if (!data || data.source !== "athar-yt") return;
+      if (typeof data.time === "number") {
+        this.time = data.time;
+        this.reportedAt = performance.now();
+      }
+      if (typeof data.duration === "number" && data.duration > 0) this.duration = data.duration;
+      const previous = this.state;
+      if (typeof data.state === "number") this.state = data.state;
+      if (data.type === "ready" && !this.ready) {
+        this.ready = true;
+        for (const [cmd, args] of this.pending.splice(0)) this.post(cmd, args);
+        events.onReady?.({ target: this });
+      } else if (data.type === "error") {
+        events.onError?.({ data: data.code ?? 0, target: this });
+      }
+      if (this.state !== previous && data.type !== "ready") events.onStateChange?.({ data: this.state, target: this });
+    };
+    window.addEventListener("message", this.listener);
+  }
+
+  private post(cmd: string, args: Array<number | boolean>): void {
+    this.frame.contentWindow?.postMessage({ source: "athar-yt-cmd", cmd, args }, PLAYER_ORIGIN);
+  }
+
+  private command(cmd: string, args: Array<number | boolean> = []): void {
+    if (this.ready) this.post(cmd, args);
+    else this.pending.push([cmd, args]);
+  }
+
+  playVideo(): void { this.command("playVideo"); }
+  pauseVideo(): void { this.command("pauseVideo"); }
+  mute(): void { this.command("mute"); }
+  unMute(): void { this.command("unMute"); }
+  seekTo(seconds: number, allowSeekAhead = true): void {
+    this.time = seconds;
+    this.reportedAt = performance.now();
+    this.command("seekTo", [seconds, allowSeekAhead]);
+  }
+  getCurrentTime(): number {
+    // The page reports twice a second; between reports, a playing video moves on.
+    const drift = this.state === YT_STATE.PLAYING ? (performance.now() - this.reportedAt) / 1000 : 0;
+    return this.duration > 0 ? Math.min(this.duration, this.time + drift) : this.time + drift;
+  }
+  getDuration(): number { return this.duration; }
+  getPlayerState(): number { return this.state; }
+  destroy(): void {
+    window.removeEventListener("message", this.listener);
+    this.frame.remove();
+  }
+}
+
+/**
+ * A YouTube player in `host`: YouTube's own in a browser, the athark.org one
+ * in the apps. Same controls and the same events either way.
+ */
+export async function newYouTubePlayer(host: HTMLElement, videoId: string, vars: PlayerVars, events: PlayerEvents = {}): Promise<YTPlayer> {
+  if (playsThroughAtharPage()) return new BridgedPlayer(host, videoId, vars, events);
+  const YT = await loadYouTubeApi();
+  let player: YTPlayer | null = null;
+  const withTarget = <E extends object>(handler: ((event: E & { target: YTPlayer }) => void) | undefined) =>
+    handler ? (event: E) => handler({ ...event, target: player! }) : undefined;
+  player = new YT.Player(host, {
+    // The privacy-preserving host, matching what the plain embed used.
+    host: "https://www.youtube-nocookie.com",
+    videoId,
+    playerVars: {
+      ...vars,
+      // YouTube decides embed permission partly from the requesting origin.
+      // Without an explicit one it can refuse with error 152 on some origins
+      // and browsers — which is exactly what localhost was hitting while the
+      // deployed site played the same clip fine.
+      origin: window.location.origin,
+      enablejsapi: 1,
+    },
+    events: {
+      onReady: withTarget(events.onReady),
+      onStateChange: withTarget(events.onStateChange),
+      onError: withTarget(events.onError),
+    },
+  });
+  return player;
+}
+
 /** Create a player inside `host`. Returns null if the API is unavailable. */
 export async function createPlayer(
   host: HTMLElement,
   opts: CreatePlayerOptions,
 ): Promise<YTPlayer | null> {
-  let YT: YTNamespace;
-  try {
-    YT = await loadYouTubeApi();
-  } catch {
-    return null; // caller falls back to a plain embed
-  }
-
   return new Promise<YTPlayer | null>((resolve) => {
-    const player = new YT.Player(host, {
-      // The privacy-preserving host, matching what the plain embed used.
-      host: "https://www.youtube-nocookie.com",
-      videoId: opts.videoId,
-      playerVars: {
-        autoplay: opts.autoplay === false ? 0 : 1,
-        // YouTube decides embed permission partly from the requesting origin.
-        // Without an explicit one it can refuse with error 152 on some origins
-        // and browsers — which is exactly what localhost was hitting while the
-        // deployed site played the same clip fine.
-        origin: typeof window !== "undefined" ? window.location.origin : undefined,
-        enablejsapi: 1,
-        mute: opts.muted ? 1 : 0,
-        playsinline: 1,
-        controls: 0,
-        rel: 0,
-        modestbranding: 1,
-        iv_load_policy: 3,
-        fs: 0,
-        disablekb: 1,
+    newYouTubePlayer(host, opts.videoId, {
+      autoplay: opts.autoplay === false ? 0 : 1,
+      mute: opts.muted ? 1 : 0,
+      playsinline: 1,
+      controls: 0,
+      rel: 0,
+      modestbranding: 1,
+      iv_load_policy: 3,
+      fs: 0,
+      disablekb: 1,
+    }, {
+      onReady: ({ target }) => {
+        opts.onReady?.(target);
+        resolve(target);
       },
-      events: {
-        onReady: () => {
-          opts.onReady?.(player);
-          resolve(player);
-        },
-        onError: (e: { data: number }) => {
-          // Swallowing this left the card frozen on "This video is
-          // unavailable" with no way forward. Tell the caller so it can skip.
-          opts.onUnplayable?.(e?.data ?? 0);
-          resolve(null);
-        },
-        onStateChange: (e: { data: number }) => {
-          opts.onStateChange?.(e.data);
-          if (e.data === YT_STATE.ENDED) opts.onEnded?.();
-        },
+      onError: ({ data }) => {
+        // Swallowing this left the card frozen on "This video is
+        // unavailable" with no way forward. Tell the caller so it can skip.
+        opts.onUnplayable?.(data ?? 0);
+        resolve(null);
       },
-    });
+      onStateChange: ({ data }) => {
+        opts.onStateChange?.(data);
+        if (data === YT_STATE.ENDED) opts.onEnded?.();
+      },
+    }).catch(() => resolve(null)); // caller falls back to a plain embed
   });
 }
 

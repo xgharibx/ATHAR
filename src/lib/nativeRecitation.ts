@@ -45,9 +45,13 @@ type QuranAudioPlugin = {
   setRate(options: { rate: number }): Promise<void>;
   setVolume(options: { volume: number }): Promise<void>;
   /** Downloads in the background: it carries on after the app is left (Android WorkManager, iOS background session). */
-  download(options: { urls: string[]; maxBytes: number; title?: string }): Promise<{ saved: number; failed: number; evicted: number }>;
+  download(options: { urls: string[]; maxBytes: number; title?: string; kind?: "audio" | "tafsir" }): Promise<{ saved: number; failed: number; evicted: number }>;
   downloadedBytes(): Promise<{ bytes: number }>;
   clearDownloads(): Promise<void>;
+  /** Saved text files (tafsir): kept apart from the recitations and their budget. App builds before these reject them. */
+  savedCount(options: { urls: string[] }): Promise<{ count: number }>;
+  readDownloaded(options: { url: string }): Promise<{ text?: string }>;
+  removeDownloads(options: { urls: string[] }): Promise<{ removed: number }>;
   addListener(event: "itemChange", listener: (event: { index: number; id: string }) => void): Promise<PluginListenerHandle>;
   addListener(event: "stateChange", listener: (event: { state: RecitationState }) => void): Promise<PluginListenerHandle>;
   addListener(event: "ended", listener: () => void): Promise<PluginListenerHandle>;
@@ -247,13 +251,14 @@ export async function downloadNativeRecitations(
   urls: string[],
   onProgress: (done: number, total: number) => void,
   title?: string,
+  kind: "audio" | "tafsir" = "audio",
 ): Promise<{ saved: number; failed: number; evicted: number } | null> {
   const native = nativePlugin();
   if (!native) return null;
   let handle: PluginListenerHandle | null = null;
   try {
     handle = await native.addListener("downloadProgress", ({ done, total }) => onProgress(done, total));
-    return await native.download({ urls, maxBytes: NATIVE_RECITATION_MAX_BYTES, title });
+    return await native.download({ urls, maxBytes: NATIVE_RECITATION_MAX_BYTES, title, ...(kind === "audio" ? {} : { kind }) });
   } catch {
     return null;
   } finally {
@@ -315,6 +320,41 @@ export async function clearDownloadedRecitations(): Promise<boolean> {
   if (!native) return false;
   try {
     await native.clearDownloads();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** How many of `urls` are saved as files; null outside the apps or in an app build that cannot tell. */
+export async function nativeSavedCount(urls: string[]): Promise<number | null> {
+  const native = nativePlugin();
+  if (!native) return null;
+  try {
+    const { count } = await native.savedCount({ urls });
+    return Number.isInteger(count) && count >= 0 ? count : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A saved text file's contents; null when it is not saved (or outside the apps). */
+export async function nativeReadDownloaded(url: string): Promise<string | null> {
+  const native = nativePlugin();
+  if (!native) return null;
+  try {
+    const { text } = await native.readDownloaded({ url });
+    return typeof text === "string" && text.length > 0 ? text : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function nativeRemoveDownloads(urls: string[]): Promise<boolean> {
+  const native = nativePlugin();
+  if (!native) return false;
+  try {
+    await native.removeDownloads({ urls });
     return true;
   } catch {
     return false;

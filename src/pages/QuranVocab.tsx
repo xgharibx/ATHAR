@@ -308,7 +308,7 @@ export function QuranVocabPage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl shrink-0"
+                className="mt-1 p-2 rounded-xl shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -327,7 +327,7 @@ export function QuranVocabPage() {
                   )}
                 </h1>
                 <div className="text-sm opacity-70 mt-1 tabular-nums" aria-live="polite" aria-atomic="true">
-                  {reviewMode ? "مراجعة، " : ""}{arNum((cardIndex + 1))} / {arNum(deck.length)}، {arNum(learned.size)}/{QURAN_VOCAB.length} محفوظة ({Math.round((learned.size / QURAN_VOCAB.length) * 100)}٪)
+                  {reviewMode ? "مراجعة، " : ""}{arNum((cardIndex + 1))} / {arNum(deck.length)}، {arNum(learned.size)}/{arNum(QURAN_VOCAB.length)} محفوظة ({arNum(Math.round((learned.size / QURAN_VOCAB.length) * 100))}٪)
                 </div>
               </div>
             </div>
@@ -347,10 +347,10 @@ export function QuranVocabPage() {
               />
             </div>
             {/* Action buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button type="button"
                 onClick={handleShuffle}
-                className="p-2 rounded-xl"
+                className="h-10 min-w-10 flex items-center justify-center rounded-xl"
                 style={{ background: "var(--card)", color: "#0ea5e9" }}
                 aria-label="خلط البطاقات"
               >
@@ -358,7 +358,7 @@ export function QuranVocabPage() {
               </button>
               <button type="button"
                 onClick={handleReset}
-                className="p-2 rounded-xl"
+                className="h-10 min-w-10 flex items-center justify-center rounded-xl"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
                 aria-label="إعادة تعيين"
               >
@@ -366,7 +366,7 @@ export function QuranVocabPage() {
               </button>
               <button type="button"
                 onClick={() => setReviewMode((v) => !v)}
-                className="p-2 rounded-xl transition-colors"
+                className="h-10 min-w-10 flex items-center justify-center rounded-xl transition-colors"
                 style={{
                   background: reviewMode ? "rgba(16,185,129,0.18)" : "var(--card)",
                   color: reviewMode ? "#10b981" : "var(--fg)",
@@ -381,7 +381,7 @@ export function QuranVocabPage() {
               {dailyWordIdx >= 0 && cardIndex !== dailyWordIdx && (
                 <button type="button"
                   onClick={() => { setCardIndex(dailyWordIdx); setFlipped(false); }}
-                  className="p-2 rounded-xl transition-colors ml-auto"
+                  className="h-10 min-w-10 flex items-center justify-center rounded-xl transition-colors ml-auto"
                   style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" }}
                   aria-label="الانتقال لكلمة اليوم"
                   title="كلمة اليوم"
@@ -391,7 +391,7 @@ export function QuranVocabPage() {
               )}
               <button type="button"
                 onClick={() => setBrowseMode((v) => !v)}
-                className="p-2 rounded-xl transition-colors mr-auto"
+                className="h-10 min-w-10 flex items-center justify-center rounded-xl transition-colors mr-auto"
                 style={{
                   background: browseMode ? "color-mix(in srgb, #0ea5e9 15%, transparent)" : "var(--card)",
                   color: browseMode ? "#0ea5e9" : "var(--fg)",
@@ -406,7 +406,7 @@ export function QuranVocabPage() {
                 <button
                   type="button"
                   onClick={() => startQuiz(QURAN_VOCAB.map((w) => w.id))}
-                  className="w-8 h-8 flex items-center justify-center rounded-xl transition-all active:scale-95"
+                  className="h-10 min-w-10 flex items-center justify-center rounded-xl transition-all active:scale-95"
                   style={{
                     background: quizMode ? "color-mix(in srgb, #a78bfa 15%, transparent)" : "var(--card)",
                     color: quizMode ? "#a78bfa" : "var(--fg)",
@@ -422,7 +422,7 @@ export function QuranVocabPage() {
                   <button
                     type="button"
                     onClick={() => startQuiz(QURAN_VOCAB.filter((w) => !learned.has(w.id)).map((w) => w.id))}
-                    className="w-8 h-8 flex items-center justify-center rounded-xl transition-all active:scale-95 text-[10px] font-bold"
+                    className="h-10 min-w-10 flex items-center justify-center rounded-xl transition-all active:scale-95 text-[10px] font-bold"
                     style={{
                       background: "var(--card)",
                       color: "#a78bfa",
@@ -439,9 +439,9 @@ export function QuranVocabPage() {
             <div className="flex gap-1.5 mt-2 flex-wrap" role="group" aria-label="فلتر التكرار">
               {([
                 { key: "all", label: "الكل" },
-                { key: "top", label: "⭐ عليا (50)" },
-                { key: "mid", label: "⚪ وسطى (100)" },
-                { key: "rare", label: "⚫ نادرة (70)" },
+                { key: "top", label: "⭐ عليا (٥٠)" },
+                { key: "mid", label: "⚪ وسطى (١٠٠)" },
+                { key: "rare", label: "⚫ نادرة (٧٠)" },
                 { key: "misunderstood", label: "⚠️ قد تُفهم خطأً" },
               ] as const).map(({ key, label }) => (
                 <button
@@ -449,7 +449,7 @@ export function QuranVocabPage() {
                   type="button"
                   onClick={() => setTierFilter(key)}
                   aria-pressed={tierFilter === key}
-                  className="text-[10px] px-2.5 py-1 rounded-full transition-all"
+                  className="text-[11px] px-3 min-h-[36px] rounded-full transition-all"
                   style={tierFilter === key
                     ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)", fontWeight: 600 }
                     : { background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.65 }}
@@ -824,7 +824,7 @@ export function QuranVocabPage() {
               </div>
               <button
                 type="button"
-                className="shrink-0 p-1.5 rounded-xl transition-all active:scale-90"
+                className="shrink-0 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl transition-all active:scale-90"
                 style={isLearned
                   ? { background: "color-mix(in srgb, var(--ok) 15%, transparent)", color: "var(--ok)" }
                   : { background: "rgba(167,139,250,0.15)", color: "#a78bfa" }}
@@ -863,7 +863,7 @@ export function QuranVocabPage() {
                 aria-valuemin={0}
                 aria-valuemax={QURAN_VOCAB.length}
                 aria-valuenow={learned.size}
-                aria-label={`حفظت ${learned.size} من ${QURAN_VOCAB.length} كلمة`}
+                aria-label={`حفظت ${arNum(learned.size)} من ${arNum(QURAN_VOCAB.length)} كلمة`}
               >
                 <div
                   className="h-full rounded-full transition-all duration-500"

@@ -140,3 +140,14 @@ export function arFullDate(d: Date): string {
   }
   return westernToArabicDigits(raw);
 }
+/**
+ * A count with its noun in Arabic agreement: «قصة واحدة»، «قصتان»، «٣ قصص»،
+ * «١١ قصة». `forms` are the singular, the dual and the plural (3–10).
+ */
+export function arCount(n: number, forms: { one: string; two: string; few: string }): string {
+  if (n === 1) return `${forms.one} واحدة`.replace(/^(\S+) واحدة$/, (match, word: string) => (/[ةى]$/.test(word) ? match : `${word} واحد`));
+  if (n === 2) return forms.two;
+  const mod100 = n % 100;
+  if (mod100 >= 3 && mod100 <= 10) return `${arNum(n)} ${forms.few}`;
+  return `${arNum(n)} ${forms.one}`;
+}

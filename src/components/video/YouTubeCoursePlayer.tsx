@@ -3,6 +3,8 @@ import { ArrowRight, Bookmark, BookmarkCheck, CheckCircle2, ExternalLink, Play, 
 import toast from "react-hot-toast";
 
 import { shareOrCopy } from "@/lib/shareTargets";
+import { YT_STATE, embedSrc, newYouTubePlayer, type YTPlayer } from "@/lib/youtubePlayer";
+import { arNum, westernToArabicDigits } from "@/lib/formatNumber";
 import type {
   VideoLibraryChannel,
   VideoLibraryCourse,
@@ -10,55 +12,9 @@ import type {
   VideoLibraryVideo,
 } from "@/data/videoLibraryTypes";
 
-// ── YouTube IFrame API ────────────────────────────────────────────────────────
-
-type YTPlayer = {
-  getCurrentTime: () => number;
-  getDuration: () => number;
-  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
-  playVideo: () => void;
-  pauseVideo: () => void;
-  destroy: () => void;
-};
-
-type YTNamespace = {
-  Player: new (element: HTMLElement, options: Record<string, unknown>) => YTPlayer;
-  PlayerState: { PLAYING: number; PAUSED: number; ENDED: number };
-};
-
-declare global {
-  interface Window {
-    YT?: YTNamespace;
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
-
-let youtubeApiPromise: Promise<YTNamespace> | null = null;
-
-function loadYouTubeApi(): Promise<YTNamespace> {
-  if (window.YT?.Player) return Promise.resolve(window.YT);
-  if (youtubeApiPromise) return youtubeApiPromise;
-  youtubeApiPromise = new Promise((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>('script[src="https://www.youtube.com/iframe_api"]');
-    const prev = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      prev?.();
-      if (window.YT?.Player) resolve(window.YT);
-      else reject(new Error("YouTube API loaded without Player"));
-    };
-    if (!existing) {
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      tag.async = true;
-      tag.onerror = () => reject(new Error("Failed to load YouTube API"));
-      document.head.appendChild(tag);
-    }
-    window.setTimeout(() => {
-      if (window.YT?.Player) resolve(window.YT);
-    }, 3000);
-  });
-  return youtubeApiPromise;
-}
+// ── YouTube player ────────────────────────────────────────────────────────────
+// Created through the shared factory: YouTube's own player in a browser, the
+// athark.org player page in the apps (YouTube refuses the apps' own pages).
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -67,8 +23,9 @@ function formatTime(seconds: number) {
   const h = Math.floor(safe / 3600);
   const m = Math.floor((safe % 3600) / 60);
   const s = safe % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  return `${m}:${String(s).padStart(2, "0")}`;
+  const clock = h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
+  // In Arabic digits, and kept left-to-right so «١:٢٧:٠٤» reads as a time.
+  return `\u2066${westernToArabicDigits(clock)}\u2069`;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -139,17 +96,11 @@ export function YouTubeCoursePlayer({
     setEnded(false);
     setNextCountdown(null);
 
-    loadYouTubeApi()
-      .then((YT) => {
-        if (cancelled || !hostRef.current) return;
-        playerRef.current?.destroy();
-        playerRef.current = new YT.Player(hostRef.current, {
-          videoId: video.youtubeId,
-          host: "https://www.youtube-nocookie.com",
-          playerVars: { rel: 0, modestbranding: 1, playsinline: 1, origin: window.location.origin },
-          events: {
-            onReady: () => {
-              const len = playerRef.current?.getDuration?.() || video.durationSeconds || 0;
+    newYouTubePlayer(hostRef.current, video.youtubeId, { rel: 0, modestbranding: 1, playsinline: 1 }, {
+            onReady: ({ target }) => {
+              if (cancelled) return;
+              playerRef.current = target;
+              const len = target.getDuration() || video.durationSeconds || 0;
               setDuration(len);
               if ((progress?.seconds ?? 0) > 5 && len > 0 && (progress?.seconds ?? 0) < len - 8) {
                 playerRef.current?.seekTo(progress!.seconds, true);
@@ -157,15 +108,15 @@ export function YouTubeCoursePlayer({
               }
             },
             onStateChange: (event: { data: number }) => {
-              if (event.data === YT.PlayerState.PLAYING) {
+              if (event.data === YT_STATE.PLAYING) {
                 setPlaying(true);
                 setEnded(false);
               }
-              if (event.data === YT.PlayerState.PAUSED) {
+              if (event.data === YT_STATE.PAUSED) {
                 setPlaying(false);
                 saveNow(false);
               }
-              if (event.data === YT.PlayerState.ENDED) {
+              if (event.data === YT_STATE.ENDED) {
                 setPlaying(false);
                 saveNow(true);
                 onComplete();
@@ -188,8 +139,10 @@ export function YouTubeCoursePlayer({
                 }
               }
             },
-          },
-        });
+    })
+      .then((player) => {
+        if (cancelled) player.destroy();
+        else playerRef.current = player;
       })
       .catch(() => setApiFailed(true));
 
@@ -249,7 +202,7 @@ export function YouTubeCoursePlayer({
             {apiFailed && (
               <iframe
                 className="absolute inset-0 w-full h-full"
-                src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?rel=0&modestbranding=1&playsinline=1`}
+                src={embedSrc(video.youtubeId, { rel: 0, modestbranding: 1, playsinline: 1 })}
                 title={video.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
@@ -264,7 +217,7 @@ export function YouTubeCoursePlayer({
                 >
                   <SkipForward size={28} aria-hidden="true" className="mx-auto mb-3" style={{ color: accent }} />
                   <div className="font-bold arabic-text mb-1">الدرس التالي</div>
-                  <div className="text-xs opacity-60 mb-4">ينطلق خلال {nextCountdown} ثوانٍ</div>
+                  <div className="text-xs opacity-60 mb-4">ينطلق خلال {arNum(nextCountdown)} ثوانٍ</div>
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -373,7 +326,7 @@ export function YouTubeCoursePlayer({
             </div>
             <div className="flex items-center justify-between text-[10px] opacity-45 tabular-nums">
               <span>{formatTime(current)}</span>
-              <span className="font-medium" style={{ color: accent }}>{percent}%</span>
+              <span className="font-medium" style={{ color: accent }}>{arNum(percent)}٪</span>
               <span>{formatTime(duration)}</span>
             </div>
           </div>
