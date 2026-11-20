@@ -18,7 +18,7 @@
  *  - All dates/times rendered via `arNum` / `arTime` / `arFullDate` for
  *    locale-friendly Arabic-Indic output (no Western-digit fallback).
  */
-import { Select, TimeField } from "@/components/ui/Pickers";
+import { DateField, Select, TimeField } from "@/components/ui/Pickers";
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -61,6 +61,7 @@ import {
   updateCustomReminder as storeUpdateCustomReminder,
   toggleCustomReminder as storeToggleCustomReminder,
   deleteCustomReminder as storeDeleteCustomReminder,
+  restoreCustomReminder,
   dismissTemplateFlag,
 } from "@/store/customReminderActions";
 import type {
@@ -232,7 +233,34 @@ interface FormState {
   deeplinkRoute: string;
   soundId: string;
   vibration: boolean;
+  /** The day of a one-time reminder ("YYYY-MM-DD"). */
+  onceDate: string;
 }
+
+function todayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+const WEEKDAY_NAMES = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+
+/** Where a reminder can open, named; a route not listed shows as «صفحة أخرى». */
+const DESTINATIONS: Array<{ route: string; label: string }> = [
+  { route: "", label: "بدون صفحة" },
+  { route: "/c/morning", label: "أذكار الصباح" },
+  { route: "/c/evening", label: "أذكار المساء" },
+  { route: "/c/sleep", label: "أذكار النوم" },
+  { route: "/mushaf", label: "المصحف (حيث توقفت)" },
+  { route: "/quran", label: "القرآن" },
+  { route: "/listen", label: "السماع" },
+  { route: "/wird", label: "جدول الورد" },
+  { route: "/sebha", label: "السبحة" },
+  { route: "/duas", label: "الأدعية" },
+  { route: "/prayer-times", label: "مواقيت الصلاة" },
+  { route: "/muhasaba", label: "المحاسبة" },
+  { route: "/qadaa", label: "قضاء الفوائت" },
+  { route: "/asma", label: "أسماء الله الحسنى" },
+];
 
 const EMPTY_FORM: FormState = {
   title: "",
@@ -248,6 +276,7 @@ const EMPTY_FORM: FormState = {
   deeplinkRoute: "",
   soundId: REMINDER_SOUND_OPTIONS[0]?.id ?? "birds",
   vibration: true,
+  onceDate: "",
 };
 
 const REMINDER_NOTIFICATION_PLATFORM_NOTE =
@@ -268,6 +297,7 @@ function formFromReminder(r: CustomReminder): FormState {
     deeplinkRoute: r.deeplink?.route ?? "",
     soundId: REMINDER_SOUND_OPTIONS.find((option) => option.id === r.notification?.soundId)?.id ?? "birds",
     vibration: r.notification?.vibration ?? true,
+    onceDate: r.repeat === "once" ? r.startDate ?? todayKey() : todayKey(),
   };
 }
 
@@ -302,6 +332,10 @@ function reminderFromForm(state: FormState, base?: CustomReminder): Partial<Cust
     },
     updatedAt,
   };
+  // A one-time reminder fires on its chosen day; leaving «once» drops that day
+  // (other reminders keep their own start date, as the plan reminder's).
+  if (state.repeat === "once") patch.startDate = state.onceDate || todayKey();
+  else if (base?.repeat === "once") patch.startDate = undefined;
   return patch;
 }
 
@@ -398,7 +432,7 @@ function ReminderRow(props: {
             <button
               type="button"
               onClick={() => props.onEdit(r)}
-              className="grid h-7 w-7 place-items-center rounded-md border border-(--stroke) bg-(--card-2) text-(--muted-2) hover:text-(--fg) transition"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-(--stroke) bg-(--card-2) text-(--muted-2) hover:text-(--fg) transition"
               aria-label={`تعديل التذكير: ${r.title}`}
             >
               <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
@@ -406,7 +440,7 @@ function ReminderRow(props: {
             <button
               type="button"
               onClick={() => props.onDelete(r.id)}
-              className="grid h-7 w-7 place-items-center rounded-md border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
               aria-label={`حذف التذكير: ${r.title}`}
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -414,7 +448,7 @@ function ReminderRow(props: {
             <button
               type="button"
               onClick={() => props.onOpenSettings(r)}
-              className="grid h-7 w-7 place-items-center rounded-md border border-(--stroke) bg-(--card-2) text-(--muted-2) hover:text-(--fg) transition"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-(--stroke) bg-(--card-2) text-(--muted-2) hover:text-(--fg) transition"
               aria-label={`إعدادات التذكير: ${r.title}`}
             >
               <SettingsIcon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -452,7 +486,7 @@ function ReminderRow(props: {
             ) : null}
             {r.notification?.snoozeMinutes ? (
               <span className="inline-flex items-center gap-1 rounded-xl bg-(--card) border border-(--stroke) px-2.5 py-1.5 text-[11px] text-(--muted-2)">
-                <Timer className="h-3 w-3" aria-hidden="true" /> غفوة: {r.notification.snoozeMinutes} د
+                <Timer className="h-3 w-3" aria-hidden="true" /> غفوة: {arNum(r.notification.snoozeMinutes)} د
               </span>
             ) : null}
           </div>
@@ -473,7 +507,7 @@ function ReminderFormDrawer(props: {
 }) {
   const [form, setForm] = React.useState<FormState>(props.initial);
   React.useEffect(() => {
-    if (props.open) setForm(props.initial);
+    if (props.open) setForm({ ...props.initial, onceDate: props.initial.onceDate || todayKey() });
   }, [props.open, props.initial]);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -543,7 +577,7 @@ function ReminderFormDrawer(props: {
                 type="button"
                 onClick={() => update("category", cat)}
                 className={cn(
-                  "rounded-xl border px-2.5 py-1.5 text-[11.5px] font-semibold transition",
+                  "rounded-xl border px-3 min-h-[36px] text-[11.5px] font-semibold transition",
                   form.category === cat
                     ? "border-accent-45 bg-accent-15 text-(--accent)"
                     : "border-(--stroke) bg-(--card) text-(--muted-2) hover:bg-(--card-2)",
@@ -574,8 +608,8 @@ function ReminderFormDrawer(props: {
               onChange={(e) => update("dayOfWeek", Number(e.target.value))}
               className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
             >
-              {Array.from({ length: 7 }, (_, idx) => (
-                <option key={idx} value={idx}>{`يوم ${arNum(idx + 1)}`}</option>
+              {WEEKDAY_NAMES.map((name, idx) => (
+                <option key={idx} value={idx}>{name}</option>
               ))}
             </Select>
           </Field>
@@ -608,15 +642,48 @@ function ReminderFormDrawer(props: {
                 ))}
               </Select>
             </Field>
-            <Field label="إزاحة بالدقائق (موجبة بعد / سالبة قبل)">
-              <input
-                type="number"
-                value={form.anchorOffsetMinutes}
-                onChange={(e) => update("anchorOffsetMinutes", Number(e.target.value))}
-                className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
-              />
+            <Field label="متى بالنسبة إليه">
+              <div className="flex gap-2">
+                <Select
+                  value={form.anchorOffsetMinutes < 0 ? "before" : form.anchorOffsetMinutes > 0 ? "after" : "at"}
+                  onChange={(e) => {
+                    const minutes = Math.abs(form.anchorOffsetMinutes) || 10;
+                    update("anchorOffsetMinutes", e.target.value === "before" ? -minutes : e.target.value === "after" ? minutes : 0);
+                  }}
+                  aria-label="قبل الموعد أو بعده"
+                  className="form-field-readable flex-1 rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
+                >
+                  <option value="before">قبله</option>
+                  <option value="at">في وقته</option>
+                  <option value="after">بعده</option>
+                </Select>
+                {form.anchorOffsetMinutes !== 0 ? (
+                  <span className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={240}
+                      value={Math.abs(form.anchorOffsetMinutes)}
+                      onChange={(e) => {
+                        const minutes = Math.max(1, Math.min(240, Math.round(Number(e.target.value) || 1)));
+                        update("anchorOffsetMinutes", form.anchorOffsetMinutes < 0 ? -minutes : minutes);
+                      }}
+                      aria-label="عدد الدقائق"
+                      className="form-field-readable w-20 rounded-2xl border border-(--stroke) bg-(--card) px-3 py-3 text-sm outline-hidden focus:border-accent-40 transition"
+                    />
+                    <span className="text-[12px] text-(--muted-2)">دقيقة</span>
+                  </span>
+                ) : null}
+              </div>
             </Field>
           </>
+        ) : null}
+
+        {form.repeat === "once" ? (
+          <Field label="اليوم">
+            <DateField value={form.onceDate} min={todayKey()} onChange={(e) => update("onceDate", e.target.value)} />
+          </Field>
         ) : null}
 
         {showTimeField ? (
@@ -628,13 +695,19 @@ function ReminderFormDrawer(props: {
           </Field>
         ) : null}
 
-        <Field label="صفحة مقترحة (مسار داخلي)">
-          <input
+        <Field label="عند الضغط على الإشعار، افتح">
+          <Select
             value={form.deeplinkRoute}
             onChange={(e) => update("deeplinkRoute", e.target.value)}
-            placeholder="مثلًا: /quran أو /c/morning"
             className="form-field-readable w-full rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-sm outline-hidden focus:border-accent-40 transition"
-          />
+          >
+            {DESTINATIONS.map((d) => (
+              <option key={d.route || "none"} value={d.route}>{d.label}</option>
+            ))}
+            {form.deeplinkRoute && !DESTINATIONS.some((d) => d.route === form.deeplinkRoute) ? (
+              <option value={form.deeplinkRoute}>صفحة أخرى</option>
+            ) : null}
+          </Select>
         </Field>
 
         <Field label="صوت التذكير">
@@ -645,7 +718,7 @@ function ReminderFormDrawer(props: {
                 type="button"
                 onClick={() => update("soundId", opt.id)}
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11.5px] font-semibold transition",
+                  "inline-flex items-center gap-1 rounded-xl border px-3 min-h-[36px] text-[11.5px] font-semibold transition",
                   form.soundId === opt.id
                     ? "border-accent-45 bg-accent-15 text-(--accent)"
                     : "border-(--stroke) bg-(--card) text-(--muted-2) hover:bg-(--card-2)",
@@ -784,7 +857,7 @@ function ReminderSettingsSheet(props: {
                   })
                 }
                 className={cn(
-                  "rounded-xl border px-2.5 py-1.5 text-[11.5px] font-semibold transition",
+                  "rounded-xl border px-3 min-h-[36px] text-[11.5px] font-semibold transition",
                   snooze === m
                     ? "border-accent-45 bg-accent-15 text-(--accent)"
                     : "border-(--stroke) bg-(--card) text-(--muted-2) hover:bg-(--card-2)",
@@ -808,7 +881,7 @@ function ReminderSettingsSheet(props: {
                   })
                 }
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11.5px] font-semibold transition",
+                  "inline-flex items-center gap-1 rounded-xl border px-3 min-h-[36px] text-[11.5px] font-semibold transition",
                   r.notification?.soundId === opt.id
                     ? "border-accent-45 bg-accent-15 text-(--accent)"
                     : "border-(--stroke) bg-(--card) text-(--muted-2) hover:bg-(--card-2)",
@@ -1016,9 +1089,30 @@ export function RemindersPage() {
     }
   };
 
+  // Deleting is one tap, so it can be taken back for a few seconds.
   const handleDelete = (id: string) => {
+    const deleted = reminders.find((r) => r.id === id);
     storeDeleteCustomReminder(id);
-    toast.success("حُذف التذكير");
+    toast(
+      (t) => (
+        <span className="flex items-center gap-3">
+          حُذف التذكير
+          {deleted ? (
+            <button
+              type="button"
+              className="rounded-lg px-3 min-h-[36px] font-semibold text-(--accent)"
+              onClick={() => {
+                restoreCustomReminder(deleted);
+                toast.dismiss(t.id);
+              }}
+            >
+              تراجع
+            </button>
+          ) : null}
+        </span>
+      ),
+      { duration: 5000 },
+    );
   };
 
   const handleDisable = (r: CustomReminder) => {
@@ -1091,7 +1185,7 @@ export function RemindersPage() {
         <div className="flex items-center gap-2">
           <Link
             to="/companion"
-            className="flex items-center gap-1 rounded-xl border border-(--stroke) bg-(--card) px-2.5 py-2 text-[11px] font-semibold hover:bg-(--card-2) transition"
+            className="flex items-center gap-1 whitespace-nowrap rounded-xl border border-(--stroke) bg-(--card) px-2.5 min-h-[40px] text-[11px] font-semibold hover:bg-(--card-2) transition"
             aria-label="افتح الرفيق"
           >
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1100,7 +1194,7 @@ export function RemindersPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="grid h-10 w-10 place-items-center rounded-2xl bg-(--accent) text-black/85 shadow-xs transition active:scale-95"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-(--accent) text-black/85 shadow-xs transition active:scale-95"
             aria-label="تذكير جديد"
             title="تذكير جديد"
           >
@@ -1255,7 +1349,7 @@ export function RemindersPage() {
                 <button
                   type="button"
                   onClick={() => void handleAddTemplate(t)}
-                  className="mt-3 inline-flex items-center justify-center gap-1 rounded-xl bg-(--accent) px-2.5 py-1.5 text-[11px] font-bold text-black/85 transition active:scale-95"
+                  className="mt-3 inline-flex items-center justify-center gap-1 rounded-xl bg-(--accent) px-3 min-h-[36px] text-[11px] font-bold text-black/85 transition active:scale-95"
                   aria-label={`أضف تذكير ${t.title.ar}`}
                 >
                   <Plus className="h-3 w-3" aria-hidden="true" />

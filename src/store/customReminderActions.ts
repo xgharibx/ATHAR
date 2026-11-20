@@ -170,6 +170,17 @@ export function deleteCustomReminder(id: string): void {
   });
 }
 
+/** Put back a reminder that was just deleted (the «تراجع» of the delete toast). */
+export function restoreCustomReminder(reminder: CustomReminder): void {
+  useNoorStore.setState((s) => {
+    const list = s.customReminders ?? [];
+    if (list.some((r) => r.id === reminder.id)) return {};
+    const next = [reminder, ...list];
+    scheduleRemindersSave(next);
+    return { customReminders: next };
+  });
+}
+
 export function dismissTemplateFlag(templateId: string): void {
   if (!templateId) return;
   const current = readSeenTemplateIds();
