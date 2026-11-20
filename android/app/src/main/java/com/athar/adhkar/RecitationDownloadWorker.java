@@ -76,12 +76,17 @@ public class RecitationDownloadWorker extends Worker {
 
     /** Queue a batch; returns its id. */
     static String enqueue(Context context, List<String> urls, long maxBytes, @Nullable String title, String kind) throws Exception {
+        return enqueue(context, urls, maxBytes, title, kind, 0);
+    }
+
+    static String enqueue(Context context, List<String> urls, long maxBytes, @Nullable String title, String kind, long maxFileBytes) throws Exception {
         String batch = UUID.randomUUID().toString();
         JSONObject job = new JSONObject();
         job.put("urls", new JSONArray(urls));
         job.put("maxBytes", maxBytes);
         job.put("title", title == null ? "" : title);
         job.put("kind", kind);
+        job.put("maxFileBytes", maxFileBytes);
         File dir = queueDir(context);
         if (!dir.isDirectory() && !dir.mkdirs()) throw new IllegalStateException("no queue folder");
         try (OutputStream out = new FileOutputStream(new File(dir, batch + ".json"))) {
@@ -122,7 +127,7 @@ public class RecitationDownloadWorker extends Worker {
             // Stopped by the system (no network, battery saver): carry on later.
             if (isStopped()) return Result.retry();
             String url = urls.optString(i, "");
-            if (RecitationDownloads.save(context, url)) {
+            if (RecitationDownloads.save(context, url, job.optLong("maxFileBytes", 0))) {
                 saved++;
                 File file = RecitationDownloads.fileFor(context, url);
                 if (file != null) kept.add(file.getAbsolutePath());
@@ -146,6 +151,7 @@ public class RecitationDownloadWorker extends Worker {
 
     private static void notifyDone(Context context, String title, int saved, int total, String kind) {
         boolean tafsir = "tafsir".equals(kind);
+        boolean listen = "listen".equals(kind);
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
         if (!manager.areNotificationsEnabled()) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -157,13 +163,17 @@ public class RecitationDownloadWorker extends Worker {
         }
         Intent open = new Intent(context, AtharActivity.class)
             .setAction(Intent.ACTION_VIEW)
-            .putExtra(AtharWidgetProvider.EXTRA_ROUTE, tafsir ? "/tafsir" : "/mushaf");
+            .putExtra(AtharWidgetProvider.EXTRA_ROUTE, tafsir ? "/tafsir" : listen ? "/listen/downloads" : "/mushaf");
         PendingIntent tap = PendingIntent.getActivity(context, NOTIFICATION_ID, open,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         String body = tafsir
             ? (saved == total
                 ? context.getString(R.string.downloads_tafsir_done_all)
                 : context.getString(R.string.downloads_tafsir_done_some, saved, total))
+            : listen
+                ? (saved == total
+                    ? context.getResources().getQuantityString(R.plurals.downloads_listen_done_all, saved, saved)
+                    : context.getString(R.string.downloads_listen_done_some, saved, total))
             : saved == total
                 ? context.getString(R.string.downloads_done_all, saved)
                 : context.getString(R.string.downloads_done_some, saved, total);

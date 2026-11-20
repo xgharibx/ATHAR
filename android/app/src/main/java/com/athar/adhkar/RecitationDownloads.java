@@ -28,6 +28,9 @@ final class RecitationDownloads {
     /** Largest single verse accepted; the longest verses are well under this. */
     static final long MAX_FILE_BYTES = 8L * 1024 * 1024;
 
+    /** The most a batch may allow per file: a whole surah in high quality. */
+    static final long MAX_LONG_FILE_BYTES = 600L * 1024 * 1024;
+
     private RecitationDownloads() {}
 
     static File root(Context context) {
@@ -67,6 +70,13 @@ final class RecitationDownloads {
         }
     }
 
+    /** Which of `urls` are saved. */
+    static List<String> savedOf(Context context, List<String> urls) {
+        List<String> saved = new ArrayList<>();
+        for (String url : urls) if (existing(context, url) != null) saved.add(url);
+        return saved;
+    }
+
     /** Remove the saved copies of `urls`; returns how many were removed. */
     static int remove(Context context, List<String> urls) {
         int removed = 0;
@@ -86,16 +96,24 @@ final class RecitationDownloads {
             String path = parsed.getPath();
             if (path == null || path.isEmpty()) return null;
             String[] segments = path.split("/");
-            // Keep the last two segments (reciter folder and file) under the host.
+            // Verses (everyayah) and tafsir surahs keep their two last segments
+            // (reciter folder and file), as they always have. Whole surahs and
+            // other long recordings keep their whole path: several reciters'
+            // folders end alike (".../r1/001.mp3"), and one must never play for
+            // another. Segments stay percent-encoded, so Arabic names are safe.
+            String host = parsed.getHost().toLowerCase(java.util.Locale.ROOT);
+            boolean shortPath = isText(path) || host.equals("everyayah.com") || host.endsWith(".everyayah.com");
+            int first = shortPath ? Math.max(0, segments.length - 2) : 0;
             List<String> kept = new ArrayList<>();
-            for (int i = Math.max(0, segments.length - 2); i < segments.length; i++) {
+            for (int i = first; i < segments.length; i++) {
                 String segment = segments[i];
                 if (segment.isEmpty()) continue;
-                if (!segment.matches("[A-Za-z0-9._-]+") || segment.equals(".") || segment.equals("..")) return null;
+                if (!segment.matches("[A-Za-z0-9._%-]{1,200}") || segment.equals(".") || segment.equals("..")) return null;
                 kept.add(segment);
             }
+            if (kept.size() > 10) return null;
             if (kept.isEmpty()) return null;
-            File file = new File(isText(path) ? textRoot(context) : root(context), parsed.getHost().toLowerCase());
+            File file = new File(isText(path) ? textRoot(context) : root(context), host);
             for (String segment : kept) file = new File(file, segment);
             return file;
         } catch (IOException | IllegalArgumentException e) {
@@ -112,6 +130,11 @@ final class RecitationDownloads {
 
     /** Save one verse. Returns true when it is on disk (already or now). */
     static boolean save(Context context, String url) {
+        return save(context, url, 0);
+    }
+
+    /** Save one file, up to `maxFileBytes` (0: the default for its kind; whole surahs pass more). */
+    static boolean save(Context context, String url, long maxFileBytes) {
         File target = fileFor(context, url);
         if (target == null) return false;
         if (target.isFile() && target.length() > 0) {
@@ -129,7 +152,9 @@ final class RecitationDownloads {
             connection.setReadTimeout(30000);
             connection.setInstanceFollowRedirects(true);
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) return false;
-            long limit = isText(target.getName()) ? MAX_TEXT_BYTES : MAX_FILE_BYTES;
+            long limit = maxFileBytes > 0
+                ? Math.min(maxFileBytes, MAX_LONG_FILE_BYTES)
+                : isText(target.getName()) ? MAX_TEXT_BYTES : MAX_FILE_BYTES;
             long declared = connection.getContentLengthLong();
             if (declared > limit) return false;
             long written = 0;

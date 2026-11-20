@@ -5,7 +5,7 @@
 import * as React from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Heart, Mic2, Play, Search, Shuffle } from "lucide-react";
+import { CloudDownload, Heart, Loader2, Mic2, Play, Search, Shuffle } from "lucide-react";
 import "@/styles/listen.css";
 import {
   arabicDigits,
@@ -21,6 +21,7 @@ import {
 } from "@/lib/listen/catalog";
 import { playTracks } from "@/lib/listen/player";
 import { useListenStore } from "@/lib/listen/store";
+import { canDownloadListening, downloadTracks } from "@/lib/listen/downloads";
 import { useListenCatalog } from "@/lib/listen/useListen";
 import { ReciterMark } from "@/components/listen/ReciterMark";
 import { TrackRow } from "@/components/listen/TrackRow";
@@ -36,6 +37,9 @@ export function ListenReciterPage() {
   const setPreferred = useListenStore((s) => s.setPreferred);
   const listened = useListenStore((s) => (reciter ? s.byArtist[reciter.n] ?? 0 : 0));
   const [q, setQ] = React.useState("");
+  const [saving, setSaving] = React.useState<{ done: number; total: number } | null>(null);
+  const [confirmAll, setConfirmAll] = React.useState(false);
+  const downloads = useListenStore((s) => s.downloads);
 
   const moshafId = Number(params.get("m")) || reciter?.m[0]?.id;
   const moshaf = reciter?.m.find((m) => m.id === moshafId) ?? reciter?.m[0];
@@ -69,6 +73,17 @@ export function ListenReciterPage() {
           <button type="button" className="ls-ghost-btn" onClick={() => playTracks(queue, Math.floor(Math.random() * queue.length), { shuffle: true })}>
             <Shuffle size={17} aria-hidden="true" /> عشوائي
           </button>
+          {canDownloadListening() ? (
+            <button
+              type="button"
+              className="ls-ghost-btn"
+              disabled={saving !== null}
+              aria-label={`تنزيل تلاوة ${reciter.n} كاملة`}
+              onClick={() => setConfirmAll(true)}
+            >
+              {saving ? <Loader2 size={17} className="animate-spin" aria-hidden="true" /> : <CloudDownload size={17} aria-hidden="true" />}
+            </button>
+          ) : null}
           <button
             type="button"
             className="ls-ghost-btn"
@@ -80,6 +95,49 @@ export function ListenReciterPage() {
             <Heart size={17} fill={favorite ? "currentColor" : "none"} aria-hidden="true" />
           </button>
         </div>
+        {saving ? (
+          <p className="mt-2 text-[12px] text-(--muted)" aria-live="polite">
+            جارٍ التنزيل في الخلفية… {arabicDigits(saving.done)} من {arabicDigits(saving.total)}
+          </p>
+        ) : confirmAll ? (
+          <div className="mt-3 rounded-2xl border border-(--stroke) p-3 text-[12px] leading-6" role="alertdialog" aria-label="تنزيل التلاوة كاملة">
+            {(() => {
+              const left = queue.filter((t) => !downloads[t.id]).length;
+              return left === 0 ? (
+                <p>هذه التلاوة كلها على هاتفك.</p>
+              ) : (
+                <p>
+                  تنزيل {arabicDigits(left)} سورة للاستماع دون إنترنت. التلاوة الكاملة قد تحتاج نحو غيغابايت أو أكثر، والأفضل عبر Wi‑Fi. يكمل التنزيل في الخلفية حتى لو أغلقت التطبيق.
+                </p>
+              );
+            })()}
+            <div className="mt-2 flex gap-2 justify-center">
+              <button type="button" className="ls-ghost-btn" onClick={() => setConfirmAll(false)}>إلغاء</button>
+              {queue.some((t) => !downloads[t.id]) ? (
+                <button
+                  type="button"
+                  className="ls-play-btn"
+                  onClick={() => {
+                    setConfirmAll(false);
+                    const missing = queue.filter((t) => !downloads[t.id]);
+                    setSaving({ done: 0, total: missing.length });
+                    void downloadTracks(missing, {
+                      title: `${reciter.n} — ${moshafLabel(moshaf)}`,
+                      onProgress: (done, total) => setSaving({ done, total }),
+                    })
+                      .then((r) => {
+                        if (r && r.saved >= r.total) toast.success("حُفظت التلاوة كاملة للاستماع دون إنترنت");
+                        else if (r) toast.error(`حُفظت ${arabicDigits(r.saved)} من ${arabicDigits(r.total)}؛ أعد التنزيل لإكمال الباقي`);
+                      })
+                      .finally(() => setSaving(null));
+                  }}
+                >
+                  تنزيل
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
         <button
           type="button"
           className={`ls-chip mt-3 ${isPreferred ? "is-on" : ""}`}

@@ -5,7 +5,7 @@
  */
 import * as React from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Pencil, Play, Shuffle, Trash2 } from "lucide-react";
+import { CloudDownload, Pencil, Play, Shuffle, Trash2 } from "lucide-react";
 import "@/styles/listen.css";
 import {
   albumTrack,
@@ -23,6 +23,8 @@ import {
 } from "@/lib/listen/catalog";
 import { playTracks } from "@/lib/listen/player";
 import { useListenStore } from "@/lib/listen/store";
+import { canDownloadListening, reconcileDownloads, removeDownloadedTracks } from "@/lib/listen/downloads";
+import { downloadedRecitationBytes } from "@/lib/nativeRecitation";
 import { useListenCatalog } from "@/lib/listen/useListen";
 import { ReciterMark } from "@/components/listen/ReciterMark";
 import { TrackRow } from "@/components/listen/TrackRow";
@@ -309,6 +311,108 @@ export function ListenPlaylistPage() {
         </button>
       </div>
       <TrackList tracks={playlist.tracks} meta={(t) => <span>{t.artist}</span>} />
+    </div>
+  );
+}
+
+function formatSize(bytes: number): string {
+  if (bytes >= 1024 ** 3) return `${arabicDigits((bytes / 1024 ** 3).toFixed(1))} غيغابايت`;
+  return `${arabicDigits(Math.max(1, Math.round(bytes / 1024 ** 2)))} ميغابايت`;
+}
+
+/**
+ * «التنزيلات»: what is saved on the phone for listening offline, checked
+ * against the files really there; the switch for saving as you listen; and
+ * the space it takes.
+ */
+export function ListenDownloadsPage() {
+  const autoSave = useListenStore((s) => s.autoSave);
+  const setAutoSave = useListenStore((s) => s.setAutoSave);
+  const recorded = useListenStore((s) => s.downloads);
+  const [tracks, setTracks] = React.useState<ListenTrack[] | null>(null);
+  const [bytes, setBytes] = React.useState<number | null>(null);
+  const [confirmClear, setConfirmClear] = React.useState(false);
+  const native = canDownloadListening();
+
+  React.useEffect(() => {
+    let alive = true;
+    void reconcileDownloads().then((list) => alive && setTracks(list));
+    void downloadedRecitationBytes().then((b) => alive && setBytes(b));
+    return () => {
+      alive = false;
+    };
+  }, [recorded]);
+
+  React.useEffect(() => {
+    document.title = "التنزيلات — السماع";
+  }, []);
+
+  if (!native) {
+    return (
+      <div className="ls-page page-enter">
+        <ListHeader title="التنزيلات" tracks={[]} />
+        <div className="ls-card ls-empty">التنزيل للاستماع دون إنترنت متاح في تطبيق أثر على iPhone وAndroid.</div>
+      </div>
+    );
+  }
+
+  const list = tracks ?? [];
+  return (
+    <div className="ls-page page-enter">
+      <ListHeader
+        title="التنزيلات"
+        sub={`${arabicDigits(list.length)} مقطعًا على هاتفك${bytes ? `، ${formatSize(bytes)} مع آيات المصحف` : ""}`}
+        tracks={list}
+      />
+      <label className="ls-card p-4 flex items-center justify-between gap-3 cursor-pointer">
+        <span className="min-w-0">
+          <b className="block text-[14px]">احفظ ما أستمع إليه</b>
+          <span className="block text-[12px] text-(--muted) leading-5">
+            ما تستمع إليه نصف دقيقة أو أكثر يُحفظ على الهاتف وأنت تسمعه، فتسمعه بعدها بلا اتصال
+          </span>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="h-6 w-11 shrink-0 accent-(--accent)"
+          checked={autoSave}
+          onChange={(e) => setAutoSave(e.target.checked)}
+          aria-label="احفظ ما أستمع إليه"
+        />
+      </label>
+      {tracks === null ? (
+        <Loading />
+      ) : list.length ? (
+        <>
+          <TrackList tracks={list} meta={(t) => <span>{t.artist}</span>} />
+          <div className="flex justify-center">
+            {confirmClear ? (
+              <div className="flex gap-2">
+                <button type="button" className="ls-ghost-btn" onClick={() => setConfirmClear(false)}>إبقاء</button>
+                <button
+                  type="button"
+                  className="ls-play-btn"
+                  onClick={() => {
+                    setConfirmClear(false);
+                    void removeDownloadedTracks(list).then(() => setTracks([]));
+                  }}
+                >
+                  <Trash2 size={16} aria-hidden="true" /> حذف كل التنزيلات
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="ls-ghost-btn" onClick={() => setConfirmClear(true)}>
+                <Trash2 size={16} aria-hidden="true" /> حذف كل التنزيلات
+              </button>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="ls-card ls-empty">
+          <CloudDownload size={22} className="mx-auto mb-2 text-(--accent)" aria-hidden="true" />
+          لا شيء محفوظ بعد. اختر «تنزيل» من خيارات أي سورة، أو زر التنزيل في صفحة القارئ، أو اترك «احفظ ما أستمع إليه» مفعّلًا.
+        </div>
+      )}
     </div>
   );
 }

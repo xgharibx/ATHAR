@@ -45,11 +45,12 @@ type QuranAudioPlugin = {
   setRate(options: { rate: number }): Promise<void>;
   setVolume(options: { volume: number }): Promise<void>;
   /** Downloads in the background: it carries on after the app is left (Android WorkManager, iOS background session). */
-  download(options: { urls: string[]; maxBytes: number; title?: string; kind?: "audio" | "tafsir" }): Promise<{ saved: number; failed: number; evicted: number }>;
+  download(options: { urls: string[]; maxBytes: number; title?: string; kind?: "audio" | "tafsir" | "listen"; maxFileBytes?: number }): Promise<{ saved: number; failed: number; evicted: number }>;
   downloadedBytes(): Promise<{ bytes: number }>;
   clearDownloads(): Promise<void>;
   /** Saved text files (tafsir): kept apart from the recitations and their budget. App builds before these reject them. */
   savedCount(options: { urls: string[] }): Promise<{ count: number }>;
+  savedUrls(options: { urls: string[] }): Promise<{ saved: string[] }>;
   readDownloaded(options: { url: string }): Promise<{ text?: string }>;
   removeDownloads(options: { urls: string[] }): Promise<{ removed: number }>;
   addListener(event: "itemChange", listener: (event: { index: number; id: string }) => void): Promise<PluginListenerHandle>;
@@ -251,14 +252,24 @@ export async function downloadNativeRecitations(
   urls: string[],
   onProgress: (done: number, total: number) => void,
   title?: string,
-  kind: "audio" | "tafsir" = "audio",
+  kind: "audio" | "tafsir" | "listen" = "audio",
+  /** Per-file limit for long recordings (whole surahs); the native default suits single verses. */
+  maxFileBytes?: number,
+  /** Space all saved recitations may take after this batch (the oldest go first). */
+  maxBytes: number = NATIVE_RECITATION_MAX_BYTES,
 ): Promise<{ saved: number; failed: number; evicted: number } | null> {
   const native = nativePlugin();
   if (!native) return null;
   let handle: PluginListenerHandle | null = null;
   try {
     handle = await native.addListener("downloadProgress", ({ done, total }) => onProgress(done, total));
-    return await native.download({ urls, maxBytes: NATIVE_RECITATION_MAX_BYTES, title, ...(kind === "audio" ? {} : { kind }) });
+    return await native.download({
+      urls,
+      maxBytes,
+      title,
+      ...(kind === "audio" ? {} : { kind }),
+      ...(maxFileBytes ? { maxFileBytes } : {}),
+    });
   } catch {
     return null;
   } finally {
@@ -358,5 +369,17 @@ export async function nativeRemoveDownloads(urls: string[]): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+/** Which of `urls` are saved as files; null outside the apps or in an app build that cannot tell. */
+export async function nativeSavedUrls(urls: string[]): Promise<Set<string> | null> {
+  const native = nativePlugin();
+  if (!native || urls.length === 0) return native ? new Set() : null;
+  try {
+    const { saved } = await native.savedUrls({ urls });
+    return new Set(Array.isArray(saved) ? saved.filter((u): u is string => typeof u === "string") : []);
+  } catch {
+    return null;
   }
 }

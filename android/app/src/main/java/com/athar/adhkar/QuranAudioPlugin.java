@@ -353,8 +353,10 @@ public class QuranAudioPlugin extends Plugin {
         Context context = getContext();
         downloads.execute(() -> {
             try {
-                String kind = "tafsir".equals(call.getString("kind")) ? "tafsir" : "audio";
-                String batch = RecitationDownloadWorker.enqueue(context, urls, maxBytes, call.getString("title"), kind);
+                String requested = call.getString("kind");
+                String kind = "tafsir".equals(requested) || "listen".equals(requested) ? requested : "audio";
+                long maxFileBytes = Math.max(0, call.getLong("maxFileBytes", 0L));
+                String batch = RecitationDownloadWorker.enqueue(context, urls, maxBytes, call.getString("title"), kind, maxFileBytes);
                 waiting.put(batch, call);
             } catch (Exception e) {
                 call.reject("The download could not start", e);
@@ -395,6 +397,18 @@ public class QuranAudioPlugin extends Plugin {
             result.put("count", count);
             call.resolve(result);
         });
+    }
+
+    /** Which of `urls` are saved on the phone. */
+    @PluginMethod
+    public void savedUrls(PluginCall call) {
+        List<String> urls = urlsOf(call);
+        Context context = getContext();
+        new Thread(() -> {
+            JSObject result = new JSObject();
+            result.put("saved", new JSArray(RecitationDownloads.savedOf(context, urls)));
+            call.resolve(result);
+        }).start();
     }
 
     /** The saved copy of a text file (a tafsir surah), or nothing. */

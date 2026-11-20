@@ -6,9 +6,9 @@
  */
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BarChart3, ChevronLeft, Flame, Heart, ListMusic, Moon, Play, Search, Sparkles } from "lucide-react";
+import { BarChart3, ChevronLeft, CloudDownload, Flame, Heart, ListMusic, Moon, Play, Search, Shuffle, Sparkles } from "lucide-react";
 import "@/styles/listen.css";
-import { arabicDigits, cityName, findMoshaf, formatListened, hueFor, surahName, type ListenCatalog } from "@/lib/listen/catalog";
+import { arabicDigits, cityName, findMoshaf, formatListened, hueFor, randomMix, surahName, type ListenCatalog } from "@/lib/listen/catalog";
 import { playTracks } from "@/lib/listen/player";
 import { lastSevenDays, listeningStreak, resumable, useListenStore, dayKey } from "@/lib/listen/store";
 import { isKahfTime, MOMENTS, momentTracks } from "@/lib/listen/moments";
@@ -162,6 +162,7 @@ export function ListenHomePage() {
   const favoriteReciters = useListenStore((s) => s.favoriteReciters);
   const favorites = useListenStore((s) => s.favorites);
   const playlists = useListenStore((s) => s.playlists);
+  const downloadsCount = useListenStore((s) => Object.keys(s.downloads).length);
   const [q, setQ] = React.useState("");
 
   React.useEffect(() => {
@@ -195,6 +196,22 @@ export function ListenHomePage() {
       </header>
 
       <TodayCard />
+      {catalog ? (
+        <button
+          type="button"
+          className="ls-card ls-press p-4 flex items-center gap-3 w-full text-right"
+          onClick={() => playTracks(randomMix(catalog), 0)}
+        >
+          <span className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)" }}>
+            <Shuffle size={20} className="text-(--accent)" aria-hidden="true" />
+          </span>
+          <span className="min-w-0">
+            <b className="block text-[15px]">عشوائي من كل القرّاء</b>
+            <span className="block text-[12px] text-(--muted)">سور متنوّعة بأصوات {arabicDigits(catalog.reciters.length)} قارئًا، لا يتكرر فيها قارئ مرتين متتاليتين</span>
+          </span>
+          <Play size={18} fill="currentColor" className="mr-auto text-(--accent) shrink-0" aria-hidden="true" style={{ transform: "scaleX(-1)" }} />
+        </button>
+      ) : null}
       <ContinueRail />
 
       {error ? (
@@ -293,6 +310,13 @@ export function ListenHomePage() {
                 <span>
                   <b className="block text-[14px]">المفضّلة</b>
                   <span className="text-[12px] text-(--muted)">{arabicDigits(Object.keys(favorites).length)} مقطعًا</span>
+                </span>
+              </Link>
+              <Link to="/listen/downloads" className="ls-card ls-press p-4 flex items-center gap-3">
+                <CloudDownload size={20} className="text-(--accent)" aria-hidden="true" />
+                <span>
+                  <b className="block text-[14px]">التنزيلات</b>
+                  <span className="text-[12px] text-(--muted)">{downloadsCount ? `${arabicDigits(downloadsCount)} مقطعًا على هاتفك` : "استمع بلا اتصال"}</span>
                 </span>
               </Link>
               <Link to="/listen/stats" className="ls-card ls-press p-4 flex items-center gap-3">

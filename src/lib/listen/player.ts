@@ -14,6 +14,7 @@
 import type { ListenTrack } from "@/lib/listen/catalog";
 import { useListenStore } from "@/lib/listen/store";
 import { claimAudioFocus } from "@/lib/audioFocus";
+import { maybeAutoSave } from "@/lib/listen/downloads";
 import { claimMediaSession, releaseMediaSession, setMediaPlaybackState, updateNowPlaying } from "@/lib/mediaSession";
 import {
   hasNativeRecitation,
@@ -127,6 +128,8 @@ function onPosition(positionMs: number, durationMs: number) {
   saveProgress();
   checkCompleted();
   checkSleep();
+  // «احفظ ما أستمع إليه»: a track listened to for a while is saved for offline.
+  maybeAutoSave(state.current, trackHeardMs);
 }
 
 function trackChanged() {

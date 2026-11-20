@@ -133,6 +133,7 @@ const ListenQiyamPage = React.lazy(() => import("@/pages/listen/ListenCollection
 const ListenTawasheehPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenTawasheehPage })));
 const ListenAlbumPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenAlbumPage })));
 const ListenFavoritesPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenFavoritesPage })));
+const ListenDownloadsPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenDownloadsPage })));
 const ListenPlaylistPage = React.lazy(() => import("@/pages/listen/ListenCollections").then((m) => ({ default: m.ListenPlaylistPage })));
 
 export default function App() {
@@ -643,6 +644,7 @@ function AppContent() {
           <Route path="listen/tawasheeh" element={<S><ListenTawasheehPage /></S>} />
           <Route path="listen/album/:id" element={<S><ListenAlbumPage /></S>} />
           <Route path="listen/favorites" element={<S><ListenFavoritesPage /></S>} />
+          <Route path="listen/downloads" element={<S><ListenDownloadsPage /></S>} />
           <Route path="listen/playlist/:id" element={<S><ListenPlaylistPage /></S>} />
           <Route path="listen/stats" element={<S><ListenStatsPage /></S>} />
           <Route path="qadaa" element={<S><QadaaPage /></S>} />

@@ -55,7 +55,7 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
     }
 
     /// Queue a batch; `registered` gets its id before anything can finish.
-    func start(urls: [URL], maxBytes: Int64, title: String, kind: String = "audio", registered: (String) -> Void) {
+    func start(urls: [URL], maxBytes: Int64, title: String, kind: String = "audio", maxFileBytes: Int64 = 0, registered: (String) -> Void) {
         let batch = UUID().uuidString
         registered(batch)
         var pending: [URL] = []
@@ -82,6 +82,7 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
                 "maxBytes": NSNumber(value: maxBytes),
                 "title": title,
                 "kind": kind,
+                "maxFileBytes": NSNumber(value: maxFileBytes),
             ]
             store(all)
         }
@@ -142,7 +143,13 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
 
     private static func notifyDone(title: String, saved: Int, total: Int, kind: String) {
         let content = UNMutableNotificationContent()
-        if kind == "tafsir" {
+        if kind == "listen" {
+            content.title = title.isEmpty ? "اكتمل تنزيل التلاوة" : title
+            content.body = saved == total
+                ? (saved == 1 ? "حُفظت التلاوة للاستماع دون إنترنت" : "حُفظت \(saved) تلاوة للاستماع دون إنترنت")
+                : "حُفظت \(saved) من \(total) تلاوة للاستماع دون إنترنت"
+            content.userInfo = ["cap_extra": ["route": "/listen/downloads"]]
+        } else if kind == "tafsir" {
             content.title = title.isEmpty ? "اكتمل تنزيل التفسير" : title
             content.body = saved == total
                 ? "حُفظ التفسير للقراءة دون إنترنت"
@@ -175,7 +182,13 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
            let target = RecitationFiles.file(for: url) {
             let fileManager = FileManager.default
             let size = (try? fileManager.attributesOfItem(atPath: location.path)[.size] as? Int64) ?? 0
-            if size > 0, size <= RecitationFiles.maxBytes(for: url) {
+            var limit = RecitationFiles.maxBytes(for: url)
+            queue.sync {
+                if let allowed = (batches()[batch]?["maxFileBytes"] as? NSNumber)?.int64Value, allowed > 0 {
+                    limit = min(allowed, RecitationFiles.maxLongFileBytes)
+                }
+            }
+            if size > 0, size <= limit {
                 do {
                     try fileManager.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
                     if fileManager.fileExists(atPath: target.path) { try fileManager.removeItem(at: target) }
