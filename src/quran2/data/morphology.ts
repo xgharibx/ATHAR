@@ -14,7 +14,7 @@ import type { Q2Pos } from "./grammar";
 export const MORPHOLOGY_COMMIT = "8f38b39016824284f9ed16ae15069ff9102c4acf";
 export const MORPHOLOGY_URL = `https://cdn.jsdelivr.net/gh/mustafa0x/quran-morphology@${MORPHOLOGY_COMMIT}/quran-morphology.txt`;
 export const MORPHOLOGY_CREDIT = {
-  name: "المدوّنة القرآنية العربية (Quranic Arabic Corpus)",
+  name: "المدوّنة القرآنية العربية",
   url: "https://corpus.quran.com",
   licence: "GNU GPL 3.0",
 };

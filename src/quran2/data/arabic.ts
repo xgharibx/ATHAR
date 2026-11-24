@@ -58,3 +58,11 @@ export function matchesWord(quranWord: string, typed: string): boolean {
 export function arDigits(n: number | string): string {
   return String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[Number(d)]!);
 }
+
+/** «٣ آيات», «١١ آية»: the counted noun the way Arabic counts it. */
+export function arCount(n: number, one: string, two: string, few: string, many: string): string {
+  if (n === 1) return one;
+  if (n === 2) return two;
+  if (n >= 3 && n <= 10) return `${arDigits(n)} ${few}`;
+  return `${arDigits(n)} ${many}`;
+}

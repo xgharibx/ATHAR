@@ -653,6 +653,21 @@ export function QuranPage() {
   return (
     <div className="stack-y-4 page-enter">
 
+      {/* «القرآن ٢»: the second Quran section, built apart from this one (src/quran2, docs/QURAN_V2.md). */}
+      <button
+        type="button"
+        onClick={() => navigate("/q2")}
+        className="press-effect w-full flex items-center gap-3 rounded-3xl border border-(--stroke) bg-(--card) px-4 py-3 text-right"
+        aria-label="افتح القرآن ٢، الإصدار الثاني من قسم القرآن"
+      >
+        <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-lg" style={{ color: "var(--accent)", background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}>✦</span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-base font-bold">القرآن ٢</span>
+          <span className="block text-xs opacity-65 leading-5">الإصدار الثاني: اقرأ مع القارئ كلمةً كلمة، ومعجم الجذور، وخطة حفظ</span>
+        </span>
+        <span aria-hidden="true" className="text-lg opacity-50">‹</span>
+      </button>
+
       {/* ══════════════════════════════════════════════════════
           HEADER CARD — Title + Search + Continue reading
           ══════════════════════════════════════════════════════ */}
