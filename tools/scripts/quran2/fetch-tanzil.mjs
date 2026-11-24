@@ -10,8 +10,10 @@
  *   tanzil-meta.json    the metadata 1.0 (surahs, juz, hizb quarters, manzils,
  *                       rukus, Madani pages, sajdas) as JSON, with its notice.
  *
- * Both are checked before anything is written: 6236 ayahs in 114 surahs, the
- * ayah counts agreeing with the metadata, 604 pages, 30 juz, 15 sajdas.
+ * Both are checked before anything is written: the text must be byte for byte
+ * the verified Uthmani 1.1 (its SHA-256 is pinned below), with 6236 ayahs in 114
+ * surahs agreeing with the metadata, 604 pages, 30 juz and 15 sajdas. If Tanzil
+ * publishes a correction, review it, then update TEXT_SHA256 on purpose.
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -22,6 +24,8 @@ const OUT = path.resolve("public/data/quran2");
 const TEXT_URL =
   "https://tanzil.net/pub/download/index.php?marks=true&sajdah=true&rub=false&tatweel=true&alef=true&quranType=uthmani&outType=txt-2&agree=true";
 const META_URL = "https://tanzil.net/res/text/metadata/quran-data.js";
+/** The Tanzil Uthmani 1.1 text as verified and bundled (tests/quran2Data.test.ts checks the same file). */
+const TEXT_SHA256 = "7f30c647331a61100ebf24a80507dc0fcdd9f2df97f1312b5b2dfcb982a7f326";
 
 async function get(url) {
   const res = await fetch(url, { headers: { "User-Agent": "athar-build" } });
@@ -35,6 +39,8 @@ function fail(message) {
 }
 
 const text = await get(TEXT_URL);
+const textSha = createHash("sha256").update(text).digest("hex");
+if (textSha !== TEXT_SHA256) fail(`the text is not the verified Uthmani 1.1 (sha256 ${textSha}); review the change before updating TEXT_SHA256`);
 const lines = text.split("\n").filter((l) => /^\d+\|\d+\|/.test(l));
 if (lines.length !== 6236) fail(`expected 6236 ayahs, got ${lines.length}`);
 if (!text.includes("Tanzil Quran Text (Uthmani, Version 1.1)")) fail("the copyright block is missing or the version changed");
@@ -75,6 +81,5 @@ meta.surahs.forEach((s, i) => {
 mkdirSync(OUT, { recursive: true });
 writeFileSync(path.join(OUT, "tanzil-uthmani.txt"), text);
 writeFileSync(path.join(OUT, "tanzil-meta.json"), JSON.stringify(meta));
-const sha = createHash("sha256").update(text).digest("hex");
-console.log(`✓ text: 6236 ayahs, sha256 ${sha}`);
+console.log(`✓ text: 6236 ayahs, sha256 ${textSha} (the verified version)`);
 console.log(`✓ metadata: 114 surahs, 604 pages, 30 juz, 15 sajdas`);

@@ -16,18 +16,35 @@ export const Q2_TAFSIRS: Q2Tafsir[] = [
   { id: 93, name: "التفسير الوسيط", author: "محمد سيد طنطاوي", short: "الوسيط" },
 ];
 
-/** The API's HTML as paragraphs of plain text. */
+/**
+ * The API's HTML as paragraphs of plain text. Tags are dropped character by
+ * character (no regex can be trusted with nested or broken markup), entities
+ * are decoded afterwards, and any angle bracket left is removed, so nothing
+ * that looks like markup can come out. React renders the result as text.
+ */
 export function tafsirParagraphs(html: string): string[] {
-  const text = html
-    .replace(/<\s*br\s*\/?>/gi, "\n")
-    .replace(/<\/\s*(p|div|h\d|li)\s*>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
+  let text = "";
+  let inTag = false;
+  let tag = "";
+  for (const ch of html) {
+    if (inTag) {
+      if (ch === ">") {
+        inTag = false;
+        // Block ends and line breaks become paragraph breaks.
+        if (/^\/?\s*(br|p|div|h\d|li)\b/i.test(tag.trim())) text += "\n";
+        tag = "";
+      } else tag += ch;
+    } else if (ch === "<") {
+      inTag = true;
+    } else text += ch;
+  }
+  text = text
     .replace(/&nbsp;/g, " ")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&");
+    .replace(/&lt;|&gt;/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/[<>]/g, "");
   return text
     .split(/\n+/)
     .map((p) => p.replace(/[ \t]+/g, " ").trim())

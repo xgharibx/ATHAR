@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { JOINED, ayahText, parseTanzil } from "@/quran2/data/text";
 import { juzOf, pageOf, pageRange, refFromIndex, ayahIndex, sajdaAt, surahPages, type Q2Meta } from "@/quran2/data/meta";
@@ -15,6 +16,7 @@ const text = parseTanzil(raw);
 
 describe("Quran V2 text (Tanzil Uthmani 1.1)", () => {
   it("is the verified Tanzil file, with its copyright notice", () => {
+    expect(createHash("sha256").update(raw).digest("hex")).toBe("7f30c647331a61100ebf24a80507dc0fcdd9f2df97f1312b5b2dfcb982a7f326");
     expect(raw).toContain("Tanzil Quran Text (Uthmani, Version 1.1)");
     expect(raw).toContain("CHANGING IT IS NOT ALLOWED");
     expect(text.notice).toContain("Tanzil Project");
@@ -164,5 +166,16 @@ describe("Quran V2 word timings", () => {
 describe("Quran V2 tafsir text", () => {
   it("turns the API's HTML into paragraphs", () => {
     expect(tafsirParagraphs("<p>أولًا&nbsp;هنا</p><p>ثانيًا<br/>ثالثًا</p>")).toEqual(["أولًا هنا", "ثانيًا", "ثالثًا"]);
+  });
+
+  it("lets nothing that looks like markup through", () => {
+    for (const out of [
+      tafsirParagraphs("<scr<script>ipt>alert(1)</script>نص"),
+      tafsirParagraphs("&lt;script&gt;alert(1)&lt;/script&gt;نص"),
+      tafsirParagraphs("<<p>>نص<img src=x onerror=alert(1)>"),
+    ]) {
+      expect(out.join(" ")).not.toMatch(/[<>]/);
+      expect(out.join(" ")).toContain("نص");
+    }
   });
 });
