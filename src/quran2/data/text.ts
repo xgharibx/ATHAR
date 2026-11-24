@@ -39,8 +39,8 @@ export type Q2Text = { surahs: Q2Surah[]; notice: string };
 /** "surah:ayah" → corpus word number that Tanzil writes as two tokens. */
 export const JOINED: Record<string, number> = { "2:181": 3, "8:6": 4, "13:37": 8, "37:130": 3 };
 
-const MARK_TOKEN = /^[ۖ-ۭ]+$/u;
-const DIACRITICS = /[ً-ٰٟۖ-ۭـ]/gu;
+const MARK_TOKEN = /^[\u06D6-\u06ED]+$/u;
+const DIACRITICS = /[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/gu;
 
 function bare(text: string): string {
   return text.replace(DIACRITICS, "");

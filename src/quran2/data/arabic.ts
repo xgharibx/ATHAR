@@ -8,7 +8,7 @@
  * gets several keys, and a typed word matches if it equals any of them.
  */
 
-const HARAKAT = /[ً-ٟـۖ-ۭ]/gu;
+const HARAKAT = /[\u064B-\u065F\u06D6-\u06ED]|\u0640/g;
 
 function unifyLetters(text: string): string {
   return text
