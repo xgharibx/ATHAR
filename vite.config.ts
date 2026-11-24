@@ -148,6 +148,9 @@ export default defineConfig(({ mode }) => {
           "data/quran_page_map.json",
           "data/quran-en-sahih.json",
           "data/hadith/index.json",
+          // «القرآن ٢»: the Tanzil text and metadata, for reading offline.
+          "data/quran2/tanzil-uthmani.txt",
+          "data/quran2/tanzil-meta.json",
         ],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
       },

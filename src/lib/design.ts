@@ -38,7 +38,7 @@ export type UfuqResolvedPalette = "day" | "night";
 
 export const DESIGN_MODES: ReadonlyArray<{ id: DesignMode; label: string; hint: string }> = [
   { id: "classic", label: "الكلاسيكي", hint: "تصميم أثر المعتاد بسماته الكثيرة" },
-  { id: "classic-new", label: "الكلاسيكي الجديد", hint: "الكلاسيكي نفسه بصفحة رئيسية مرتّبة من جديد" },
+  { id: "classic-new", label: "الكلاسيكي الجديد", hint: "الكلاسيكي نفسه برئيسية جديدة: مسار يومك، وورد الساعة، وأثرك" },
   { id: "ufuq", label: "أُفُق", hint: "تصميم جديد كليًّا: هادئ، واضح، فاخر" },
 ];
 
