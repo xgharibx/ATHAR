@@ -58,7 +58,7 @@ export function parseTanzil(raw: string): Q2Text {
     if (!m) continue;
     const s = Number(m[1]);
     const a = Number(m[2]);
-    let tokens = m[3]!.replace(/^﻿/, "").split(" ").filter(Boolean);
+    let tokens = m[3]!.replace(/^\uFEFF/, "").split(" ").filter(Boolean);
     let surah = surahs[s - 1];
     if (!surah) {
       surah = { id: s, ayahs: [] };

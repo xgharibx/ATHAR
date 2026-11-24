@@ -12,7 +12,7 @@ const HARAKAT = /[ً-ٟـۖ-ۭ]/gu;
 
 function unifyLetters(text: string): string {
   return text
-    .replace(/[ٱأإآ]/gu, "ا")
+    .replace(/[\u0671\u0623\u0625\u0622]/gu, "ا")
     .replace(/ى/gu, "ي")
     .replace(/ة/gu, "ه")
     .replace(/ؤ/gu, "و")
