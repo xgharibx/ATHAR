@@ -70,6 +70,7 @@ No single app joins these together; several exist nowhere in Arabic:
 | Morphology (roots, lemmas, grammar) | Quranic Arabic Corpus 0.4, Arabic edition by mustafa0x/quran-morphology (commit 8f38b39) | GNU GPL 3.0; credit and link to corpus.quran.com | Fetched while the app runs, kept on the device |
 | Word timings and audio | Quran.com / QuranicAudio (qdc) | Provider's terms | Fetched while the app runs |
 | Tafsirs | Quran.com API v4 | Provider's and publishers' terms | Fetched while the app runs, kept on the device |
+| Translations of the meanings (18 languages) | Quran.com API v4 | Provider's and translators' terms | Fetched while the app runs, kept on the device |
 
 ## Architecture
 
@@ -89,14 +90,25 @@ No single app joins these together; several exist nowhere in Arabic:
 - Hifz: FSRS with new, near and far review, the memory map, and the self-test sessions.
 - The roots dictionary, search by text, root and lemma, and the Quran in numbers.
 
-**Phase 2**
-- Recitation checking that feeds the memory model.
-- Talqeen mode: the reciter, then silence for you to repeat.
-- Mutashabihat drills computed from the text.
-- Range repeat for hifz.
-- Translations.
+**Phase 2 (done)**
+- Similar ayahs (mutashabihat), computed on the device from the text: any two
+  ayahs that share three or more words in a row. Each verse sheet lists them
+  with the shared words and the point where each one parts. A drill shows the
+  shared words and asks for the right continuation for this surah.
+- Talqeen: the reciter recites an ayah, then stays silent for you to repeat
+  it (1 to 5 times), then moves to the next.
+- Recitation check: recite a page from memory, and the speech recogniser
+  follows it word by word (it understands the Uthmani spelling). Missed words
+  are shown, and a grade is suggested for the memory model.
+- Translations of the meanings in 18 languages, under each ayah in the reader
+  and in the verse sheet.
+- Memorisation, where you stopped and the section's settings are included in the
+  account backup (validated on restore).
+
+**Next**
 - Asking about an ayah, answered only from the cited tafsirs.
-- Backup of hifz progress with the account.
+- A tafsir comparison view showing all seven at once.
+- Word-by-word meanings.
 
 **Phase 3, native**
 - An iOS and Android widget for "pages due today".

@@ -128,6 +128,7 @@ const Q2Roots = React.lazy(() => import("@/quran2/pages/Roots"));
 const Q2RootPage = React.lazy(() => import("@/quran2/pages/RootPage"));
 const Q2Search = React.lazy(() => import("@/quran2/pages/SearchPage"));
 const Q2Numbers = React.lazy(() => import("@/quran2/pages/Numbers"));
+const Q2SimilarDrill = React.lazy(() => import("@/quran2/pages/SimilarDrill"));
 const IjazHome          = React.lazy(() => import("@/ijaz/pages/IjazHome"));
 const IjazMiracles      = React.lazy(() => import("@/ijaz/pages/IjazMiracles"));
 const IjazMiracleDetail = React.lazy(() => import("@/ijaz/pages/IjazMiracleDetail"));
@@ -635,6 +636,7 @@ function AppContent() {
           <Route path="about" element={<S><Q2About /></S>} />
           <Route path="hifz" element={<S><Q2Hifz /></S>} />
           <Route path="hifz/session" element={<S><Q2HifzSession /></S>} />
+          <Route path="hifz/similar" element={<S><Q2SimilarDrill /></S>} />
           <Route path="roots" element={<S><Q2Roots /></S>} />
           <Route path="roots/:root" element={<S><Q2RootPage /></S>} />
           <Route path="search" element={<S><Q2Search /></S>} />

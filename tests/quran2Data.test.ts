@@ -168,6 +168,10 @@ describe("Quran V2 tafsir text", () => {
     expect(tafsirParagraphs("<p>أولًا&nbsp;هنا</p><p>ثانيًا<br/>ثالثًا</p>")).toEqual(["أولًا هنا", "ثانيًا", "ثالثًا"]);
   });
 
+  it("drops footnote markers with their numbers", () => {
+    expect(tafsirParagraphs("In the name of Allāh,<sup foot_note=195932>1</sup> the Entirely Merciful")).toEqual(["In the name of Allāh, the Entirely Merciful"]);
+  });
+
   it("lets nothing that looks like markup through", () => {
     for (const out of [
       tafsirParagraphs("<scr<script>ipt>alert(1)</script>نص"),

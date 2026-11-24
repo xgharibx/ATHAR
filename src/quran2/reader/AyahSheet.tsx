@@ -1,13 +1,53 @@
 import * as React from "react";
 import { BookmarkCheck, Brain, Copy, Play, Share2 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { useQ2Tafsir } from "../hooks";
+import { useQ2Tafsir, useQ2Translation } from "../hooks";
 import { Q2_TAFSIRS } from "../data/tafsir";
+import { Q2_TRANSLATIONS, getTranslation } from "../data/translations";
+import { useQ2Store } from "../store";
+import { SimilarList } from "./SimilarList";
 import { arDigits } from "../data/arabic";
 import { Q2Error, Q2Loading } from "../components/ui";
 import { shareText } from "@/lib/shareTargets";
 
-/** One ayah: what to do with it, and seven tafsirs side by side. */
+type Tab = "tafsir" | "similar" | "translation";
+
+/** The meaning of one ayah in a chosen language. */
+function TranslationPanel({ s, a }: { s: number; a: number }) {
+  const saved = useQ2Store((st) => st.prefs.translation);
+  const [id, setId] = React.useState(saved ?? Q2_TRANSLATIONS[0]!.id);
+  const q = useQ2Translation(id, s);
+  const t = getTranslation(id)!;
+  return (
+    <div>
+      <div className="q2-chips" role="tablist" aria-label="اختر اللغة">
+        {Q2_TRANSLATIONS.map((tr) => (
+          <button
+            key={tr.id}
+            type="button"
+            role="tab"
+            aria-selected={tr.id === id}
+            className={`q2-chip q2-press${tr.id === id ? " is-on" : ""}`}
+            onClick={() => setId(tr.id)}
+          >
+            <bdi>{tr.label}</bdi>
+          </button>
+        ))}
+      </div>
+      <div className="q2-card" style={{ marginTop: 10, padding: "14px 16px" }} role="tabpanel">
+        <div className="q2-small" style={{ marginBottom: 6 }}><bdi>{t.by}</bdi></div>
+        {q.isLoading ? <Q2Loading /> : null}
+        {q.isError ? <Q2Error label="تعذّر تحميل الترجمة. تحقق من الاتصال." onRetry={() => void q.refetch()} /> : null}
+        {q.data?.[a - 1] ? (
+          <p dir={t.dir} lang={t.lang} style={{ fontSize: 16, lineHeight: 1.9, textAlign: "start" }}>{q.data[a - 1]}</p>
+        ) : null}
+      </div>
+      <p className="q2-credit">ترجمة معاني القرآن، لا تقوم مقام النص العربي. عبر واجهة Quran.com.</p>
+    </div>
+  );
+}
+
+/** One ayah: what to do with it, seven tafsirs side by side, its similar ayahs and its translations. */
 export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay, onLastRead, onHifz }: {
   s: number;
   a: number;
@@ -20,9 +60,10 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
   onLastRead: () => void;
   onHifz: () => void;
 }) {
+  const [tab, setTab] = React.useState<Tab>("tafsir");
   const [tafsir, setTafsir] = React.useState(Q2_TAFSIRS[0]!.id);
   const [full, setFull] = React.useState(false);
-  const q = useQ2Tafsir(tafsir, s, a);
+  const q = useQ2Tafsir(tafsir, s, a, tab === "tafsir");
   const quote = `﴿${text}﴾ [${surahName}: ${arDigits(a)}]`;
   const paragraphs = q.data ?? [];
   const shown = full ? paragraphs : paragraphs.slice(0, 4);
@@ -59,11 +100,31 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
         </button>
       </div>
 
-      <div className="q2-section" style={{ marginTop: 22 }}>
-        <div className="q2-head">
-          <h3 className="q2-h2">التفاسير</h3>
-          <span className="q2-small">سبعة تفاسير جنبًا إلى جنب</span>
-        </div>
+      <div className="q2-chips" role="tablist" aria-label="عن الآية" style={{ marginTop: 22 }}>
+        {([
+          ["tafsir", "التفاسير السبعة"],
+          ["similar", "المتشابهات"],
+          ["translation", "الترجمات"],
+        ] as Array<[Tab, string]>).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            className={`q2-chip q2-press${tab === id ? " is-on" : ""}`}
+            style={{ fontSize: 14 }}
+            onClick={() => setTab(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "similar" ? <div style={{ marginTop: 12 }}><SimilarList s={s} a={a} /></div> : null}
+      {tab === "translation" ? <div style={{ marginTop: 12 }}><TranslationPanel s={s} a={a} /></div> : null}
+
+      {tab === "tafsir" ? (
+      <div className="q2-section" style={{ marginTop: 12 }}>
         <div className="q2-chips" role="tablist" aria-label="اختر التفسير">
           {Q2_TAFSIRS.map((t) => (
             <button
@@ -99,6 +160,7 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
         </div>
         <p className="q2-credit">التفاسير عبر واجهة Quran.com.</p>
       </div>
+      ) : null}
     </div>
   );
 }

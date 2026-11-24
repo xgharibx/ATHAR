@@ -106,6 +106,9 @@ export default function Q2Hifz() {
         <button type="button" className="q2-btn q2-press" style={{ width: "100%", marginTop: 12 }} disabled={!total} onClick={() => navigate("/q2/hifz/session")}>
           <Play size={17} aria-hidden="true" /> ابدأ جلسة اليوم
         </button>
+        <button type="button" className="q2-btn is-ghost q2-press" style={{ width: "100%", marginTop: 8 }} onClick={() => navigate("/q2/hifz/similar")}>
+          تدرّب على المتشابهات
+        </button>
       </section>
 
       <section className="q2-section">

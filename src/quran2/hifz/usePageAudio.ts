@@ -1,28 +1,34 @@
 /**
- * «القرآن ٢» — a page recited from first ayah to last, again and again if
- * asked: the reciter's voice to learn and revise a page by.
+ * «القرآن ٢» — a page in the reciter's voice, two ways:
+ *   continuous  the page from first ayah to last, again if asked;
+ *   talqeen     each ayah, then a silence as long as the ayah for you to repeat
+ *               it, so many times, then the next ayah: the way a teacher
+ *               teaches a child, ayah by ayah.
  */
 import * as React from "react";
 import { useQueries } from "@tanstack/react-query";
 import { loadSurahTiming, type Q2SurahTiming } from "../data/timings";
 import type { PageAyah } from "../data/pages";
 
-type Part = { url: string; from: number; to: number };
+export type Part = { url: string; from: number; to: number; key: string };
 
-export function pagePlan(ayahs: PageAyah[], timings: Map<number, Q2SurahTiming>): Part[] | null {
+/** The page's audio, ayah by ayah (merge: contiguous ayahs of one file joined). */
+export function pagePlan(ayahs: PageAyah[], timings: Map<number, Q2SurahTiming>, merge = true): Part[] | null {
   const parts: Part[] = [];
   for (const { ayah } of ayahs) {
     const t = timings.get(ayah.s);
     const v = t?.verses.find((x) => x.a === ayah.a);
     if (!t || !v) return null;
     const lastPart = parts[parts.length - 1];
-    if (lastPart && lastPart.url === t.audioUrl && Math.abs(lastPart.to - v.from) < 1500) lastPart.to = v.to;
-    else parts.push({ url: t.audioUrl, from: v.from, to: v.to });
+    if (merge && lastPart && lastPart.url === t.audioUrl && Math.abs(lastPart.to - v.from) < 1500) lastPart.to = v.to;
+    else parts.push({ url: t.audioUrl, from: v.from, to: v.to, key: `${ayah.s}:${ayah.a}` });
   }
   return parts;
 }
 
-export function usePageAudio(ayahs: PageAyah[], reciter: number) {
+export type PagePhase = "idle" | "reciting" | "your-turn";
+
+export function usePageAudio(ayahs: PageAyah[], reciter: number, talqeenTimes = 3) {
   const surahs = React.useMemo(() => [...new Set(ayahs.map((x) => x.ayah.s))], [ayahs]);
   const queries = useQueries({
     queries: surahs.map((s) => ({
@@ -39,66 +45,110 @@ export function usePageAudio(ayahs: PageAyah[], reciter: number) {
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, surahs]);
-  const plan = React.useMemo(() => (ready ? pagePlan(ayahs, timings) : null), [ready, ayahs, timings]);
+  const plans = React.useMemo(
+    () => (ready ? { page: pagePlan(ayahs, timings, true), ayahs: pagePlan(ayahs, timings, false) } : null),
+    [ready, ayahs, timings],
+  );
 
-  const planRef = React.useRef(plan);
-  const cursor = React.useRef({ part: 0, loop: false });
-  const startRef = React.useRef<(part: number) => void>(() => {});
-  const audioRef = React.useRef<HTMLAudioElement | null>(null);
-  const [playing, setPlaying] = React.useState(false);
+  const plansRef = React.useRef(plans);
+  const cfg = React.useRef({ loop: false, talqeen: false, times: talqeenTimes });
+  const cursor = React.useRef({ part: 0, rep: 0, gap: 0 as ReturnType<typeof setTimeout> | 0 });
+  const api = React.useRef<{ start: (part: number) => void; stop: () => void }>({ start: () => {}, stop: () => {} });
+  const [phase, setPhase] = React.useState<PagePhase>("idle");
+  const [current, setCurrent] = React.useState<string | null>(null);
   const [loop, setLoopState] = React.useState(false);
+  const [talqeen, setTalqeenState] = React.useState(false);
 
   React.useLayoutEffect(() => {
-    planRef.current = plan;
-  }, [plan]);
+    plansRef.current = plans;
+    cfg.current.times = talqeenTimes;
+  }, [plans, talqeenTimes]);
 
-  // One audio element for the page; when a part ends, the next one starts.
   React.useEffect(() => {
     const audio = new Audio();
-    audioRef.current = audio;
+    const plan = () => (cfg.current.talqeen ? plansRef.current?.ayahs : plansRef.current?.page) ?? null;
+    const clearGap = () => {
+      if (cursor.current.gap) clearTimeout(cursor.current.gap);
+      cursor.current.gap = 0;
+    };
+    const stop = () => {
+      clearGap();
+      audio.pause();
+      setPhase("idle");
+      setCurrent(null);
+    };
     const start = (part: number) => {
-      const p = planRef.current?.[part];
-      if (!p) return;
+      const p = plan()?.[part];
+      if (!p) return stop();
+      clearGap();
       cursor.current.part = part;
       if (audio.src !== p.url) audio.src = p.url;
       audio.currentTime = p.from / 1000;
-      void audio.play().catch(() => setPlaying(false));
+      setPhase("reciting");
+      setCurrent(cfg.current.talqeen ? p.key : null);
+      void audio.play().catch(stop);
     };
-    startRef.current = start;
+    api.current = { start, stop };
     const onTime = () => {
-      const p = planRef.current?.[cursor.current.part];
-      if (!p || audio.currentTime * 1000 < p.to) return;
+      const parts = plan();
+      const p = parts?.[cursor.current.part];
+      if (!parts || !p || audio.paused || audio.currentTime * 1000 < p.to) return;
+      audio.pause();
+      if (cfg.current.talqeen) {
+        // Your turn: as long as the reciter took, and a little more.
+        setPhase("your-turn");
+        cursor.current.gap = setTimeout(() => {
+          cursor.current.gap = 0;
+          if (cursor.current.rep + 1 < cfg.current.times) {
+            cursor.current.rep += 1;
+            start(cursor.current.part);
+          } else {
+            cursor.current.rep = 0;
+            const next = cursor.current.part + 1;
+            if (parts[next]) start(next);
+            else if (cfg.current.loop) start(0);
+            else stop();
+          }
+        }, (p.to - p.from) * 1.1 + 700);
+        return;
+      }
       const next = cursor.current.part + 1;
-      if (planRef.current?.[next]) start(next);
-      else if (cursor.current.loop) start(0);
-      else audio.pause();
+      if (parts[next]) start(next);
+      else if (cfg.current.loop) start(0);
+      else stop();
     };
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
     audio.addEventListener("timeupdate", onTime);
-    audio.addEventListener("play", onPlay);
-    audio.addEventListener("pause", onPause);
     return () => {
+      clearGap();
       audio.pause();
       audio.removeEventListener("timeupdate", onTime);
-      audio.removeEventListener("play", onPlay);
-      audio.removeEventListener("pause", onPause);
-      audioRef.current = null;
     };
   }, []);
 
   return {
-    ready: Boolean(plan),
+    ready: Boolean(plans?.page),
     failed: queries.some((q) => q.isError),
-    playing,
+    playing: phase !== "idle",
+    phase,
+    /** The ayah being taught ("s:a"), in talqeen. */
+    current,
     loop,
+    talqeen,
     toggle() {
-      if (playing) audioRef.current?.pause();
-      else startRef.current(0);
+      if (phase !== "idle") api.current.stop();
+      else {
+        cursor.current.rep = 0;
+        api.current.start(0);
+      }
     },
     setLoop(next: boolean) {
-      cursor.current.loop = next;
+      cfg.current.loop = next;
       setLoopState(next);
+    },
+    setTalqeen(next: boolean) {
+      api.current.stop();
+      cfg.current.talqeen = next;
+      setTalqeenState(next);
     },
   };
 }

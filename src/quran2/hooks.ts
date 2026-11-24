@@ -4,6 +4,8 @@ import { loadQuran2Meta } from "./data/meta";
 import { loadMorphology } from "./data/morphology";
 import { loadSurahTiming } from "./data/timings";
 import { loadTafsir } from "./data/tafsir";
+import { buildSimilarIndex } from "./data/similar";
+import { loadSurahTranslation } from "./data/translations";
 
 const forever = { staleTime: Infinity, gcTime: Infinity, retry: 1 } as const;
 
@@ -34,6 +36,25 @@ export function useQ2Tafsir(id: number, s: number, a: number, enabled = true) {
     queryKey: ["q2", "tafsir", id, s, a],
     queryFn: () => loadTafsir(id, s, a),
     enabled,
+    ...forever,
+  });
+}
+
+/** The similar-ayah index, built on the device from the text (about a tenth of a second). */
+export function useQ2Similar(enabled = true) {
+  return useQuery({
+    queryKey: ["q2", "similar"],
+    queryFn: async () => buildSimilarIndex(await loadQuran2Text()),
+    enabled,
+    ...forever,
+  });
+}
+
+export function useQ2Translation(id: number | null, s: number) {
+  return useQuery({
+    queryKey: ["q2", "translation", id, s],
+    queryFn: () => loadSurahTranslation(id!, s),
+    enabled: id != null,
     ...forever,
   });
 }
