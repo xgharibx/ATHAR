@@ -74,7 +74,7 @@ const NUMBER: Record<string, string> = { S: "مفرد", D: "مثنى", P: "جم�
 const GENDER: Record<string, string> = { M: "مذكر", F: "مؤنث" };
 
 export type Q2SegmentInfo = {
-  /** سابقة · الكلمة · لاحقة */
+  /** سابقة، الكلمة، لاحقة */
   role: string;
   kind: string;
   details: string[];

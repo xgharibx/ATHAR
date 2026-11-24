@@ -60,7 +60,7 @@ export default function Q2Index() {
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <b style={{ fontFamily: "var(--q2-serif)", fontSize: 19 }}>{s.name}</b>
                     <span className="q2-small" style={{ display: "block" }}>
-                      {s.type === "meccan" ? "مكية" : "مدنية"} · {arDigits(s.ayahs)} آية · الصفحة {arDigits(p1)}
+                      {s.type === "meccan" ? "مكية" : "مدنية"}، {arDigits(s.ayahs)} آية، الصفحة {arDigits(p1)}
                     </span>
                   </span>
                   <span className="q2-small" style={{ textAlign: "end" }}>
@@ -83,7 +83,7 @@ export default function Q2Index() {
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <b style={{ fontFamily: "var(--q2-serif)", fontSize: 18 }}>الجزء {arDigits(i + 1)}</b>
                   <span className="q2-small" style={{ display: "block" }}>
-                    من {m.surahs[s - 1]!.name} {arDigits(a)} إلى {m.surahs[ls - 1]!.name} {arDigits(la)} · {arDigits(last - first + 1)} آية
+                    من {m.surahs[s - 1]!.name} {arDigits(a)} إلى {m.surahs[ls - 1]!.name} {arDigits(la)}، {arDigits(last - first + 1)} آية
                   </span>
                 </span>
               </button>

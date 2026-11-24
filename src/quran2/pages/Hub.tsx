@@ -46,7 +46,7 @@ export default function Q2Hub() {
             <b style={{ fontFamily: "var(--q2-serif)", fontSize: 20 }}>سورة {last.name}</b>
             <span className="q2-small" style={{ display: "block" }}>
               الآية {arDigits(lastRead.a)}
-              {meta.data ? ` · الصفحة ${arDigits(pageOf(meta.data, lastRead.s, lastRead.a))}` : ""}
+              {meta.data ? `، الصفحة ${arDigits(pageOf(meta.data, lastRead.s, lastRead.a))}` : ""}
             </span>
           </span>
           <ArrowLeft size={20} aria-hidden="true" />

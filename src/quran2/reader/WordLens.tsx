@@ -41,7 +41,7 @@ export function WordLens({ s, a, w, text, surahName, canHear, onHear }: {
     <div>
       <div className="q2-lens-word">{text}</div>
       <div className="q2-lens-where">
-        {surahName} · الآية {arDigits(a)} · الكلمة {arDigits(w)}
+        {surahName}، الآية {arDigits(a)}، الكلمة {arDigits(w)}
       </div>
       <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>
         <button type="button" className="q2-btn is-ghost q2-press" onClick={onHear} disabled={!canHear}>
@@ -63,8 +63,8 @@ export function WordLens({ s, a, w, text, surahName, canHear, onHear }: {
                   <span className="q2-seg-form">{seg.form}</span>
                   <span>
                     <span className="q2-seg-kind">{info.kind}</span>
-                    {info.role !== "الكلمة" ? <span className="q2-small"> · {info.role}</span> : null}
-                    {info.details.length ? <div className="q2-seg-details">{info.details.join(" · ")}</div> : null}
+                    {info.role !== "الكلمة" ? <span className="q2-small">، {info.role}</span> : null}
+                    {info.details.length ? <div className="q2-seg-details">{info.details.join("، ")}</div> : null}
                   </span>
                 </div>
               );
@@ -78,7 +78,7 @@ export function WordLens({ s, a, w, text, surahName, canHear, onHear }: {
                 <b style={{ display: "block", fontSize: 14 }}>الجذر</b>
                 <span className="q2-small">
                   ورد {arCount(facts.rootCount, "مرة واحدة", "مرتين", "مرات", "مرة")} في {arCount(facts.rootSurahs, "سورة واحدة", "سورتين", "سور", "سورة")}
-                  {facts.lemmasOfRoot > 1 ? ` · ${arDigits(facts.lemmasOfRoot)} ألفاظ مشتقة` : ""}
+                  {facts.lemmasOfRoot > 1 ? `، ${arDigits(facts.lemmasOfRoot)} ألفاظ مشتقة` : ""}
                 </span>
               </span>
               <ArrowLeft size={18} aria-hidden="true" />

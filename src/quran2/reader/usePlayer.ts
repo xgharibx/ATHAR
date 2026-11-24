@@ -9,7 +9,7 @@
 import * as React from "react";
 import { locate, wordSpan, type Q2SurahTiming } from "../data/timings";
 
-export type RepeatMode = 0 | 3 | -1; // off · three times · until stopped
+export type RepeatMode = 0 | 3 | -1; // off، three times، until stopped
 
 export type PlayerView = {
   playing: boolean;

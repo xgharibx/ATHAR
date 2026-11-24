@@ -8,7 +8,7 @@
  * target. retrievability() tells, for any day, how likely you are to remember it.
  */
 
-export type Grade = 1 | 2 | 3 | 4; // نسيتها · بصعوبة · جيد · متقنة
+export type Grade = 1 | 2 | 3 | 4; // نسيتها، بصعوبة، جيد، متقنة
 
 export type CardState = {
   /** Stability, in days. */

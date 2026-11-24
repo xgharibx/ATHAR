@@ -339,7 +339,8 @@
 .q2-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 
 /* Memorisation test */
-.q2-hide { color: transparent; background: var(--q2-line); border-radius: 8px; user-select: none; }
+/* A hidden word: a blank line to fill from memory, as wide as the word. */
+.q2-hide { color: transparent; user-select: none; background: linear-gradient(var(--q2-faint), var(--q2-faint)) bottom 0.45em left 0 / 100% 2px no-repeat; }
 .q2-cue { color: var(--q2-green); }
 .q2-grade { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .q2-grade button {

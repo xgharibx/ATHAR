@@ -31,7 +31,7 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
   return (
     <div>
       <div className="q2-eyebrow">
-        {surahName} · الآية {arDigits(a)} · الصفحة {arDigits(page)}
+        {surahName}، الآية {arDigits(a)}، الصفحة {arDigits(page)}
       </div>
       <p style={{ fontFamily: "var(--q2-quran)", fontSize: 23, lineHeight: 2.1, marginTop: 6 }}>{text}</p>
 

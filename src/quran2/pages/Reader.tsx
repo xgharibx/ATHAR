@@ -199,7 +199,7 @@ export default function Q2Reader() {
         <div className="q2-surah-head">
           <div className="q2-surah-name">سورة {info.name}</div>
           <div className="q2-surah-meta">
-            {info.type === "meccan" ? "مكية" : "مدنية"} · {arDigits(info.ayahs)} آية · ترتيبها في النزول {arDigits(info.order)} · الصفحات {arDigits(firstPage)}–{arDigits(lastPage)}
+            {info.type === "meccan" ? "مكية" : "مدنية"}، {arDigits(info.ayahs)} آية، ترتيبها في النزول {arDigits(info.order)}، الصفحات {arDigits(firstPage)}–{arDigits(lastPage)}
           </div>
         </div>
         {surah.basmala ? <div className="q2-basmala">{surah.basmala}</div> : null}
@@ -227,8 +227,8 @@ export default function Q2Reader() {
               {timing.isError || player.view.error
                 ? "تعذّر تشغيل التلاوة — تحقق من الاتصال"
                 : player.view.ayah
-                  ? `الآية ${arDigits(player.view.ayah)} · ${reciter.style}`
-                  : `${reciter.style} · تتبّع الكلمات`}
+                  ? `الآية ${arDigits(player.view.ayah)}، ${reciter.style}`
+                  : `${reciter.style}، تتبّع الكلمات`}
             </span>
           </button>
           <button type="button" className="q2-icon-btn q2-press" onClick={() => player.step(-1)} disabled={!canPlay} aria-label="الآية السابقة">

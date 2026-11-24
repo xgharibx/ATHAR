@@ -48,7 +48,7 @@ export default function Q2About() {
           <h2 className="q2-h2">{s.title}</h2>
           <p style={{ marginTop: 6, lineHeight: 1.9, fontSize: 15 }}>{s.body}</p>
           <p className="q2-small" style={{ marginTop: 6 }}>
-            <a className="q2-link" href={s.link.href} target="_blank" rel="noreferrer"><bdi dir="ltr">{s.link.label}</bdi></a> · {s.licence}
+            <a className="q2-link" href={s.link.href} target="_blank" rel="noreferrer"><bdi dir="ltr">{s.link.label}</bdi></a>، {s.licence}
           </p>
         </section>
       ))}
