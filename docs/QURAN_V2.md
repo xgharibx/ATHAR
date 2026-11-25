@@ -46,6 +46,9 @@ No single app joins these together; several exist nowhere in Arabic:
 7. **The Quran in numbers**, all computed on the device from the verified text, with the
    counting method stated, never copied from unverified lists.
 8. **Mushaf order or revelation order**, everywhere a surah list appears.
+9. **Find an ayah by reciting it**: a few words said aloud find the ayah, on the device.
+10. **A khatma that knows what you read**: an ayah counts only when it stayed on screen
+    long enough to be read, or was heard from the reciter, never by scrolling past.
 
 ## Principles
 
@@ -71,6 +74,8 @@ No single app joins these together; several exist nowhere in Arabic:
 | Word timings and audio | Quran.com / QuranicAudio (qdc) | Provider's terms | Fetched while the app runs |
 | Tafsirs | Quran.com API v4 | Provider's and publishers' terms | Fetched while the app runs, kept on the device |
 | Translations of the meanings (18 languages) | Quran.com API v4 | Provider's and translators' terms | Fetched while the app runs, kept on the device |
+| Word-by-word meanings (8 languages; none exists as open data in Arabic) | Quran.com API v4 | Provider's terms | Fetched while the app runs, kept on the device |
+| The printed page: the line of each word on the 15-line Madani page | Quran.com API v4 (line numbers only; the words are Tanzil's) | Provider's terms | Fetched while the app runs, kept on the device |
 
 ## Architecture
 
@@ -78,8 +83,14 @@ No single app joins these together; several exist nowhere in Arabic:
   - `data/`: text, metadata, morphology, timings, tafsir, Arabic normalisation.
   - `hifz/`: the memory model and the memorisation store.
   - `pages/`, `components/`, `quran2.css`: the screens, in the section's own shell at `/q2`.
-- Native: audio already plays natively in Athar; V2 uses the WebView's audio element so
-  that word timings are exact. Native work is planned where it is clearly better (below).
+- `reading/`: the khatma (one bit per ayah), the reading log, and the tracker that
+  notices what is read.
+- `native/`: what V2 hands to the phone: the widget payload, the daily reminder, and
+  the sync that keeps both in step from app start.
+- Audio: on the web, an audio element read every frame. In the iOS and Android apps,
+  Athar's native player (AVPlayer, ExoPlayer) plays the surah, so the recitation goes on
+  with the screen locked and shows on the lock screen; the page reads its position
+  several times a second for the word highlight. A saved copy is played when there is one.
 
 ## Road
 
@@ -105,13 +116,54 @@ No single app joins these together; several exist nowhere in Arabic:
 - Memorisation, where you stopped and the section's settings are included in the
   account backup (validated on restore).
 
-**Next**
-- Asking about an ayah, answered only from the cited tafsirs.
-- A tafsir comparison view showing all seven at once.
-- Word-by-word meanings.
+**Native phase (done, needs a new app release)**
+- Reader audio through the app's native player: the recitation continues with the
+  screen locked, with lock-screen and headphone controls, and the word highlight
+  picks up where the reciter is when the app comes back.
+- Save a surah's recitation on the phone (reader settings) to listen with no
+  connection; downloads go on in the background, and the player uses the saved copy.
+- The widget «حفظك اليوم» on iPhone (home and lock screen) and Android: the pages in
+  today's session (new, near, far), the pages memorised, and the share of the mushaf.
+  It is given the far-review dates, so it counts each day by itself.
+- A daily reminder for the session at a time you choose, saying how many pages
+  wait that day; a tap opens the memorisation page.
+- The far review is due by the day, as in the halaqah: a page due this evening is
+  part of this morning's session, and a page revised today is not asked again today.
 
-**Phase 3, native**
-- An iOS and Android widget for "pages due today".
-- A native background player that reports word timings, so read-along continues with the screen locked.
-- Notifications for the daily hifz session.
-- A two-page tablet layout.
+**Phase 3, part one (done)**
+- The seven tafsirs of an ayah side by side (columns on a tablet, one under another
+  on a phone), moving from ayah to ayah.
+- Your marks on ayahs: a bookmark, four colours and a note, shown in the text and
+  gathered in «علاماتي», with the notes shareable; in the account backup.
+- «ختمتي»: the khatma in progress (pages and juz read, where to go on), a goal
+  (a week to two months) with today's share, the days you read, and past khatmas;
+  in the account backup.
+- Search by recitation: say a few words and the ayahs they come from are listed.
+- Everyday spelling of the madda: «آمنوا»، «القرآن»، «آلاء» find «ءَامَنُوا»،
+  «ٱلْقُرْءَان»، «ءَالَآء» everywhere words are matched.
+
+**Phase 3, part two (done)**
+- The printed page («المصحف بصفحاته»): the 604 pages with their 15 lines as printed,
+  surah titles and basmalas in their places (at the foot of the page before, when
+  the mushaf puts them there), two pages side by side on a tablet held sideways;
+  turned by swipe, arrows or keyboard; a page counts for the khatma once read.
+  Checked against the whole Quran: Quran.com's line data gives the same 77,429 words
+  and the same page for all 6236 ayahs, and every page from 3 to 604 comes out full.
+- Word-by-word meanings in 8 languages (English, Urdu, Indonesian, Turkish, Bengali,
+  Persian, Hindi, Tamil), in the word lens or under each word. There is no open
+  word-by-word Arabic gloss to use; Arabic readers have the root, lemma and grammar
+  of every word, and the tafsirs.
+- «اسأل عن الآية»: a question about an ayah is answered by «أثر» from that ayah's seven
+  tafsirs only, which the server fetches itself; each meaning is attributed to its
+  tafsir, a question they do not cover is said to be so, and the reply guard lets
+  through only Quran text and quotations found in those tafsirs. It asks for the
+  companion's consent first, and sends only the question and the ayah's reference.
+
+**Next**
+- Tajweed colours. Quran.com has tajweed annotations for all 6236 ayahs (17 rules:
+  hamzat al-wasl, lam shamsiyya, the madd kinds, ghunna, qalqala, ikhfa, idgham,
+  iqlab…), but on another Uthmani edition: 4280 ayahs differ from Tanzil in code
+  points (ٲ for the dagger alef, a zero-width joiner before pause marks, sukun for the
+  small round zero, other hamza spellings, the basmala in the first ayah). The rules
+  will be aligned letter by letter onto this section's text and checked ayah by
+  ayah; an ayah that does not align stays uncoloured rather than coloured wrongly.

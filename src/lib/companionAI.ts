@@ -1072,3 +1072,71 @@ export async function streamCompanionReply(
     if (abortSignal && onAbort) abortSignal.removeEventListener("abort", onAbort);
   }
 }
+
+/**
+ * «القرآن ٢» — a question about one ayah. The server answers it from that
+ * ayah's seven tafsirs alone, which it fetches itself; nothing personal is
+ * sent, only the question and the ayah's reference.
+ */
+export async function askAboutAyah(
+  ref: { surah: number; ayah: number },
+  question: string,
+  cb: Pick<StreamCallbacks, "onText" | "onError" | "onStage"> & { onDone?: (fullText: string) => void },
+  abortSignal?: AbortSignal,
+): Promise<void> {
+  let onAbort: (() => void) | null = null;
+  try {
+    const client = await createClient();
+    let full = "";
+    const sanitizer = createCompanionStreamSanitizer();
+    const emit = (clean: string) => {
+      if (!clean) return;
+      full += clean;
+      cb.onText(clean);
+    };
+    const stream = client.messages.stream({
+      model: MODEL,
+      max_tokens: 4096,
+      // The server replaces this with its own rules for a question about an ayah.
+      system: [{ type: "text", text: "أنت «أثر»، تجيب عن سؤال في آية من تفاسيرها." }],
+      messages: [{ role: "user", content: question.slice(0, 1200) }],
+      athar_ayah: ref,
+    } as unknown as Parameters<typeof client.messages.stream>[0]);
+    onAbort = () => {
+      try { stream.controller.abort(); } catch { /* ignore */ }
+    };
+    if (abortSignal) {
+      if (abortSignal.aborted) onAbort();
+      else abortSignal.addEventListener("abort", onAbort, { once: true });
+    }
+    // The server confirms that the answer is bound to the ayah's tafsirs before
+    // any of it; text without that confirmation is from a server that cannot
+    // do so yet, and is not shown as an answer from the tafsirs.
+    let bound = false;
+    for await (const event of stream) {
+      const own = event as unknown as { type?: string; stage?: unknown };
+      if (own.type === "athar_ayah") {
+        bound = true;
+        continue;
+      }
+      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+        if (!bound) {
+          onAbort();
+          cb.onError?.({ kind: "other", message: "سؤال الآية من تفاسيرها لم يُفعَّل بعد على الخادم. جرّبه بعد التحديث القادم.", detail: "ayah-mode-unavailable" });
+          return;
+        }
+        emit(sanitizer.push(event.delta.text));
+        continue;
+      }
+      if (own.type === "athar_status" && STAGES.includes(own.stage as CompanionStage)) cb.onStage?.(own.stage as CompanionStage);
+    }
+    await stream.finalMessage();
+    emit(sanitizer.flush());
+    if (!full.trim()) emit(EMPTY_REPLY_MESSAGE);
+    cb.onDone?.(full);
+  } catch (err) {
+    cb.onError?.(describeError(err));
+  } finally {
+    if (abortSignal && onAbort) abortSignal.removeEventListener("abort", onAbort);
+  }
+}

@@ -45,6 +45,9 @@ Nothing in this table is redistributed by Athar; the app requests it from the pr
 | Word timings and recitation audio for «القرآن ٢» | Quran.com / QuranicAudio (`api.qurancdn.com`, `download.quranicaudio.com`) | Provider's terms | To confirm |
 | Seven Arabic tafsirs for «القرآن ٢» | Quran.com API v4 | Provider's and publishers' terms | To confirm |
 | Translations of the meanings for «القرآن ٢» (18 languages) | Quran.com API v4 | Provider's and translators' terms | To confirm |
+| Word-by-word meanings for «القرآن ٢» (8 languages) | Quran.com API v4 (`words=true&language=`) | Provider's terms | To confirm |
+| Printed-page layout for «القرآن ٢» (the line of each word on the 15-line Madani page) | Quran.com API v4 (`word_fields=line_number`); only line numbers are used, the words are Tanzil's | Provider's terms | To confirm |
+| Tafsirs given to «اسأل عن الآية» (the AI answers from them) | Quran.com API v4, fetched by the Athar server for the asked ayah | Provider's and publishers' terms | To confirm |
 | Prayer times | AlAdhan | Provider's terms | To confirm |
 | Nearby mosques | OpenStreetMap through Overpass | ODbL: credit "© OpenStreetMap contributors" where the data is shown | Confirmed; credit is shown on the mosques screen |
 | Hadith lookups for the assistant | Dorar (dorar.net) | Dorar's terms of use | To confirm |

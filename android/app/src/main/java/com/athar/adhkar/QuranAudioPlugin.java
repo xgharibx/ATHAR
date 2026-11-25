@@ -354,7 +354,7 @@ public class QuranAudioPlugin extends Plugin {
         downloads.execute(() -> {
             try {
                 String requested = call.getString("kind");
-                String kind = "tafsir".equals(requested) || "listen".equals(requested) ? requested : "audio";
+                String kind = "tafsir".equals(requested) || "listen".equals(requested) || "quran2".equals(requested) ? requested : "audio";
                 long maxFileBytes = Math.max(0, call.getLong("maxFileBytes", 0L));
                 String batch = RecitationDownloadWorker.enqueue(context, urls, maxBytes, call.getString("title"), kind, maxFileBytes);
                 waiting.put(batch, call);

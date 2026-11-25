@@ -456,7 +456,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let maxBytes = Int64(call.getDouble("maxBytes") ?? Double(1024 * 1024 * 1024))
         let title = call.getString("title") ?? ""
         let requested = call.getString("kind") ?? ""
-        let kind = requested == "tafsir" || requested == "listen" ? requested : "audio"
+        let kind = requested == "tafsir" || requested == "listen" || requested == "quran2" ? requested : "audio"
         let maxFileBytes = Int64(max(0, call.getDouble("maxFileBytes") ?? 0))
         DispatchQueue.main.async {
             let downloads = RecitationBackgroundDownloads.shared

@@ -1,6 +1,8 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { BookOpen, Play, Trash2 } from "lucide-react";
+import { Bell, BookOpen, Play, Trash2 } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { toast } from "react-hot-toast";
 import { useQ2Meta, useQ2Text } from "../hooks";
 import { useQ2Store } from "../store";
 import { useHifzToday } from "../hifz/useHifzToday";
@@ -11,6 +13,7 @@ import { arCount, arDigits } from "../data/arabic";
 import { juzOf, pageRange, refFromIndex } from "../data/meta";
 import { pageLabel } from "../data/pages";
 import { Q2Error, Q2Loading, Q2Sheet } from "../components/ui";
+import { syncQuran2Native } from "../native/sync";
 
 /** The colour of a page on the map: how likely you are to recall it today. */
 function recallColor(r: number | null): string {
@@ -22,6 +25,61 @@ function recallColor(r: number | null): string {
 }
 
 const DAY = 86_400_000;
+
+/** The daily reminder for the session: phones only (the web cannot ring at a set time). */
+function ReminderRow() {
+  const reminder = useQ2Store((s) => s.prefs.hifzReminder);
+  const setPrefs = useQ2Store((s) => s.setPrefs);
+  const [busy, setBusy] = React.useState(false);
+  if (!Capacitor.isNativePlatform()) return null;
+  const apply = async (next: { enabled: boolean; time: string }) => {
+    setPrefs({ hifzReminder: next });
+    if (!next.enabled) {
+      void syncQuran2Native();
+      return;
+    }
+    setBusy(true);
+    const ok = await syncQuran2Native(true);
+    setBusy(false);
+    if (!ok) {
+      setPrefs({ hifzReminder: { ...next, enabled: false } });
+      toast.error("اسمح لأثر بالإشعارات من إعدادات الهاتف ليصلك التذكير");
+    }
+  };
+  return (
+    <div className="q2-card" style={{ marginTop: 12 }}>
+      <div className="q2-row" style={{ cursor: "default", gap: 10 }}>
+        <Bell size={18} aria-hidden="true" style={{ color: "var(--q2-green)", flex: "none" }} />
+        <span style={{ flex: 1 }}>
+          <b style={{ display: "block", fontSize: 14.5 }}>ذكّرني بجلسة الحفظ</b>
+          <span className="q2-small">كل يوم في وقتك، بعدد ما ينتظرك من صفحات</span>
+        </span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={reminder.enabled}
+          aria-label="تذكير يومي بجلسة الحفظ"
+          disabled={busy}
+          className={`q2-chip${reminder.enabled ? " is-on" : ""}`}
+          onClick={() => void apply({ ...reminder, enabled: !reminder.enabled })}
+        >
+          {reminder.enabled ? "مفعّل" : "متوقف"}
+        </button>
+      </div>
+      {reminder.enabled ? (
+        <label className="q2-row" style={{ cursor: "default" }}>
+          <span style={{ flex: 1 }}>وقت التذكير</span>
+          <input
+            type="time"
+            value={reminder.time}
+            onChange={(e) => e.target.value && void apply({ enabled: true, time: e.target.value })}
+            style={{ font: "inherit", color: "var(--q2-ink)", background: "transparent", border: "1px solid var(--q2-line)", borderRadius: 10, padding: "6px 10px" }}
+          />
+        </label>
+      ) : null}
+    </div>
+  );
+}
 
 function dueLabel(due: number, now: number): string {
   const days = Math.round((due - now) / DAY);
@@ -109,6 +167,7 @@ export default function Q2Hifz() {
         <button type="button" className="q2-btn is-ghost q2-press" style={{ width: "100%", marginTop: 8 }} onClick={() => navigate("/q2/hifz/similar")}>
           تدرّب على المتشابهات
         </button>
+        <ReminderRow />
       </section>
 
       <section className="q2-section">

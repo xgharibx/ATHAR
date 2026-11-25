@@ -2,8 +2,8 @@
  * «القرآن ٢» — the day's memorisation, the way it is taught in the halaqah:
  *   الجديد  the new lesson (sabaq): the next page or pages to learn;
  *   القريب  the near review (sabqi): your latest pages, every day, while they settle;
- *   البعيد  the far review (manzil): older pages, each when the memory model says
- *           its recall is about to fall below 90 %, weakest first.
+ *   البعيد  the far review (manzil): older pages, each on the day the memory model
+ *           says its recall is about to fall below 90 %, weakest first.
  */
 import { retrievability, type CardState } from "./fsrs";
 
@@ -57,8 +57,11 @@ export function buildPlan(options: {
     .slice(0, nearCount);
   const reviewedToday = (p: number) => new Date(hifz[p]!.last).toDateString() === new Date(now).toDateString();
   const near = latest.filter((p) => !reviewedToday(p));
+  // Due by the day, as in the halaqah (and in the widgets): a page due this
+  // evening is part of this morning's session.
+  const endOfToday = new Date(now).setHours(23, 59, 59, 999);
   const far = pages
-    .filter((p) => !latest.includes(p) && !learnedToday.includes(p) && hifz[p]!.due <= now)
+    .filter((p) => !latest.includes(p) && !learnedToday.includes(p) && !reviewedToday(p) && hifz[p]!.due <= endOfToday)
     .sort((a, b) => retrievability(hifz[a]!, now) - retrievability(hifz[b]!, now))
     .slice(0, FAR_PER_DAY);
   return { newPages: nextNewPages(hifz, direction, newCount), near, far };

@@ -300,3 +300,97 @@ struct AtharQiblaWidget: Widget {
         .supportedFamilies([.systemSmall, .accessoryCircular])
     }
 }
+
+// ─── «القرآن ٢»: today's memorisation (حفظك اليوم) ───────────────────────────
+
+/// Written by src/quran2/native/widget.ts. `dues` holds each older page's next
+/// revision (ms), so the far-review count is made on the day the widget draws.
+private struct HifzPayload: Decodable {
+    let memorised: Int
+    let day: String?
+    let newToday: Int?
+    let newLater: Int?
+    let near: Int?
+    let nearLater: Int?
+    let dues: [Double]?
+}
+
+private struct HifzToday {
+    let memorised: Int
+    let fresh: Int
+    let near: Int
+    let far: Int
+    var total: Int { fresh + near + far }
+    var percent: Int { min(100, Int((Double(memorised) / 604.0 * 100).rounded())) }
+
+    init(at date: Date) {
+        let payload = morePayload("noor_widget_q2_hifz_v1", as: HifzPayload.self)
+        memorised = max(0, payload?.memorised ?? 0)
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd"
+        let sameDay = payload?.day == formatter.string(from: date)
+        fresh = max(0, sameDay ? (payload?.newToday ?? 0) : (payload?.newLater ?? 0))
+        near = max(0, sameDay ? (payload?.near ?? 0) : (payload?.nearLater ?? payload?.near ?? 0))
+        let calendar = Calendar.current
+        let endOfDay = calendar.date(byAdding: DateComponents(day: 1, second: -1), to: calendar.startOfDay(for: date)) ?? date
+        let limit = endOfDay.timeIntervalSince1970 * 1000
+        // The app revises at most twenty far pages a day.
+        far = min(20, (payload?.dues ?? []).filter { $0 <= limit }.count)
+    }
+}
+
+private struct HifzWidgetView: View {
+    @Environment(\.widgetFamily) private var family
+    let entry: MoreEntry
+
+    var body: some View {
+        let today = HifzToday(at: entry.date)
+        switch family {
+        case .accessoryCircular:
+            Gauge(value: Double(today.percent), in: 0...100) {
+                Text("حفظ")
+            } currentValueLabel: {
+                Text(today.memorised > 0 ? arabicDigits(today.total) : "–")
+            }
+            .gaugeStyle(.accessoryCircularCapacity)
+            .atharAccessoryBackground()
+            .widgetURL(moreURL("/q2/hifz"))
+        default:
+            MoreCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("حفظك اليوم").font(.headline).foregroundColor(moreGold)
+                    if today.memorised == 0 {
+                        Text("ابدأ الحفظ من «القرآن ٢»").font(.subheadline).foregroundColor(.white.opacity(0.8))
+                    } else if today.total == 0 {
+                        Text("✓ لا مراجعة اليوم").font(.title3.weight(.bold)).foregroundColor(moreMint)
+                    } else {
+                        Text("\(arabicDigits(today.total)) \(today.total == 1 ? "صفحة" : "صفحات")")
+                            .font(.title3.weight(.bold)).foregroundColor(.white)
+                        Text("جديد \(arabicDigits(today.fresh))، قريب \(arabicDigits(today.near))، بعيد \(arabicDigits(today.far))")
+                            .font(.footnote).foregroundColor(.white.opacity(0.8))
+                    }
+                    if today.memorised > 0 {
+                        ProgressView(value: Double(today.percent), total: 100).tint(moreMint)
+                        Text("\(arabicDigits(today.memorised)) صفحة محفوظة، \(arabicDigits(today.percent))٪ من المصحف")
+                            .font(.caption2).foregroundColor(.white.opacity(0.7))
+                    }
+                }
+            }
+            .widgetURL(moreURL(today.total > 0 ? "/q2/hifz/session" : "/q2/hifz"))
+        }
+    }
+}
+
+struct AtharHifzWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "AtharHifzWidget", provider: MoreProvider()) { entry in
+            HifzWidgetView(entry: entry)
+        }
+        .configurationDisplayName("حفظك اليوم")
+        .description("صفحات جلسة الحفظ اليوم وما حفظته من القرآن")
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular])
+    }
+}

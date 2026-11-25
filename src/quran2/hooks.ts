@@ -6,6 +6,7 @@ import { loadSurahTiming } from "./data/timings";
 import { loadTafsir } from "./data/tafsir";
 import { buildSimilarIndex } from "./data/similar";
 import { loadSurahTranslation } from "./data/translations";
+import { loadWordMeanings } from "./data/wordMeanings";
 
 const forever = { staleTime: Infinity, gcTime: Infinity, retry: 1 } as const;
 
@@ -55,6 +56,16 @@ export function useQ2Translation(id: number | null, s: number) {
     queryKey: ["q2", "translation", id, s],
     queryFn: () => loadSurahTranslation(id!, s),
     enabled: id != null,
+    ...forever,
+  });
+}
+
+/** A surah's word-by-word meanings in a language (needs the surah's word counts). */
+export function useQ2WordMeanings(lang: string | null, s: number, wordCounts: number[] | undefined) {
+  return useQuery({
+    queryKey: ["q2", "wbw", lang, s],
+    queryFn: () => loadWordMeanings(lang!, s, wordCounts!),
+    enabled: lang != null && Boolean(wordCounts?.length),
     ...forever,
   });
 }

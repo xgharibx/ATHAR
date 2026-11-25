@@ -13,6 +13,9 @@ const HARAKAT = /[\u064B-\u065F\u06D6-\u06ED]|\u0640/g;
 function unifyLetters(text: string): string {
   return text
     .replace(/[\u0671\u0623\u0625\u0622]/gu, "ا")
+    // A hamza on the line before an alef is the madda of everyday spelling:
+    // «ءَامَنُوا» is «آمنوا», «قُرْءَان» is «قرآن».
+    .replace(/ءا/gu, "ا")
     .replace(/ى/gu, "ي")
     .replace(/ة/gu, "ه")
     .replace(/ؤ/gu, "و")

@@ -27,6 +27,7 @@ public final class WidgetUpdater {
         NoorAsmaWidgetProvider.class,
         NoorQiblaWidgetProvider.class,
         NoorQadaaWidgetProvider.class,
+        NoorQ2HifzWidgetProvider.class,
         NoorQadaaBoardWidgetProvider.class,
         NoorWirdTableWidgetProvider.class,
     };

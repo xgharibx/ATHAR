@@ -6,17 +6,20 @@ import { describeSegment } from "../data/grammar";
 import { MORPHOLOGY_CREDIT, spacedRoot, splitKey, wordKey } from "../data/morphology";
 import { arCount, arDigits } from "../data/arabic";
 import { Q2Error, Q2Loading } from "../components/ui";
+import type { Q2WordLang } from "../data/wordMeanings";
 
 /**
  * Everything about one word: what it is made of, its grammar, its root and
  * lemma, how often they occur, and the reciter saying it.
  */
-export function WordLens({ s, a, w, text, surahName, canHear, onHear }: {
+export function WordLens({ s, a, w, text, surahName, meaning, canHear, onHear }: {
   s: number;
   a: number;
   w: number;
   text: string;
   surahName: string;
+  /** Its meaning, word by word, in the chosen language. */
+  meaning?: { text: string; lang: Q2WordLang };
   canHear: boolean;
   onHear: () => void;
 }) {
@@ -43,6 +46,12 @@ export function WordLens({ s, a, w, text, surahName, canHear, onHear }: {
       <div className="q2-lens-where">
         {surahName}، الآية {arDigits(a)}، الكلمة {arDigits(w)}
       </div>
+      {meaning ? (
+        <div style={{ textAlign: "center", marginTop: 8 }}>
+          <span className="q2-small">معناها ({meaning.lang.label}): </span>
+          <b dir={meaning.lang.dir} lang={meaning.lang.code} style={{ fontSize: 16 }}>{meaning.text}</b>
+        </div>
+      ) : null}
       <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>
         <button type="button" className="q2-btn is-ghost q2-press" onClick={onHear} disabled={!canHear}>
           <Volume2 size={17} aria-hidden="true" /> اسمعها بصوت القارئ

@@ -129,6 +129,10 @@ const Q2RootPage = React.lazy(() => import("@/quran2/pages/RootPage"));
 const Q2Search = React.lazy(() => import("@/quran2/pages/SearchPage"));
 const Q2Numbers = React.lazy(() => import("@/quran2/pages/Numbers"));
 const Q2SimilarDrill = React.lazy(() => import("@/quran2/pages/SimilarDrill"));
+const Q2TafsirCompare = React.lazy(() => import("@/quran2/pages/TafsirCompare"));
+const Q2Marks = React.lazy(() => import("@/quran2/pages/Marks"));
+const Q2Khatma = React.lazy(() => import("@/quran2/pages/Khatma"));
+const Q2MushafPage = React.lazy(() => import("@/quran2/pages/MushafPage"));
 const IjazHome          = React.lazy(() => import("@/ijaz/pages/IjazHome"));
 const IjazMiracles      = React.lazy(() => import("@/ijaz/pages/IjazMiracles"));
 const IjazMiracleDetail = React.lazy(() => import("@/ijaz/pages/IjazMiracleDetail"));
@@ -613,6 +617,19 @@ function AppContent() {
     return () => window.removeEventListener("athar-data-packs-changed", onPacks);
   }, [queryClient]);
 
+  // «القرآن ٢» on phones: the "حفظك اليوم" widget and the memorisation reminder.
+  React.useEffect(() => {
+    let stop: (() => void) | undefined;
+    let cancelled = false;
+    void import("@/quran2/native/sync").then((m) => {
+      if (!cancelled) stop = m.startQuran2Native();
+    });
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
+  }, []);
+
   // Deliberately NOT cleared on navigation. The confetti is a reward for
   // finishing a dhikr, and cutting it off the instant the screen changes is
   // exactly what made it vanish mid-air — finishing an item often navigates.
@@ -641,6 +658,11 @@ function AppContent() {
           <Route path="roots/:root" element={<S><Q2RootPage /></S>} />
           <Route path="search" element={<S><Q2Search /></S>} />
           <Route path="numbers" element={<S><Q2Numbers /></S>} />
+          <Route path="tafsir/:surah/:ayah" element={<S><Q2TafsirCompare /></S>} />
+          <Route path="marks" element={<S><Q2Marks /></S>} />
+          <Route path="khatma" element={<S><Q2Khatma /></S>} />
+          <Route path="page" element={<S><Q2MushafPage /></S>} />
+          <Route path="page/:page" element={<S><Q2MushafPage /></S>} />
         </Route>
         {/* ── الإعجاز العلمي section (full-screen dark theme) ── */}
         <Route path="ijaz" element={<IjazShell />}>
