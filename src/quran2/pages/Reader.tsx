@@ -4,7 +4,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, Loader2, Minus, Pause, Play, Plu
 import { toast } from "react-hot-toast";
 import { useQ2Meta, useQ2Text, useQ2Timing, useQ2Translation } from "../hooks";
 import { Q2_TRANSLATIONS, getTranslation } from "../data/translations";
-import { useQ2Store } from "../store";
+import { useQ2Store, type Q2Mark } from "../store";
 import { pageOf, surahPages } from "../data/meta";
 import { arDigits } from "../data/arabic";
 import { ayahText, type Q2Surah } from "../data/text";
@@ -15,6 +15,7 @@ import { WordLens } from "../reader/WordLens";
 import { AyahSheet } from "../reader/AyahSheet";
 import { OfflineRow } from "../reader/OfflineRow";
 import { learnPage } from "../hifz/actions";
+import { useReadingTracker } from "../reading/useReadingTracker";
 
 const RATES = [0.75, 1, 1.25, 1.5];
 const REPEATS: Array<{ mode: RepeatMode; label: string }> = [
@@ -24,9 +25,11 @@ const REPEATS: Array<{ mode: RepeatMode; label: string }> = [
 ];
 
 /** The surah's text as one flow, cut by the mushaf's pages. Memoised: it never re-renders while playing. */
-const SurahText = React.memo(function SurahText({ surah, pages, onWord, onAyah, translation, translationDir, translationLang }: {
+const SurahText = React.memo(function SurahText({ surah, pages, marks, onWord, onAyah, translation, translationDir, translationLang }: {
   surah: Q2Surah;
   pages: number[];
+  /** Your marks on this surah's ayahs. */
+  marks: Map<number, Q2Mark>;
   /** With a translation, each ayah stands on its own with its meaning under it. */
   translation?: string[];
   translationDir?: "ltr" | "rtl";
@@ -56,8 +59,9 @@ const SurahText = React.memo(function SurahText({ surah, pages, onWord, onAyah, 
       page = p;
     }
     if (translation) flush(`b${i}`);
+    const mark = marks.get(ayah.a);
     current.push(
-      <span className="q2-ayah" id={`q2-a${ayah.a}`} data-ayah={ayah.a} key={ayah.a}>
+      <span className={`q2-ayah${mark?.color ? ` q2-hl-${mark.color}` : ""}`} id={`q2-a${ayah.a}`} data-ayah={ayah.a} key={ayah.a}>
         {ayah.before ? <span className="q2-mark">{ayah.before} </span> : null}
         {ayah.words.map((w) => (
           <React.Fragment key={w.n}>
@@ -65,7 +69,14 @@ const SurahText = React.memo(function SurahText({ surah, pages, onWord, onAyah, 
             {w.after ? <span className="q2-mark"> {w.after}</span> : null}{" "}
           </React.Fragment>
         ))}
-        <span className="q2-end" data-a={ayah.a} data-end="1" role="button" tabIndex={0} aria-label={`الآية ${ayah.a}`}>
+        <span
+          className={`q2-end${mark?.bookmark ? " is-bookmarked" : ""}${mark?.note ? " has-note" : ""}`}
+          data-a={ayah.a}
+          data-end="1"
+          role="button"
+          tabIndex={0}
+          aria-label={`الآية ${ayah.a}${mark?.bookmark ? "، عليها علامة" : ""}${mark?.note ? "، لك عليها ملاحظة" : ""}`}
+        >
           ۝{arDigits(ayah.a)}
         </span>{" "}
       </span>,
@@ -95,6 +106,7 @@ export default function Q2Reader() {
   const setPrefs = useQ2Store((st) => st.setPrefs);
   const setLastRead = useQ2Store((st) => st.setLastRead);
   const hifz = useQ2Store((st) => st.hifz);
+  const allMarks = useQ2Store((st) => st.marks);
   const timing = useQ2Timing(prefs.reciter, s);
   const translation = useQ2Translation(prefs.translation, s);
   const translationInfo = getTranslation(prefs.translation);
@@ -182,6 +194,23 @@ export default function Q2Reader() {
     return () => el?.classList.remove("is-picked");
   }, [picked]);
 
+  const surahMarks = React.useMemo(() => {
+    const out = new Map<number, Q2Mark>();
+    const prefix = `${s}:`;
+    for (const [key, mark] of Object.entries(allMarks)) if (key.startsWith(prefix)) out.set(Number(key.slice(prefix.length)), mark);
+    return out;
+  }, [allMarks, s]);
+
+  // The khatma: what stays on screen long enough to be read, and what the reciter recites.
+  const textRef = React.useRef<HTMLDivElement>(null);
+  const wordCounts = React.useMemo(() => surah?.ayahs.map((ay) => ay.words.length) ?? [], [surah]);
+  useReadingTracker({
+    container: textRef,
+    base: meta.data && surah ? meta.data.surahs[s - 1]!.start : null,
+    words: wordCounts,
+    listening: player.view.playing ? player.view.ayah : null,
+  });
+
   const onPickWord = React.useCallback((a: number, w: number) => setPicked({ a, w }), []);
   const onPickAyah = React.useCallback((a: number) => setAyahOpen(a), []);
 
@@ -221,15 +250,18 @@ export default function Q2Reader() {
         </div>
         {surah.basmala ? <div className="q2-basmala">{surah.basmala}</div> : null}
         {translation.isError ? <p className="q2-small" style={{ textAlign: "center" }}>تعذّر تحميل الترجمة؛ يظهر النص وحده.</p> : null}
-        <SurahText
-          surah={surah}
-          pages={pages}
-          onWord={onPickWord}
-          onAyah={onPickAyah}
-          translation={translation.data}
-          translationDir={translationInfo?.dir}
-          translationLang={translationInfo?.lang}
-        />
+        <div ref={textRef}>
+          <SurahText
+            surah={surah}
+            pages={pages}
+            marks={surahMarks}
+            onWord={onPickWord}
+            onAyah={onPickAyah}
+            translation={translation.data}
+            translationDir={translationInfo?.dir}
+            translationLang={translationInfo?.lang}
+          />
+        </div>
         <p className="q2-credit">
           نص المصحف: <a href="https://tanzil.net" target="_blank" rel="noreferrer">مشروع تنزيل</a> (الرسم العثماني، الإصدار ١٫١)، دون أي تعديل.
         </p>

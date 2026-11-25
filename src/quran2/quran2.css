@@ -270,6 +270,24 @@
 .q2-page-mark::before, .q2-page-mark::after { content: ""; flex: 1; height: 1px; background: var(--q2-line); }
 .q2-ayah { border-radius: 10px; transition: background-color 0.25s ease; padding: 2px 0; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .q2-ayah.is-now { background: var(--q2-ayah); }
+/* Your colours on ayahs, and the bookmark and note signs on the ayah number. */
+.q2 {
+  --q2-hl-green: rgba(29, 120, 82, 0.15); --q2-hl-gold: rgba(205, 155, 40, 0.22); --q2-hl-rose: rgba(196, 72, 96, 0.15); --q2-hl-blue: rgba(52, 104, 178, 0.15);
+  --q2-sw-green: #3f9a72; --q2-sw-gold: #c99a2e; --q2-sw-rose: #c4607a; --q2-sw-blue: #4a7cc4;
+}
+.q2[data-palette="night"] {
+  --q2-hl-green: rgba(116, 199, 165, 0.2); --q2-hl-gold: rgba(216, 182, 106, 0.22); --q2-hl-rose: rgba(232, 128, 148, 0.2); --q2-hl-blue: rgba(128, 168, 232, 0.2);
+  --q2-sw-green: #74c7a5; --q2-sw-gold: #d8b66a; --q2-sw-rose: #e88094; --q2-sw-blue: #80a8e8;
+}
+.q2-ayah.q2-hl-green { background: var(--q2-hl-green); }
+.q2-ayah.q2-hl-gold { background: var(--q2-hl-gold); }
+.q2-ayah.q2-hl-rose { background: var(--q2-hl-rose); }
+.q2-ayah.q2-hl-blue { background: var(--q2-hl-blue); }
+.q2-swatch { width: 30px; height: 30px; border-radius: 999px; border: 2px solid var(--q2-card); display: inline-grid; place-items: center; color: #fff; box-shadow: 0 0 0 1px var(--q2-line); }
+.q2-swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--q2-ink); }
+/* A bookmark: a small gold ribbon after the ayah number. */
+.q2-end.is-bookmarked::after { content: ""; display: inline-block; width: 9px; height: 14px; margin-inline-start: 3px; background: var(--q2-gold); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%); vertical-align: 0.55em; }
+.q2-end.has-note::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-inline-end: 3px; border-radius: 999px; background: var(--q2-green); vertical-align: 0.5em; }
 .q2-ayah.is-target { background: var(--q2-gold-soft); }
 .q2-w { border-radius: 8px; padding: 0 1px; cursor: pointer; transition: background-color 0.12s ease, color 0.12s ease; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .q2-w.is-now { background: var(--q2-word); color: var(--q2-green); }
@@ -383,3 +401,12 @@
 @media (prefers-reduced-motion: reduce) {
   .q2-press, .q2-sheet, .q2-sheet-back, .q2-ayah, .q2-w { animation: none !important; transition: none !important; }
 }
+
+/* ── Tafsirs side by side ───────────────────────────────────────────── */
+.q2-compare { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); align-items: start; }
+
+/* ── Search by recitation ───────────────────────────────────────────── */
+.q2-listen { width: 44px; height: 44px; flex: none; border-radius: 999px; display: grid; place-items: center; color: var(--q2-green); background: var(--q2-green-soft); }
+.q2-listen.is-on { color: var(--q2-card); background: var(--q2-green); animation: q2-listen 1.4s ease-in-out infinite; }
+@keyframes q2-listen { 50% { box-shadow: 0 0 0 9px var(--q2-green-soft); } }
+@media (prefers-reduced-motion: reduce) { .q2-listen.is-on { animation: none; } }

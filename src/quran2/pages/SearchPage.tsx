@@ -1,5 +1,12 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Mic, Square } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { speechAvailable, startSpeechStream } from "@/lib/voiceTasbeeh";
+import { findRecited } from "../data/voiceFind";
+import type { Q2SearchIndex } from "../data/search";
+import type { Q2Text } from "../data/text";
+import type { Q2Meta } from "../data/meta";
 import { useQ2Meta, useQ2Morph, useQ2Text } from "../hooks";
 import { buildSearchIndex, hitsFromWords, perSurah, searchText, type AyahHit } from "../data/search";
 import { arCount, arDigits, plainKey } from "../data/arabic";
@@ -8,6 +15,109 @@ import { AyahHits } from "../components/AyahHits";
 import { Q2Loading, Q2Strip } from "../components/ui";
 
 type Mode = "text" | "root" | "lemma";
+
+/** Stop listening after this long without a new word. */
+const QUIET_MS = 3500;
+
+/** Recite a few words, and the ayah they come from is found on the device. */
+function VoiceFind({ index, text, meta }: { index: Q2SearchIndex; text: Q2Text; meta: Q2Meta }) {
+  const [open, setOpen] = React.useState(false);
+  const [heard, setHeard] = React.useState("");
+  const [listening, setListening] = React.useState(false);
+  const stop = React.useRef<(() => void) | null>(null);
+  const quiet = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const hits = React.useMemo(() => findRecited(index, heard), [index, heard]);
+
+  const end = React.useCallback(() => {
+    clearTimeout(quiet.current);
+    stop.current?.();
+    stop.current = null;
+    setListening(false);
+  }, []);
+
+  // Started by a tap (browsers ask for the microphone only after one).
+  const listen = React.useCallback(async () => {
+    end();
+    setHeard("");
+    setOpen(true);
+    const segments = new Map<string, string>();
+    try {
+      stop.current = await startSpeechStream({
+        hints: [],
+        onTranscript: (e) => {
+          segments.set(e.segment, e.text);
+          setHeard([...segments.values()].join(" "));
+          clearTimeout(quiet.current);
+          quiet.current = setTimeout(end, QUIET_MS);
+        },
+        onState: (state) => {
+          if (state === "denied") toast.error("اسمح باستخدام الميكروفون لتبحث بالتلاوة");
+          if (state === "denied" || state === "error" || state === "unavailable" || state === "stopped") setListening(false);
+        },
+      });
+      setListening(true);
+      quiet.current = setTimeout(end, QUIET_MS * 3);
+    } catch {
+      setListening(false);
+      toast.error("لا يمكن الاستماع على هذا الجهاز");
+    }
+  }, [end]);
+
+  React.useEffect(
+    () => () => {
+      clearTimeout(quiet.current);
+      stop.current?.();
+      stop.current = null;
+    },
+    [],
+  );
+
+  if (!open) {
+    return (
+      <button type="button" className="q2-btn is-ghost q2-press" style={{ width: "100%", marginTop: 10 }} onClick={() => void listen()}>
+        <Mic size={17} aria-hidden="true" /> ابحث بالتلاوة: اتلُ آيةً فنجدها
+      </button>
+    );
+  }
+
+  return (
+    <section className="q2-card" style={{ padding: 16, marginTop: 16 }} aria-live="polite">
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span className={`q2-listen${listening ? " is-on" : ""}`} aria-hidden="true"><Mic size={20} /></span>
+        <span style={{ flex: 1 }}>
+          <b style={{ display: "block" }}>{listening ? "أصغي… اتلُ آيةً أو بعضها" : heard ? "هذا ما سمعته" : "توقّف الاستماع"}</b>
+          <span className="q2-small">يُبحث على جهازك في نص المصحف كله.</span>
+        </span>
+        {listening ? (
+          <button type="button" className="q2-icon-btn q2-press" aria-label="أوقف الاستماع" onClick={end}><Square size={17} aria-hidden="true" /></button>
+        ) : (
+          <button type="button" className="q2-chip q2-press" onClick={() => void listen()}>أعد</button>
+        )}
+      </div>
+      {heard ? <p className="q2-soft" style={{ marginTop: 10, lineHeight: 1.9 }}>«{heard}»</p> : null}
+      {hits.length ? (
+        <div style={{ marginTop: 12 }}>
+          <div className="q2-small" style={{ marginBottom: 6 }}>{hits.length === 1 ? "الآية" : "أقرب الآيات لما تلوت"}</div>
+          <AyahHits hits={hits} text={text} meta={meta} />
+        </div>
+      ) : heard && !listening ? (
+        <p className="q2-small" style={{ marginTop: 10 }}>لم أجد آية تطابق ما سمعت. اتلُ كلمات أكثر بوضوح، أو اقترب من الميكروفون.</p>
+      ) : null}
+      <button
+        type="button"
+        className="q2-link"
+        style={{ marginTop: 8 }}
+        onClick={() => {
+          end();
+          setOpen(false);
+          setHeard("");
+        }}
+      >
+        أغلق
+      </button>
+    </section>
+  );
+}
 const MODES: Array<{ id: Mode; label: string; hint: string }> = [
   { id: "text", label: "الكلمة", hint: "كما تكتبها: «الصلاة»، «ذلك الكتاب»" },
   { id: "root", label: "الجذر", hint: "ثلاثة أحرف أو أربعة: «رحم»، «ك ت ب»" },
@@ -25,6 +135,10 @@ export default function Q2Search() {
   const [submitted, setSubmitted] = React.useState(lemmaParam ?? params.get("q") ?? "");
   const morph = useQ2Morph(mode !== "text");
   const index = React.useMemo(() => (text.data ? buildSearchIndex(text.data) : null), [text.data]);
+  const [canListen, setCanListen] = React.useState(false);
+  React.useEffect(() => {
+    void speechAvailable().then(setCanListen, () => setCanListen(false));
+  }, []);
 
   const result = React.useMemo((): { hits: AyahHit[]; words: number; label?: React.ReactNode } | null => {
     const query = submitted.trim();
@@ -98,6 +212,7 @@ export default function Q2Search() {
         />
         <button type="submit" className="q2-btn q2-press">ابحث</button>
       </form>
+      {canListen && mode === "text" && index && text.data && meta.data ? <VoiceFind index={index} text={text.data} meta={meta.data} /> : null}
 
       {mode !== "text" && morph.isLoading ? <Q2Loading label="يُحمَّل معجم كلمات القرآن لأول مرة، ثم يبقى على جهازك" /> : null}
       {!text.data || !meta.data ? <Q2Loading /> : null}

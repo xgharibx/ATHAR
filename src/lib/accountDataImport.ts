@@ -28,11 +28,12 @@ export async function hasLocalDataToImport(): Promise<boolean> {
   const ignored = new Set(["version", "exportedAt", "prefs", "reminders", "weeklyReportSentISO"]);
   for (const [key, value] of Object.entries(state)) {
     if (ignored.has(key) || value == null || value === false || value === "") continue;
-    // «القرآن ٢» always carries its settings; it is data to import only with
-    // memorised pages or a place where you stopped.
+    // «القرآن ٢» always carries its settings and an empty khatma; it is data to
+    // import only with memorised pages, a place where you stopped, marks or reading.
     if (key === "quran2") {
-      const q = value as { hifz?: object; lastRead?: unknown };
-      if ((q.hifz && Object.keys(q.hifz).length > 0) || q.lastRead) return true;
+      const q = value as { hifz?: object; lastRead?: unknown; marks?: object; readLog?: object };
+      const filled = (o?: object) => Boolean(o && Object.keys(o).length > 0);
+      if (filled(q.hifz) || q.lastRead || filled(q.marks) || filled(q.readLog)) return true;
       continue;
     }
     if (Array.isArray(value) && value.length > 0) return true;

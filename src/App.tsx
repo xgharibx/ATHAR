@@ -129,6 +129,9 @@ const Q2RootPage = React.lazy(() => import("@/quran2/pages/RootPage"));
 const Q2Search = React.lazy(() => import("@/quran2/pages/SearchPage"));
 const Q2Numbers = React.lazy(() => import("@/quran2/pages/Numbers"));
 const Q2SimilarDrill = React.lazy(() => import("@/quran2/pages/SimilarDrill"));
+const Q2TafsirCompare = React.lazy(() => import("@/quran2/pages/TafsirCompare"));
+const Q2Marks = React.lazy(() => import("@/quran2/pages/Marks"));
+const Q2Khatma = React.lazy(() => import("@/quran2/pages/Khatma"));
 const IjazHome          = React.lazy(() => import("@/ijaz/pages/IjazHome"));
 const IjazMiracles      = React.lazy(() => import("@/ijaz/pages/IjazMiracles"));
 const IjazMiracleDetail = React.lazy(() => import("@/ijaz/pages/IjazMiracleDetail"));
@@ -654,6 +657,9 @@ function AppContent() {
           <Route path="roots/:root" element={<S><Q2RootPage /></S>} />
           <Route path="search" element={<S><Q2Search /></S>} />
           <Route path="numbers" element={<S><Q2Numbers /></S>} />
+          <Route path="tafsir/:surah/:ayah" element={<S><Q2TafsirCompare /></S>} />
+          <Route path="marks" element={<S><Q2Marks /></S>} />
+          <Route path="khatma" element={<S><Q2Khatma /></S>} />
         </Route>
         {/* ── الإعجاز العلمي section (full-screen dark theme) ── */}
         <Route path="ijaz" element={<IjazShell />}>

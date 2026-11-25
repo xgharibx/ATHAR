@@ -1,11 +1,13 @@
 import * as React from "react";
-import { BookmarkCheck, Brain, Copy, Play, Share2 } from "lucide-react";
+import { BookmarkCheck, Brain, Columns3, Copy, Play, Share2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useQ2Tafsir, useQ2Translation } from "../hooks";
 import { Q2_TAFSIRS } from "../data/tafsir";
 import { Q2_TRANSLATIONS, getTranslation } from "../data/translations";
 import { useQ2Store } from "../store";
 import { SimilarList } from "./SimilarList";
+import { MarkPanel } from "./MarkPanel";
 import { arDigits } from "../data/arabic";
 import { Q2Error, Q2Loading } from "../components/ui";
 import { shareText } from "@/lib/shareTargets";
@@ -60,6 +62,7 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
   onLastRead: () => void;
   onHifz: () => void;
 }) {
+  const navigate = useNavigate();
   const [tab, setTab] = React.useState<Tab>("tafsir");
   const [tafsir, setTafsir] = React.useState(Q2_TAFSIRS[0]!.id);
   const [full, setFull] = React.useState(false);
@@ -99,6 +102,8 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
           <Share2 size={15} aria-hidden="true" /> مشاركة
         </button>
       </div>
+
+      <MarkPanel s={s} a={a} />
 
       <div className="q2-chips" role="tablist" aria-label="عن الآية" style={{ marginTop: 22 }}>
         {([
@@ -158,6 +163,9 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
           ) : null}
           {q.data && !paragraphs.length ? <p className="q2-small">لا نص لهذه الآية في هذا التفسير (قد يكون مضمومًا إلى آية قبلها).</p> : null}
         </div>
+        <button type="button" className="q2-btn is-ghost q2-press" style={{ width: "100%", marginTop: 10 }} onClick={() => navigate(`/q2/tafsir/${s}/${a}`)}>
+          <Columns3 size={16} aria-hidden="true" /> قارن التفاسير السبعة معًا
+        </button>
         <p className="q2-credit">التفاسير عبر واجهة Quran.com.</p>
       </div>
       ) : null}
