@@ -160,4 +160,10 @@ No single app joins these together; several exist nowhere in Arabic:
   companion's consent first, and sends only the question and the ayah's reference.
 
 **Next**
-- Tajweed colours, once an open, verified source of tajweed rules per letter is found.
+- Tajweed colours. Quran.com has tajweed annotations for all 6236 ayahs (17 rules:
+  hamzat al-wasl, lam shamsiyya, the madd kinds, ghunna, qalqala, ikhfa, idgham,
+  iqlab…), but on another Uthmani edition: 4280 ayahs differ from Tanzil in code
+  points (ٲ for the dagger alef, a zero-width joiner before pause marks, sukun for the
+  small round zero, other hamza spellings, the basmala in the first ayah). The rules
+  will be aligned letter by letter onto this section's text and checked ayah by
+  ayah; an ayah that does not align stays uncoloured rather than coloured wrongly.
