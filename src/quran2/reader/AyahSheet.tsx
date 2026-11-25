@@ -8,11 +8,14 @@ import { Q2_TRANSLATIONS, getTranslation } from "../data/translations";
 import { useQ2Store } from "../store";
 import { SimilarList } from "./SimilarList";
 import { MarkPanel } from "./MarkPanel";
+
+// The AI client loads only when «اسأل عنها» is opened.
+const AskPanel = React.lazy(() => import("./AskPanel").then((m) => ({ default: m.AskPanel })));
 import { arDigits } from "../data/arabic";
 import { Q2Error, Q2Loading } from "../components/ui";
 import { shareText } from "@/lib/shareTargets";
 
-type Tab = "tafsir" | "similar" | "translation";
+type Tab = "tafsir" | "ask" | "similar" | "translation";
 
 /** The meaning of one ayah in a chosen language. */
 function TranslationPanel({ s, a }: { s: number; a: number }) {
@@ -108,6 +111,7 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
       <div className="q2-chips" role="tablist" aria-label="عن الآية" style={{ marginTop: 22 }}>
         {([
           ["tafsir", "التفاسير السبعة"],
+          ["ask", "اسأل عنها"],
           ["similar", "المتشابهات"],
           ["translation", "الترجمات"],
         ] as Array<[Tab, string]>).map(([id, label]) => (
@@ -125,6 +129,13 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
         ))}
       </div>
 
+      {tab === "ask" ? (
+        <div style={{ marginTop: 12 }}>
+          <React.Suspense fallback={<Q2Loading />}>
+            <AskPanel s={s} a={a} />
+          </React.Suspense>
+        </div>
+      ) : null}
       {tab === "similar" ? <div style={{ marginTop: 12 }}><SimilarList s={s} a={a} /></div> : null}
       {tab === "translation" ? <div style={{ marginTop: 12 }}><TranslationPanel s={s} a={a} /></div> : null}
 

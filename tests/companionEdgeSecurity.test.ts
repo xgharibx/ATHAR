@@ -50,7 +50,7 @@ function edge(options: Options = {}) {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
   }).outputText;
   // Supporting modules are loaded into the same context, in dependency order.
-  const moduleJs = ["text", "quran", "hadith", "sources", "evidence", "guard", "prompt", "stream", "cors"] /* dependency order */.map((name) => {
+  const moduleJs = ["text", "quran", "ayah", "hadith", "sources", "evidence", "guard", "prompt", "stream", "cors"] /* dependency order */.map((name) => {
     const moduleSource = fs.readFileSync(path.resolve(`supabase/functions/companion/${name}.ts`), "utf8")
       .replace(/^import .*;\r?\n/gm, "")
       .replace(/^export /gm, "");
@@ -71,6 +71,11 @@ function edge(options: Options = {}) {
     fetch: async (url: string, init: RequestInit = {}) => {
       if (String(url).includes("quran.json")) {
         return new Response(options.quranUnavailable ? "unavailable" : quranJson, { status: options.quranUnavailable ? 503 : 200 });
+      }
+      if (String(url).includes("api.quran.com/api/v4/tafsirs/")) {
+        const id = /tafsirs\/(\d+)\//.exec(String(url))?.[1];
+        calls.push({ type: "tafsir", detail: { url: String(url) } });
+        return new Response(JSON.stringify({ tafsir: { text: `<p>شرح التفسير رقم ${id} لهذه الآية<sup>1</sup>، وفيه أن الله هو الحي القيوم.</p>` } }), { status: 200 });
       }
       if (String(url).includes("dorar.net")) {
         calls.push({ type: "dorar", detail: { url: decodeURIComponent(String(url)) } });
@@ -716,6 +721,43 @@ describe("Companion Edge Function access controls", () => {
       const app = edge({ quotaAllowed: false });
       const response = await app.sendRaw(streamed("السلام عليكم"), "Bearer synthetic-user-token");
       expect(response.status).toBe(429);
+    });
+  });
+
+  describe("a question about one ayah («القرآن ٢»)", () => {
+    const ask = (athar_ayah: unknown) => JSON.stringify({
+      system: [{ type: "text", text: "أنت «أثر»، رفيق إيماني." }, { type: "text", text: "سياق خاص من العميل لا يُعتمد" }],
+      messages: [{ role: "user", content: "ما معنى القيوم في هذه الآية؟" }],
+      athar_ayah,
+    });
+
+    it("answers from the ayah's tafsirs, fetched by the server, and from nothing the client sends", async () => {
+      const app = edge({ answer: "قال السعدي: «شرح التفسير رقم 91 لهذه الآية» وهو معنى واضح." });
+      const response = await app.sendRaw(ask({ surah: 2, ayah: 255 }), "Bearer synthetic-user-token");
+      expect(response.status).toBe(200);
+      const types = app.calls.map((call) => call.type);
+      expect(types.filter((t) => t === "tafsir")).toHaveLength(7);
+      expect(types).not.toContain("plan");
+      expect(types).not.toContain("dorar");
+      const upstream = app.calls.filter((call) => call.type === "upstream").pop()?.detail as { body: string };
+      const body = JSON.parse(upstream.body) as { system: Array<{ text: string }> };
+      const system = body.system.map((b) => b.text).join("\n");
+      expect(system).toContain("سؤال عن آية بعينها");
+      expect(system).toContain("تفسير السعدي");
+      expect(system).toContain("شرح التفسير رقم 14");
+      expect(system).not.toContain("سياق خاص من العميل");
+      expect(system).not.toContain("<sup>");
+      const text = (await response.json() as { content: Array<{ text: string }> }).content[0]?.text ?? "";
+      expect(text).toContain("قال السعدي");
+    });
+
+    it("refuses a reference that is not an ayah, before any work", async () => {
+      for (const bad of [{ surah: 115, ayah: 1 }, { surah: 1, ayah: 8 }, { surah: "2", ayah: 255 }, "2:255"]) {
+        const app = edge();
+        const response = await app.sendRaw(ask(bad), "Bearer synthetic-user-token");
+        expect(response.status).toBe(400);
+        expect(app.calls).toEqual([]);
+      }
     });
   });
 });

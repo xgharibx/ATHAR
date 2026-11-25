@@ -18,7 +18,7 @@ export function Quran2Shell() {
   const location = useLocation();
   const palette = useQ2Store((s) => s.prefs.palette);
   const setPrefs = useQ2Store((s) => s.setPrefs);
-  const reading = location.pathname.startsWith("/q2/read") || location.pathname.startsWith("/q2/hifz/session");
+  const reading = location.pathname.startsWith("/q2/read") || location.pathname.startsWith("/q2/hifz/session") || location.pathname.startsWith("/q2/page");
 
   React.useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');

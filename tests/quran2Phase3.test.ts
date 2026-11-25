@@ -2,7 +2,9 @@ import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it } from "vitest";
 import { parseTanzil } from "@/quran2/data/text";
 import type { Q2Meta } from "@/quran2/data/meta";
-import { ayahIndex, pageRange } from "@/quran2/data/meta";
+import { ayahIndex, pageRange, refFromIndex } from "@/quran2/data/meta";
+import { layPage, parseLines } from "@/quran2/data/lines";
+import { parseWordMeanings } from "@/quran2/data/wordMeanings";
 import { buildSearchIndex, findWord } from "@/quran2/data/search";
 import { matchesWord } from "@/quran2/data/arabic";
 import { findRecited } from "@/quran2/data/voiceFind";
@@ -133,5 +135,55 @@ describe("Everyday spelling of the madda", () => {
     expect(matchesWord("ٱلْقُرْءَانُ", "القرآن")).toBe(true);
     expect(matchesWord("ءَالَآءِ", "آلاء")).toBe(true);
     expect(findWord(index, "القرآن").length).toBeGreaterThan(40);
+  });
+});
+
+describe("The printed page, line for line", () => {
+  // Line numbers of a few surahs from Quran.com (word_fields=line_number).
+  const sample = JSON.parse(readFileSync("tests/fixtures/quran2-lines-sample.json", "utf8")) as Record<string, Array<number[] | null>>;
+  const linesOf = (s: number, a: number) => sample[String(s)]?.[a - 1] ?? null;
+  const ayahsOn = (page: number) => {
+    const [first, last] = pageRange(meta, page);
+    const out = [];
+    for (let i = first; i <= last; i++) {
+      const [s, a] = refFromIndex(meta, i);
+      const ayah = text.surahs[s - 1]!.ayahs[a - 1]!;
+      out.push({ s, a, words: ayah.words, before: ayah.before });
+    }
+    return out;
+  };
+
+  it("takes only line numbers that fit the ayah's words", () => {
+    const verses = [{ verse_number: 1, words: [{ char_type_name: "word", position: 2, line_number: 3 }, { char_type_name: "word", position: 1, line_number: 2 }, { char_type_name: "end", position: 3, line_number: 3 }] }, { verse_number: 2, words: [{ char_type_name: "word", position: 1, line_number: 3 }] }];
+    expect(parseLines(verses, [2, 2])).toEqual([[2, 3], null]);
+  });
+
+  it("fills all fifteen lines, with each surah's title and basmala", () => {
+    const p604 = layPage(ayahsOn(604), linesOf)!;
+    expect(p604.map((l) => l.kind)).toEqual(["surah", "basmala", "words", "words", "surah", "basmala", "words", "words", "words", "surah", "basmala", "words", "words", "words", "words"]);
+    const fatiha = layPage(ayahsOn(1), linesOf)!;
+    expect(fatiha[0]).toEqual({ kind: "surah", s: 1 });
+    expect(fatiha.filter((l) => l.kind === "basmala")).toHaveLength(0); // its basmala is its first ayah
+  });
+
+  it("puts a surah's title at the foot of the page before when its text starts at the top", () => {
+    const naml = { s: 27, line: linesOf(27, 1)![0]! };
+    const before = layPage(ayahsOn(376), linesOf, naml)!;
+    const opening = layPage(ayahsOn(377), linesOf)!;
+    expect(before.some((l) => l.kind === "blank")).toBe(false);
+    expect(opening.some((l) => l.kind === "blank")).toBe(false);
+    expect([...before, ...opening].filter((l) => l.kind === "surah")).toEqual([{ kind: "surah", s: 27 }]);
+    expect(before[14]).toEqual({ kind: "surah", s: 27 });
+    expect(opening[0]).toEqual({ kind: "basmala", s: 27 });
+  });
+});
+
+describe("Word-by-word meanings", () => {
+  it("keeps an ayah's meanings only when they line up with its words", () => {
+    const verses = [
+      { verse_number: 1, words: [{ char_type_name: "word", position: 1, translation: { text: "In (the) name" } }, { char_type_name: "end", position: 2, translation: { text: "(1)" } }] },
+      { verse_number: 2, words: [{ char_type_name: "word", position: 1, translation: { text: "All praises <b>" } }] },
+    ];
+    expect(parseWordMeanings(verses, [1, 2])).toEqual([["In (the) name"], null]);
   });
 });

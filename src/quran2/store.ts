@@ -52,6 +52,10 @@ export type Q2Prefs = {
   talqeenTimes: number;
   /** A daily reminder for the memorisation session (phones only). */
   hifzReminder: { enabled: boolean; time: string };
+  /** Word-by-word meanings: the language (Quran.com code), or none. */
+  wordLang: string | null;
+  /** Show each word's meaning under it in the reader. */
+  interlinear: boolean;
 };
 
 type State = {
@@ -99,6 +103,8 @@ export const Q2_DEFAULT_PREFS: Q2Prefs = {
   translation: null,
   talqeenTimes: 3,
   hifzReminder: { enabled: false, time: "06:30" },
+  wordLang: null,
+  interlinear: false,
 };
 
 export const useQ2Store = create<State>()(

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BookMarked, BookOpenText, Brain, Hash, Info, ListOrdered, Search, Sprout } from "lucide-react";
+import { ArrowLeft, BookMarked, BookOpen, BookOpenText, Brain, Hash, Info, ListOrdered, Search, Sprout } from "lucide-react";
 import { useQ2Meta } from "../hooks";
 import { useQ2Store } from "../store";
 import { arDigits } from "../data/arabic";
@@ -11,6 +11,7 @@ import { dayKey } from "../hooks";
 
 const WORLDS = [
   { to: "/q2/index", Icon: BookOpenText, title: "المصحف المرتّل", line: "اقرأ مع القارئ كلمةً كلمة، والمس أي كلمة لتعرفها" },
+  { to: "/q2/page", Icon: BookOpen, title: "المصحف بصفحاته", line: "الصفحات الـ٦٠٤ بأسطرها كما في المصحف المطبوع" },
   { to: "/q2/hifz", Icon: Brain, title: "الحفظ", line: "خطة الحلقة: جديد وقريب وبعيد، بنموذج ذاكرة حديث" },
   { to: "/q2/roots", Icon: Sprout, title: "معجم الجذور", line: "كل جذر في القرآن، ومشتقاته، وأين يرد" },
   { to: "/q2/search", Icon: Search, title: "البحث", line: "بالكلمة كما تكتبها، أو بجذرها، أو بلفظها" },

@@ -16,6 +16,7 @@
  * its verified text and removes any that cannot be verified.
  */
 import { createClient } from "npm:@supabase/supabase-js@2.119.0";
+import { buildAyahBlock, gatherTafsirs, readAyahRequest } from "./ayah.ts";
 import { companionCorsHeaders } from "./cors.ts";
 import { EVIDENCE_STEP_SYSTEM, EVIDENCE_TOOL, buildEvidenceBlock, gatherHadith, gatherVerses, loadQuran, readEvidencePlan } from "./evidence.ts";
 import { type GuardContext, ReplyGuard, UNAVAILABLE_REPLY, finalizeReplyDetailed, isUsableReply } from "./guard.ts";
@@ -284,7 +285,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   }
   const raw = boundedBody.text;
 
-  let body: { model?: unknown; max_tokens?: unknown; stream?: boolean; system?: unknown; messages?: unknown; tools?: unknown };
+  let body: { model?: unknown; max_tokens?: unknown; stream?: boolean; system?: unknown; messages?: unknown; tools?: unknown; athar_ayah?: unknown };
   try {
     body = JSON.parse(raw);
   } catch {
@@ -300,6 +301,12 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     ? body.system.map((b) => (b && typeof b === "object" && "text" in b ? String((b as { text?: unknown }).text ?? "") : "")).join("")
     : typeof body.system === "string" ? body.system : "";
   if (!systemText) return jsonError(req, "missing system prompt", 400);
+
+  // «اسأل عن الآية» from «القرآن ٢»: answered only from that ayah's tafsirs,
+  // which the server fetches itself (see ayah.ts). A malformed reference is
+  // refused rather than answered as an ordinary question.
+  const ayahRequest = body.athar_ayah === undefined ? null : readAyahRequest(body.athar_ayah);
+  if (body.athar_ayah !== undefined && !ayahRequest) return jsonError(req, "invalid ayah", 400);
 
   const boundedMessages = boundCompanionMessages(body.messages);
   if (!boundedMessages.ok) {
@@ -350,7 +357,8 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     const thinkDeeper = deep && !fast;
     // The base instructions are the server's. Of what a client sends after
     // its own base instructions, the description of the moment is kept.
-    const clientBlocks: Array<{ type: string; text: string }> = (Array.isArray(body.system) ? body.system : [body.system])
+    // A question about an ayah is answered from the server's tafsir block alone.
+    const clientBlocks: Array<{ type: string; text: string }> = ayahRequest ? [] : (Array.isArray(body.system) ? body.system : [body.system])
       .map((block) => (typeof block === "string" ? block : String((block as { text?: unknown } | null)?.text ?? "")))
       .filter((text) => text && !text.trimStart().startsWith(CLIENT_BASE_PROMPT_OPENING))
       .map((text) => focusClientContext(text).slice(0, MAX_CLIENT_CONTEXT_CHARS))
@@ -485,7 +493,28 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     guardContext: GuardContext;
     serverBlocks: string[];
   };
+  const gatherForAyah = async (request: NonNullable<typeof ayahRequest>, onStage: (stage: Stage) => void): Promise<Gathered> => {
+    onStage("gathering");
+    const [quran, tafsirs] = await Promise.all([
+      loadQuran(denoRuntime.env.get("QURAN_DATA_URL")),
+      gatherTafsirs(request),
+    ]);
+    const verse = gatherVerses(quran, [`${request.surah}:${request.ayah}`])[0];
+    return {
+      plan: NO_PLAN,
+      guardContext: {
+        quran,
+        hadith: [],
+        // Only the tafsirs may be quoted (and the Quran, checked by the guard).
+        trustedTexts: tafsirs.map((t) => t.text),
+        sourceUrls: [],
+        userTexts: boundedMessages.messages.filter((message) => message.role === "user").slice(-2).map((message) => message.content),
+      },
+      serverBlocks: [buildAyahBlock(request, verse?.text ?? "", tafsirs)],
+    };
+  };
   const gather = async (onStage: (stage: Stage) => void): Promise<Gathered> => {
+    if (ayahRequest) return gatherForAyah(ayahRequest, onStage);
     if (substantive) onStage("gathering");
     if (searchEarly && substantive) onStage("searching");
     const earlySearch = searchTrustedSources(searchEarly).catch(() => []);

@@ -74,6 +74,8 @@ No single app joins these together; several exist nowhere in Arabic:
 | Word timings and audio | Quran.com / QuranicAudio (qdc) | Provider's terms | Fetched while the app runs |
 | Tafsirs | Quran.com API v4 | Provider's and publishers' terms | Fetched while the app runs, kept on the device |
 | Translations of the meanings (18 languages) | Quran.com API v4 | Provider's and translators' terms | Fetched while the app runs, kept on the device |
+| Word-by-word meanings (8 languages; none exists as open data in Arabic) | Quran.com API v4 | Provider's terms | Fetched while the app runs, kept on the device |
+| The printed page: the line of each word on the 15-line Madani page | Quran.com API v4 (line numbers only; the words are Tanzil's) | Provider's terms | Fetched while the app runs, kept on the device |
 
 ## Architecture
 
@@ -140,7 +142,22 @@ No single app joins these together; several exist nowhere in Arabic:
 - Everyday spelling of the madda: «آمنوا»، «القرآن»، «آلاء» find «ءَامَنُوا»،
   «ٱلْقُرْءَان»، «ءَالَآء» everywhere words are matched.
 
+**Phase 3, part two (done)**
+- The printed page («المصحف بصفحاته»): the 604 pages with their 15 lines as printed,
+  surah titles and basmalas in their places (at the foot of the page before, when
+  the mushaf puts them there), two pages side by side on a tablet held sideways;
+  turned by swipe, arrows or keyboard; a page counts for the khatma once read.
+  Checked against the whole Quran: Quran.com's line data gives the same 77,429 words
+  and the same page for all 6236 ayahs, and every page from 3 to 604 comes out full.
+- Word-by-word meanings in 8 languages (English, Urdu, Indonesian, Turkish, Bengali,
+  Persian, Hindi, Tamil), in the word lens or under each word. There is no open
+  word-by-word Arabic gloss to use; Arabic readers have the root, lemma and grammar
+  of every word, and the tafsirs.
+- «اسأل عن الآية»: a question about an ayah is answered by «أثر» from that ayah's seven
+  tafsirs only, which the server fetches itself; each meaning is attributed to its
+  tafsir, a question they do not cover is said to be so, and the reply guard lets
+  through only Quran text and quotations found in those tafsirs. It asks for the
+  companion's consent first, and sends only the question and the ayah's reference.
+
 **Next**
-- Asking about an ayah, answered only from the cited tafsirs.
-- Word-by-word meanings.
-- The printed page, line for line, with two pages side by side on tablets.
+- Tajweed colours, once an open, verified source of tajweed rules per letter is found.
