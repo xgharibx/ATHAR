@@ -16,6 +16,7 @@
     <string name="widget_qibla_label">Athar Qibla Widget</string>
     <string name="widget_wirdtable_label">Athar Wird Table</string>
     <string name="widget_qadaa_label">Athar Qadaa Widget</string>
+    <string name="widget_q2_hifz_label">Athar Quran Memorisation</string>
     <string name="widget_qadaa_board_label">Athar Qadaa Board</string>
     <string name="widget_dashboard_description" translatable="false">الصلاة والأذكار والورد اليومي في نظرة واحدة</string>
     <string name="widget_compact_description" translatable="false">اضغط لعدّ الأذكار مباشرة من الشاشة الرئيسية</string>
@@ -27,6 +28,7 @@
     <string name="widget_sunnah_description" translatable="false">حديث اليوم الحقيقي من موسوعة الحديث</string>
     <string name="widget_asma_description" translatable="false">اسم من أسماء الله الحسنى كل يوم مع معناه</string>
     <string name="widget_qadaa_description" translatable="false">ما بقي عليك من قضاء الصلوات وحصة اليوم منه</string>
+    <string name="widget_q2_hifz_description" translatable="false">صفحات جلسة الحفظ اليوم وما حفظته من القرآن</string>
     <string name="widget_qadaa_board_description" translatable="false">سجّل قضاء كل صلاة بزر واحد من الشاشة الرئيسية</string>
     <string name="widget_wirdtable_description" translatable="false">أورادك اليوم وما أتممتَ منها</string>
     <string name="widget_qibla_description" translatable="false">اتجاه القبلة والمسافة إلى الكعبة بمجرد نظرة</string>

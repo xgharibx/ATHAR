@@ -13,6 +13,7 @@ import { Q2Error, Q2Loading, Q2Sheet } from "../components/ui";
 import { useQ2Player, type RepeatMode } from "../reader/usePlayer";
 import { WordLens } from "../reader/WordLens";
 import { AyahSheet } from "../reader/AyahSheet";
+import { OfflineRow } from "../reader/OfflineRow";
 import { learnPage } from "../hifz/actions";
 
 const RATES = [0.75, 1, 1.25, 1.5];
@@ -373,6 +374,7 @@ export default function Q2Reader() {
             </button>
           ))}
         </div>
+        <OfflineRow key={timing.data?.audioUrl} url={timing.data?.audioUrl} surahName={info?.name ?? ""} reciterName={reciter.name} />
         <h3 className="q2-h2" style={{ marginTop: 22 }}>القارئ</h3>
         <p className="q2-small">تلاوات مضبوطة كلمةً كلمة: يتلوّن ما يُتلى الآن.</p>
         <div className="q2-card" style={{ marginTop: 10 }}>

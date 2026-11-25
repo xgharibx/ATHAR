@@ -151,7 +151,9 @@ public class RecitationDownloadWorker extends Worker {
 
     private static void notifyDone(Context context, String title, int saved, int total, String kind) {
         boolean tafsir = "tafsir".equals(kind);
-        boolean listen = "listen".equals(kind);
+        boolean quran2 = "quran2".equals(kind);
+        // «القرآن ٢» saves whole surahs too: same wording, its own page.
+        boolean listen = "listen".equals(kind) || quran2;
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
         if (!manager.areNotificationsEnabled()) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -163,7 +165,7 @@ public class RecitationDownloadWorker extends Worker {
         }
         Intent open = new Intent(context, AtharActivity.class)
             .setAction(Intent.ACTION_VIEW)
-            .putExtra(AtharWidgetProvider.EXTRA_ROUTE, tafsir ? "/tafsir" : listen ? "/listen/downloads" : "/mushaf");
+            .putExtra(AtharWidgetProvider.EXTRA_ROUTE, tafsir ? "/tafsir" : quran2 ? "/q2" : listen ? "/listen/downloads" : "/mushaf");
         PendingIntent tap = PendingIntent.getActivity(context, NOTIFICATION_ID, open,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         String body = tafsir

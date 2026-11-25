@@ -26,6 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         "noor_widget_qadaa_v1",
         "noor_widget_sunnah_v1",
         "noor_widget_qibla_v1",
+        // «القرآن ٢»: pages due in today's memorisation session.
+        "noor_widget_q2_hifz_v1",
         // Which account the Home Screen tasbeeh credits its taps to.
         "noor_widget_tasbeeh_owner_v1",
     ]

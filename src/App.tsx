@@ -613,6 +613,19 @@ function AppContent() {
     return () => window.removeEventListener("athar-data-packs-changed", onPacks);
   }, [queryClient]);
 
+  // «القرآن ٢» on phones: the "حفظك اليوم" widget and the memorisation reminder.
+  React.useEffect(() => {
+    let stop: (() => void) | undefined;
+    let cancelled = false;
+    void import("@/quran2/native/sync").then((m) => {
+      if (!cancelled) stop = m.startQuran2Native();
+    });
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
+  }, []);
+
   // Deliberately NOT cleared on navigation. The confetti is a reward for
   // finishing a dhikr, and cutting it off the instant the screen changes is
   // exactly what made it vanish mid-air — finishing an item often navigates.

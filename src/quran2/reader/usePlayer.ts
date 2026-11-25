@@ -1,6 +1,13 @@
 /**
- * «القرآن ٢» — the reader's player: one audio element playing a whole surah,
- * with the reciter's word timings telling which word is being said.
+ * «القرآن ٢» — the reader's player: one whole-surah recitation, with the
+ * reciter's word timings telling which word is being said.
+ *
+ * Two backends behind one logic:
+ *  - web: an audio element, read every frame;
+ *  - phone: the app's native player (AVPlayer / ExoPlayer), so the recitation
+ *    carries on with the screen locked, with lock-screen and headphone
+ *    controls; its position is read several times a second while the app is
+ *    on screen, and the highlight picks up again when it comes back.
  *
  * The current word does not go through React state: the reader's text can be
  * thousands of words, so the highlight is moved on the DOM directly (onWord),
@@ -8,6 +15,7 @@
  */
 import * as React from "react";
 import { locate, wordSpan, type Q2SurahTiming } from "../data/timings";
+import { hasNativeRecitation, nativePlaybackPosition, nativeSeek, startNativeRecitation, type NativeRecitationSession } from "@/lib/nativeRecitation";
 
 export type RepeatMode = 0 | 3 | -1; // off، three times، until stopped
 
@@ -18,6 +26,17 @@ export type PlayerView = {
   rate: number;
   repeat: RepeatMode;
   error: boolean;
+  /** Playing through the phone's own player (background and lock screen). */
+  native: boolean;
+};
+
+type Backend = {
+  play(fromMs?: number): Promise<void>;
+  pause(): void;
+  seek(ms: number): void;
+  setRate(rate: number): void;
+  playing(): boolean;
+  dispose(): void;
 };
 
 export function useQ2Player(options: {
@@ -27,49 +46,36 @@ export function useQ2Player(options: {
   onWord: (ayah: number | null, word: number | null) => void;
 }) {
   const { timing, title, artist, onWord } = options;
-  const audioRef = React.useRef<HTMLAudioElement | null>(null);
-  const frame = React.useRef(0);
   const stopAt = React.useRef<number | null>(null);
   const repeatLeft = React.useRef<{ ayah: number; left: number } | null>(null);
-  const last = React.useRef<{ a: number | null; w: number | null }>({ a: null, w: null });
+  const last = React.useRef<{ a: number | null; w: number | null; ms: number }>({ a: null, w: null, ms: 0 });
   const onWordRef = React.useRef(onWord);
   const timingRef = React.useRef(timing);
-  const [view, setView] = React.useState<PlayerView>({ playing: false, waiting: false, ayah: null, rate: 1, repeat: 0, error: false });
+  const meta = React.useRef({ title, artist });
+  const [view, setView] = React.useState<PlayerView>({
+    playing: false, waiting: false, ayah: null, rate: 1, repeat: 0, error: false, native: hasNativeRecitation(),
+  });
   const viewRef = React.useRef(view);
+  const [progress, setProgress] = React.useState(0);
+  const backend = React.useRef<Backend | null>(null);
+
   React.useLayoutEffect(() => {
     onWordRef.current = onWord;
     timingRef.current = timing;
     viewRef.current = view;
+    meta.current = { title, artist };
   });
-  const [progress, setProgress] = React.useState(0);
 
-  const getAudio = React.useCallback(() => {
-    if (!audioRef.current) {
-      const audio = new Audio();
-      audio.preload = "none";
-      audioRef.current = audio;
-    }
-    return audioRef.current;
-  }, []);
-
-  React.useEffect(() => {
-    if (!timing) return;
-    const audio = getAudio();
-    if (audio.src !== timing.audioUrl) {
-      audio.pause();
-      audio.src = timing.audioUrl;
-    }
-  }, [timing, getAudio]);
-
-  const tick = React.useCallback(() => {
-    const audio = audioRef.current;
+  /** Everything that follows from where the recitation is: shared by both backends. */
+  const onPosition = React.useCallback((ms: number) => {
     const t = timingRef.current;
-    if (!audio || !t) return;
-    const ms = audio.currentTime * 1000;
+    const b = backend.current;
+    if (!t || !b) return;
+    last.current.ms = ms;
     if (stopAt.current != null && ms >= stopAt.current) {
       // A single word was asked for: stop on it, with it still marked.
       stopAt.current = null;
-      audio.pause();
+      b.pause();
       return;
     }
     const rep = repeatLeft.current;
@@ -78,7 +84,7 @@ export function useQ2Player(options: {
       if (verse && ms >= verse.to - 40) {
         if (rep.left !== 0) {
           if (rep.left > 0) rep.left -= 1;
-          audio.currentTime = verse.from / 1000;
+          b.seek(verse.from);
           return;
         }
         repeatLeft.current = null;
@@ -89,7 +95,8 @@ export function useQ2Player(options: {
     const w = where?.w ?? null;
     if (a !== last.current.a || w !== last.current.w) {
       const ayahChanged = a !== last.current.a;
-      last.current = { a, w };
+      last.current.a = a;
+      last.current.w = w;
       onWordRef.current(a, w);
       if (ayahChanged) {
         setView((v) => ({ ...v, ayah: a }));
@@ -100,87 +107,204 @@ export function useQ2Player(options: {
     setProgress(t.durationMs ? ms / t.durationMs : 0);
   }, []);
 
-  React.useEffect(() => {
-    const audio = getAudio();
-    const loop = () => {
-      tick();
-      frame.current = requestAnimationFrame(loop);
-    };
-    const onPlay = () => {
-      setView((v) => ({ ...v, playing: true, error: false }));
-      cancelAnimationFrame(frame.current);
-      frame.current = requestAnimationFrame(loop);
-    };
-    const onPause = () => {
-      setView((v) => ({ ...v, playing: false, waiting: false }));
-      cancelAnimationFrame(frame.current);
-      tick();
-    };
-    const onWaiting = () => setView((v) => ({ ...v, waiting: true }));
-    const onPlaying = () => setView((v) => ({ ...v, waiting: false }));
-    const onError = () => setView((v) => ({ ...v, playing: false, waiting: false, error: true }));
-    const onEnded = () => {
-      last.current = { a: null, w: null };
-      onWordRef.current(null, null);
-      setView((v) => ({ ...v, ayah: null }));
-    };
-    audio.addEventListener("play", onPlay);
-    audio.addEventListener("pause", onPause);
-    audio.addEventListener("waiting", onWaiting);
-    audio.addEventListener("playing", onPlaying);
-    audio.addEventListener("error", onError);
-    audio.addEventListener("ended", onEnded);
-    return () => {
-      audio.removeEventListener("play", onPlay);
-      audio.removeEventListener("pause", onPause);
-      audio.removeEventListener("waiting", onWaiting);
-      audio.removeEventListener("playing", onPlaying);
-      audio.removeEventListener("error", onError);
-      audio.removeEventListener("ended", onEnded);
-      cancelAnimationFrame(frame.current);
-    };
-  }, [getAudio, tick]);
-
-  // Leaving the reader stops the recitation.
-  React.useEffect(() => () => {
-    audioRef.current?.pause();
-    audioRef.current?.removeAttribute("src");
+  const onEnded = React.useCallback(() => {
+    last.current = { a: null, w: null, ms: 0 };
+    onWordRef.current(null, null);
+    setView((v) => ({ ...v, ayah: null, playing: false, waiting: false }));
   }, []);
 
+  // The web backend: an audio element read every frame.
+  const makeWebBackend = React.useCallback((): Backend => {
+    const audio = new Audio();
+    audio.preload = "none";
+    let frame = 0;
+    const loop = () => {
+      onPosition(audio.currentTime * 1000);
+      frame = requestAnimationFrame(loop);
+    };
+    audio.addEventListener("play", () => {
+      setView((v) => ({ ...v, playing: true, error: false }));
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(loop);
+    });
+    audio.addEventListener("pause", () => {
+      setView((v) => ({ ...v, playing: false, waiting: false }));
+      cancelAnimationFrame(frame);
+    });
+    audio.addEventListener("waiting", () => setView((v) => ({ ...v, waiting: true })));
+    audio.addEventListener("playing", () => setView((v) => ({ ...v, waiting: false })));
+    audio.addEventListener("error", () => setView((v) => ({ ...v, playing: false, waiting: false, error: true })));
+    audio.addEventListener("ended", onEnded);
+    return {
+      async play(fromMs) {
+        const t = timingRef.current;
+        if (!t) return;
+        if (audio.src !== t.audioUrl) audio.src = t.audioUrl;
+        if (fromMs != null) audio.currentTime = fromMs / 1000;
+        audio.playbackRate = viewRef.current.rate;
+        try {
+          await audio.play();
+        } catch {
+          setView((v) => ({ ...v, error: true }));
+        }
+      },
+      pause: () => audio.pause(),
+      seek: (ms) => {
+        audio.currentTime = ms / 1000;
+      },
+      setRate: (rate) => {
+        audio.playbackRate = rate;
+      },
+      playing: () => !audio.paused,
+      dispose() {
+        cancelAnimationFrame(frame);
+        audio.pause();
+        audio.removeAttribute("src");
+      },
+    };
+  }, [onPosition, onEnded]);
+
+  // The phone backend: the native player, polled while the page is on screen.
+  const makeNativeBackend = React.useCallback((): Backend => {
+    let session: NativeRecitationSession | null = null;
+    let poll: ReturnType<typeof setInterval> | undefined;
+    let active = false;
+    // After a jump the player can still report the old place for a moment:
+    // those readings are skipped, so a repeat is not counted twice.
+    let seekTarget: number | null = null;
+    let seekDeadline = 0;
+    const jump = (ms: number) => {
+      seekTarget = ms;
+      seekDeadline = Date.now() + 1200;
+      return nativeSeek(ms);
+    };
+    const stopPolling = () => {
+      if (poll) clearInterval(poll);
+      poll = undefined;
+    };
+    const startPolling = () => {
+      stopPolling();
+      poll = setInterval(() => {
+        if (document.visibilityState !== "visible") return;
+        void nativePlaybackPosition().then((pos) => {
+          if (!pos || !active) return;
+          if (seekTarget != null) {
+            if (Math.abs(pos.positionMs - seekTarget) > 1500 && Date.now() < seekDeadline) return;
+            seekTarget = null;
+          }
+          onPosition(pos.positionMs);
+        });
+      }, 120);
+    };
+    const end = () => {
+      active = false;
+      stopPolling();
+      const s = session;
+      session = null;
+      s?.pause();
+    };
+    return {
+      async play(fromMs) {
+        const t = timingRef.current;
+        if (!t) return;
+        const start = fromMs ?? last.current.ms;
+        if (session && active) {
+          // Paused from the lock screen or headphones: carry on from there.
+          if (fromMs != null) await jump(fromMs);
+          if (session.paused) session.resume();
+          return;
+        }
+        setView((v) => ({ ...v, waiting: true, error: false }));
+        session = await startNativeRecitation(
+          {
+            verses: [{ id: `q2:${t.audioUrl}`, url: t.audioUrl, title: meta.current.title, artist: meta.current.artist, album: "القرآن ٢ — أثر" }],
+            startIndex: 0,
+            rate: viewRef.current.rate,
+            volume: 1,
+            repeat: "none",
+            startPositionMs: start > 0 ? start : undefined,
+          },
+          {
+            onVerse: () => {},
+            onState: (state) => {
+              setView((v) => ({ ...v, playing: state === "playing" || state === "buffering", waiting: state === "buffering" }));
+            },
+            onEnded: () => {
+              active = false;
+              session = null;
+              stopPolling();
+              onEnded();
+            },
+            onError: () => setView((v) => ({ ...v, error: true, playing: false, waiting: false })),
+            onInterrupted: () => {
+              // The radio or another recitation took the player.
+              active = false;
+              session = null;
+              stopPolling();
+              setView((v) => ({ ...v, playing: false, waiting: false }));
+            },
+          },
+        );
+        if (!session) {
+          // An app build from before the native player: use the web one.
+          backend.current = makeWebBackend();
+          setView((v) => ({ ...v, native: false }));
+          await backend.current.play(start);
+          return;
+        }
+        active = true;
+        setView((v) => ({ ...v, playing: true }));
+        startPolling();
+      },
+      pause() {
+        end();
+        setView((v) => ({ ...v, playing: false, waiting: false }));
+      },
+      seek: (ms) => {
+        void jump(ms);
+      },
+      setRate: (rate) => session?.setRate(rate),
+      playing: () => active && !session?.paused,
+      dispose: end,
+    };
+  }, [onPosition, onEnded, makeWebBackend]);
+
   React.useEffect(() => {
-    if (!("mediaSession" in navigator) || !view.playing) return;
+    backend.current = hasNativeRecitation() ? makeNativeBackend() : makeWebBackend();
+    return () => {
+      backend.current?.dispose();
+      backend.current = null;
+    };
+  }, [makeNativeBackend, makeWebBackend]);
+
+  // A new surah or reciter: start from the beginning next time.
+  React.useEffect(() => {
+    if (!timing) return;
+    backend.current?.pause();
+    last.current = { a: null, w: null, ms: 0 };
+  }, [timing]);
+
+  React.useEffect(() => {
+    if (!("mediaSession" in navigator) || !view.playing || view.native) return;
     try {
       navigator.mediaSession.metadata = new MediaMetadata({ title, artist, album: "القرآن ٢ — أثر" });
     } catch {
       // Not supported here.
     }
-  }, [title, artist, view.playing]);
-
-  const start = React.useCallback(async (fromMs?: number) => {
-    const audio = getAudio();
-    const t = timingRef.current;
-    if (!t) return;
-    if (audio.src !== t.audioUrl) audio.src = t.audioUrl;
-    if (fromMs != null) audio.currentTime = fromMs / 1000;
-    audio.playbackRate = viewRef.current.rate;
-    try {
-      await audio.play();
-    } catch {
-      setView((v) => ({ ...v, error: true }));
-    }
-  }, [getAudio]);
+  }, [title, artist, view.playing, view.native]);
 
   const api = React.useMemo(() => ({
     toggle() {
-      const audio = getAudio();
-      if (!audio.paused) audio.pause();
-      else void start();
+      const b = backend.current;
+      if (!b) return;
+      if (b.playing()) b.pause();
+      else void b.play();
     },
     playFrom(ayah: number) {
       const verse = timingRef.current?.verses.find((v) => v.a === ayah);
       stopAt.current = null;
       repeatLeft.current = null;
-      if (verse) void start(verse.from);
+      if (verse) void backend.current?.play(verse.from);
     },
     /** Say one word in the reciter's voice, then stop. */
     playWord(ayah: number, word: number) {
@@ -189,7 +313,7 @@ export function useQ2Player(options: {
       if (!span) return false;
       repeatLeft.current = null;
       stopAt.current = span[1] + 60;
-      void start(Math.max(0, span[0] - 20));
+      void backend.current?.play(Math.max(0, span[0] - 20));
       return true;
     },
     step(delta: 1 | -1) {
@@ -198,11 +322,11 @@ export function useQ2Player(options: {
       const target = t?.verses.find((v) => v.a === current + delta);
       if (target) {
         repeatLeft.current = null;
-        void start(target.from);
+        void backend.current?.play(target.from);
       }
     },
     setRate(rate: number) {
-      getAudio().playbackRate = rate;
+      backend.current?.setRate(rate);
       setView((v) => ({ ...v, rate }));
     },
     setRepeat(repeat: RepeatMode) {
@@ -212,9 +336,9 @@ export function useQ2Player(options: {
       if (a != null && repeat !== 0) repeatLeft.current = { ayah: a, left: repeat === -1 ? -1 : repeat - 1 };
     },
     pause() {
-      audioRef.current?.pause();
+      backend.current?.pause();
     },
-  }), [getAudio, start]);
+  }), []);
 
   return { view, progress, ...api };
 }

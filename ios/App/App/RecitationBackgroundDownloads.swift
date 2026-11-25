@@ -143,12 +143,13 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
 
     private static func notifyDone(title: String, saved: Int, total: Int, kind: String) {
         let content = UNMutableNotificationContent()
-        if kind == "listen" {
+        if kind == "listen" || kind == "quran2" {
             content.title = title.isEmpty ? "اكتمل تنزيل التلاوة" : title
             content.body = saved == total
                 ? (saved == 1 ? "حُفظت التلاوة للاستماع دون إنترنت" : "حُفظت \(saved) تلاوة للاستماع دون إنترنت")
                 : "حُفظت \(saved) من \(total) تلاوة للاستماع دون إنترنت"
-            content.userInfo = ["cap_extra": ["route": "/listen/downloads"]]
+            // «القرآن ٢» saves whole surahs too: same wording, its own page.
+            content.userInfo = ["cap_extra": ["route": kind == "quran2" ? "/q2" : "/listen/downloads"]]
         } else if kind == "tafsir" {
             content.title = title.isEmpty ? "اكتمل تنزيل التفسير" : title
             content.body = saved == total

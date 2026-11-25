@@ -32,6 +32,8 @@ export type Q2Prefs = {
   translation: number | null;
   /** Talqeen: how many times each ayah is recited before the next. */
   talqeenTimes: number;
+  /** A daily reminder for the memorisation session (phones only). */
+  hifzReminder: { enabled: boolean; time: string };
 };
 
 type State = {
@@ -59,6 +61,7 @@ export const Q2_DEFAULT_PREFS: Q2Prefs = {
   direction: "end",
   translation: null,
   talqeenTimes: 3,
+  hifzReminder: { enabled: false, time: "06:30" },
 };
 
 export const useQ2Store = create<State>()(

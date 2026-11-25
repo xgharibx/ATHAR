@@ -78,8 +78,12 @@ No single app joins these together; several exist nowhere in Arabic:
   - `data/`: text, metadata, morphology, timings, tafsir, Arabic normalisation.
   - `hifz/`: the memory model and the memorisation store.
   - `pages/`, `components/`, `quran2.css`: the screens, in the section's own shell at `/q2`.
-- Native: audio already plays natively in Athar; V2 uses the WebView's audio element so
-  that word timings are exact. Native work is planned where it is clearly better (below).
+- `native/`: what V2 hands to the phone: the widget payload, the daily reminder, and
+  the sync that keeps both in step from app start.
+- Audio: on the web, an audio element read every frame. In the iOS and Android apps,
+  Athar's native player (AVPlayer, ExoPlayer) plays the surah, so the recitation goes on
+  with the screen locked and shows on the lock screen; the page reads its position
+  several times a second for the word highlight. A saved copy is played when there is one.
 
 ## Road
 
@@ -105,13 +109,23 @@ No single app joins these together; several exist nowhere in Arabic:
 - Memorisation, where you stopped and the section's settings are included in the
   account backup (validated on restore).
 
+**Native phase (done, needs a new app release)**
+- Reader audio through the app's native player: the recitation continues with the
+  screen locked, with lock-screen and headphone controls, and the word highlight
+  picks up where the reciter is when the app comes back.
+- Save a surah's recitation on the phone (reader settings) to listen with no
+  connection; downloads go on in the background, and the player uses the saved copy.
+- The widget «حفظك اليوم» on iPhone (home and lock screen) and Android: the pages in
+  today's session (new, near, far), the pages memorised, and the share of the mushaf.
+  It is given the far-review dates, so it counts each day by itself.
+- A daily reminder for the session at a time you choose, saying how many pages
+  wait that day; a tap opens the memorisation page.
+- The far review is due by the day, as in the halaqah: a page due this evening is
+  part of this morning's session, and a page revised today is not asked again today.
+
 **Next**
 - Asking about an ayah, answered only from the cited tafsirs.
 - A tafsir comparison view showing all seven at once.
 - Word-by-word meanings.
-
-**Phase 3, native**
-- An iOS and Android widget for "pages due today".
-- A native background player that reports word timings, so read-along continues with the screen locked.
-- Notifications for the daily hifz session.
-- A two-page tablet layout.
+- Bookmarks, notes and highlights, in the account backup.
+- The printed page, line for line, with two pages side by side on tablets.

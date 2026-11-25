@@ -45,7 +45,7 @@ type QuranAudioPlugin = {
   setRate(options: { rate: number }): Promise<void>;
   setVolume(options: { volume: number }): Promise<void>;
   /** Downloads in the background: it carries on after the app is left (Android WorkManager, iOS background session). */
-  download(options: { urls: string[]; maxBytes: number; title?: string; kind?: "audio" | "tafsir" | "listen"; maxFileBytes?: number }): Promise<{ saved: number; failed: number; evicted: number }>;
+  download(options: { urls: string[]; maxBytes: number; title?: string; kind?: "audio" | "tafsir" | "listen" | "quran2"; maxFileBytes?: number }): Promise<{ saved: number; failed: number; evicted: number }>;
   downloadedBytes(): Promise<{ bytes: number }>;
   clearDownloads(): Promise<void>;
   /** Saved text files (tafsir): kept apart from the recitations and their budget. App builds before these reject them. */
@@ -252,7 +252,7 @@ export async function downloadNativeRecitations(
   urls: string[],
   onProgress: (done: number, total: number) => void,
   title?: string,
-  kind: "audio" | "tafsir" | "listen" = "audio",
+  kind: "audio" | "tafsir" | "listen" | "quran2" = "audio",
   /** Per-file limit for long recordings (whole surahs); the native default suits single verses. */
   maxFileBytes?: number,
   /** Space all saved recitations may take after this batch (the oldest go first). */
