@@ -1,5 +1,6 @@
 import * as React from "react";
-import { BookmarkCheck, Brain, Columns3, Copy, Play, Share2 } from "lucide-react";
+import { BookmarkCheck, Brain, Columns3, Copy, ImageIcon, Play, Share2 } from "lucide-react";
+import { ShareAyahSheet } from "../share/ShareAyahSheet";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useQ2Tafsir, useQ2Translation } from "../hooks";
@@ -53,7 +54,7 @@ function TranslationPanel({ s, a }: { s: number; a: number }) {
 }
 
 /** One ayah: what to do with it, seven tafsirs side by side, its similar ayahs and its translations. */
-export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay, onLastRead, onHifz }: {
+export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay, onLastRead, onHifz, initialTab }: {
   s: number;
   a: number;
   text: string;
@@ -64,9 +65,11 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
   onPlay: () => void;
   onLastRead: () => void;
   onHifz: () => void;
+  initialTab?: Tab;
 }) {
   const navigate = useNavigate();
-  const [tab, setTab] = React.useState<Tab>("tafsir");
+  const [tab, setTab] = React.useState<Tab>(initialTab ?? "tafsir");
+  const [imageOpen, setImageOpen] = React.useState(false);
   const [tafsir, setTafsir] = React.useState(Q2_TAFSIRS[0]!.id);
   const [full, setFull] = React.useState(false);
   const q = useQ2Tafsir(tafsir, s, a, tab === "tafsir");
@@ -101,10 +104,14 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
         >
           <Copy size={15} aria-hidden="true" /> نسخ
         </button>
+        <button type="button" className="q2-chip q2-press" onClick={() => setImageOpen(true)}>
+          <ImageIcon size={15} aria-hidden="true" /> صورة
+        </button>
         <button type="button" className="q2-chip q2-press" onClick={() => void shareText(quote)}>
-          <Share2 size={15} aria-hidden="true" /> مشاركة
+          <Share2 size={15} aria-hidden="true" /> نص
         </button>
       </div>
+      <ShareAyahSheet open={imageOpen} onClose={() => setImageOpen(false)} s={s} a={a} text={text} surahName={surahName} />
 
       <MarkPanel s={s} a={a} />
 

@@ -28,6 +28,19 @@ export type Q2Khatma = {
   finished: number[];
 };
 
+/** One recitation from memory in «التسميع». */
+export type Q2TasmeeEntry = {
+  at: number;
+  /** What was recited, as shown: «الكهف ١–١٠» or «الصفحة ٢٩٣». */
+  label: string;
+  /** The session's address, to recite it again. */
+  target: string;
+  said: number;
+  total: number;
+  /** Words missed, "s:a:w". */
+  missed: string[];
+};
+
 export type Q2HifzPage = CardState & {
   /** When you first learned it (ms). */
   learnedAt: number;
@@ -56,6 +69,8 @@ export type Q2Prefs = {
   wordLang: string | null;
   /** Show each word's meaning under it in the reader. */
   interlinear: boolean;
+  /** The printed page: drawn as the Madina mushaf (King Fahd fonts), or in this section's verified text. */
+  pageStyle: "madina" | "tanzil";
 };
 
 type State = {
@@ -70,6 +85,8 @@ type State = {
   khatma: Q2Khatma;
   /** Day (YYYY-MM-DD) → ayahs of the khatma read that day, for the last year. */
   readLog: Record<string, number>;
+  /** The latest recitations from memory, newest first. */
+  tasmeeLog: Q2TasmeeEntry[];
   setPrefs: (patch: Partial<Q2Prefs>) => void;
   setLastRead: (s: number, a: number) => void;
   putHifz: (page: number, card: Q2HifzPage) => void;
@@ -81,6 +98,7 @@ type State = {
   markRead: (indexes: number[], day: string) => void;
   setKhatmaGoal: (days: number | null) => void;
   newKhatma: () => void;
+  logTasmee: (entry: Q2TasmeeEntry) => void;
 };
 
 export const markKey = (s: number, a: number) => `${s}:${a}`;
@@ -105,6 +123,7 @@ export const Q2_DEFAULT_PREFS: Q2Prefs = {
   hifzReminder: { enabled: false, time: "06:30" },
   wordLang: null,
   interlinear: false,
+  pageStyle: "madina",
 };
 
 export const useQ2Store = create<State>()(
@@ -117,6 +136,7 @@ export const useQ2Store = create<State>()(
       marks: {},
       khatma: freshKhatma(),
       readLog: {},
+      tasmeeLog: [],
       setPrefs: (patch) => set((s) => ({ prefs: { ...s.prefs, ...patch } })),
       setLastRead: (s, a) => set({ lastRead: { s, a, at: Date.now() } }),
       putHifz: (page, card) => set((s) => ({ hifz: { ...s.hifz, [page]: card } })),
@@ -160,6 +180,7 @@ export const useQ2Store = create<State>()(
         }),
       setKhatmaGoal: (days) => set((st) => ({ khatma: { ...st.khatma, goalDays: days } })),
       newKhatma: () => set((st) => ({ khatma: { ...freshKhatma(), goalDays: st.khatma.goalDays, finished: st.khatma.finished } })),
+      logTasmee: (entry) => set((st) => ({ tasmeeLog: [entry, ...st.tasmeeLog].slice(0, 60) })),
     }),
     {
       name: "athar_quran2_v1",
@@ -173,6 +194,7 @@ export const useQ2Store = create<State>()(
           marks: p.marks ?? {},
           khatma: p.khatma && typeof p.khatma.bits === "string" ? { ...freshKhatma(), ...p.khatma } : freshKhatma(),
           readLog: p.readLog ?? {},
+          tasmeeLog: Array.isArray(p.tasmeeLog) ? p.tasmeeLog : [],
         };
       },
     },
@@ -190,12 +212,13 @@ type Q2Backup = {
   marks?: Record<string, Q2Mark>;
   khatma?: Q2Khatma;
   readLog?: Record<string, number>;
+  tasmeeLog?: Q2TasmeeEntry[];
 };
 
 /** The section's state for the account backup. */
 export function exportQuran2(): Q2Backup {
   const s = useQ2Store.getState();
-  return { v: 1, prefs: s.prefs, lastRead: s.lastRead, hifz: s.hifz, learnedLog: s.learnedLog, marks: s.marks, khatma: s.khatma, readLog: s.readLog };
+  return { v: 1, prefs: s.prefs, lastRead: s.lastRead, hifz: s.hifz, learnedLog: s.learnedLog, marks: s.marks, khatma: s.khatma, readLog: s.readLog, tasmeeLog: s.tasmeeLog };
 }
 
 const num = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x);
@@ -223,6 +246,18 @@ function validMarks(raw: unknown): Record<string, Q2Mark> {
     if (!emptyMark(mark)) out[key] = mark;
   }
   return out;
+}
+
+function validTasmeeLog(raw: unknown): Q2TasmeeEntry[] | null {
+  if (!Array.isArray(raw)) return null;
+  return raw
+    .filter((e): e is Q2TasmeeEntry => {
+      if (!e || typeof e !== "object") return false;
+      const x = e as Record<string, unknown>;
+      return num(x.at) && num(x.said) && num(x.total) && typeof x.label === "string" && typeof x.target === "string" && x.target.startsWith("/q2/") && Array.isArray(x.missed);
+    })
+    .map((e) => ({ ...e, label: e.label.slice(0, 120), missed: e.missed.filter((k) => typeof k === "string" && /^\d{1,3}:\d{1,3}:\d{1,3}$/.test(k)).slice(0, 500) }))
+    .slice(0, 60);
 }
 
 function validKhatma(raw: unknown): Q2Khatma | null {
@@ -263,6 +298,7 @@ export function adoptQuran2(blob: unknown): boolean {
     marks: b.marks ? validMarks(b.marks) : s.marks,
     khatma: validKhatma(b.khatma) ?? s.khatma,
     readLog: b.readLog ? readLog : s.readLog,
+    tasmeeLog: validTasmeeLog(b.tasmeeLog) ?? s.tasmeeLog,
   }));
   return true;
 }

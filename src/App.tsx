@@ -133,6 +133,10 @@ const Q2TafsirCompare = React.lazy(() => import("@/quran2/pages/TafsirCompare"))
 const Q2Marks = React.lazy(() => import("@/quran2/pages/Marks"));
 const Q2Khatma = React.lazy(() => import("@/quran2/pages/Khatma"));
 const Q2MushafPage = React.lazy(() => import("@/quran2/pages/MushafPage"));
+const Q2TafsirHome = React.lazy(() => import("@/quran2/pages/TafsirHome"));
+const Q2TafsirRead = React.lazy(() => import("@/quran2/pages/TafsirRead"));
+const Q2TasmeeHome = React.lazy(() => import("@/quran2/pages/TasmeeHome"));
+const Q2TasmeeSession = React.lazy(() => import("@/quran2/pages/TasmeeSession"));
 const IjazHome          = React.lazy(() => import("@/ijaz/pages/IjazHome"));
 const IjazMiracles      = React.lazy(() => import("@/ijaz/pages/IjazMiracles"));
 const IjazMiracleDetail = React.lazy(() => import("@/ijaz/pages/IjazMiracleDetail"));
@@ -658,7 +662,11 @@ function AppContent() {
           <Route path="roots/:root" element={<S><Q2RootPage /></S>} />
           <Route path="search" element={<S><Q2Search /></S>} />
           <Route path="numbers" element={<S><Q2Numbers /></S>} />
+          <Route path="tafsir" element={<S><Q2TafsirHome /></S>} />
+          <Route path="tafsir/read/:surah" element={<S><Q2TafsirRead /></S>} />
           <Route path="tafsir/:surah/:ayah" element={<S><Q2TafsirCompare /></S>} />
+          <Route path="tasmee" element={<S><Q2TasmeeHome /></S>} />
+          <Route path="tasmee/session" element={<S><Q2TasmeeSession /></S>} />
           <Route path="marks" element={<S><Q2Marks /></S>} />
           <Route path="khatma" element={<S><Q2Khatma /></S>} />
           <Route path="page" element={<S><Q2MushafPage /></S>} />

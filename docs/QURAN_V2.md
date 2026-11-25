@@ -159,7 +159,30 @@ No single app joins these together; several exist nowhere in Arabic:
   through only Quran text and quotations found in those tafsirs. It asks for the
   companion's consent first, and sends only the question and the ayah's reference.
 
-**Next**
+**Phase 4: the «مشكاة» design and new sections (done)**
+- A new design for the whole section, «مشكاة» (docs/QURAN_V2_DESIGN.md): the niche and
+  its lamp, the girih lattice revealed by the light, gilded edges, the eight-point star,
+  Reem Kufi titles; a floating dock with «التسميع» raised in the middle.
+- A new home: today's ayah inside the lit niche, where you stopped, three orbits (the
+  khatma, today's memorisation, your marks), and every world as an arch tile; and a new
+  door to the section from Athar's Quran page.
+- «مصحف المدينة»: the printed page drawn with the King Fahd Complex's own page fonts in
+  an ornamented frame, with surah cartouches, the page medallion, the reciter lighting
+  each ayah, and every glyph opening its ayah; the verified-text page stays as the second
+  style.
+- Share an ayah as an image in either design: «مشكاة» or Athar's poster.
+- «التفسير» as its own section: open the seven tafsirs of any ayah, read a whole surah
+  with a chosen tafsir, ask about an ayah; what each tafsir is.
+- «التسميع» as its own section: a passage, a page or today's memorisation; hidden, first
+  words or shown; followed word by word, missed words marked, every word playable in the
+  reciter's voice, your own recitation to listen back (website), and a log of sessions.
+
+**Next: the tajweed engine for «التسميع»**
+- Letter-level and tajweed checking on the device, with HisnLabs Tajweed v2 (Apache-2.0,
+  distilled from Quran Muaalem, MIT): the madd lengths, ghunna, ikhfa, iqlab, idgham,
+  qalqala, wrong letters and vowels, skipped words, each named per word in Arabic, with
+  your own voice and the reciter's for the word. Its rule engine and the quran-transcript
+  phonetizer (MIT) are to be ported to TypeScript and checked against the originals.
 - Tajweed colours. Quran.com has tajweed annotations for all 6236 ayahs (17 rules:
   hamzat al-wasl, lam shamsiyya, the madd kinds, ghunna, qalqala, ikhfa, idgham,
   iqlab…), but on another Uthmani edition: 4280 ayahs differ from Tanzil in code

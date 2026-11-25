@@ -1,51 +1,115 @@
 /*
- * «القرآن ٢» — the section's own look: «ورق» (warm paper, ink, gold) and «ليل»
- * (green-black night, gold). Amiri Quran for the Quran, Amiri for titles.
+ * «القرآن ٢» — «مشكاة» (docs/QURAN_V2_DESIGN.md): the Quran is the light, the
+ * interface the niche that holds it. Two palettes: «سَحَر» (dawn parchment) and
+ * «ليل» (night). Reem Kufi for titles and numbers, Amiri for book titles, Amiri
+ * Quran for the Quran, IBM Plex Sans Arabic for the interface.
  */
+@font-face {
+  font-family: "Reem Kufi";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url(../../node_modules/@fontsource-variable/reem-kufi/files/reem-kufi-arabic-wght-normal.woff2) format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+@font-face {
+  font-family: "Reem Kufi";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url(../../node_modules/@fontsource-variable/reem-kufi/files/reem-kufi-latin-wght-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 .q2 {
-  --q2-bg: #f5efe1;
-  --q2-bg2: #ede3cd;
-  --q2-card: #fbf7ec;
-  --q2-ink: #1f1b14;
-  --q2-soft: rgba(31, 27, 20, 0.62);
-  --q2-faint: rgba(31, 27, 20, 0.4);
-  --q2-line: rgba(31, 27, 20, 0.12);
-  --q2-gold: #9a6f22;
-  --q2-gold-soft: rgba(154, 111, 34, 0.12);
-  --q2-green: #1d5c48;
-  --q2-green-soft: rgba(29, 92, 72, 0.12);
-  --q2-word: rgba(29, 92, 72, 0.2);
-  --q2-ayah: rgba(154, 111, 34, 0.09);
+  --q2-bg: #f6f0e2;
+  --q2-bg2: #efe6d2;
+  --q2-card: #fffcf4;
+  --q2-glass: rgba(255, 251, 242, 0.72);
+  --q2-ink: #1b1712;
+  --q2-soft: rgba(27, 23, 18, 0.64);
+  --q2-faint: rgba(27, 23, 18, 0.42);
+  --q2-line: rgba(27, 23, 18, 0.11);
+  --q2-gold: #a8822f;
+  --q2-gold-soft: rgba(168, 130, 47, 0.12);
+  --q2-gold-line: rgba(168, 130, 47, 0.42);
+  --q2-green: #0e5a44;
+  --q2-green-soft: rgba(14, 90, 68, 0.1);
+  --q2-word: rgba(14, 90, 68, 0.18);
+  --q2-ayah: rgba(242, 207, 131, 0.28);
+  --q2-lamp: #f2cf83;
   --q2-danger: #a83a2a;
+  --q2-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 10px 30px -18px rgba(60, 40, 10, 0.35);
   --q2-quran: "Amiri Quran", "Amiri", serif;
   --q2-serif: "Amiri", "Amiri Quran", serif;
+  --q2-display: "Reem Kufi", "Amiri", sans-serif;
+  --q2-ui: "IBM Plex Sans Arabic", "Noto Naskh Arabic", system-ui, sans-serif;
   --q2-top: env(safe-area-inset-top, 0px);
   --q2-bottom: env(safe-area-inset-bottom, 0px);
+  /* The girih lattice: eight-point stars in a gold hairline. */
+  --q2-lattice: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none' stroke='%23a8822f' stroke-width='0.8'%3E%3Cpath d='M48 14l9.9 24.1L82 48l-24.1 9.9L48 82l-9.9-24.1L14 48l24.1-9.9z'/%3E%3Cpath d='M24 24h48v48H24z' transform='rotate(45 48 48)' opacity='.0'/%3E%3Cpath d='M23.9 23.9l17.1 7.1h14l17.1-7.1-7.1 17.1v14l7.1 17.1-17.1-7.1H41l-17.1 7.1 7.1-17.1V41z'/%3E%3Cpath d='M0 48h14M82 48h14M48 0v14M48 82v14'/%3E%3C/g%3E%3C/svg%3E");
+  position: relative;
+  isolation: isolate;
   min-height: 100dvh;
+  font-family: var(--q2-ui);
   background: var(--q2-bg);
   color: var(--q2-ink);
   color-scheme: light;
 }
+/* The lattice, revealed only where the lamp light falls (the top of the screen). */
+.q2::before,
+.q2::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+/* The lamp light at the top of the screen, over the page's own colour. */
+.q2::after {
+  z-index: -2;
+  background:
+    radial-gradient(120% 55% at 50% -8%, color-mix(in srgb, var(--q2-lamp) 34%, transparent), transparent 62%),
+    linear-gradient(180deg, var(--q2-bg) 0%, var(--q2-bg2) 100%);
+}
+.q2::before {
+  background-image: var(--q2-lattice);
+  background-size: 96px 96px;
+  opacity: 0.16;
+  -webkit-mask-image: radial-gradient(90% 42% at 50% 0%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(90% 42% at 50% 0%, #000 0%, transparent 78%);
+}
 .q2[data-palette="night"] {
-  --q2-bg: #0d1311;
-  --q2-bg2: #121a17;
-  --q2-card: #15201c;
-  --q2-ink: #ede5d1;
-  --q2-soft: rgba(237, 229, 209, 0.64);
-  --q2-faint: rgba(237, 229, 209, 0.4);
-  --q2-line: rgba(237, 229, 209, 0.12);
-  --q2-gold: #d8b66a;
-  --q2-gold-soft: rgba(216, 182, 106, 0.14);
-  --q2-green: #74c7a5;
-  --q2-green-soft: rgba(116, 199, 165, 0.14);
-  --q2-word: rgba(116, 199, 165, 0.24);
-  --q2-ayah: rgba(216, 182, 106, 0.08);
-  --q2-danger: #e07a64;
+  --q2-bg: #070c0b;
+  --q2-bg2: #0a1412;
+  --q2-card: #0f1a17;
+  --q2-glass: rgba(18, 30, 26, 0.66);
+  --q2-ink: #eee6d3;
+  --q2-soft: rgba(238, 230, 211, 0.66);
+  --q2-faint: rgba(238, 230, 211, 0.42);
+  --q2-line: rgba(238, 230, 211, 0.1);
+  --q2-gold: #d8b56a;
+  --q2-gold-soft: rgba(216, 181, 106, 0.13);
+  --q2-gold-line: rgba(216, 181, 106, 0.36);
+  --q2-green: #6fd1a8;
+  --q2-green-soft: rgba(111, 209, 168, 0.13);
+  --q2-word: rgba(111, 209, 168, 0.22);
+  --q2-ayah: rgba(233, 196, 106, 0.12);
+  --q2-lamp: #e9c46a;
+  --q2-danger: #e88068;
+  --q2-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 16px 40px -24px rgba(0, 0, 0, 0.8);
+  --q2-lattice: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none' stroke='%23d8b56a' stroke-width='0.8'%3E%3Cpath d='M48 14l9.9 24.1L82 48l-24.1 9.9L48 82l-9.9-24.1L14 48l24.1-9.9z'/%3E%3Cpath d='M23.9 23.9l17.1 7.1h14l17.1-7.1-7.1 17.1v14l7.1 17.1-17.1-7.1H41l-17.1 7.1 7.1-17.1V41z'/%3E%3Cpath d='M0 48h14M82 48h14M48 0v14M48 82v14'/%3E%3C/g%3E%3C/svg%3E");
   color-scheme: dark;
 }
+.q2[data-palette="night"]::before { opacity: 0.12; }
+.q2[data-palette="night"]::after {
+  background:
+    radial-gradient(120% 55% at 50% -10%, color-mix(in srgb, var(--q2-lamp) 18%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--q2-bg) 0%, var(--q2-bg2) 100%);
+}
 
-.q2 button { -webkit-tap-highlight-color: transparent; }
-.q2-press { transition: transform 0.14s ease, opacity 0.2s ease; }
+.q2 button { -webkit-tap-highlight-color: transparent; font-family: inherit; }
+.q2-press { transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease; }
 .q2-press:active { transform: scale(0.97); }
 .q2 :focus-visible { outline: 2px solid var(--q2-gold); outline-offset: 2px; border-radius: 10px; }
 
@@ -58,12 +122,12 @@
   align-items: center;
   gap: 8px;
   padding: calc(var(--q2-top) + 8px) 12px 8px;
-  background: color-mix(in srgb, var(--q2-bg) 88%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--q2-bg) 76%, transparent);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
   border-bottom: 1px solid var(--q2-line);
 }
-.q2-top-title { flex: 1; min-width: 0; text-align: center; font-family: var(--q2-serif); font-size: 19px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q2-top-title { flex: 1; min-width: 0; text-align: center; font-family: var(--q2-display); font-size: 19px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .q2-icon-btn {
   width: 42px;
   height: 42px;
@@ -75,47 +139,88 @@
   background: transparent;
 }
 .q2-icon-btn:active { background: var(--q2-line); }
-.q2-main { padding: 16px 16px calc(var(--q2-bottom) + 96px); max-width: 760px; margin: 0 auto; }
+.q2-main { padding: 16px 16px calc(var(--q2-bottom) + 118px); max-width: 760px; margin: 0 auto; }
 
+/* The dock: a floating glass bar, the active place under a small lit arch;
+   «التسميع» in the middle as a raised star medallion. */
 .q2-nav {
   position: fixed;
-  inset-inline: 0;
-  bottom: 0;
+  inset-inline: 12px;
+  bottom: calc(var(--q2-bottom) + 10px);
   z-index: 40;
+  max-width: 520px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  padding: 6px 6px calc(var(--q2-bottom) + 6px);
-  background: color-mix(in srgb, var(--q2-card) 94%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--q2-line);
+  align-items: end;
+  padding: 6px;
+  border-radius: 28px;
+  background: var(--q2-glass);
+  backdrop-filter: blur(22px) saturate(1.3);
+  -webkit-backdrop-filter: blur(22px) saturate(1.3);
+  border: 1px solid var(--q2-line);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--q2-gold) 30%, transparent) inset, 0 18px 40px -18px rgba(0, 0, 0, 0.45);
 }
 .q2-nav a {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  min-height: 50px;
+  min-height: 54px;
   justify-content: center;
-  border-radius: 14px;
-  font-size: 11.5px;
+  border-radius: 22px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--q2-soft);
 }
+.q2-nav a > svg { position: relative; z-index: 1; }
+.q2-nav a > span { position: relative; z-index: 1; }
+/* The lit arch behind the active place. */
 .q2-nav a.active { color: var(--q2-green); }
-.q2-nav a.active svg { stroke-width: 2.4; }
+.q2-nav a.active::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  width: 46px;
+  height: 46px;
+  background: radial-gradient(60% 60% at 50% 60%, color-mix(in srgb, var(--q2-lamp) 42%, transparent), transparent 72%);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M3 46V22C3 11 12 4 23 0c11 4 20 11 20 22v24z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M3 46V22C3 11 12 4 23 0c11 4 20 11 20 22v24z'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: q2-lamp 6s ease-in-out infinite;
+}
+.q2-nav a.active svg { stroke-width: 2.3; }
+.q2-nav a.is-center { margin-top: -22px; color: var(--q2-ink); }
+.q2-nav a.is-center::before { display: none; }
+.q2-nav .q2-medal {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--q2-green) 88%, #fff), var(--q2-green));
+  clip-path: polygon(50% 0%, 64.6% 14.6%, 85.4% 14.6%, 85.4% 35.4%, 100% 50%, 85.4% 64.6%, 85.4% 85.4%, 64.6% 85.4%, 50% 100%, 35.4% 85.4%, 14.6% 85.4%, 14.6% 64.6%, 0% 50%, 14.6% 35.4%, 14.6% 14.6%, 35.4% 14.6%);
+  filter: drop-shadow(0 6px 14px color-mix(in srgb, var(--q2-green) 45%, transparent));
+}
+.q2[data-palette="night"] .q2-nav .q2-medal { color: #06120e; }
+.q2-nav a.is-center.active .q2-medal { background: linear-gradient(160deg, var(--q2-lamp), var(--q2-gold)); color: #241a06; }
+@keyframes q2-lamp { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
 
 /* ── Building blocks ───────────────────────────────────────────────── */
-.q2-h1 { font-family: var(--q2-serif); font-size: 30px; font-weight: 700; line-height: 1.3; }
-.q2-h2 { font-family: var(--q2-serif); font-size: 21px; font-weight: 700; line-height: 1.3; }
-.q2-eyebrow { font-size: 12.5px; font-weight: 700; color: var(--q2-gold); letter-spacing: 0; }
+.q2-h1 { font-family: var(--q2-display); font-size: 30px; font-weight: 600; line-height: 1.35; }
+.q2-h2 { font-family: var(--q2-display); font-size: 20px; font-weight: 600; line-height: 1.35; }
+.q2-eyebrow { font-family: var(--q2-display); font-size: 12.5px; font-weight: 500; color: var(--q2-gold); letter-spacing: 0; }
 .q2-soft { color: var(--q2-soft); }
 .q2-small { font-size: 12.5px; color: var(--q2-soft); }
 .q2-orn { color: var(--q2-gold); font-size: 0.7em; }
+/* A surface with a gilded top edge, like the gilt edge of a page. */
 .q2-card {
   border-radius: 22px;
   border: 1px solid var(--q2-line);
-  background: var(--q2-card);
+  background:
+    linear-gradient(90deg, transparent, var(--q2-gold-line), transparent) top / 100% 1px no-repeat,
+    var(--q2-card);
+  box-shadow: var(--q2-shadow);
 }
 .q2-section { margin-top: 28px; }
 .q2-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 2px 10px; }
@@ -129,12 +234,13 @@
   padding: 0 18px;
   border-radius: 999px;
   font-size: 14.5px;
-  font-weight: 800;
+  font-weight: 700;
   color: #fff;
-  background: var(--q2-green);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--q2-green) 86%, #fff), var(--q2-green));
+  box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--q2-green) 70%, transparent);
 }
 .q2[data-palette="night"] .q2-btn { color: #0d1311; }
-.q2-btn.is-ghost { color: var(--q2-ink); background: transparent; border: 1px solid var(--q2-line); }
+.q2-btn.is-ghost, .q2[data-palette="night"] .q2-btn.is-ghost { color: var(--q2-ink); background: transparent; border: 1px solid var(--q2-line); box-shadow: none; }
 .q2-btn:disabled { opacity: 0.45; }
 .q2-chip {
   display: inline-flex;
@@ -174,20 +280,20 @@
   border-bottom: 1px solid var(--q2-line);
 }
 .q2-row:last-child { border-bottom: 0; }
+/* A number in an eight-point star (khatam). */
 .q2-num {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
+  font-family: var(--q2-display);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--q2-gold);
   background: var(--q2-gold-soft);
-  border-radius: 12px;
-  transform: rotate(45deg);
+  clip-path: polygon(50% 0%, 64.6% 14.6%, 85.4% 14.6%, 85.4% 35.4%, 100% 50%, 85.4% 64.6%, 85.4% 85.4%, 64.6% 85.4%, 50% 100%, 35.4% 85.4%, 14.6% 85.4%, 14.6% 64.6%, 0% 50%, 14.6% 35.4%, 14.6% 14.6%, 35.4% 14.6%);
 }
-.q2-num > span { transform: rotate(-45deg); }
 .q2-bar { display: block; height: 4px; border-radius: 99px; background: var(--q2-line); overflow: hidden; }
 .q2-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--q2-green); }
 .q2-empty { padding: 28px 16px; text-align: center; color: var(--q2-soft); font-size: 14px; line-height: 1.8; }
@@ -206,8 +312,10 @@
   max-height: 86dvh;
   display: flex;
   flex-direction: column;
-  border-radius: 26px 26px 0 0;
-  background: var(--q2-card);
+  border-radius: 28px 28px 0 0;
+  background:
+    linear-gradient(90deg, transparent, var(--q2-gold-line), transparent) top / 100% 1px no-repeat,
+    var(--q2-card);
   color: var(--q2-ink);
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.18);
   animation: q2-rise 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -237,7 +345,7 @@
   border: 1px solid color-mix(in srgb, var(--q2-gold) 28%, transparent);
   pointer-events: none;
 }
-.q2-surah-name { font-family: var(--q2-serif); font-size: 30px; font-weight: 700; line-height: 1.35; }
+.q2-surah-name { font-family: var(--q2-serif); font-size: 32px; font-weight: 700; line-height: 1.35; }
 .q2-surah-meta { margin-top: 2px; font-size: 12.5px; color: var(--q2-soft); }
 .q2-basmala { text-align: center; font-family: var(--q2-quran); font-size: calc(24px * var(--q2-scale, 1)); line-height: 2; margin-bottom: 8px; }
 .q2-text {
@@ -399,7 +507,7 @@
 .q2-grade button small { font-size: 11px; font-weight: 600; color: var(--q2-soft); }
 
 @media (prefers-reduced-motion: reduce) {
-  .q2-press, .q2-sheet, .q2-sheet-back, .q2-ayah, .q2-w { animation: none !important; transition: none !important; }
+  .q2-press, .q2-sheet, .q2-sheet-back, .q2-ayah, .q2-w, .q2-nav a.active::before, .q2-rise, .q2-lamp-glow { animation: none !important; transition: none !important; }
 }
 
 /* ── Tafsirs side by side ───────────────────────────────────────────── */
@@ -445,4 +553,194 @@
 .q2-line.is-basmala { justify-content: center; }
 .q2-pw { cursor: pointer; border-radius: 6px; }
 .q2-pw:active { background: var(--q2-gold-soft); }
+.q2-pw.is-now { background: radial-gradient(90% 130% at 50% 100%, color-mix(in srgb, var(--q2-lamp) 50%, transparent), transparent 75%); }
 .q2-pw .q2-end { padding: 0; }
+
+/* ── «مشكاة»: the niche, the lamp, the orbit ─────────────────────────── */
+.q2-niche { position: relative; isolation: isolate; width: 100%; }
+.q2-niche-fill,
+.q2-niche-lattice {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(70% 42% at 50% 14%, color-mix(in srgb, var(--q2-lamp) 46%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--q2-card) 92%, var(--q2-lamp)), var(--q2-card));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 140' preserveAspectRatio='none'%3E%3Cpath d='M0 140V60C0 30 20 12 50 0c30 12 50 30 50 60v80z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 140' preserveAspectRatio='none'%3E%3Cpath d='M0 140V60C0 30 20 12 50 0c30 12 50 30 50 60v80z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+.q2[data-palette="night"] .q2-niche-fill {
+  background:
+    radial-gradient(70% 42% at 50% 14%, color-mix(in srgb, var(--q2-lamp) 26%, transparent), transparent 70%),
+    linear-gradient(180deg, #13211d, #0c1613);
+}
+/* The lattice inside the niche: lit around the lamp, gone before the words. */
+.q2-niche-lattice {
+  z-index: -1;
+  background: var(--q2-lattice) center 4% / 64px 64px;
+  opacity: 0.5;
+  -webkit-mask-image: radial-gradient(58% 34% at 50% 12%, #000 10%, transparent 100%);
+  mask-image: radial-gradient(58% 34% at 50% 12%, #000 10%, transparent 100%);
+  clip-path: inset(0 3% 0 3% round 50% 50% 0 0);
+}
+.q2-niche-line { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.q2-niche-line path { fill: none; stroke: var(--q2-gold-line); stroke-width: 1.2; }
+.q2-niche-line path.is-inner { stroke: color-mix(in srgb, var(--q2-gold) 22%, transparent); stroke-width: 1; }
+.q2-niche-body { position: relative; z-index: 1; }
+.q2-lamp { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); color: var(--q2-gold); z-index: 1; display: grid; place-items: center; }
+.q2-lamp-glow {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  width: 150px;
+  height: 150px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--q2-lamp) 70%, transparent), transparent);
+  animation: q2-breathe 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes q2-breathe { 0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.92); } 50% { opacity: 0.95; transform: translate(-50%, -50%) scale(1.06); } }
+
+.q2-orbit { display: grid; justify-items: center; text-align: center; position: relative; }
+.q2-orbit svg { display: block; }
+.q2-orbit-track { fill: none; stroke: var(--q2-line); stroke-width: 4; }
+.q2-orbit-arc { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dasharray 0.8s ease; }
+.q2-orbit-arc.is-green { stroke: var(--q2-green); }
+.q2-orbit-arc.is-gold { stroke: var(--q2-gold); }
+.q2-orbit b { position: absolute; top: 22px; left: 50%; transform: translateX(-50%); width: 72px; font-family: var(--q2-display); font-size: 17px; font-weight: 600; line-height: 28px; }
+.q2-orbit span { margin-top: 6px; font-size: 12px; color: var(--q2-soft); }
+
+/* Rising in, staggered. */
+.q2-rise { animation: q2-rise-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes q2-rise-in { from { opacity: 0; transform: translateY(14px); } }
+
+/* A world on the home: an arch-topped tile with its star medallion. */
+.q2-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 14px 14px;
+  min-height: 150px;
+  text-align: start;
+  border-radius: 999px 999px 22px 22px / 64px 64px 22px 22px;
+  border: 1px solid var(--q2-line);
+  background:
+    radial-gradient(80% 50% at 50% 0%, color-mix(in srgb, var(--q2-lamp) 16%, transparent), transparent 70%),
+    var(--q2-card);
+  box-shadow: var(--q2-shadow);
+}
+.q2-tile-medal {
+  align-self: center;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  color: var(--q2-green);
+  background: var(--q2-green-soft);
+  clip-path: polygon(50% 0%, 64.6% 14.6%, 85.4% 14.6%, 85.4% 35.4%, 100% 50%, 85.4% 64.6%, 85.4% 85.4%, 64.6% 85.4%, 50% 100%, 35.4% 85.4%, 14.6% 85.4%, 14.6% 64.6%, 0% 50%, 14.6% 35.4%, 14.6% 14.6%, 35.4% 14.6%);
+}
+.q2-tile b { font-family: var(--q2-display); font-size: 17px; font-weight: 600; text-align: center; }
+.q2-tile span { font-size: 12px; line-height: 1.6; color: var(--q2-soft); text-align: center; }
+.q2-tile.is-feature { grid-column: span 2; min-height: 0; flex-direction: row; align-items: center; border-radius: 26px; padding: 16px; }
+.q2-tile.is-feature b, .q2-tile.is-feature span { text-align: start; }
+.q2-tile.is-feature .q2-tile-medal { align-self: center; width: 56px; height: 56px; color: #fff; background: linear-gradient(160deg, color-mix(in srgb, var(--q2-green) 86%, #fff), var(--q2-green)); }
+.q2[data-palette="night"] .q2-tile.is-feature .q2-tile-medal { color: #06120e; }
+.q2-badge { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px; font-family: var(--q2-display); font-size: 11px; font-weight: 600; color: var(--q2-gold); border: 1px solid var(--q2-gold-line); }
+.q2-section-title { display: flex; align-items: center; gap: 8px; font-family: var(--q2-display); font-size: 18px; font-weight: 600; }
+.q2-section-title svg { color: var(--q2-gold); }
+.q2-niche.is-hero > .q2-niche-body { position: absolute; inset: 0; }
+
+/* ── «التسميع» ──────────────────────────────────────────────────────── */
+.q2-tw { border-radius: 8px; padding: 0 1px; cursor: pointer; transition: background-color 0.2s ease, box-shadow 0.2s ease; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+/* The word you are on: lit from below like the lamp. */
+.q2-tw.is-lit { background: radial-gradient(80% 120% at 50% 100%, color-mix(in srgb, var(--q2-lamp) 55%, transparent), transparent 70%); box-shadow: 0 2px 0 var(--q2-gold); }
+.q2-tw.is-playing { background: var(--q2-green-soft); color: var(--q2-green); }
+.q2-hide.q2-tw { background: linear-gradient(var(--q2-faint), var(--q2-faint)) bottom 0.45em left 0 / 100% 2px no-repeat; }
+.q2-hide.q2-tw.is-lit { background: linear-gradient(var(--q2-gold), var(--q2-gold)) bottom 0.45em left 0 / 100% 3px no-repeat, radial-gradient(80% 120% at 50% 100%, color-mix(in srgb, var(--q2-lamp) 45%, transparent), transparent 70%); }
+
+/* ── «مصحف المدينة» ─────────────────────────────────────────────────── */
+/* The ornamented band of the frame: green, gold stars and rules (border-image). */
+.q2 {
+  --q2-madina-band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M0 0h36v36H0z M12 12v12h12V12z' fill='%231d4d3e' fill-rule='evenodd'/%3E%3Cg fill='none' stroke='%23c9a24e' stroke-width='0.8'%3E%3Cpath d='M1.5 1.5h33v33h-33z M10.5 10.5h15v15h-15z'/%3E%3C/g%3E%3Cg fill='%23d9b45f'%3E%3Cpath d='M6 2.6l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4L2.6 6l2.4-1z M30 2.6l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z M6 26.6l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z M30 26.6l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z M18 3.2l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z M18 27.2l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z M6 15.2l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z M30 15.2l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z'/%3E%3C/g%3E%3C/svg%3E");
+  --q2-madina-paper: #fffcf2;
+  --q2-madina-ink: #1a1610;
+}
+.q2[data-palette="night"] { --q2-madina-paper: #0e1916; --q2-madina-ink: #efe6d0; }
+.q2-madina {
+  container-type: inline-size;
+  position: relative;
+  width: min(100%, 560px);
+  aspect-ratio: 0.64;
+  max-height: calc(100dvh - var(--q2-top) - 150px);
+  display: flex;
+  flex-direction: column;
+  padding: 26px 26px 18px;
+  color: var(--q2-madina-ink);
+  background:
+    radial-gradient(120% 90% at 50% 50%, transparent 60%, rgba(150, 110, 40, 0.1)),
+    var(--q2-madina-paper);
+  border: 12px solid transparent;
+  border-image: var(--q2-madina-band) 12 round;
+  box-shadow: 0 0 0 1.5px #c9a24e, 0 14px 36px -18px rgba(0, 0, 0, 0.55);
+}
+.q2-spread.is-two .q2-madina { width: min(49%, 560px); }
+.q2-madina::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid #c9a24e;
+  pointer-events: none;
+}
+.q2-madina-head { display: flex; justify-content: space-between; font-family: var(--q2-serif); font-size: clamp(10px, 2.6cqw, 14px); color: #a07a2c; margin: -10px 0 4px; }
+.q2-madina-lines { flex: 1; display: grid; grid-template-rows: repeat(15, 1fr); align-items: center; font-size: clamp(14px, 5.6cqw, 32px); line-height: 1.5; }
+.q2-madina.is-opening .q2-madina-lines { grid-template-rows: repeat(8, auto); align-content: center; gap: 0.45em; }
+.q2-mline { display: flex; justify-content: space-between; align-items: center; white-space: nowrap; min-width: 0; direction: rtl; }
+.q2-madina.is-opening .q2-mline { justify-content: center; gap: 0.2em; }
+.q2-mline.is-surah, .q2-mline.is-basmala { justify-content: center; }
+.q2-mline.is-basmala { font-family: "UthmanicHafs", "Amiri Quran", serif; font-size: 0.86em; }
+.q2-cartouche {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62%;
+  padding: 0.05em 1.6em;
+  font-family: var(--q2-serif);
+  font-weight: 700;
+  font-size: 0.62em;
+  color: #f6e7bf;
+  background: linear-gradient(180deg, #24604c, #173f32);
+  border: 1.5px solid #c9a24e;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px var(--q2-madina-paper), 0 0 0 3px #c9a24e;
+}
+.q2-cartouche::before, .q2-cartouche::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 0.7em;
+  height: 0.7em;
+  transform: translateY(-50%);
+  background: #d9b45f;
+  clip-path: polygon(50% 0%, 64.6% 14.6%, 85.4% 14.6%, 85.4% 35.4%, 100% 50%, 85.4% 64.6%, 85.4% 85.4%, 64.6% 85.4%, 50% 100%, 35.4% 85.4%, 14.6% 85.4%, 14.6% 64.6%, 0% 50%, 14.6% 35.4%, 14.6% 14.6%, 35.4% 14.6%);
+}
+.q2-cartouche::before { right: 0.5em; }
+.q2-cartouche::after { left: 0.5em; }
+.q2-glyph { cursor: pointer; border-radius: 6px; transition: background-color 0.2s ease, color 0.2s ease; }
+.q2-glyph.is-end { color: #8a6a25; }
+.q2[data-palette="night"] .q2-glyph.is-end { color: #d9b45f; }
+.q2-glyph.is-now { background: radial-gradient(90% 130% at 50% 100%, color-mix(in srgb, var(--q2-lamp) 50%, transparent), transparent 75%); }
+.q2-glyph.is-sel { background: color-mix(in srgb, #24604c 16%, transparent); }
+.q2-madina-foot { display: flex; justify-content: center; margin-top: 4px; }
+.q2-madina-num {
+  min-width: 2.4em;
+  padding: 0.1em 0.5em;
+  font-family: var(--q2-serif);
+  font-size: clamp(10px, 2.6cqw, 14px);
+  text-align: center;
+  color: #8a6a25;
+  border: 1px solid #c9a24e;
+  border-radius: 999px;
+}

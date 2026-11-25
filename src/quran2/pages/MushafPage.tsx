@@ -1,15 +1,26 @@
 /**
- * «القرآن ٢» — the printed page: the Madani mushaf's 604 pages, 15 lines each,
- * every word on its own line as printed, in this section's verified text. Two
- * pages side by side on a wide screen held sideways, as in an open mushaf.
+ * «القرآن ٢» — the printed page: the Madani mushaf's 604 pages, 15 lines each, in
+ * two styles: «مصحف المدينة» (the King Fahd Complex's own page fonts, an
+ * ornamented frame: reader/MadinaPageView) and «النص المتحقق» (this section's
+ * verified Tanzil text placed on the same lines). Two pages side by side on a
+ * wide screen held sideways, as in an open mushaf.
  *
  * Turn the page with the arrows, the keyboard or a swipe (towards the right for
- * the next page, as a mushaf opens). Touch an ayah to open it in the reader.
+ * the next page, as a mushaf opens). Touch an ayah to open it; listen, and the
+ * ayah being recited is lit.
  */
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueries } from "@tanstack/react-query";
-import { ArrowRight, BookOpenText, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play, Type, Landmark } from "lucide-react";
+import { loadMadinaPage, madinaFont } from "../data/madina";
+import { MadinaPageView } from "../reader/MadinaPageView";
+import { pageAyahs, type PageAyah } from "../data/pages";
+import { usePageAudio } from "../hifz/usePageAudio";
+import { Q2Sheet } from "../components/ui";
+import { AyahSheet } from "../reader/AyahSheet";
+import { learnPage } from "../hifz/actions";
+import { ayahText } from "../data/text";
 import { dayKey, useQ2Meta, useQ2Text } from "../hooks";
 import { useQ2Store } from "../store";
 import { juzOf, pageOf, pageRange, refFromIndex, type Q2Meta } from "../data/meta";
@@ -74,7 +85,7 @@ function useFitLines(ref: React.RefObject<HTMLElement | null>, key: string) {
   }, [ref, key]);
 }
 
-function PageView({ page, lines, meta, onAyah }: { page: number; lines: PageLine[] | null; meta: Q2Meta; onAyah: (s: number, a: number) => void }) {
+function PageView({ page, lines, meta, onAyah, current }: { page: number; lines: PageLine[] | null; meta: Q2Meta; onAyah: (s: number, a: number) => void; current: string | null }) {
   const ref = React.useRef<HTMLDivElement>(null);
   useFitLines(ref, `${page}:${lines ? "y" : "n"}`);
   const [first] = pageRange(meta, page);
@@ -96,7 +107,7 @@ function PageView({ page, lines, meta, onAyah }: { page: number; lines: PageLine
             return (
               <div key={i} className="q2-line is-words">
                 {line.words.map((w) => (
-                  <span key={`${w.s}:${w.a}:${w.n}`} className="q2-pw" data-ayah={`${w.s}:${w.a}`} onClick={() => onAyah(w.s, w.a)}>
+                  <span key={`${w.s}:${w.a}:${w.n}`} className={`q2-pw${current === `${w.s}:${w.a}` ? " is-now" : ""}`} data-ayah={`${w.s}:${w.a}`} onClick={() => onAyah(w.s, w.a)}>
                     {w.before ? <span className="q2-mark">{w.before} </span> : null}
                     {w.text}
                     {w.after ? <span className="q2-mark"> {w.after}</span> : null}
@@ -123,6 +134,11 @@ export default function Q2MushafPage() {
   const setLastRead = useQ2Store((s) => s.setLastRead);
   const markRead = useQ2Store((s) => s.markRead);
   const lastRead = useQ2Store((s) => s.lastRead);
+  const pageStyle = useQ2Store((s) => s.prefs.pageStyle);
+  const reciter = useQ2Store((s) => s.prefs.reciter);
+  const hifz = useQ2Store((s) => s.hifz);
+  const setPrefs = useQ2Store((s) => s.setPrefs);
+  const [picked, setPicked] = React.useState<{ s: number; a: number } | null>(null);
   // Without a page number: the page where you stopped.
   const fallback = lastRead && meta.data ? pageOf(meta.data, lastRead.s, lastRead.a) : 1;
   const page = Math.min(604, Math.max(1, Number(params.page) || fallback));
@@ -155,8 +171,21 @@ export default function Q2MushafPage() {
   });
   const lineMap = new Map<number, Q2SurahLines>();
   lineQueries.forEach((q, i) => q.data && lineMap.set(surahs[i]!, q.data));
-  const loading = lineQueries.some((q) => q.isLoading);
-  const failed = lineQueries.some((q) => q.isError);
+  // «مصحف المدينة»: each page's glyphs and its own font.
+  const madina = pageStyle === "madina";
+  const wordCount = React.useCallback((s: number, a: number) => text.data?.surahs[s - 1]?.ayahs[a - 1]?.words.length, [text.data]);
+  const madinaQueries = useQueries({
+    queries: shown.map((p) => ({ queryKey: ["q2", "madina", p], queryFn: () => loadMadinaPage(p, wordCount), enabled: madina && Boolean(text.data), ...forever })),
+  });
+  const fontQueries = useQueries({
+    queries: shown.map((p) => ({ queryKey: ["q2", "madina-font", p], queryFn: () => madinaFont(p), enabled: madina, ...forever })),
+  });
+  const loading = lineQueries.some((q) => q.isLoading) || (madina && (madinaQueries.some((q) => q.isLoading) || fontQueries.some((q) => q.isLoading)));
+  const failed = lineQueries.some((q) => q.isError) || (madina && (madinaQueries.some((q) => q.isError) || fontQueries.some((q) => q.isError)));
+
+  // Listening to the page(s): the ayah being recited is lit.
+  const ayahsShown = React.useMemo<PageAyah[]>(() => (text.data && meta.data ? shown.flatMap((p) => pageAyahs(text.data!, meta.data!, p)) : []), [text.data, meta.data, shown]);
+  const audio = usePageAudio(ayahsShown, reciter, 3, true);
 
   const go = React.useCallback((p: number) => navigate(`/q2/page/${Math.min(604, Math.max(1, p))}`, { replace: true }), [navigate]);
 
@@ -235,16 +264,17 @@ export default function Q2MushafPage() {
         <button type="button" className="q2-icon-btn q2-press" disabled={right + step > 604} onClick={() => go(right + step)} aria-label="الصفحة التالية">
           <ChevronLeft size={20} aria-hidden="true" />
         </button>
+        <button type="button" className="q2-icon-btn q2-press" disabled={!audio.ready} onClick={audio.toggle} aria-label={audio.playing ? "أوقف التلاوة" : "استمع إلى الصفحة"}>
+          {audio.playing ? <Pause size={19} aria-hidden="true" /> : <Play size={19} aria-hidden="true" />}
+        </button>
         <button
           type="button"
           className="q2-icon-btn q2-press"
-          aria-label="افتح في المصحف المرتّل"
-          onClick={() => {
-            const [s, a] = refFromIndex(m, pageRange(m, shown[0]!)[0]);
-            navigate(`/q2/read/${s}?a=${a}`);
-          }}
+          onClick={() => setPrefs({ pageStyle: madina ? "tanzil" : "madina" })}
+          aria-label={madina ? "اعرض النص المتحقق" : "اعرض مصحف المدينة"}
+          title={madina ? "النص المتحقق" : "مصحف المدينة"}
         >
-          <BookOpenText size={19} aria-hidden="true" />
+          {madina ? <Type size={19} aria-hidden="true" /> : <Landmark size={19} aria-hidden="true" />}
         </button>
       </header>
 
@@ -252,20 +282,53 @@ export default function Q2MushafPage() {
       {loading ? <Q2Loading label="تُرتَّب الصفحة كما في المصحف المطبوع…" /> : null}
       {!loading && !failed ? (
         <div className={`q2-spread${shown.length > 1 ? " is-two" : ""}`}>
-          {shown.map((p) => (
-            <PageView
-              key={p}
-              page={p}
-              meta={m}
-              lines={layPage(pageAyahList(t, m, p), (s, a) => lineMap.get(s)?.[a - 1] ?? null, nextSurahStart(m, p, lineMap))}
-              onAyah={(s, a) => navigate(`/q2/read/${s}?a=${a}`)}
-            />
-          ))}
+          {shown.map((p, i) =>
+            madina && madinaQueries[i]?.data && fontQueries[i]?.data ? (
+              <MadinaPageView
+                key={p}
+                page={p}
+                meta={m}
+                data={madinaQueries[i]!.data!}
+                family={fontQueries[i]!.data!}
+                next={nextSurahStart(m, p, lineMap)}
+                current={audio.current}
+                selected={picked ? `${picked.s}:${picked.a}` : null}
+                onAyah={(s, a) => setPicked({ s, a })}
+              />
+            ) : (
+              <PageView
+                key={p}
+                page={p}
+                meta={m}
+                current={audio.current}
+                lines={layPage(pageAyahList(t, m, p), (s, a) => lineMap.get(s)?.[a - 1] ?? null, nextSurahStart(m, p, lineMap))}
+                onAyah={(s, a) => setPicked({ s, a })}
+              />
+            ),
+          )}
         </div>
       ) : null}
       <p className="q2-credit" style={{ paddingBottom: "calc(var(--q2-bottom) + 16px)" }}>
-        نص مشروع تنزيل دون تعديل، مرتّبًا على أسطر مصحف المدينة عبر Quran.com. المس آية لتفتحها في المصحف المرتّل.
+        {madina
+          ? "خط مصحف المدينة: خطوط مجمع الملك فهد لطباعة المصحف الشريف لكل صفحة، عبر Quran.com؛ كل كلمة مرتبطة بكلمتها من النص المتحقق. المس آية لتفتحها."
+          : "نص مشروع تنزيل دون تعديل، مرتّبًا على أسطر مصحف المدينة عبر Quran.com. المس آية لتفتحها."}
       </p>
+      <Q2Sheet open={Boolean(picked)} onClose={() => setPicked(null)} label="الآية">
+        {picked ? (
+          <AyahSheet
+            s={picked.s}
+            a={picked.a}
+            text={ayahText(t.surahs[picked.s - 1]!.ayahs[picked.a - 1]!)}
+            surahName={`سورة ${m.surahs[picked.s - 1]!.name}`}
+            page={pageOf(m, picked.s, picked.a)}
+            inHifz={Boolean(hifz[pageOf(m, picked.s, picked.a)])}
+            canPlay
+            onPlay={() => navigate(`/q2/read/${picked.s}?a=${picked.a}`)}
+            onLastRead={() => setLastRead(picked.s, picked.a)}
+            onHifz={() => learnPage(pageOf(m, picked.s, picked.a))}
+          />
+        ) : null}
+      </Q2Sheet>
     </div>
   );
 }
