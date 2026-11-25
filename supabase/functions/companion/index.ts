@@ -492,6 +492,8 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     plan: typeof NO_PLAN & { followUps?: string[] };
     guardContext: GuardContext;
     serverBlocks: string[];
+    /** A question about an ayah: how many of its tafsirs were found. */
+    tafsirs?: number;
   };
   const gatherForAyah = async (request: NonNullable<typeof ayahRequest>, onStage: (stage: Stage) => void): Promise<Gathered> => {
     onStage("gathering");
@@ -511,6 +513,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
         userTexts: boundedMessages.messages.filter((message) => message.role === "user").slice(-2).map((message) => message.content),
       },
       serverBlocks: [buildAyahBlock(request, verse?.text ?? "", tafsirs)],
+      tafsirs: tafsirs.length,
     };
   };
   const gather = async (onStage: (stage: Stage) => void): Promise<Gathered> => {
@@ -634,6 +637,9 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
           }
           const followUps = result.gathered.plan.followUps ?? [];
           if (followUps.length > 0) send(sseEvent("athar_followups", { items: followUps }));
+          // The app shows an answer about an ayah only after this confirmation
+          // that it was bound to the ayah's tafsirs (an older server would not send it).
+          if (result.gathered.tafsirs !== undefined) send(sseEvent("athar_ayah", { tafsirs: result.gathered.tafsirs }));
           const reader = guardSseStream(result.upstream.body!, makeFinalize(result.gathered), () => onStage("verifying")).getReader();
           for (;;) {
             const { done, value } = await reader.read();

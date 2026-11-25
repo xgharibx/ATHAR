@@ -1109,12 +1109,25 @@ export async function askAboutAyah(
       if (abortSignal.aborted) onAbort();
       else abortSignal.addEventListener("abort", onAbort, { once: true });
     }
+    // The server confirms that the answer is bound to the ayah's tafsirs before
+    // any of it; text without that confirmation is from a server that cannot
+    // do so yet, and is not shown as an answer from the tafsirs.
+    let bound = false;
     for await (const event of stream) {
+      const own = event as unknown as { type?: string; stage?: unknown };
+      if (own.type === "athar_ayah") {
+        bound = true;
+        continue;
+      }
       if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+        if (!bound) {
+          onAbort();
+          cb.onError?.({ kind: "other", message: "سؤال الآية من تفاسيرها لم يُفعَّل بعد على الخادم. جرّبه بعد التحديث القادم.", detail: "ayah-mode-unavailable" });
+          return;
+        }
         emit(sanitizer.push(event.delta.text));
         continue;
       }
-      const own = event as unknown as { type?: string; stage?: unknown };
       if (own.type === "athar_status" && STAGES.includes(own.stage as CompanionStage)) cb.onStage?.(own.stage as CompanionStage);
     }
     await stream.finalMessage();

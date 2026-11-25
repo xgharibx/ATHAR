@@ -751,6 +751,17 @@ describe("Companion Edge Function access controls", () => {
       expect(text).toContain("قال السعدي");
     });
 
+    it("confirms in the stream that the answer is bound to the tafsirs, before any text", async () => {
+      const app = edge({ sseAnswer: "قال السعدي: معنى واضح." });
+      const response = await app.sendRaw(JSON.stringify({ ...JSON.parse(ask({ surah: 112, ayah: 1 })), stream: true }), "Bearer synthetic-user-token");
+      const body = await response.text();
+      expect(body).toContain("event: athar_ayah");
+      expect(body.indexOf("athar_ayah")).toBeLessThan(body.indexOf("content_block_delta"));
+      const ordinary = edge({ sseAnswer: "وعليكم السلام" });
+      const plain = await ordinary.sendRaw(JSON.stringify({ system: "synthetic system prompt", stream: true, messages: [{ role: "user", content: "السلام عليكم" }] }), "Bearer synthetic-user-token");
+      expect(await plain.text()).not.toContain("athar_ayah");
+    });
+
     it("refuses a reference that is not an ayah, before any work", async () => {
       for (const bad of [{ surah: 115, ayah: 1 }, { surah: 1, ayah: 8 }, { surah: "2", ayah: 255 }, "2:255"]) {
         const app = edge();
