@@ -28,6 +28,10 @@ export type Q2Prefs = {
   nearCount: number;
   /** Memorise from the end of the mushaf (Juz' 'Amma first) or from its start. */
   direction: HifzDirection;
+  /** Translation shown under each ayah in the reader (Quran.com id), or none. */
+  translation: number | null;
+  /** Talqeen: how many times each ayah is recited before the next. */
+  talqeenTimes: number;
 };
 
 type State = {
@@ -53,6 +57,8 @@ export const Q2_DEFAULT_PREFS: Q2Prefs = {
   newPerDay: 1,
   nearCount: 10,
   direction: "end",
+  translation: null,
+  talqeenTimes: 3,
 };
 
 export const useQ2Store = create<State>()(
@@ -91,3 +97,51 @@ export const useQ2Store = create<State>()(
     },
   ),
 );
+
+/* ── Backup with the account ─────────────────────────────────────────── */
+
+type Q2Backup = {
+  v: 1;
+  prefs: Q2Prefs;
+  lastRead: State["lastRead"];
+  hifz: Record<number, Q2HifzPage>;
+  learnedLog: Record<string, number[]>;
+};
+
+/** The section's state for the account backup. */
+export function exportQuran2(): Q2Backup {
+  const s = useQ2Store.getState();
+  return { v: 1, prefs: s.prefs, lastRead: s.lastRead, hifz: s.hifz, learnedLog: s.learnedLog };
+}
+
+const num = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x);
+
+function validPage(card: unknown): card is Q2HifzPage {
+  if (!card || typeof card !== "object") return false;
+  const c = card as Record<string, unknown>;
+  return [c.s, c.d, c.last, c.due, c.reps, c.lapses, c.learnedAt].every(num) && (c.s as number) > 0;
+}
+
+/** Take back a backup; false (and nothing changed) if it is not a valid one. */
+export function adoptQuran2(blob: unknown): boolean {
+  if (!blob || typeof blob !== "object") return false;
+  const b = blob as Partial<Q2Backup>;
+  const hifz: Record<number, Q2HifzPage> = {};
+  for (const [page, card] of Object.entries(b.hifz ?? {})) {
+    const p = Number(page);
+    if (!Number.isInteger(p) || p < 1 || p > 604 || !validPage(card)) return false;
+    hifz[p] = card;
+  }
+  const lastRead = b.lastRead && num(b.lastRead.s) && num(b.lastRead.a) && num(b.lastRead.at) ? b.lastRead : null;
+  const learnedLog: Record<string, number[]> = {};
+  for (const [day, pages] of Object.entries(b.learnedLog ?? {})) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(day) && Array.isArray(pages)) learnedLog[day] = pages.filter((p) => Number.isInteger(p) && p >= 1 && p <= 604);
+  }
+  useQ2Store.setState((s) => ({
+    prefs: { ...Q2_DEFAULT_PREFS, ...s.prefs, ...(b.prefs && typeof b.prefs === "object" ? b.prefs : {}) },
+    lastRead: lastRead ?? s.lastRead,
+    hifz,
+    learnedLog,
+  }));
+  return true;
+}

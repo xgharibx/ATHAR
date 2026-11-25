@@ -26,17 +26,22 @@ export function tafsirParagraphs(html: string): string[] {
   let text = "";
   let inTag = false;
   let tag = "";
+  // Footnote markers (<sup>1</sup>) are dropped with their number.
+  let inSup = 0;
   for (const ch of html) {
     if (inTag) {
       if (ch === ">") {
         inTag = false;
+        const name = tag.trim().toLowerCase();
+        if (/^sup\b/.test(name)) inSup += 1;
+        else if (/^\/\s*sup\b/.test(name)) inSup = Math.max(0, inSup - 1);
         // Block ends and line breaks become paragraph breaks.
-        if (/^\/?\s*(br|p|div|h\d|li)\b/i.test(tag.trim())) text += "\n";
+        else if (/^\/?\s*(br|p|div|h\d|li)\b/.test(name)) text += "\n";
         tag = "";
       } else tag += ch;
     } else if (ch === "<") {
       inTag = true;
-    } else text += ch;
+    } else if (!inSup) text += ch;
   }
   text = text
     .replace(/&nbsp;/g, " ")

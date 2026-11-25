@@ -20,6 +20,7 @@ import {
   idbReplaceHadithState,
 } from "@/lib/hadithIDB";
 import { adoptDataPacks, exportDataPacks, type NoorPack } from "@/data/packs";
+import { adoptQuran2, exportQuran2 } from "@/quran2/store";
 import { saveCustomReminders } from "@/lib/reminderStorage";
 import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
 import { nextMemoCard, type HadithMemoCard } from "@/data/hadithTypes";
@@ -376,6 +377,8 @@ export type ExportBlobV1 = {
   sectionCompletions?: Record<string, string[]>;
   customPacks?: CustomAdhkarPack[];
   dataPacks?: NoorPack[];
+  /** «القرآن ٢»: memorisation, where you stopped and the section's settings. */
+  quran2?: unknown;
   customReminders?: CustomReminder[];
   customReminderTemplatesSeen?: Record<string, boolean>;
   onboardingDone?: boolean;
@@ -2234,6 +2237,7 @@ export const useNoorStore = create<NoorState>()(
           sectionCompletions: s.sectionCompletions,
           customPacks: s.customPacks,
           dataPacks: exportDataPacks(),
+          quran2: exportQuran2(),
           customReminders: s.customReminders,
           hadithBookmarks: s.hadithBookmarks,
           hadithProgress: s.hadithProgress,
@@ -2337,6 +2341,7 @@ export const useNoorStore = create<NoorState>()(
           onboardingDone: blob.onboardingDone ?? false,
           weeklyReportSentISO: blob.weeklyReportSentISO ?? null,
         });
+        if (blob.quran2) adoptQuran2(blob.quran2);
         if (blob.dataPacks && adoptDataPacks(blob.dataPacks)) {
           window.dispatchEvent(new CustomEvent("athar-data-packs-changed"));
         }

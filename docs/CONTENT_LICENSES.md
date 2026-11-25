@@ -44,6 +44,7 @@ Nothing in this table is redistributed by Athar; the app requests it from the pr
 | Morphology for «القرآن ٢» (roots, lemmas, grammar of every word) | Quranic Arabic Corpus 0.4 (corpus.quran.com), Arabic edition `mustafa0x/quran-morphology` at commit 8f38b39, through jsDelivr | GNU GPL 3.0: credit with a link to corpus.quran.com; not redistributed by Athar | Confirmed; credited with a link wherever it is shown |
 | Word timings and recitation audio for «القرآن ٢» | Quran.com / QuranicAudio (`api.qurancdn.com`, `download.quranicaudio.com`) | Provider's terms | To confirm |
 | Seven Arabic tafsirs for «القرآن ٢» | Quran.com API v4 | Provider's and publishers' terms | To confirm |
+| Translations of the meanings for «القرآن ٢» (18 languages) | Quran.com API v4 | Provider's and translators' terms | To confirm |
 | Prayer times | AlAdhan | Provider's terms | To confirm |
 | Nearby mosques | OpenStreetMap through Overpass | ODbL: credit "© OpenStreetMap contributors" where the data is shown | Confirmed; credit is shown on the mosques screen |
 | Hadith lookups for the assistant | Dorar (dorar.net) | Dorar's terms of use | To confirm |

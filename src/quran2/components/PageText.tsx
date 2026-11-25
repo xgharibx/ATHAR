@@ -8,13 +8,17 @@ import { pageAyahs } from "../data/pages";
  * A page's text. In test mode each ayah shows only its first word until it is
  * tapped; revealed ayahs are given.
  */
-export function PageText({ text, meta, page, test = false, revealed, onReveal }: {
+export function PageText({ text, meta, page, test = false, revealed, onReveal, current, marks }: {
   text: Q2Text;
   meta: Q2Meta;
   page: number;
   test?: boolean;
   revealed?: Set<string>;
   onReveal?: (key: string) => void;
+  /** The ayah being taught ("s:a"), marked. */
+  current?: string | null;
+  /** Words recited from memory ("s:a:w"): said, or missed. */
+  marks?: Map<string, "ok" | "missed">;
 }) {
   const ayahs = React.useMemo(() => pageAyahs(text, meta, page), [text, meta, page]);
   const blocks: React.ReactNode[] = [];
@@ -39,19 +43,23 @@ export function PageText({ text, meta, page, test = false, revealed, onReveal }:
     run.push(
       <span
         key={key}
-        className="q2-ayah"
+        className={`q2-ayah${current === key ? " is-now" : ""}`}
         style={{ cursor: hidden ? "pointer" : undefined }}
         onClick={hidden ? () => onReveal?.(key) : undefined}
         role={hidden ? "button" : undefined}
         aria-label={hidden ? `اكشف الآية ${ayah.a}` : undefined}
       >
         {ayah.before ? <span className="q2-mark">{ayah.before} </span> : null}
-        {ayah.words.map((w, i) => (
-          <React.Fragment key={w.n}>
-            <span className={hidden ? (i === 0 ? "q2-cue" : "q2-hide") : undefined}>{w.text}</span>
-            {w.after && !hidden ? <span className="q2-mark"> {w.after}</span> : null}{" "}
-          </React.Fragment>
-        ))}
+        {ayah.words.map((w, i) => {
+          const mark = marks?.get(`${key}:${w.n}`);
+          const cls = mark === "ok" ? "q2-said" : mark === "missed" ? "q2-missed" : hidden ? (i === 0 ? "q2-cue" : "q2-hide") : undefined;
+          return (
+            <React.Fragment key={w.n}>
+              <span className={cls}>{w.text}</span>
+              {w.after && (!hidden || mark) ? <span className="q2-mark"> {w.after}</span> : null}{" "}
+            </React.Fragment>
+          );
+        })}
         <span className="q2-end">۝{arDigits(ayah.a)}</span>{" "}
       </span>,
     );

@@ -2,7 +2,8 @@ import * as React from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, ChevronLeft, ChevronRight, Loader2, Minus, Pause, Play, Plus, Repeat, Settings2 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { useQ2Meta, useQ2Text, useQ2Timing } from "../hooks";
+import { useQ2Meta, useQ2Text, useQ2Timing, useQ2Translation } from "../hooks";
+import { Q2_TRANSLATIONS, getTranslation } from "../data/translations";
 import { useQ2Store } from "../store";
 import { pageOf, surahPages } from "../data/meta";
 import { arDigits } from "../data/arabic";
@@ -22,9 +23,13 @@ const REPEATS: Array<{ mode: RepeatMode; label: string }> = [
 ];
 
 /** The surah's text as one flow, cut by the mushaf's pages. Memoised: it never re-renders while playing. */
-const SurahText = React.memo(function SurahText({ surah, pages, onWord, onAyah }: {
+const SurahText = React.memo(function SurahText({ surah, pages, onWord, onAyah, translation, translationDir, translationLang }: {
   surah: Q2Surah;
   pages: number[];
+  /** With a translation, each ayah stands on its own with its meaning under it. */
+  translation?: string[];
+  translationDir?: "ltr" | "rtl";
+  translationLang?: string;
   onWord: (a: number, w: number) => void;
   onAyah: (a: number) => void;
 }) {
@@ -49,6 +54,7 @@ const SurahText = React.memo(function SurahText({ surah, pages, onWord, onAyah }
       blocks.push(<div className="q2-page-mark" key={`p${p}`}>الصفحة {arDigits(p!)}</div>);
       page = p;
     }
+    if (translation) flush(`b${i}`);
     current.push(
       <span className="q2-ayah" id={`q2-a${ayah.a}`} data-ayah={ayah.a} key={ayah.a}>
         {ayah.before ? <span className="q2-mark">{ayah.before} </span> : null}
@@ -63,6 +69,14 @@ const SurahText = React.memo(function SurahText({ surah, pages, onWord, onAyah }
         </span>{" "}
       </span>,
     );
+    if (translation) {
+      flush(`a${i}`);
+      blocks.push(
+        <p className="q2-trans" dir={translationDir} lang={translationLang} key={`tr${i}`}>
+          {translation[i] ?? ""}
+        </p>,
+      );
+    }
   });
   flush("t-end");
   return <div onClick={onClick}>{blocks}</div>;
@@ -81,6 +95,8 @@ export default function Q2Reader() {
   const setLastRead = useQ2Store((st) => st.setLastRead);
   const hifz = useQ2Store((st) => st.hifz);
   const timing = useQ2Timing(prefs.reciter, s);
+  const translation = useQ2Translation(prefs.translation, s);
+  const translationInfo = getTranslation(prefs.translation);
   const reciter = Q2_RECITERS.find((r) => r.id === prefs.reciter) ?? Q2_RECITERS[0]!;
   const [picked, setPicked] = React.useState<{ a: number; w: number } | null>(null);
   const [ayahOpen, setAyahOpen] = React.useState<number | null>(null);
@@ -203,7 +219,16 @@ export default function Q2Reader() {
           </div>
         </div>
         {surah.basmala ? <div className="q2-basmala">{surah.basmala}</div> : null}
-        <SurahText surah={surah} pages={pages} onWord={onPickWord} onAyah={onPickAyah} />
+        {translation.isError ? <p className="q2-small" style={{ textAlign: "center" }}>تعذّر تحميل الترجمة؛ يظهر النص وحده.</p> : null}
+        <SurahText
+          surah={surah}
+          pages={pages}
+          onWord={onPickWord}
+          onAyah={onPickAyah}
+          translation={translation.data}
+          translationDir={translationInfo?.dir}
+          translationLang={translationInfo?.lang}
+        />
         <p className="q2-credit">
           نص المصحف: <a href="https://tanzil.net" target="_blank" rel="noreferrer">مشروع تنزيل</a> (الرسم العثماني، الإصدار ١٫١)، دون أي تعديل.
         </p>
@@ -328,6 +353,25 @@ export default function Q2Reader() {
           <button type="button" className="q2-chip" onClick={() => setPrefs({ palette: prefs.palette === "night" ? "paper" : "night" })}>
             {prefs.palette === "night" ? "لون الورق" : "لون الليل"}
           </button>
+        </div>
+        <h3 className="q2-h2" style={{ marginTop: 22 }}>ترجمة المعاني</h3>
+        <p className="q2-small">تظهر تحت كل آية.</p>
+        <div className="q2-chips" style={{ marginTop: 8, flexWrap: "wrap" }}>
+          <button type="button" className={`q2-chip${prefs.translation == null ? " is-on" : ""}`} onClick={() => setPrefs({ translation: null })} aria-pressed={prefs.translation == null}>
+            دون ترجمة
+          </button>
+          {Q2_TRANSLATIONS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`q2-chip${prefs.translation === t.id ? " is-on" : ""}`}
+              onClick={() => setPrefs({ translation: t.id })}
+              aria-pressed={prefs.translation === t.id}
+              title={t.by}
+            >
+              <bdi>{t.label}{t.lang === "en" && t.id !== 57 ? ` — ${t.by.split(" ").slice(-1)[0]}` : ""}</bdi>
+            </button>
+          ))}
         </div>
         <h3 className="q2-h2" style={{ marginTop: 22 }}>القارئ</h3>
         <p className="q2-small">تلاوات مضبوطة كلمةً كلمة: يتلوّن ما يُتلى الآن.</p>

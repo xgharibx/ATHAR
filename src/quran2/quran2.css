@@ -248,6 +248,15 @@
   text-align-last: center;
   word-spacing: 0.04em;
 }
+.q2-trans {
+  margin: 4px 0 14px;
+  padding: 0 4px 12px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: calc(15px * var(--q2-scale, 1));
+  line-height: 1.75;
+  color: var(--q2-soft);
+  border-bottom: 1px solid var(--q2-line);
+}
 .q2-page-mark {
   display: flex;
   align-items: center;
@@ -342,6 +351,18 @@
 /* A hidden word: a blank line to fill from memory, as wide as the word. */
 .q2-hide { color: transparent; user-select: none; background: linear-gradient(var(--q2-faint), var(--q2-faint)) bottom 0.45em left 0 / 100% 2px no-repeat; }
 .q2-cue { color: var(--q2-green); }
+.q2-said { color: var(--q2-green); }
+.q2-missed { color: var(--q2-danger); text-decoration: underline wavy color-mix(in srgb, var(--q2-danger) 60%, transparent); text-underline-offset: 0.35em; }
+.q2-turn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--q2-gold);
+}
+.q2-turn::before { content: ""; width: 8px; height: 8px; border-radius: 99px; background: currentColor; animation: q2-pulse 1s ease-in-out infinite; }
+@keyframes q2-pulse { 50% { opacity: 0.3; } }
 .q2-grade { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .q2-grade button {
   display: flex;
