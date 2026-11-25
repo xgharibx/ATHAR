@@ -249,6 +249,61 @@ const LOADING_SURAH_KEYS = [
   "load-surah-12",
 ] as const;
 
+/** The door to «القرآن ٢»: a lit niche, and its four main places. */
+function Q2Door({ onOpen }: { onOpen: (to: string) => void }) {
+  const places: Array<[string, string]> = [["/q2/tasmee", "التسميع"], ["/q2/page", "مصحف المدينة"], ["/q2/tafsir", "التفسير"], ["/q2/hifz", "الحفظ"]];
+  return (
+    <div
+      className="relative overflow-hidden"
+      style={{
+        borderRadius: 28,
+        color: "#efe7d4",
+        background: "radial-gradient(90% 70% at 85% -10%, rgba(233,196,106,0.32), transparent 60%), linear-gradient(160deg, #10271f, #07120e 70%)",
+        boxShadow: "inset 0 1px 0 rgba(216,181,106,0.45), 0 18px 40px -22px rgba(0,0,0,0.6)",
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => onOpen("/q2")}
+        className="press-effect w-full flex items-center gap-4 px-4 pt-4 pb-3 text-right"
+        aria-label="افتح القرآن ٢، الإصدار الثاني من قسم القرآن"
+      >
+        <svg width="58" height="78" viewBox="0 0 100 140" aria-hidden="true" className="shrink-0">
+          <defs>
+            <radialGradient id="q2door-glow" cx="50%" cy="22%" r="60%">
+              <stop offset="0%" stopColor="#f2cf83" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#f2cf83" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <path d="M0 140V60C0 30 20 12 50 0c30 12 50 30 50 60v80z" fill="rgba(255,255,255,0.04)" stroke="rgba(216,181,106,0.7)" strokeWidth="2" />
+          <circle cx="50" cy="42" r="40" fill="url(#q2door-glow)" />
+          <line x1="50" y1="6" x2="50" y2="26" stroke="#d8b56a" strokeWidth="2" />
+          <path d="M40 30c-9 6-11 17-8 25 3 8 10 12 18 12s15-4 18-12c3-8 1-19-8-25z" fill="#f2cf83" stroke="#d8b56a" strokeWidth="2" />
+        </svg>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[11px] font-bold" style={{ color: "#d8b56a" }}>الإصدار الثاني من قسم القرآن</span>
+          <span className="block text-2xl font-bold" style={{ fontFamily: "Amiri, serif" }}>القرآن ٢</span>
+          <span className="block text-xs leading-5" style={{ opacity: 0.75 }}>تسميع يتتبعك كلمةً كلمة، ومصحف المدينة بصفحاته، وسبعة تفاسير، وخطة حفظ تتذكّر عنك</span>
+        </span>
+        <span aria-hidden="true" className="text-xl" style={{ opacity: 0.6 }}>‹</span>
+      </button>
+      <div className="flex gap-2 overflow-x-auto px-4 pb-4" style={{ scrollbarWidth: "none" }}>
+        {places.map(([to, label]) => (
+          <button
+            key={to}
+            type="button"
+            onClick={() => onOpen(to)}
+            className="press-effect shrink-0 rounded-full px-3 h-8 text-xs font-bold"
+            style={{ color: "#efe7d4", border: "1px solid rgba(216,181,106,0.4)", background: "rgba(255,255,255,0.05)" }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function QuranPage() {
   const navigate = useNavigate();
   useScrollRestoration();
@@ -653,20 +708,9 @@ export function QuranPage() {
   return (
     <div className="stack-y-4 page-enter">
 
-      {/* «القرآن ٢»: the second Quran section, built apart from this one (src/quran2, docs/QURAN_V2.md). */}
-      <button
-        type="button"
-        onClick={() => navigate("/q2")}
-        className="press-effect w-full flex items-center gap-3 rounded-3xl border border-(--stroke) bg-(--card) px-4 py-3 text-right"
-        aria-label="افتح القرآن ٢، الإصدار الثاني من قسم القرآن"
-      >
-        <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-lg" style={{ color: "var(--accent)", background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}>✦</span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-base font-bold">القرآن ٢</span>
-          <span className="block text-xs opacity-65 leading-5">الإصدار الثاني: اقرأ مع القارئ كلمةً كلمة، ومعجم الجذور، وخطة حفظ</span>
-        </span>
-        <span aria-hidden="true" className="text-lg opacity-50">‹</span>
-      </button>
+      {/* «القرآن ٢»: the second Quran section, built apart from this one (src/quran2,
+          docs/QURAN_V2.md). Its door, in its own «مشكاة» look: a lit niche. */}
+      <Q2Door onOpen={(to) => navigate(to)} />
 
       {/* ══════════════════════════════════════════════════════
           HEADER CARD — Title + Search + Continue reading

@@ -64,3 +64,35 @@ export function loadTafsir(id: number, s: number, a: number): Promise<string[]> 
     return tafsirParagraphs(body.tafsir?.text ?? "");
   });
 }
+
+/** A few words on each tafsir, for the tafsir section (facts about the books, not their content). */
+export const Q2_TAFSIR_NOTES: Record<number, { era: string; note: string }> = {
+  16: { era: "مجمع الملك فهد لطباعة المصحف الشريف", note: "موجز بلغة سهلة، يبيّن المعنى في سطور" },
+  91: { era: "ت ١٣٧٦هـ", note: "يبسط المعاني والهدايات بعبارة قريبة" },
+  14: { era: "ت ٧٧٤هـ", note: "يفسّر القرآن بالقرآن ثم بالسنة وأقوال السلف" },
+  15: { era: "ت ٣١٠هـ", note: "من أقدم التفاسير الجامعة، يورد أقوال السلف بأسانيدها" },
+  90: { era: "ت ٦٧١هـ", note: "يعنى بأحكام الفقه المستنبطة من الآيات" },
+  94: { era: "ت ٥١٦هـ", note: "تفسير بالمأثور، مختصر محرَّر" },
+  93: { era: "ت ١٤٣١هـ", note: "تفسير معاصر وسيط بين الإيجاز والبسط" },
+};
+
+/** A whole surah's tafsir: per ayah, its paragraphs (empty when explained with the ayah before). */
+export function loadSurahTafsir(id: number, s: number, ayahs: number): Promise<string[][]> {
+  return cached(`tafsir-surah:${id}:${s}`, async () => {
+    const out: string[][] = Array.from({ length: ayahs }, () => []);
+    const fetchPage = async (page: number) => {
+      const res = await fetch(`https://api.quran.com/api/v4/tafsirs/${id}/by_chapter/${s}?per_page=50&page=${page}`);
+      if (!res.ok) throw new Error(`tafsir: HTTP ${res.status}`);
+      return (await res.json()) as { tafsirs?: Array<{ verse_key?: string; text?: string }>; pagination?: { total_pages?: number } };
+    };
+    const first = await fetchPage(1);
+    const rest = await Promise.all(Array.from({ length: Math.max(0, (first.pagination?.total_pages ?? 1) - 1) }, (_, i) => fetchPage(i + 2)));
+    for (const body of [first, ...rest]) {
+      for (const t of body.tafsirs ?? []) {
+        const a = Number(t.verse_key?.split(":")[1]);
+        if (a >= 1 && a <= ayahs) out[a - 1] = tafsirParagraphs(t.text ?? "");
+      }
+    }
+    return out;
+  });
+}

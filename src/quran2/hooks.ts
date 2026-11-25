@@ -3,7 +3,7 @@ import { loadQuran2Text } from "./data/text";
 import { loadQuran2Meta } from "./data/meta";
 import { loadMorphology } from "./data/morphology";
 import { loadSurahTiming } from "./data/timings";
-import { loadTafsir } from "./data/tafsir";
+import { loadSurahTafsir, loadTafsir } from "./data/tafsir";
 import { buildSimilarIndex } from "./data/similar";
 import { loadSurahTranslation } from "./data/translations";
 import { loadWordMeanings } from "./data/wordMeanings";
@@ -37,6 +37,16 @@ export function useQ2Tafsir(id: number, s: number, a: number, enabled = true) {
     queryKey: ["q2", "tafsir", id, s, a],
     queryFn: () => loadTafsir(id, s, a),
     enabled,
+    ...forever,
+  });
+}
+
+/** A whole surah with one tafsir, ayah by ayah. */
+export function useQ2SurahTafsir(id: number, s: number, ayahs: number | undefined) {
+  return useQuery({
+    queryKey: ["q2", "tafsir-surah", id, s],
+    queryFn: () => loadSurahTafsir(id, s, ayahs!),
+    enabled: Boolean(ayahs),
     ...forever,
   });
 }

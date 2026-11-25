@@ -47,6 +47,8 @@ Nothing in this table is redistributed by Athar; the app requests it from the pr
 | Translations of the meanings for «القرآن ٢» (18 languages) | Quran.com API v4 | Provider's and translators' terms | To confirm |
 | Word-by-word meanings for «القرآن ٢» (8 languages) | Quran.com API v4 (`words=true&language=`) | Provider's terms | To confirm |
 | Printed-page layout for «القرآن ٢» (the line of each word on the 15-line Madani page) | Quran.com API v4 (`word_fields=line_number`); only line numbers are used, the words are Tanzil's | Provider's terms | To confirm |
+| «مصحف المدينة» page fonts for «القرآن ٢» (QCF V2, one font per page) and their glyph codes | King Fahd Complex for the Printing of the Holy Quran fonts, served by Quran.com (`static.qurancdn.com`, `code_v2`); fetched as data and kept on the device | The Complex's and the provider's terms | To confirm |
+| Reem Kufi (display font of «القرآن ٢») | Google Fonts / Fontsource, bundled | SIL Open Font License 1.1 | Confirmed |
 | Tafsirs given to «اسأل عن الآية» (the AI answers from them) | Quran.com API v4, fetched by the Athar server for the asked ayah | Provider's and publishers' terms | To confirm |
 | Prayer times | AlAdhan | Provider's terms | To confirm |
 | Nearby mosques | OpenStreetMap through Overpass | ODbL: credit "© OpenStreetMap contributors" where the data is shown | Confirmed; credit is shown on the mosques screen |

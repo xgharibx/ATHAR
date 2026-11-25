@@ -28,7 +28,8 @@ export function pagePlan(ayahs: PageAyah[], timings: Map<number, Q2SurahTiming>,
 
 export type PagePhase = "idle" | "reciting" | "your-turn";
 
-export function usePageAudio(ayahs: PageAyah[], reciter: number, talqeenTimes = 3) {
+/** `follow`: play ayah by ayah and report the ayah being recited (for a page that lights it). */
+export function usePageAudio(ayahs: PageAyah[], reciter: number, talqeenTimes = 3, follow = false) {
   const surahs = React.useMemo(() => [...new Set(ayahs.map((x) => x.ayah.s))], [ayahs]);
   const queries = useQueries({
     queries: surahs.map((s) => ({
@@ -51,7 +52,7 @@ export function usePageAudio(ayahs: PageAyah[], reciter: number, talqeenTimes = 
   );
 
   const plansRef = React.useRef(plans);
-  const cfg = React.useRef({ loop: false, talqeen: false, times: talqeenTimes });
+  const cfg = React.useRef({ loop: false, talqeen: false, times: talqeenTimes, follow });
   const cursor = React.useRef({ part: 0, rep: 0, gap: 0 as ReturnType<typeof setTimeout> | 0 });
   const api = React.useRef<{ start: (part: number) => void; stop: () => void }>({ start: () => {}, stop: () => {} });
   const [phase, setPhase] = React.useState<PagePhase>("idle");
@@ -62,11 +63,12 @@ export function usePageAudio(ayahs: PageAyah[], reciter: number, talqeenTimes = 
   React.useLayoutEffect(() => {
     plansRef.current = plans;
     cfg.current.times = talqeenTimes;
-  }, [plans, talqeenTimes]);
+    cfg.current.follow = follow;
+  }, [plans, talqeenTimes, follow]);
 
   React.useEffect(() => {
     const audio = new Audio();
-    const plan = () => (cfg.current.talqeen ? plansRef.current?.ayahs : plansRef.current?.page) ?? null;
+    const plan = () => (cfg.current.talqeen || cfg.current.follow ? plansRef.current?.ayahs : plansRef.current?.page) ?? null;
     const clearGap = () => {
       if (cursor.current.gap) clearTimeout(cursor.current.gap);
       cursor.current.gap = 0;
@@ -85,7 +87,7 @@ export function usePageAudio(ayahs: PageAyah[], reciter: number, talqeenTimes = 
       if (audio.src !== p.url) audio.src = p.url;
       audio.currentTime = p.from / 1000;
       setPhase("reciting");
-      setCurrent(cfg.current.talqeen ? p.key : null);
+      setCurrent(cfg.current.talqeen || cfg.current.follow ? p.key : null);
       void audio.play().catch(stop);
     };
     api.current = { start, stop };

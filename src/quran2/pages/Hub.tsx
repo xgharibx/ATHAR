@@ -1,145 +1,132 @@
+/**
+ * «القرآن ٢» — the home, in the «مشكاة» design (docs/QURAN_V2_DESIGN.md): the niche
+ * holding today's ayah under its lamp, where you stopped, three orbits (the khatma,
+ * today's memorisation, your marks), and the worlds of the section as arch tiles.
+ */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BookMarked, BookOpen, BookOpenText, Brain, Hash, Info, ListOrdered, Search, Sprout } from "lucide-react";
-import { useQ2Meta } from "../hooks";
+import { ArrowLeft, BookMarked, BookOpen, BookOpenText, Brain, Hash, Info, Landmark, ListOrdered, Mic, ScrollText, Search, Sprout } from "lucide-react";
+import { dayKey, useQ2Meta, useQ2Text } from "../hooks";
 import { useQ2Store } from "../store";
 import { arDigits } from "../data/arabic";
 import { pageOf } from "../data/meta";
+import { ayahText } from "../data/text";
 import { useHifzToday } from "../hifz/useHifzToday";
 import { countBits, decodeBits, TOTAL_AYAHS } from "../reading/khatma";
-import { dayKey } from "../hooks";
+import { Niche, Orbit, Star } from "../components/Mishkat";
+
+/** Ayahs for the niche, one a day in turn (references only; the words are Tanzil's). */
+const DAILY: Array<[number, number]> = [
+  [24, 35], [2, 255], [13, 28], [39, 53], [2, 186], [94, 5], [65, 3], [3, 190], [20, 114], [21, 87],
+  [33, 41], [2, 152], [57, 4], [50, 16], [29, 69], [18, 10], [25, 74], [14, 7], [16, 97], [40, 60],
+  [3, 139], [12, 87], [93, 5], [59, 22], [2, 286], [3, 173], [9, 51], [17, 82], [55, 13], [112, 1],
+];
 
 const WORLDS = [
-  { to: "/q2/index", Icon: BookOpenText, title: "المصحف المرتّل", line: "اقرأ مع القارئ كلمةً كلمة، والمس أي كلمة لتعرفها" },
-  { to: "/q2/page", Icon: BookOpen, title: "المصحف بصفحاته", line: "الصفحات الـ٦٠٤ بأسطرها كما في المصحف المطبوع" },
-  { to: "/q2/hifz", Icon: Brain, title: "الحفظ", line: "خطة الحلقة: جديد وقريب وبعيد، بنموذج ذاكرة حديث" },
-  { to: "/q2/roots", Icon: Sprout, title: "معجم الجذور", line: "كل جذر في القرآن، ومشتقاته، وأين يرد" },
-  { to: "/q2/search", Icon: Search, title: "البحث", line: "بالكلمة كما تكتبها، أو بجذرها، أو بلفظها" },
-  { to: "/q2/numbers", Icon: Hash, title: "القرآن بالأرقام", line: "إحصاءات محسوبة من النص نفسه، بطريقة عدّ معلنة" },
-  { to: "/q2/marks", Icon: BookMarked, title: "علاماتي", line: "ما علّمته ولوّنته من الآيات، وملاحظاتك عليها" },
-  { to: "/q2/index?order=revelation", Icon: ListOrdered, title: "ترتيب النزول", line: "السور كما نزلت، من «اقرأ» إلى آخر ما نزل" },
+  { to: "/q2/page", Icon: BookOpen, title: "المصحف بصفحاته", line: "الصفحات الـ٦٠٤ بأسطرها، أو بخط مصحف المدينة" },
+  { to: "/q2/index", Icon: BookOpenText, title: "المصحف المرتّل", line: "اقرأ مع القارئ كلمةً كلمة" },
+  { to: "/q2/hifz", Icon: Brain, title: "الحفظ", line: "جديد وقريب وبعيد، بنموذج ذاكرة" },
+  { to: "/q2/tafsir", Icon: ScrollText, title: "التفسير", line: "سبعة تفاسير، واسأل عن الآية" },
+  { to: "/q2/roots", Icon: Sprout, title: "معجم الجذور", line: "كل جذر ومشتقاته وأين يرد" },
+  { to: "/q2/search", Icon: Search, title: "البحث", line: "بالكلمة أو الجذر أو بالتلاوة" },
+  { to: "/q2/marks", Icon: BookMarked, title: "علاماتي", line: "علاماتك وألوانك وملاحظاتك" },
+  { to: "/q2/numbers", Icon: Hash, title: "القرآن بالأرقام", line: "إحصاءات محسوبة من النص" },
+  { to: "/q2/index?order=revelation", Icon: ListOrdered, title: "ترتيب النزول", line: "من «اقرأ» إلى آخر ما نزل" },
+  { to: "/q2/about", Icon: Landmark, title: "عن «القرآن ٢»", line: "مصادره وكيف بُني" },
 ] as const;
 
 export default function Q2Hub() {
   const navigate = useNavigate();
+  const text = useQ2Text();
   const meta = useQ2Meta();
   const lastRead = useQ2Store((s) => s.lastRead);
-  const today = useHifzToday();
+  const marksCount = useQ2Store((s) => Object.keys(s.marks).length);
   const khatmaBits = useQ2Store((s) => s.khatma.bits);
   const readToday = useQ2Store((s) => s.readLog[dayKey()] ?? 0);
+  const today = useHifzToday();
   const khatmaShare = React.useMemo(() => countBits(decodeBits(khatmaBits)) / TOTAL_AYAHS, [khatmaBits]);
+  const [daily] = React.useState(() => DAILY[Math.floor(Date.now() / 86_400_000) % DAILY.length]!);
+  const dailyAyah = text.data?.surahs[daily[0] - 1]?.ayahs[daily[1] - 1];
   const last = lastRead && meta.data ? meta.data.surahs[lastRead.s - 1] : null;
+  const due = today.plan.newPages.length + today.plan.near.length + today.plan.far.length;
 
   return (
     <main className="q2-main">
-      <section style={{ textAlign: "center", padding: "18px 0 6px" }}>
-        <div className="q2-eyebrow">الإصدار الثاني</div>
-        <h1 style={{ fontFamily: "var(--q2-serif)", fontSize: 46, fontWeight: 700, lineHeight: 1.6 }}>القرآن الكريم</h1>
-        <p className="q2-soft" style={{ fontSize: 15 }}>
-          اقرأ <span className="q2-orn">✦</span> افهم <span className="q2-orn">✦</span> احفظ <span className="q2-orn">✦</span> تدبّر
-        </p>
+      <Niche className="q2-rise is-hero" style={{ aspectRatio: "0.9", maxWidth: 430, margin: "6px auto 0" }}>
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", textAlign: "center", height: "100%", minHeight: "inherit", padding: "0 22px 26px" }}>
+          <div className="q2-eyebrow" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Star size={10} /> آية اليوم <Star size={10} />
+          </div>
+          <p style={{ fontFamily: "var(--q2-quran)", fontSize: dailyAyah && dailyAyah.words.length > 30 ? 19 : dailyAyah && dailyAyah.words.length > 14 ? 22 : 26, lineHeight: 2.1, marginTop: 8 }}>
+            {dailyAyah ? ayahText(dailyAyah) : " "}
+          </p>
+          {meta.data ? (
+            <button type="button" className="q2-link" onClick={() => navigate(`/q2/read/${daily[0]}?a=${daily[1]}`)}>
+              سورة {meta.data.surahs[daily[0] - 1]!.name}، {arDigits(daily[1])} <ArrowLeft size={14} aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+      </Niche>
+
+      <section className="q2-section q2-rise" style={{ animationDelay: "80ms" }}>
+        {last && lastRead ? (
+          <button
+            type="button"
+            className="q2-card q2-press"
+            style={{ display: "flex", alignItems: "center", gap: 14, width: "100%", padding: 16, textAlign: "start" }}
+            onClick={() => navigate(`/q2/read/${lastRead.s}?a=${lastRead.a}`)}
+          >
+            <span className="q2-num">{arDigits(lastRead.s)}</span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span className="q2-eyebrow" style={{ display: "block" }}>تابع من حيث وقفت</span>
+              <b style={{ fontFamily: "var(--q2-serif)", fontSize: 20 }}>سورة {last.name}</b>
+              <span className="q2-small" style={{ display: "block" }}>
+                الآية {arDigits(lastRead.a)}
+                {meta.data ? `، الصفحة ${arDigits(pageOf(meta.data, lastRead.s, lastRead.a))}` : ""}
+              </span>
+            </span>
+            <ArrowLeft size={20} aria-hidden="true" />
+          </button>
+        ) : (
+          <button type="button" className="q2-btn q2-press" style={{ width: "100%" }} onClick={() => navigate("/q2/read/1")}>
+            ابدأ من الفاتحة
+          </button>
+        )}
       </section>
 
-      {last && lastRead ? (
-        <button
-          type="button"
-          className="q2-card q2-press"
-          style={{ display: "flex", alignItems: "center", gap: 14, width: "100%", padding: 16, marginTop: 18, textAlign: "start" }}
-          onClick={() => navigate(`/q2/read/${lastRead.s}?a=${lastRead.a}`)}
-        >
-          <span className="q2-num"><span>{arDigits(lastRead.s)}</span></span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span className="q2-eyebrow" style={{ display: "block" }}>تابع من حيث وقفت</span>
-            <b style={{ fontFamily: "var(--q2-serif)", fontSize: 20 }}>سورة {last.name}</b>
-            <span className="q2-small" style={{ display: "block" }}>
-              الآية {arDigits(lastRead.a)}
-              {meta.data ? `، الصفحة ${arDigits(pageOf(meta.data, lastRead.s, lastRead.a))}` : ""}
-            </span>
-          </span>
-          <ArrowLeft size={20} aria-hidden="true" />
+      <section className="q2-card q2-section q2-rise" style={{ padding: "18px 10px 14px", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", animationDelay: "140ms" }}>
+        <button type="button" className="q2-press" onClick={() => navigate("/q2/khatma")} aria-label="ختمتي">
+          <Orbit value={khatmaShare} label={`${arDigits(Math.floor(khatmaShare * 100))}٪`} sub={readToday ? `ختمتي، ${arDigits(readToday)} آية اليوم` : "ختمتي"} />
         </button>
-      ) : (
-        <button type="button" className="q2-btn q2-press" style={{ width: "100%", marginTop: 18 }} onClick={() => navigate("/q2/read/1")}>
-          ابدأ من الفاتحة
+        <button type="button" className="q2-press" onClick={() => navigate("/q2/hifz")} aria-label="حفظ اليوم">
+          <Orbit value={today.memorised / 604} tone="gold" label={arDigits(due)} sub={due ? "صفحة في جلسة اليوم" : "حفظك اليوم"} />
         </button>
-      )}
+        <button type="button" className="q2-press" onClick={() => navigate("/q2/marks")} aria-label="علاماتي">
+          <Orbit value={Math.min(1, marksCount / 50)} label={arDigits(marksCount)} sub="علاماتي" />
+        </button>
+      </section>
 
-      <button
-        type="button"
-        className="q2-card q2-press"
-        style={{ display: "block", width: "100%", padding: 16, marginTop: 12, textAlign: "start" }}
-        onClick={() => navigate("/q2/hifz")}
-      >
-        <span className="q2-eyebrow">حفظك اليوم</span>
-        {today.memorised ? (
-          <span style={{ display: "flex", gap: 18, marginTop: 6 }}>
-            {[
-              { n: today.plan.newPages.length, label: "جديد" },
-              { n: today.plan.near.length, label: "قريب" },
-              { n: today.plan.far.length, label: "بعيد" },
-            ].map((x) => (
-              <span key={x.label}>
-                <b style={{ fontSize: 24 }}>{arDigits(x.n)}</b>
-                <span className="q2-small" style={{ display: "block" }}>{x.label}</span>
-              </span>
-            ))}
-            <span style={{ marginInlineStart: "auto", textAlign: "end" }}>
-              <b style={{ fontSize: 24 }}>{arDigits(today.memorised)}</b>
-              <span className="q2-small" style={{ display: "block" }}>صفحة محفوظة</span>
-            </span>
+      <section className="q2-section q2-rise" style={{ animationDelay: "200ms" }}>
+        <button type="button" className="q2-tile is-feature q2-press" style={{ width: "100%", gap: 14 }} onClick={() => navigate("/q2/tasmee")}>
+          <span className="q2-tile-medal"><Mic size={24} aria-hidden="true" /></span>
+          <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+            <b style={{ display: "flex", alignItems: "center", gap: 8 }}>التسميع <span className="q2-badge">جديد</span></b>
+            <span>اتلُ من حفظك، فيتتبعك كلمةً كلمة، ويريك ما فاتك، وتسمع نطقك ونطق القارئ للكلمة نفسها.</span>
           </span>
-        ) : (
-          <span className="q2-small" style={{ display: "block", marginTop: 4 }}>
-            لم تبدأ بعد. خطة يومية على طريقة الحلقات، تتذكّر عنك متى تراجع كل صفحة.
-          </span>
-        )}
-      </button>
-
-      <button
-        type="button"
-        className="q2-card q2-press"
-        style={{ display: "block", width: "100%", padding: 16, marginTop: 12, textAlign: "start" }}
-        onClick={() => navigate("/q2/khatma")}
-      >
-        <span style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <span className="q2-eyebrow">ختمتي</span>
-          <span className="q2-small" style={{ marginInlineStart: "auto" }}>
-            {readToday ? `${arDigits(readToday)} آية اليوم` : "لم تقرأ اليوم بعد"}
-          </span>
-        </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6 }}>
-          <b style={{ fontSize: 24 }}>{arDigits(Math.floor(khatmaShare * 100))}٪</b>
-          <span className="q2-bar" style={{ flex: 1 }}><span style={{ width: `${khatmaShare * 100}%` }} /></span>
-        </span>
-      </button>
+          <ArrowLeft size={18} aria-hidden="true" />
+        </button>
+      </section>
 
       <section className="q2-section">
-        <div className="q2-head">
-          <h2 className="q2-h2"><span className="q2-orn">✦</span> العوالم</h2>
+        <div className="q2-section-title" style={{ marginBottom: 12 }}>
+          <Star size={14} /> العوالم
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
           {WORLDS.map(({ to, Icon, title, line }, i) => (
-            <button
-              key={to}
-              type="button"
-              className="q2-card q2-press"
-              style={{
-                padding: 14,
-                textAlign: "start",
-                minHeight: 132,
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-                // An odd last world takes the whole row.
-                gridColumn: i === WORLDS.length - 1 && WORLDS.length % 2 ? "span 2" : undefined,
-              }}
-              onClick={() => navigate(to)}
-            >
-              <span style={{ width: 40, height: 40, display: "grid", placeItems: "center", borderRadius: 12, color: "var(--q2-green)", background: "var(--q2-green-soft)" }}>
-                <Icon size={21} aria-hidden="true" />
-              </span>
-              <b style={{ fontFamily: "var(--q2-serif)", fontSize: 18 }}>{title}</b>
-              <span className="q2-small" style={{ lineHeight: 1.6 }}>{line}</span>
+            <button key={to} type="button" className="q2-tile q2-press q2-rise" style={{ animationDelay: `${240 + i * 40}ms` }} onClick={() => navigate(to)}>
+              <span className="q2-tile-medal"><Icon size={21} aria-hidden="true" /></span>
+              <b>{title}</b>
+              <span>{line}</span>
             </button>
           ))}
         </div>

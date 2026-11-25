@@ -124,7 +124,9 @@ export default function Q2Reader() {
   const translationInfo = getTranslation(prefs.translation);
   const reciter = Q2_RECITERS.find((r) => r.id === prefs.reciter) ?? Q2_RECITERS[0]!;
   const [picked, setPicked] = React.useState<{ a: number; w: number } | null>(null);
-  const [ayahOpen, setAyahOpen] = React.useState<number | null>(null);
+  // «اسأل عنها» from the tafsir section opens the ayah's sheet on its question tab.
+  const askFirst = search.get("ask") === "1";
+  const [ayahOpen, setAyahOpen] = React.useState<number | null>(() => (askFirst && target ? target : null));
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const surah = text.data?.surahs[s - 1];
   const info = meta.data?.surahs[s - 1];
@@ -366,6 +368,7 @@ export default function Q2Reader() {
       <Q2Sheet open={Boolean(openAyah)} onClose={() => setAyahOpen(null)} label="الآية">
         {openAyah ? (
           <AyahSheet
+            initialTab={askFirst ? "ask" : undefined}
             s={s}
             a={openAyah.a}
             text={ayahText(openAyah)}

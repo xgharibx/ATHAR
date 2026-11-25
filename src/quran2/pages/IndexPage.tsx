@@ -5,6 +5,16 @@ import { useQ2Store } from "../store";
 import { arDigits, plainKey } from "../data/arabic";
 import { juzRange, refFromIndex, surahPages } from "../data/meta";
 import { Q2Error, Q2Loading } from "../components/ui";
+import { BookMarked, BookOpen, Flag, Hash, Sprout } from "lucide-react";
+
+/** The other ways into the mushaf, at the top of «المصحف». */
+const WAYS = [
+  { to: "/q2/page", Icon: BookOpen, label: "مصحف المدينة" },
+  { to: "/q2/khatma", Icon: Flag, label: "ختمتي" },
+  { to: "/q2/marks", Icon: BookMarked, label: "علاماتي" },
+  { to: "/q2/roots", Icon: Sprout, label: "الجذور" },
+  { to: "/q2/numbers", Icon: Hash, label: "بالأرقام" },
+] as const;
 
 /** The surahs (in mushaf order or the order of revelation) and the thirty juz. */
 export default function Q2Index() {
@@ -33,7 +43,15 @@ export default function Q2Index() {
 
   return (
     <main className="q2-main">
-      <h1 className="q2-h1">الفهرس</h1>
+      <h1 className="q2-h1">المصحف</h1>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
+        {WAYS.map(({ to, Icon, label }) => (
+          <button key={to} type="button" className="q2-press" onClick={() => navigate(to)} style={{ display: "grid", justifyItems: "center", gap: 6, fontSize: 11.5, fontWeight: 600, color: "var(--q2-soft)" }}>
+            <span className="q2-tile-medal" style={{ width: 48, height: 48 }}><Icon size={20} aria-hidden="true" /></span>
+            {label}
+          </button>
+        ))}
+      </div>
       <div className="q2-chips" style={{ marginTop: 12 }} role="tablist">
         <button type="button" role="tab" aria-selected={tab === "surahs"} className={`q2-chip${tab === "surahs" ? " is-on" : ""}`} onClick={() => setTab("surahs")}>السور</button>
         <button type="button" role="tab" aria-selected={tab === "juz"} className={`q2-chip${tab === "juz" ? " is-on" : ""}`} onClick={() => setTab("juz")}>الأجزاء</button>
