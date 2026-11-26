@@ -68,7 +68,7 @@ export function ListenReciterPage() {
         </p>
         <div className="ls-actions">
           <button type="button" className="ls-play-btn" onClick={() => playTracks(queue, 0, { resume: true })}>
-            <Play size={18} fill="currentColor" aria-hidden="true" style={{ transform: "scaleX(-1)" }} /> تشغيل الكل
+            <Play size={18} fill="currentColor" aria-hidden="true" /> تشغيل الكل
           </button>
           <button type="button" className="ls-ghost-btn" onClick={() => playTracks(queue, Math.floor(Math.random() * queue.length), { shuffle: true })}>
             <Shuffle size={17} aria-hidden="true" /> عشوائي

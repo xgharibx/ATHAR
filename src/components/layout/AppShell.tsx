@@ -52,8 +52,8 @@ const QuickTasbeehFab = React.lazy(() =>
   import("@/components/layout/QuickTasbeehFab").then((m) => ({ default: m.QuickTasbeehFab }))
 );
 
-const QuranRadioFab = React.lazy(() =>
-  import("@/components/layout/QuranRadioFab").then((m) => ({ default: m.QuranRadioFab }))
+const FloatingMedia = React.lazy(() =>
+  import("@/components/layout/FloatingMedia").then((m) => ({ default: m.FloatingMedia }))
 );
 
 /* -------------------------------------------------- */
@@ -609,9 +609,9 @@ function ClassicAppShell() {
         <QuickTasbeehFab drawerOpen={drawerOpen} />
       </React.Suspense>
 
-      {/* Quran Radio FAB */}
+      {/* «السماع»: the floating media button (the radio is one of its ways) */}
       <React.Suspense fallback={null}>
-        <QuranRadioFab drawerOpen={drawerOpen} />
+        <FloatingMedia drawerOpen={drawerOpen} />
       </React.Suspense>
 
       {/* «السماع»: what is playing, above the bottom bar */}

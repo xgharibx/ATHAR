@@ -126,7 +126,7 @@ function Moments({ catalog }: { catalog: ListenCatalog }) {
             onClick={() => playTracks(momentTracks(catalog, m, preferred), 0, { resume: true })}
           >
             <span className="ls-tile-icon">
-              {m.id === "sleep" ? <Moon size={18} aria-hidden="true" /> : <Play size={16} fill="currentColor" aria-hidden="true" style={{ transform: "scaleX(-1)" }} />}
+              {m.id === "sleep" ? <Moon size={18} aria-hidden="true" /> : <Play size={16} fill="currentColor" aria-hidden="true" />}
             </span>
             <b>{m.title}</b>
             <span>{m.subtitle}</span>
@@ -209,7 +209,7 @@ export function ListenHomePage() {
             <b className="block text-[15px]">عشوائي من كل القرّاء</b>
             <span className="block text-[12px] text-(--muted)">سور متنوّعة بأصوات {arabicDigits(catalog.reciters.length)} قارئًا، لا يتكرر فيها قارئ مرتين متتاليتين</span>
           </span>
-          <Play size={18} fill="currentColor" className="mr-auto text-(--accent) shrink-0" aria-hidden="true" style={{ transform: "scaleX(-1)" }} />
+          <Play size={18} fill="currentColor" className="mr-auto text-(--accent) shrink-0" aria-hidden="true" />
         </button>
       ) : null}
       <ContinueRail />
@@ -282,7 +282,7 @@ export function ListenHomePage() {
                   <b>{cityName(y.city)}</b>
                   <span>رمضان {arabicDigits(y.year)}هـ</span>
                   <span style={{ marginTop: 26 }}>
-                    <Play size={14} fill="currentColor" aria-hidden="true" style={{ display: "inline", transform: "scaleX(-1)" }} /> {arabicDigits(Object.keys(y.d).length)} سورة
+                    <Play size={14} fill="currentColor" aria-hidden="true" style={{ display: "inline" }} /> {arabicDigits(Object.keys(y.d).length)} سورة
                   </span>
                 </Link>
               ))}

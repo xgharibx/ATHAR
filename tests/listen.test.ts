@@ -122,12 +122,30 @@ describe("Arabic number agreement", () => {
 
 describe("the ways in", () => {
   const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
-  it("sits next to the Quran radio on the classic home, on the Quran page, and in «أفق»", () => {
-    expect(read("src/pages/Home.tsx")).toContain("<HomeListenButton />");
+  it("draws the eye on the classic home (in place of the radio), and sits on the Quran page and in «أفق»", () => {
+    const home = read("src/pages/Home.tsx");
+    expect(home).toContain("<ListenSpotlight");
+    expect(home).not.toContain("toggleRadio");
+    // The floating button of the classic design is «السماع» now; the radio is one of its ways.
+    expect(read("src/components/layout/AppShell.tsx")).toContain("<FloatingMedia drawerOpen={drawerOpen} />");
+    expect(read("src/components/layout/FloatingMedia.tsx")).toContain('to: "/listen/golden"');
     expect(read("src/pages/Quran.tsx")).toContain("<ListenEntry />");
     expect(read("src/components/ufuq/UfuqHome.tsx")).toContain("<ListenEntry />");
     expect(read("src/components/ufuq/UfuqShell.tsx")).toContain('<ListenMiniPlayer variant="ufuq" />');
     expect(read("src/components/layout/AppShell.tsx")).toContain("<ListenMiniPlayer />");
+  });
+
+  it("reads its controls left to right, as every player does (earlier on the left, later on the right)", () => {
+    const full = read("src/components/listen/FullPlayer.tsx");
+    expect(full).toContain('<div className="ls-controls" dir="ltr">');
+    expect(full).toContain('<div className="ls-seek mt-3" dir="ltr">');
+    expect(full.indexOf('aria-label="السابق"')).toBeLessThan(full.indexOf('aria-label="التالي"'));
+    expect(full).toMatch(/aria-label="السابق"[^]*?<SkipBack /);
+    expect(full).toMatch(/aria-label="التالي"[^]*?<SkipForward /);
+    expect(full).not.toContain("scaleX(-1)");
+    const mini = read("src/components/listen/MiniPlayer.tsx");
+    expect(mini).toContain('className="ls-mini-bar" dir="ltr"');
+    expect(mini).toContain("<SkipForward");
   });
 
   it("can report position and seek in both native players", () => {
