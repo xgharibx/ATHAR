@@ -488,7 +488,7 @@ function QuranCard() {
     : null;
   const resume = () => {
     trackUxEvent("home_new:quran");
-    navigate(mushafPage ? `/mushaf/${mushafPage}` : lastRead ? `/mushaf?surah=${lastRead.surahId}&ayah=${lastRead.ayahIndex}` : "/mushaf/1");
+    navigate(mushafPage ? `/quran/page/${mushafPage}` : lastRead ? `/quran/read/${lastRead.surahId}?a=${lastRead.ayahIndex}` : "/quran/page/1");
   };
 
   return (
@@ -497,7 +497,7 @@ function QuranCard() {
         title="القرآن"
         aside={
           isFriday && lastRead?.surahId !== 18 ? (
-            <button type="button" className="nh-aside-link" onClick={() => navigate("/mushaf?surah=18&ayah=1")}>
+            <button type="button" className="nh-aside-link" onClick={() => navigate("/quran/read/18")}>
               الجمعة: سورة الكهف
             </button>
           ) : (
@@ -640,7 +640,7 @@ function VerseOfDay() {
     <section className="nh-verse" aria-label="آية اليوم">
       <div className="nh-verse-rule" aria-hidden="true"><span /><Ornament /><span /></div>
       <div className="nh-eyebrow">آية اليوم</div>
-      <button type="button" className="nh-verse-text" onClick={() => navigate(`/mushaf?surah=${verse.surahId}&ayah=${verse.ayahIndex}`)}>
+      <button type="button" className="nh-verse-text" onClick={() => navigate(`/quran/read/${verse.surahId}?a=${verse.ayahIndex}`)}>
         ﴿{verse.arabic}﴾
       </button>
       <div className="nh-verse-foot">

@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the language of every word: root, lemma and grammar.
+ * «القرآن الكريم» — the language of every word: root, lemma and grammar.
  *
  * Source: the Quranic Arabic Corpus (corpus.quran.com) version 0.4, in the Arabic
  * edition of mustafa0x/quran-morphology, pinned to one commit. GNU GPL 3.0: it

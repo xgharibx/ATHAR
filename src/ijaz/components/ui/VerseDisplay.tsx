@@ -85,7 +85,7 @@ export default function VerseDisplay({
           </span>
           {verse.surahNumber > 0 && verse.ayahNumber > 0 && (
             <Link
-              to={`/mushaf?surah=${verse.surahNumber}&ayah=${verse.ayahNumber}`}
+              to={`/quran/read/${verse.surahNumber}?a=${verse.ayahNumber}`}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 text-text-secondary text-sm font-tajawal hover:bg-white/5 transition"
             >
               اقرأها في المصحف

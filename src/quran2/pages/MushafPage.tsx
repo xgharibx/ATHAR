@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the printed page: the Madani mushaf's 604 pages, 15 lines each, in
+ * «القرآن الكريم» — the printed page: the Madani mushaf's 604 pages, 15 lines each, in
  * two styles: «مصحف المدينة» (the King Fahd Complex's own page fonts, an
  * ornamented frame: reader/MadinaPageView) and «النص المتحقق» (this section's
  * verified Tanzil text placed on the same lines). Two pages side by side on a
@@ -12,9 +12,12 @@
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueries } from "@tanstack/react-query";
-import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play, Type, Landmark } from "lucide-react";
-import { loadMadinaPage, madinaFont } from "../data/madina";
+import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play, Type, Landmark, Palette } from "lucide-react";
+import { loadMadinaPage, madinaFont, type MadinaFontKind } from "../data/madina";
+import { useQuranLook } from "../look";
+import { QuranPrint } from "../components/QuranPrint";
 import { MadinaPageView } from "../reader/MadinaPageView";
+import { juzName } from "../data/divisions";
 import { pageAyahs, type PageAyah } from "../data/pages";
 import { usePageAudio } from "../hifz/usePageAudio";
 import { Q2Sheet } from "../components/ui";
@@ -28,6 +31,7 @@ import type { Q2Text } from "../data/text";
 import { loadSurahLines, layPage, type PageLine, type Q2SurahLines } from "../data/lines";
 import { arDigits } from "../data/arabic";
 import { Q2Error, Q2Loading } from "../components/ui";
+import { countAyahsRead } from "../bridge";
 
 const forever = { staleTime: Infinity, gcTime: Infinity, retry: 1 } as const;
 
@@ -135,6 +139,9 @@ export default function Q2MushafPage() {
   const markRead = useQ2Store((s) => s.markRead);
   const lastRead = useQ2Store((s) => s.lastRead);
   const pageStyle = useQ2Store((s) => s.prefs.pageStyle);
+  const tajweed = useQ2Store((s) => s.prefs.tajweed);
+  const { look } = useQuranLook();
+  const fontKind: MadinaFontKind = tajweed ? (look === "night" ? "tajweed-dark" : "tajweed") : "plain";
   const reciter = useQ2Store((s) => s.prefs.reciter);
   const hifz = useQ2Store((s) => s.hifz);
   const setPrefs = useQ2Store((s) => s.setPrefs);
@@ -178,7 +185,7 @@ export default function Q2MushafPage() {
     queries: shown.map((p) => ({ queryKey: ["q2", "madina", p], queryFn: () => loadMadinaPage(p, wordCount), enabled: madina && Boolean(text.data), ...forever })),
   });
   const fontQueries = useQueries({
-    queries: shown.map((p) => ({ queryKey: ["q2", "madina-font", p], queryFn: () => madinaFont(p), enabled: madina, ...forever })),
+    queries: shown.map((p) => ({ queryKey: ["q2", "madina-font", p, fontKind], queryFn: () => madinaFont(p, fontKind), enabled: madina, ...forever })),
   });
   const loading = lineQueries.some((q) => q.isLoading) || (madina && (madinaQueries.some((q) => q.isLoading) || fontQueries.some((q) => q.isLoading)));
   const failed = lineQueries.some((q) => q.isError) || (madina && (madinaQueries.some((q) => q.isError) || fontQueries.some((q) => q.isError)));
@@ -187,7 +194,41 @@ export default function Q2MushafPage() {
   const ayahsShown = React.useMemo<PageAyah[]>(() => (text.data && meta.data ? shown.flatMap((p) => pageAyahs(text.data!, meta.data!, p)) : []), [text.data, meta.data, shown]);
   const audio = usePageAudio(ayahsShown, reciter, 3, true);
 
-  const go = React.useCallback((p: number) => navigate(`/q2/page/${Math.min(604, Math.max(1, p))}`, { replace: true }), [navigate]);
+  // The controls float over the page and step aside while you read: a tap
+  // on the margin brings them back.
+  const [chrome, setChrome] = React.useState(true);
+  React.useEffect(() => {
+    if (!chrome || !madina) return;
+    const t = window.setTimeout(() => setChrome(false), 4200);
+    return () => window.clearTimeout(t);
+  }, [chrome, madina, page]);
+  const go = React.useCallback(
+    (p: number) => {
+      setChrome(false);
+      navigate(`/quran/page/${Math.min(604, Math.max(1, p))}`, { replace: true });
+    },
+    [navigate],
+  );
+
+  // The page takes the whole screen: its size follows the screen's.
+  const [stage, setStage] = React.useState<{ w: number; h: number } | null>(null);
+  const observer = React.useRef<ResizeObserver | null>(null);
+  const stageRef = React.useCallback((el: HTMLDivElement | null) => {
+    observer.current?.disconnect();
+    observer.current = null;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const measure = () => setStage((old) => (old && old.w === el.clientWidth && old.h === el.clientHeight ? old : { w: el.clientWidth, h: el.clientHeight }));
+    measure();
+    observer.current = new ResizeObserver(measure);
+    observer.current.observe(el);
+  }, []);
+  const sheet = React.useMemo(() => {
+    if (!stage) return null;
+    const perW = shown.length > 1 ? (stage.w - 18) / 2 : stage.w;
+    const w = Math.min(perW, stage.h * 0.7);
+    const h = Math.min(stage.h, w / 0.56);
+    return { w: Math.floor(w), h: Math.floor(h) };
+  }, [stage, shown.length]);
 
   // Keyboard: the left arrow turns to the next page, as the mushaf opens.
   React.useEffect(() => {
@@ -224,6 +265,7 @@ export default function Q2MushafPage() {
       seen += 1000;
       if (seen >= need) {
         markRead(indexes, dayKey());
+        countAyahsRead(indexes.length);
         clearInterval(timer);
       }
     }, 1000);
@@ -237,20 +279,140 @@ export default function Q2MushafPage() {
   const m = meta.data;
   const t = text.data;
 
+  const ayahSheet = (
+    <Q2Sheet open={Boolean(picked)} onClose={() => setPicked(null)} label="الآية">
+      {picked ? (
+        <AyahSheet
+          s={picked.s}
+          a={picked.a}
+          text={ayahText(t.surahs[picked.s - 1]!.ayahs[picked.a - 1]!)}
+          surahName={`سورة ${m.surahs[picked.s - 1]!.name}`}
+          page={pageOf(m, picked.s, picked.a)}
+          inHifz={Boolean(hifz[pageOf(m, picked.s, picked.a)])}
+          canPlay
+          onPlay={() => navigate(`/quran/read/${picked.s}?a=${picked.a}`)}
+          onLastRead={() => setLastRead(picked.s, picked.a)}
+          onHifz={() => learnPage(pageOf(m, picked.s, picked.a))}
+        />
+      ) : null}
+    </Q2Sheet>
+  );
+  const onSwipeStart = (e: React.TouchEvent) => (touch.current = { x: e.touches[0]!.clientX, y: e.touches[0]!.clientY });
+  const onSwipeEnd = (e: React.TouchEvent) => {
+    const start = touch.current;
+    touch.current = null;
+    if (!start) return;
+    const dx = e.changedTouches[0]!.clientX - start.x;
+    const dy = e.changedTouches[0]!.clientY - start.y;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return;
+    go(dx > 0 ? right + step : right - step);
+  };
+  const [fs, fa] = refFromIndex(m, pageRange(m, right)[0]);
+  const title = wide && shown.length > 1 ? `الصفحتان ${arDigits(shown[0]!)} و${arDigits(shown[1]!)}` : `الصفحة ${arDigits(page)}`;
+
+  // «مصحف المدينة»: the page fills the screen, the controls float over it.
+  if (madina) {
+    return (
+      <div className={`q2-mushaf is-full${chrome ? " has-chrome" : ""}`} onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
+        <header className="q2-mchrome is-top" aria-hidden={!chrome}>
+          <button type="button" className="q2-icon-btn q2-press" onClick={() => navigate(-1)} aria-label="رجوع" tabIndex={chrome ? 0 : -1}>
+            <ArrowRight size={20} aria-hidden="true" />
+          </button>
+          <QuranPrint />
+          <div className="q2-mchrome-title">
+            <b>سورة {m.surahs[fs - 1]!.name}</b>
+            <span>{juzName(juzOf(m, fs, fa))}، {title}</span>
+          </div>
+          <button
+            type="button"
+            className={`q2-icon-btn q2-press${tajweed ? " is-on" : ""}`}
+            aria-pressed={tajweed}
+            onClick={() => setPrefs({ tajweed: !tajweed })}
+            aria-label="ألوان أحكام التجويد"
+            title="ألوان التجويد"
+            tabIndex={chrome ? 0 : -1}
+          >
+            <Palette size={19} aria-hidden="true" />
+          </button>
+          <button type="button" className="q2-icon-btn q2-press" onClick={() => setPrefs({ pageStyle: "tanzil" })} aria-label="اعرض النص المتحقق" title="النص المتحقق" tabIndex={chrome ? 0 : -1}>
+            <Type size={19} aria-hidden="true" />
+          </button>
+        </header>
+
+        <div
+          className="q2-mstage"
+          ref={stageRef}
+          onClick={(e) => {
+            // A tap beside the words shows or hides the controls; a tap on a word opens its ayah.
+            if (!(e.target as HTMLElement).closest(".q2-glyph")) setChrome((v) => !v);
+          }}
+          style={sheet ? ({ ["--mw" as string]: `${sheet.w}px`, ["--mh" as string]: `${sheet.h}px` } as React.CSSProperties) : undefined}
+        >
+          {failed ? <Q2Error label="تعذّر تحميل الصفحة. تحقق من الاتصال." onRetry={() => [...lineQueries, ...madinaQueries, ...fontQueries].forEach((q) => void q.refetch())} /> : null}
+          {loading ? <Q2Loading label="تُرتَّب الصفحة كما في المصحف المطبوع…" /> : null}
+          {!loading && !failed && sheet ? (
+            <div className={`q2-spread${shown.length > 1 ? " is-two" : ""}`}>
+              {shown.map((p, i) =>
+                madinaQueries[i]?.data && fontQueries[i]?.data ? (
+                  <MadinaPageView
+                    key={p}
+                    page={p}
+                    meta={m}
+                    data={madinaQueries[i]!.data!}
+                    family={fontQueries[i]!.data!}
+                    next={nextSurahStart(m, p, lineMap)}
+                    current={audio.current}
+                    selected={picked ? `${picked.s}:${picked.a}` : null}
+                    onAyah={(s, a) => setPicked({ s, a })}
+                    side={shown.length > 1 ? (i === 0 ? "right" : "left") : undefined}
+                  />
+                ) : null,
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        <footer className="q2-mchrome is-bottom" aria-hidden={!chrome}>
+          <button type="button" className="q2-icon-btn q2-press" disabled={right <= 1} onClick={() => go(right - step)} aria-label="الصفحة السابقة" tabIndex={chrome ? 0 : -1}>
+            <ChevronRight size={22} aria-hidden="true" />
+          </button>
+          <label className="q2-mslider">
+            <span className="q2-sr">انتقل إلى صفحة</span>
+            <input
+              type="range"
+              min={1}
+              max={604}
+              step={1}
+              value={page}
+              dir="rtl"
+              tabIndex={chrome ? 0 : -1}
+              onChange={(e) => navigate(`/quran/page/${e.target.value}`, { replace: true })}
+              aria-valuetext={`الصفحة ${arDigits(page)}`}
+            />
+            <span className="q2-mslider-num">{arDigits(page)} / ٦٠٤</span>
+          </label>
+          <button type="button" className="q2-icon-btn q2-press" disabled={!audio.ready} onClick={audio.toggle} aria-label={audio.playing ? "أوقف التلاوة" : "استمع إلى الصفحة"} tabIndex={chrome ? 0 : -1}>
+            {audio.playing ? <Pause size={20} aria-hidden="true" /> : <Play size={20} aria-hidden="true" />}
+          </button>
+          <button type="button" className="q2-icon-btn q2-press" disabled={right + step > 604} onClick={() => go(right + step)} aria-label="الصفحة التالية" tabIndex={chrome ? 0 : -1}>
+            <ChevronLeft size={22} aria-hidden="true" />
+          </button>
+        </footer>
+        {audio.playing && !chrome ? (
+          <button type="button" className="q2-mplaying q2-press" onClick={audio.toggle} aria-label="أوقف التلاوة">
+            <Pause size={15} aria-hidden="true" /> يُتلى
+          </button>
+        ) : null}
+        <p className="q2-sr">
+          خط مصحف المدينة: خطوط مجمع الملك فهد لطباعة المصحف الشريف لكل صفحة، عبر Quran.com؛ كل كلمة مرتبطة بكلمتها من النص المتحقق. المس آية لتفتحها، والمس الهامش لإظهار الأزرار.
+        </p>
+        {ayahSheet}
+      </div>
+    );
+  }
+
   return (
-    <div
-      className="q2-mushaf"
-      onTouchStart={(e) => (touch.current = { x: e.touches[0]!.clientX, y: e.touches[0]!.clientY })}
-      onTouchEnd={(e) => {
-        const start = touch.current;
-        touch.current = null;
-        if (!start) return;
-        const dx = e.changedTouches[0]!.clientX - start.x;
-        const dy = e.changedTouches[0]!.clientY - start.y;
-        if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return;
-        go(dx > 0 ? right + step : right - step);
-      }}
-    >
+    <div className="q2-mushaf" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
       <header className="q2-top">
         <button type="button" className="q2-icon-btn q2-press" onClick={() => navigate(-1)} aria-label="رجوع">
           <ArrowRight size={20} aria-hidden="true" />
@@ -259,7 +421,8 @@ export default function Q2MushafPage() {
           <ChevronRight size={20} aria-hidden="true" />
         </button>
         <div className="q2-top-title">
-          {wide && shown.length > 1 ? `الصفحتان ${arDigits(shown[0]!)} و${arDigits(shown[1]!)}` : `الصفحة ${arDigits(page)}`}
+          <QuranPrint />
+          {title}
         </div>
         <button type="button" className="q2-icon-btn q2-press" disabled={right + step > 604} onClick={() => go(right + step)} aria-label="الصفحة التالية">
           <ChevronLeft size={20} aria-hidden="true" />
@@ -267,14 +430,8 @@ export default function Q2MushafPage() {
         <button type="button" className="q2-icon-btn q2-press" disabled={!audio.ready} onClick={audio.toggle} aria-label={audio.playing ? "أوقف التلاوة" : "استمع إلى الصفحة"}>
           {audio.playing ? <Pause size={19} aria-hidden="true" /> : <Play size={19} aria-hidden="true" />}
         </button>
-        <button
-          type="button"
-          className="q2-icon-btn q2-press"
-          onClick={() => setPrefs({ pageStyle: madina ? "tanzil" : "madina" })}
-          aria-label={madina ? "اعرض النص المتحقق" : "اعرض مصحف المدينة"}
-          title={madina ? "النص المتحقق" : "مصحف المدينة"}
-        >
-          {madina ? <Type size={19} aria-hidden="true" /> : <Landmark size={19} aria-hidden="true" />}
+        <button type="button" className="q2-icon-btn q2-press" onClick={() => setPrefs({ pageStyle: "madina" })} aria-label="اعرض مصحف المدينة" title="مصحف المدينة">
+          <Landmark size={19} aria-hidden="true" />
         </button>
       </header>
 
@@ -282,53 +439,22 @@ export default function Q2MushafPage() {
       {loading ? <Q2Loading label="تُرتَّب الصفحة كما في المصحف المطبوع…" /> : null}
       {!loading && !failed ? (
         <div className={`q2-spread${shown.length > 1 ? " is-two" : ""}`}>
-          {shown.map((p, i) =>
-            madina && madinaQueries[i]?.data && fontQueries[i]?.data ? (
-              <MadinaPageView
-                key={p}
-                page={p}
-                meta={m}
-                data={madinaQueries[i]!.data!}
-                family={fontQueries[i]!.data!}
-                next={nextSurahStart(m, p, lineMap)}
-                current={audio.current}
-                selected={picked ? `${picked.s}:${picked.a}` : null}
-                onAyah={(s, a) => setPicked({ s, a })}
-              />
-            ) : (
-              <PageView
-                key={p}
-                page={p}
-                meta={m}
-                current={audio.current}
-                lines={layPage(pageAyahList(t, m, p), (s, a) => lineMap.get(s)?.[a - 1] ?? null, nextSurahStart(m, p, lineMap))}
-                onAyah={(s, a) => setPicked({ s, a })}
-              />
-            ),
-          )}
+          {shown.map((p) => (
+            <PageView
+              key={p}
+              page={p}
+              meta={m}
+              current={audio.current}
+              lines={layPage(pageAyahList(t, m, p), (s, a) => lineMap.get(s)?.[a - 1] ?? null, nextSurahStart(m, p, lineMap))}
+              onAyah={(s, a) => setPicked({ s, a })}
+            />
+          ))}
         </div>
       ) : null}
       <p className="q2-credit" style={{ paddingBottom: "calc(var(--q2-bottom) + 16px)" }}>
-        {madina
-          ? "خط مصحف المدينة: خطوط مجمع الملك فهد لطباعة المصحف الشريف لكل صفحة، عبر Quran.com؛ كل كلمة مرتبطة بكلمتها من النص المتحقق. المس آية لتفتحها."
-          : "نص مشروع تنزيل دون تعديل، مرتّبًا على أسطر مصحف المدينة عبر Quran.com. المس آية لتفتحها."}
+        نص مشروع تنزيل دون تعديل، مرتّبًا على أسطر مصحف المدينة عبر Quran.com. المس آية لتفتحها.
       </p>
-      <Q2Sheet open={Boolean(picked)} onClose={() => setPicked(null)} label="الآية">
-        {picked ? (
-          <AyahSheet
-            s={picked.s}
-            a={picked.a}
-            text={ayahText(t.surahs[picked.s - 1]!.ayahs[picked.a - 1]!)}
-            surahName={`سورة ${m.surahs[picked.s - 1]!.name}`}
-            page={pageOf(m, picked.s, picked.a)}
-            inHifz={Boolean(hifz[pageOf(m, picked.s, picked.a)])}
-            canPlay
-            onPlay={() => navigate(`/q2/read/${picked.s}?a=${picked.a}`)}
-            onLastRead={() => setLastRead(picked.s, picked.a)}
-            onHifz={() => learnPage(pageOf(m, picked.s, picked.a))}
-          />
-        ) : null}
-      </Q2Sheet>
+      {ayahSheet}
     </div>
   );
 }

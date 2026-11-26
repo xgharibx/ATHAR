@@ -75,3 +75,8 @@ interface SpeechGrammar {
   src: string;
   weight: number;
 }
+
+// ONNX Runtime Web's WebAssembly build, with its .wasm supplied by the app (vite.config.ts).
+declare module "onnxruntime-web/wasm-extern" {
+  export * from "onnxruntime-web";
+}

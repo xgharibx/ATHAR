@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — «ختمتي»: how far the khatma has come, what to read today to
+ * «ختمتي»: how far the khatma has come, what to read today to
  * finish on time, the days you read, and each juz' at a glance.
  */
 import * as React from "react";
@@ -7,17 +7,11 @@ import { useNavigate } from "react-router-dom";
 import { BookOpen, Flag, RotateCcw } from "lucide-react";
 import { dayKey, useQ2Meta } from "../hooks";
 import { useQ2Store } from "../store";
+import { useNoorStore } from "@/store/noorStore";
 import { arCount, arDigits } from "../data/arabic";
 import { decodeBits, firstUnread, juzShares, khatmaPace, pageShares, readingStreak, countBits, TOTAL_AYAHS } from "../reading/khatma";
 import { Q2Error, Q2Loading, Q2Strip } from "../components/ui";
-
-const GOALS: Array<{ days: number | null; label: string }> = [
-  { days: null, label: "دون موعد" },
-  { days: 7, label: "في أسبوع" },
-  { days: 15, label: "في نصف شهر" },
-  { days: 30, label: "في شهر" },
-  { days: 60, label: "في شهرين" },
-];
+import { KhatmaPlanPanel } from "../reading/KhatmaPlanPanel";
 
 const dateLabel = (ms: number) => new Date(ms).toLocaleDateString("ar-u-nu-arab", { day: "numeric", month: "long", year: "numeric" });
 
@@ -27,6 +21,11 @@ export default function Q2Khatma() {
   const khatma = useQ2Store((s) => s.khatma);
   const readLog = useQ2Store((s) => s.readLog);
   const setGoal = useQ2Store((s) => s.setKhatmaGoal);
+  // The khatma's deadline is the app's plan (set here or before, in the plans page).
+  const planDays = useNoorStore((s) => s.khatmaDays);
+  React.useEffect(() => {
+    if ((planDays ?? null) !== khatma.goalDays) setGoal(planDays ?? null);
+  }, [planDays, khatma.goalDays, setGoal]);
   const newKhatma = useQ2Store((s) => s.newKhatma);
   const [confirmNew, setConfirmNew] = React.useState(false);
   const [now] = React.useState(() => Date.now());
@@ -85,7 +84,7 @@ export default function Q2Khatma() {
             type="button"
             className="q2-btn q2-press"
             style={{ width: "100%", marginTop: 12 }}
-            onClick={() => navigate(`/q2/read/${view.next![0]}?a=${view.next![1]}`)}
+            onClick={() => navigate(`/quran/read/${view.next![0]}?a=${view.next![1]}`)}
           >
             <BookOpen size={17} aria-hidden="true" /> تابع من سورة {m.surahs[view.next[0] - 1]!.name}، الآية {arDigits(view.next[1])}
           </button>
@@ -107,33 +106,18 @@ export default function Q2Khatma() {
         </div>
       </section>
 
-      <section className="q2-section">
-        <h2 className="q2-h2"><span className="q2-orn">✦</span> موعد الختم</h2>
-        <div className="q2-chips" style={{ marginTop: 10, flexWrap: "wrap" }}>
-          {GOALS.map((g) => (
-            <button
-              key={g.label}
-              type="button"
-              className={`q2-chip q2-press${khatma.goalDays === g.days ? " is-on" : ""}`}
-              aria-pressed={khatma.goalDays === g.days}
-              onClick={() => setGoal(g.days)}
-            >
-              {g.label}
-            </button>
-          ))}
-        </div>
-        {pace && !done ? (
-          <p className="q2-card" style={{ padding: 14, marginTop: 10, lineHeight: 2 }}>
-            اقرأ اليوم {arCount(pace.perDay, "صفحة واحدة", "صفحتين", "صفحات", "صفحة")} لتختم في موعدك؛
-            {pace.daysLeft === 1 ? " بقي هذا اليوم." : ` بقي ${arCount(pace.daysLeft, "يوم", "يومان", "أيام", "يومًا")}.`}{" "}
-            <b style={{ color: pace.onTrack ? "var(--q2-green)" : "var(--q2-gold)" }}>{pace.onTrack ? "أنت على الموعد." : "تأخرتَ عن الموعد، وإدراكه ممكن."}</b>
-          </p>
-        ) : null}
-      </section>
+      <KhatmaPlanPanel onChoose={(days) => setGoal(days)} />
+      {pace && !done ? (
+        <p className="q2-card" style={{ padding: 14, marginTop: 10, lineHeight: 2 }}>
+          بحساب الصفحات: اقرأ اليوم {arCount(pace.perDay, "صفحة واحدة", "صفحتين", "صفحات", "صفحة")} لتختم في موعدك؛
+          {pace.daysLeft === 1 ? " بقي هذا اليوم." : ` بقي ${arCount(pace.daysLeft, "يوم", "يومان", "أيام", "يومًا")}.`}{" "}
+          <b style={{ color: pace.onTrack ? "var(--q2-green)" : "var(--q2-gold)" }}>{pace.onTrack ? "أنت على الموعد." : "تأخرتَ عن الموعد، وإدراكه ممكن."}</b>
+        </p>
+      ) : null}
 
       <section className="q2-section">
         <div className="q2-head">
-          <h2 className="q2-h2"><span className="q2-orn">✦</span> آخر ثلاثين يومًا</h2>
+          <h2 className="q2-h2"><span className="q2-orn" aria-hidden="true" /> آخر ثلاثين يومًا</h2>
           <span className="q2-small">{arDigits(last30.reduce((a, b) => a + b, 0))} آية</span>
         </div>
         <div style={{ marginTop: 10 }}>
@@ -142,7 +126,7 @@ export default function Q2Khatma() {
       </section>
 
       <section className="q2-section">
-        <h2 className="q2-h2"><span className="q2-orn">✦</span> الأجزاء</h2>
+        <h2 className="q2-h2"><span className="q2-orn" aria-hidden="true" /> الأجزاء</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: 6, marginTop: 10 }}>
           {view.juz.map((x, i) => (
             <div
@@ -160,7 +144,7 @@ export default function Q2Khatma() {
 
       {khatma.finished.length ? (
         <section className="q2-section">
-          <h2 className="q2-h2"><span className="q2-orn">✦</span> ختماتك</h2>
+          <h2 className="q2-h2"><span className="q2-orn" aria-hidden="true" /> ختماتك</h2>
           <div className="q2-card" style={{ marginTop: 10 }}>
             {[...khatma.finished].reverse().map((at, i) => (
               <div key={at} className="q2-row" style={{ cursor: "default" }}>

@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — «علاماتي»: every ayah you bookmarked, coloured or wrote a note
+ * «القرآن الكريم» — «علاماتي»: every ayah you bookmarked, coloured or wrote a note
  * on, newest first, with your notes in full.
  */
 import * as React from "react";
@@ -81,7 +81,7 @@ export default function Q2Marks() {
         <div className="q2-card" style={{ padding: 16, marginTop: 16, lineHeight: 2 }}>
           المس رقم أي آية في المصحف، ثم اختر «علامة»، أو لونًا، أو اكتب ملاحظتك عليها. تُحفظ على جهازك ومع نسختك الاحتياطية.
           <div>
-            <button type="button" className="q2-btn q2-press" style={{ marginTop: 12 }} onClick={() => navigate("/q2/index")}>افتح المصحف</button>
+            <button type="button" className="q2-btn q2-press" style={{ marginTop: 12 }} onClick={() => navigate("/quran/index")}>افتح المصحف</button>
           </div>
         </div>
       )}
@@ -96,7 +96,7 @@ export default function Q2Marks() {
               type="button"
               className="q2-card q2-press"
               style={{ textAlign: "start", padding: "12px 14px", borderInlineStart: mark.color ? `4px solid var(--q2-sw-${mark.color})` : undefined }}
-              onClick={() => navigate(`/q2/read/${s}?a=${a}`)}
+              onClick={() => navigate(`/quran/read/${s}?a=${a}`)}
             >
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span className="q2-eyebrow">سورة {m.surahs[s - 1]!.name}، الآية {arDigits(a)}</span>

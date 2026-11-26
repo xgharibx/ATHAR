@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» on phones: keeps the "حفظك اليوم" widget and the daily
+ * «القرآن الكريم» on phones: keeps the "حفظك اليوم" widget and the daily
  * memorisation reminder in step with the memorisation, from app start, so
  * they are right even on days the section is not opened.
  */

@@ -148,20 +148,20 @@ final class RecitationBackgroundDownloads: NSObject, URLSessionDownloadDelegate 
             content.body = saved == total
                 ? (saved == 1 ? "حُفظت التلاوة للاستماع دون إنترنت" : "حُفظت \(saved) تلاوة للاستماع دون إنترنت")
                 : "حُفظت \(saved) من \(total) تلاوة للاستماع دون إنترنت"
-            // «القرآن ٢» saves whole surahs too: same wording, its own page.
-            content.userInfo = ["cap_extra": ["route": kind == "quran2" ? "/q2" : "/listen/downloads"]]
+            // «القرآن الكريم» saves whole surahs too: same wording, its own page.
+            content.userInfo = ["cap_extra": ["route": kind == "quran2" ? "/quran" : "/listen/downloads"]]
         } else if kind == "tafsir" {
             content.title = title.isEmpty ? "اكتمل تنزيل التفسير" : title
             content.body = saved == total
                 ? "حُفظ التفسير للقراءة دون إنترنت"
                 : "حُفظ تفسير \(saved) من \(total) سورة للقراءة دون إنترنت"
-            content.userInfo = ["cap_extra": ["route": "/tafsir"]]
+            content.userInfo = ["cap_extra": ["route": "/quran/tafsir"]]
         } else {
             content.title = title.isEmpty ? "اكتمل تنزيل التلاوة" : title
             content.body = saved == total
                 ? "حُفظت \(saved) آية للاستماع دون إنترنت"
                 : "حُفظت \(saved) من \(total) آية للاستماع دون إنترنت"
-            content.userInfo = ["cap_extra": ["route": "/mushaf"]]
+            content.userInfo = ["cap_extra": ["route": "/quran/page"]]
         }
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "athar-downloads", content: content, trigger: nil))
     }

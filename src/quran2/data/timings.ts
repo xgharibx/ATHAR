@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — recitations whose every word is timed (Quran.com / QuranicAudio,
+ * «القرآن الكريم» — recitations whose every word is timed (Quran.com / QuranicAudio,
  * "qdc" chapter recitations). The timings number words as the Quranic Arabic
  * Corpus does, like the rest of the section.
  */

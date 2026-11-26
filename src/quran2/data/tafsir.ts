@@ -1,8 +1,22 @@
 /**
- * «القرآن ٢» — seven tafsirs, side by side (Quran.com API v4). Each ayah's
+ * «القرآن الكريم» — seven tafsirs, side by side (Quran.com API v4). Each ayah's
  * text is kept on the device once read.
  */
-import { cached } from "./cache";
+import { cached, cachedKeys, cacheDelete } from "./cache";
+import { loadMuyassarCache } from "@/lib/tafseerLocal";
+
+/** «الميسّر» ships inside the app: read without the internet from the first day. */
+export const Q2_BUNDLED_TAFSIR = 16;
+
+async function bundledAyah(s: number, a: number): Promise<string[] | null> {
+  try {
+    const all = await loadMuyassarCache();
+    const text = all[String(s)]?.[a];
+    return typeof text === "string" && text.trim() ? tafsirParagraphs(text) : null;
+  } catch {
+    return null;
+  }
+}
 
 export type Q2Tafsir = { id: number; name: string; author: string; short: string };
 
@@ -56,7 +70,11 @@ export function tafsirParagraphs(html: string): string[] {
     .filter(Boolean);
 }
 
-export function loadTafsir(id: number, s: number, a: number): Promise<string[]> {
+export async function loadTafsir(id: number, s: number, a: number): Promise<string[]> {
+  if (id === Q2_BUNDLED_TAFSIR) {
+    const local = await bundledAyah(s, a);
+    if (local) return local;
+  }
   return cached(`tafsir:${id}:${s}:${a}`, async () => {
     const res = await fetch(`https://api.quran.com/api/v4/tafsirs/${id}/by_ayah/${s}:${a}`);
     if (!res.ok) throw new Error(`tafsir: HTTP ${res.status}`);
@@ -77,7 +95,16 @@ export const Q2_TAFSIR_NOTES: Record<number, { era: string; note: string }> = {
 };
 
 /** A whole surah's tafsir: per ayah, its paragraphs (empty when explained with the ayah before). */
-export function loadSurahTafsir(id: number, s: number, ayahs: number): Promise<string[][]> {
+export async function loadSurahTafsir(id: number, s: number, ayahs: number): Promise<string[][]> {
+  if (id === Q2_BUNDLED_TAFSIR) {
+    try {
+      const all = await loadMuyassarCache();
+      const surah = all[String(s)];
+      if (surah?.length) return Array.from({ length: ayahs }, (_, i) => (typeof surah[i + 1] === "string" ? tafsirParagraphs(surah[i + 1]!) : []));
+    } catch {
+      // Fall through to the network.
+    }
+  }
   return cached(`tafsir-surah:${id}:${s}`, async () => {
     const out: string[][] = Array.from({ length: ayahs }, () => []);
     const fetchPage = async (page: number) => {
@@ -95,4 +122,44 @@ export function loadSurahTafsir(id: number, s: number, ayahs: number): Promise<s
     }
     return out;
   });
+}
+
+/** How many surahs of a tafsir are kept on the device (all 114 for «الميسّر»). */
+export async function savedTafsirSurahCount(id: number): Promise<number> {
+  if (id === Q2_BUNDLED_TAFSIR) return 114;
+  const keys = await cachedKeys(`tafsir-surah:${id}:`);
+  return new Set(keys).size;
+}
+
+/** Keep a whole tafsir on the device, surah by surah, for reading without the internet. */
+export async function saveTafsirOffline(
+  id: number,
+  ayahCounts: number[],
+  onProgress: (done: number, total: number) => void,
+  signal?: AbortSignal,
+): Promise<{ saved: number; total: number }> {
+  const total = ayahCounts.length;
+  let saved = 0;
+  let next = 0;
+  // Three surahs at a time: quick, and gentle with the server.
+  const worker = async () => {
+    while (next < total && !signal?.aborted) {
+      const s = ++next;
+      try {
+        await loadSurahTafsir(id, s, ayahCounts[s - 1]!);
+        saved += 1;
+      } catch {
+        // A surah that failed is fetched again on the next try.
+      }
+      onProgress(saved, total);
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  return { saved, total };
+}
+
+/** Remove a saved tafsir from the device. */
+export async function removeTafsirOffline(id: number): Promise<void> {
+  const keys = [...(await cachedKeys(`tafsir-surah:${id}:`)), ...(await cachedKeys(`tafsir:${id}:`))];
+  await cacheDelete(keys);
 }

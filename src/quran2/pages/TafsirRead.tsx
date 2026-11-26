@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — a surah read with one tafsir: each ayah, and under it its tafsir
+ * «القرآن الكريم» — a surah read with one tafsir: each ayah, and under it its tafsir
  * (shortened, to read in full on a tap). Switch the tafsir at the top; open the
  * seven side by side, or ask about an ayah, from each one.
  */
@@ -48,7 +48,7 @@ export default function Q2TafsirRead() {
 
   return (
     <main className="q2-main">
-      <button type="button" className="q2-link" onClick={() => navigate("/q2/tafsir")}>
+      <button type="button" className="q2-link" onClick={() => navigate("/quran/tafsir")}>
         <ArrowRight size={15} aria-hidden="true" /> التفسير
       </button>
       <div className="q2-surah-head" style={{ marginTop: 8 }}>
@@ -75,10 +75,10 @@ export default function Q2TafsirRead() {
               {tafsir.data ? <AyahTafsir paragraphs={tafsir.data[ayah.a - 1] ?? []} /> : null}
             </div>
             <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-              <button type="button" className="q2-chip q2-press" onClick={() => navigate(`/q2/tafsir/${s}/${ayah.a}`)}>
+              <button type="button" className="q2-chip q2-press" onClick={() => navigate(`/quran/tafsir/${s}/${ayah.a}`)}>
                 <Columns3 size={14} aria-hidden="true" /> السبعة معًا
               </button>
-              <button type="button" className="q2-chip q2-press" onClick={() => navigate(`/q2/read/${s}?a=${ayah.a}&ask=1`)}>
+              <button type="button" className="q2-chip q2-press" onClick={() => navigate(`/quran/read/${s}?a=${ayah.a}&ask=1`)}>
                 <MessageCircleQuestion size={14} aria-hidden="true" /> اسأل عنها
               </button>
             </div>

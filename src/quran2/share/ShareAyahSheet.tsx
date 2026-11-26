@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — share an ayah as an image, in either design: «مشكاة», this
+ * «القرآن الكريم» — share an ayah as an image, in either design: «مشكاة», this
  * section's own (share/mishkatPoster.ts), or «أثر», the app's poster with its
  * five palettes (components/share/PremiumShareComposer).
  */

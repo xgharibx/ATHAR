@@ -1,5 +1,5 @@
 /*
- * «القرآن ٢» — «مشكاة» (docs/QURAN_V2_DESIGN.md): the Quran is the light, the
+ * «القرآن الكريم» — «مشكاة» (docs/QURAN_V2_DESIGN.md): the Quran is the light, the
  * interface the niche that holds it. Two palettes: «سَحَر» (dawn parchment) and
  * «ليل» (night). Reem Kufi for titles and numbers, Amiri for book titles, Amiri
  * Quran for the Quran, IBM Plex Sans Arabic for the interface.
@@ -46,8 +46,9 @@
   --q2-ui: "IBM Plex Sans Arabic", "Noto Naskh Arabic", system-ui, sans-serif;
   --q2-top: env(safe-area-inset-top, 0px);
   --q2-bottom: env(safe-area-inset-bottom, 0px);
-  /* The girih lattice: eight-point stars in a gold hairline. */
-  --q2-lattice: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none' stroke='%23a8822f' stroke-width='0.8'%3E%3Cpath d='M48 14l9.9 24.1L82 48l-24.1 9.9L48 82l-9.9-24.1L14 48l24.1-9.9z'/%3E%3Cpath d='M24 24h48v48H24z' transform='rotate(45 48 48)' opacity='.0'/%3E%3Cpath d='M23.9 23.9l17.1 7.1h14l17.1-7.1-7.1 17.1v14l7.1 17.1-17.1-7.1H41l-17.1 7.1 7.1-17.1V41z'/%3E%3Cpath d='M0 48h14M82 48h14M48 0v14M48 82v14'/%3E%3C/g%3E%3C/svg%3E");
+  /* The vine: a scroll of stems, leaves and small flowers, as around the Madina mushaf's pages. */
+  --q2-lattice: url("/data/quran2/ornament/vine.svg");
+  --q2-rosette: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cellipse%20cx='12'%20cy='6.2'%20rx='2.7'%20ry='5'/%3E%3Cellipse%20cx='12'%20cy='6.2'%20rx='2.7'%20ry='5'%20transform='rotate%2845%2012%2012%29'/%3E%3Cellipse%20cx='12'%20cy='6.2'%20rx='2.7'%20ry='5'%20transform='rotate%2890%2012%2012%29'/%3E%3Cellipse%20cx='12'%20cy='6.2'%20rx='2.7'%20ry='5'%20transform='rotate%28135%2012%2012%29'/%3E%3Cellipse%20cx='12'%20cy='6.2'%20rx='2.7'%20ry='5'%20transform='rotate%28180%2012%2012%29'/%3E%3Cellipse%20cx='12'%20cy='6.2'%20rx='2.7'%20ry='5'%20transform='rotate%28225%2012%2012%29'/%3E%3Cellipse%20cx='12'%20cy='6.2'%20rx='2.7'%20ry='5'%20transform='rotate%28270%2012%2012%29'/%3E%3Cellipse%20cx='12'%20cy='6.2'%20rx='2.7'%20ry='5'%20transform='rotate%28315%2012%2012%29'/%3E%3C/svg%3E");
   position: relative;
   isolation: isolate;
   min-height: 100dvh;
@@ -56,7 +57,7 @@
   color: var(--q2-ink);
   color-scheme: light;
 }
-/* The lattice, revealed only where the lamp light falls (the top of the screen). */
+/* The vine, revealed only where the lamp light falls (the top of the screen). */
 .q2::before,
 .q2::after {
   content: "";
@@ -74,7 +75,7 @@
 }
 .q2::before {
   background-image: var(--q2-lattice);
-  background-size: 96px 96px;
+  background-size: 140px 140px;
   opacity: 0.16;
   -webkit-mask-image: radial-gradient(90% 42% at 50% 0%, #000 0%, transparent 78%);
   mask-image: radial-gradient(90% 42% at 50% 0%, #000 0%, transparent 78%);
@@ -98,7 +99,7 @@
   --q2-lamp: #e9c46a;
   --q2-danger: #e88068;
   --q2-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 16px 40px -24px rgba(0, 0, 0, 0.8);
-  --q2-lattice: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none' stroke='%23d8b56a' stroke-width='0.8'%3E%3Cpath d='M48 14l9.9 24.1L82 48l-24.1 9.9L48 82l-9.9-24.1L14 48l24.1-9.9z'/%3E%3Cpath d='M23.9 23.9l17.1 7.1h14l17.1-7.1-7.1 17.1v14l7.1 17.1-17.1-7.1H41l-17.1 7.1 7.1-17.1V41z'/%3E%3Cpath d='M0 48h14M82 48h14M48 0v14M48 82v14'/%3E%3C/g%3E%3C/svg%3E");
+  --q2-lattice: url("/data/quran2/ornament/vine-night.svg");
   color-scheme: dark;
 }
 .q2[data-palette="night"]::before { opacity: 0.12; }
@@ -141,70 +142,141 @@
 .q2-icon-btn:active { background: var(--q2-line); }
 .q2-main { padding: 16px 16px calc(var(--q2-bottom) + 118px); max-width: 760px; margin: 0 auto; }
 
-/* The dock: a floating glass bar, the active place under a small lit arch;
-   «التسميع» in the middle as a raised star medallion. */
-.q2-nav {
+@keyframes q2-lamp { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+
+/* ── In the app's frame ─────────────────────────────────────────────── */
+/* The browsing pages live inside the app (its header and bars); the
+   section's sky is drawn behind everything, in <body>. */
+.q2.is-shell { min-height: 0; background: transparent; isolation: auto; }
+.q2.is-shell::before, .q2.is-shell::after { content: none; }
+.q2.is-shell .q2-main { padding: 6px 0 28px; }
+.q2-backdrop {
   position: fixed;
-  inset-inline: 12px;
-  bottom: calc(var(--q2-bottom) + 10px);
-  z-index: 40;
-  max-width: 520px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  align-items: end;
-  padding: 6px;
-  border-radius: 28px;
-  background: var(--q2-glass);
-  backdrop-filter: blur(22px) saturate(1.3);
-  -webkit-backdrop-filter: blur(22px) saturate(1.3);
-  border: 1px solid var(--q2-line);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--q2-gold) 30%, transparent) inset, 0 18px 40px -18px rgba(0, 0, 0, 0.45);
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  --q2-bg: #f6f0e2;
+  --q2-bg2: #efe6d2;
+  --q2-lamp: #f2cf83;
+  background:
+    radial-gradient(120% 55% at 50% -8%, color-mix(in srgb, var(--q2-lamp) 34%, transparent), transparent 62%),
+    linear-gradient(180deg, var(--q2-bg) 0%, var(--q2-bg2) 100%);
 }
-.q2-nav a {
-  position: relative;
+.q2-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/data/quran2/ornament/vine.svg") 0 0 / 140px 140px;
+  opacity: 0.14;
+  -webkit-mask-image: radial-gradient(90% 42% at 50% 0%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(90% 42% at 50% 0%, #000 0%, transparent 78%);
+}
+.q2-backdrop[data-palette="night"] {
+  --q2-bg: #070c0b;
+  --q2-bg2: #0a1412;
+  --q2-lamp: #e9c46a;
+  background:
+    radial-gradient(120% 55% at 50% -10%, color-mix(in srgb, var(--q2-lamp) 18%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--q2-bg) 0%, var(--q2-bg2) 100%);
+}
+.q2-backdrop[data-palette="night"]::after { background-image: url("/data/quran2/ornament/vine-night.svg"); opacity: 0.1; }
+
+/* «أفق»: the Quran in «أفق»'s own colours, over its sky and garden. */
+.q2[data-palette="afaq"] {
+  --q2-bg: var(--bg);
+  --q2-bg2: var(--bg);
+  --q2-card: var(--u-surface, var(--card));
+  --q2-glass: var(--u-glass, var(--card));
+  --q2-ink: var(--fg);
+  --q2-soft: var(--muted);
+  --q2-faint: var(--muted-2, var(--muted));
+  --q2-line: var(--u-hairline, var(--stroke));
+  --q2-gold: var(--u-gold, var(--accent));
+  --q2-gold-soft: var(--u-gold-soft, var(--card));
+  --q2-gold-line: color-mix(in srgb, var(--u-gold, var(--accent)) 40%, transparent);
+  --q2-green: var(--ok, #2e7a58);
+  --q2-green-soft: color-mix(in srgb, var(--ok, #2e7a58) 12%, transparent);
+  --q2-word: color-mix(in srgb, var(--ok, #2e7a58) 20%, transparent);
+  --q2-ayah: color-mix(in srgb, var(--u-gold, #d8b678) 22%, transparent);
+  --q2-lamp: #f2cf83;
+  --q2-shadow: var(--u-shadow-card, none);
+  --q2-lattice: url("/data/quran2/ornament/vine.svg");
+  --q2-madina-paper: #fdf8ea;
+  --q2-madina-ink: #1a1610;
+  --q2-madina-rule: #1e4d38;
+  --q2-madina-band: url("/data/quran2/ornament/madina-band.svg");
+  --q2-madina-soft: #6d5a2e;
+  background: transparent;
+  color-scheme: inherit;
+}
+:root[data-ufuq-palette="night"] .q2[data-palette="afaq"] {
+  --q2-lattice: url("/data/quran2/ornament/vine-night.svg");
+  --q2-lamp: #e9c46a;
+}
+.q2[data-palette="afaq"]::before, .q2[data-palette="afaq"]::after { content: none; }
+:root[data-ufuq-palette="night"] .q2[data-palette="afaq"] .q2-btn:not(.is-ghost) { color: #0d1311; }
+/* Reading in «أفق»: the garden behind, the words on a calm veil. */
+.q2-afaq-sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+.q2-afaq-sky::after { content: ""; position: fixed; inset: 0; z-index: 1; background: color-mix(in srgb, var(--bg) 62%, transparent); }
+.q2.is-reading[data-palette="afaq"] .q2-top { background: color-mix(in srgb, var(--bg) 84%, transparent); }
+
+/* The places of the Quran, a row of tabs under the app's header. */
+.q2-tabs {
+  position: sticky;
+  top: var(--topbar-h, 0px);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 -4px 6px;
+  padding: 8px 4px;
+  background: color-mix(in srgb, var(--q2-bg) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border-radius: 0 0 18px 18px;
+}
+.q2[data-palette="afaq"] .q2-tabs { background: var(--u-glass, var(--q2-glass)); border: 1px solid var(--q2-line); border-top: 0; }
+.q2-tabs-row { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
+.q2-tab {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  min-height: 54px;
   justify-content: center;
-  border-radius: 22px;
-  font-size: 11px;
+  gap: 2px;
+  min-height: 50px;
+  padding: 4px 2px;
+  border-radius: 16px;
+  white-space: nowrap;
+  font-family: var(--q2-display);
+  font-size: 12px;
   font-weight: 600;
   color: var(--q2-soft);
+  border: 1px solid transparent;
 }
-.q2-nav a > svg { position: relative; z-index: 1; }
-.q2-nav a > span { position: relative; z-index: 1; }
-/* The lit arch behind the active place. */
-.q2-nav a.active { color: var(--q2-green); }
-.q2-nav a.active::before {
-  content: "";
-  position: absolute;
-  top: 3px;
-  width: 46px;
-  height: 46px;
-  background: radial-gradient(60% 60% at 50% 60%, color-mix(in srgb, var(--q2-lamp) 42%, transparent), transparent 72%);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M3 46V22C3 11 12 4 23 0c11 4 20 11 20 22v24z'/%3E%3C/svg%3E") center / contain no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cpath d='M3 46V22C3 11 12 4 23 0c11 4 20 11 20 22v24z'/%3E%3C/svg%3E") center / contain no-repeat;
-  animation: q2-lamp 6s ease-in-out infinite;
-}
-.q2-nav a.active svg { stroke-width: 2.3; }
-.q2-nav a.is-center { margin-top: -22px; color: var(--q2-ink); }
-.q2-nav a.is-center::before { display: none; }
-.q2-nav .q2-medal {
-  width: 58px;
-  height: 58px;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--q2-green) 88%, #fff), var(--q2-green));
-  clip-path: polygon(50% 0%, 64.6% 14.6%, 85.4% 14.6%, 85.4% 35.4%, 100% 50%, 85.4% 64.6%, 85.4% 85.4%, 64.6% 85.4%, 50% 100%, 35.4% 85.4%, 14.6% 85.4%, 14.6% 64.6%, 0% 50%, 14.6% 35.4%, 14.6% 14.6%, 35.4% 14.6%);
-  filter: drop-shadow(0 6px 14px color-mix(in srgb, var(--q2-green) 45%, transparent));
-}
-.q2[data-palette="night"] .q2-nav .q2-medal { color: #06120e; }
-.q2-nav a.is-center.active .q2-medal { background: linear-gradient(160deg, var(--q2-lamp), var(--q2-gold)); color: #241a06; }
-@keyframes q2-lamp { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+.q2-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.q2-tab.active { color: var(--q2-green); background: var(--q2-green-soft); border-color: color-mix(in srgb, var(--q2-green) 26%, transparent); }
+.q2-tab.is-star:not(.active) { color: var(--q2-gold); }
+.q2-tab.is-star.active { color: #241a06; background: linear-gradient(160deg, var(--q2-lamp), var(--q2-gold)); border-color: transparent; }
+.q2-tabs-tools { display: flex; gap: 0; flex: none; }
+.q2-tabs-tools .q2-icon-btn { width: 36px; height: 44px; border-radius: 12px; }
+
+/* Athar's mark in the Quran's own bars. */
+.q2-print { display: inline-grid; place-items: center; flex: none; border-radius: 12px; }
+.q2-print .q2-print-mark { width: 34px; height: 34px; }
+.q2 .athar-logo-print { background: linear-gradient(160deg, color-mix(in srgb, var(--q2-gold) 70%, #fff 30%), var(--q2-gold) 55%, color-mix(in srgb, var(--q2-gold) 70%, #000 30%)); }
+.q2 .athar-logo-word { background: var(--q2-ink); }
+.q2-top-title { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.q2-top-title .q2-print .q2-print-mark { width: 30px; height: 30px; }
+
+/* A switch, a day of the week, and words for screen readers only. */
+.q2-switch { position: relative; width: 48px; height: 28px; flex: none; border-radius: 999px; background: var(--q2-line); transition: background-color 0.2s ease; }
+.q2-switch > span { position: absolute; top: 3px; inset-inline-start: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); transition: inset-inline-start 0.2s ease; }
+.q2-switch.is-on { background: var(--q2-green); }
+.q2-switch.is-on > span { inset-inline-start: 23px; }
+.q2-day { display: grid; place-items: center; width: 30px; height: 30px; margin: 4px auto 0; border-radius: 50%; font-size: 12px; color: var(--q2-soft); background: var(--q2-line); }
+.q2-day.is-done { color: #fff; background: var(--q2-green); }
+.q2-day.is-today:not(.is-done) { color: var(--q2-green); background: transparent; box-shadow: inset 0 0 0 2px var(--q2-green); }
+.q2-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* ── Building blocks ───────────────────────────────────────────────── */
 .q2-h1 { font-family: var(--q2-display); font-size: 30px; font-weight: 600; line-height: 1.35; }
@@ -212,7 +284,17 @@
 .q2-eyebrow { font-family: var(--q2-display); font-size: 12.5px; font-weight: 500; color: var(--q2-gold); letter-spacing: 0; }
 .q2-soft { color: var(--q2-soft); }
 .q2-small { font-size: 12.5px; color: var(--q2-soft); }
-.q2-orn { color: var(--q2-gold); font-size: 0.7em; }
+/* The small flower that heads a section (from the Madina mushaf's border). */
+.q2-orn {
+  display: inline-block;
+  width: 0.72em;
+  height: 0.72em;
+  margin-inline-end: 0.2em;
+  vertical-align: 0.05em;
+  background: var(--q2-gold);
+  -webkit-mask: var(--q2-rosette) center / contain no-repeat;
+  mask: var(--q2-rosette) center / contain no-repeat;
+}
 /* A surface with a gilded top edge, like the gilt edge of a page. */
 .q2-card {
   border-radius: 22px;
@@ -280,19 +362,21 @@
   border-bottom: 1px solid var(--q2-line);
 }
 .q2-row:last-child { border-bottom: 0; }
-/* A number in an eight-point star (khatam). */
+/* A number in a round medallion with a gilded double rim, like the ayah
+   markers of the Madina mushaf. */
 .q2-num {
   width: 40px;
   height: 40px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
+  border-radius: 50%;
   font-family: var(--q2-display);
   font-size: 13px;
   font-weight: 600;
   color: var(--q2-gold);
-  background: var(--q2-gold-soft);
-  clip-path: polygon(50% 0%, 64.6% 14.6%, 85.4% 14.6%, 85.4% 35.4%, 100% 50%, 85.4% 64.6%, 85.4% 85.4%, 64.6% 85.4%, 50% 100%, 35.4% 85.4%, 14.6% 85.4%, 14.6% 64.6%, 0% 50%, 14.6% 35.4%, 14.6% 14.6%, 35.4% 14.6%);
+  background: radial-gradient(circle, var(--q2-gold-soft) 0 64%, var(--q2-gold-line) 65% 67%, var(--q2-gold-soft) 68%);
+  box-shadow: 0 0 0 1px var(--q2-gold-line);
 }
 .q2-bar { display: block; height: 4px; border-radius: 99px; background: var(--q2-line); overflow: hidden; }
 .q2-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--q2-green); }
@@ -324,6 +408,22 @@
 }
 .q2-sheet-grip { width: 40px; height: 4px; border-radius: 99px; background: var(--q2-line); margin: 10px auto 4px; flex-shrink: 0; }
 .q2-sheet-body { overflow-y: auto; padding: 6px 18px calc(var(--q2-bottom) + 20px); overscroll-behavior: contain; }
+/* Every sheet can be closed with a tap on its ✕ (top corner, the end side). */
+.q2-sheet-close {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 12px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--q2-ink-2, var(--q2-ink));
+  background: color-mix(in srgb, var(--q2-ink) 7%, transparent);
+}
+.q2-sheet { position: fixed; }
+.q2-sheet-body > :first-child { padding-inline-end: 40px; }
 @keyframes q2-fade { from { opacity: 0; } }
 @keyframes q2-rise { from { transform: translateY(40px); opacity: 0; } }
 
@@ -577,7 +677,7 @@
 /* The lattice inside the niche: lit around the lamp, gone before the words. */
 .q2-niche-lattice {
   z-index: -1;
-  background: var(--q2-lattice) center 4% / 64px 64px;
+  background: var(--q2-lattice) center 4% / 96px 96px;
   opacity: 0.5;
   -webkit-mask-image: radial-gradient(58% 34% at 50% 12%, #000 10%, transparent 100%);
   mask-image: radial-gradient(58% 34% at 50% 12%, #000 10%, transparent 100%);
@@ -637,15 +737,16 @@
   height: 46px;
   display: grid;
   place-items: center;
+  border-radius: 50%;
   color: var(--q2-green);
-  background: var(--q2-green-soft);
-  clip-path: polygon(50% 0%, 64.6% 14.6%, 85.4% 14.6%, 85.4% 35.4%, 100% 50%, 85.4% 64.6%, 85.4% 85.4%, 64.6% 85.4%, 50% 100%, 35.4% 85.4%, 14.6% 85.4%, 14.6% 64.6%, 0% 50%, 14.6% 35.4%, 14.6% 14.6%, 35.4% 14.6%);
+  background: radial-gradient(circle, var(--q2-green-soft) 0 66%, color-mix(in srgb, var(--q2-green) 28%, transparent) 67% 69%, var(--q2-green-soft) 70%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--q2-gold) 35%, transparent);
 }
 .q2-tile b { font-family: var(--q2-display); font-size: 17px; font-weight: 600; text-align: center; }
 .q2-tile span { font-size: 12px; line-height: 1.6; color: var(--q2-soft); text-align: center; }
 .q2-tile.is-feature { grid-column: span 2; min-height: 0; flex-direction: row; align-items: center; border-radius: 26px; padding: 16px; }
 .q2-tile.is-feature b, .q2-tile.is-feature span { text-align: start; }
-.q2-tile.is-feature .q2-tile-medal { align-self: center; width: 56px; height: 56px; color: #fff; background: linear-gradient(160deg, color-mix(in srgb, var(--q2-green) 86%, #fff), var(--q2-green)); }
+.q2-tile.is-feature .q2-tile-medal { align-self: center; width: 56px; height: 56px; color: #fff; background: radial-gradient(circle, transparent 0 66%, rgba(255, 255, 255, 0.4) 67% 69%, transparent 70%), linear-gradient(160deg, color-mix(in srgb, var(--q2-green) 86%, #fff), var(--q2-green)); box-shadow: 0 0 0 1px var(--q2-gold-line), 0 8px 18px -8px color-mix(in srgb, var(--q2-green) 60%, transparent); }
 .q2[data-palette="night"] .q2-tile.is-feature .q2-tile-medal { color: #06120e; }
 .q2-badge { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px; font-family: var(--q2-display); font-size: 11px; font-weight: 600; color: var(--q2-gold); border: 1px solid var(--q2-gold-line); }
 .q2-section-title { display: flex; align-items: center; gap: 8px; font-family: var(--q2-display); font-size: 18px; font-weight: 600; }
@@ -661,86 +762,220 @@
 .q2-hide.q2-tw.is-lit { background: linear-gradient(var(--q2-gold), var(--q2-gold)) bottom 0.45em left 0 / 100% 3px no-repeat, radial-gradient(80% 120% at 50% 100%, color-mix(in srgb, var(--q2-lamp) 45%, transparent), transparent 70%); }
 
 /* ── «مصحف المدينة» ─────────────────────────────────────────────────── */
-/* The ornamented band of the frame: green, gold stars and rules (border-image). */
+/* The printed page: cream paper, green rules around a band of vine, leaves
+   and flowers (public/data/quran2/ornament), the juz' and the surah above the
+   frame, the page number under it. It fills the screen. */
 .q2 {
-  --q2-madina-band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M0 0h36v36H0z M12 12v12h12V12z' fill='%231d4d3e' fill-rule='evenodd'/%3E%3Cg fill='none' stroke='%23c9a24e' stroke-width='0.8'%3E%3Cpath d='M1.5 1.5h33v33h-33z M10.5 10.5h15v15h-15z'/%3E%3C/g%3E%3Cg fill='%23d9b45f'%3E%3Cpath d='M6 2.6l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4L2.6 6l2.4-1z M30 2.6l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z M6 26.6l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z M30 26.6l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z M18 3.2l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z M18 27.2l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z M6 15.2l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z M30 15.2l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z'/%3E%3C/g%3E%3C/svg%3E");
-  --q2-madina-paper: #fffcf2;
+  --q2-madina-paper: #fdf8ea;
   --q2-madina-ink: #1a1610;
+  --q2-madina-rule: #1e4d38;
+  --q2-madina-band: url("/data/quran2/ornament/madina-band.svg");
+  --q2-madina-soft: #6d5a2e;
 }
-.q2[data-palette="night"] { --q2-madina-paper: #0e1916; --q2-madina-ink: #efe6d0; }
+.q2[data-palette="night"] {
+  --q2-madina-paper: #0d1713;
+  --q2-madina-ink: #ece3cc;
+  --q2-madina-rule: #b99a52;
+  --q2-madina-band: url("/data/quran2/ornament/madina-band-dark.svg");
+  --q2-madina-soft: #c9b27a;
+}
+
+.q2-mushaf.is-full {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% 45%, transparent 55%, rgba(120, 90, 30, 0.08)),
+    var(--q2-madina-paper);
+  color: var(--q2-madina-ink);
+  touch-action: pan-y;
+}
+.q2[data-palette="night"] .q2-mushaf.is-full {
+  background: radial-gradient(120% 80% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.35)), var(--q2-madina-paper);
+}
+.q2-mstage {
+  position: absolute;
+  inset: calc(var(--q2-top) + 6px) 6px calc(var(--q2-bottom) + 6px);
+  display: grid;
+  place-items: center;
+}
+.q2-mushaf.is-full .q2-spread { padding: 0; gap: 18px; align-items: center; }
+
 .q2-madina {
   container-type: inline-size;
   position: relative;
-  width: min(100%, 560px);
-  aspect-ratio: 0.64;
-  max-height: calc(100dvh - var(--q2-top) - 150px);
-  display: flex;
-  flex-direction: column;
-  padding: 26px 26px 18px;
+  width: var(--mw, min(100%, 560px));
+  height: var(--mh, auto);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   color: var(--q2-madina-ink);
-  background:
-    radial-gradient(120% 90% at 50% 50%, transparent 60%, rgba(150, 110, 40, 0.1)),
-    var(--q2-madina-paper);
-  border: 12px solid transparent;
-  border-image: var(--q2-madina-band) 12 round;
-  box-shadow: 0 0 0 1.5px #c9a24e, 0 14px 36px -18px rgba(0, 0, 0, 0.55);
 }
-.q2-spread.is-two .q2-madina { width: min(49%, 560px); }
-.q2-madina::before {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  border: 1px solid #c9a24e;
-  pointer-events: none;
+.q2-madina-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 1.6cqw 0.8cqw;
+  font-family: "Amiri", var(--q2-serif);
+  font-size: clamp(11px, 3.5cqw, 19px);
+  line-height: 1.5;
+  color: var(--q2-madina-ink);
 }
-.q2-madina-head { display: flex; justify-content: space-between; font-family: var(--q2-serif); font-size: clamp(10px, 2.6cqw, 14px); color: #a07a2c; margin: -10px 0 4px; }
-.q2-madina-lines { flex: 1; display: grid; grid-template-rows: repeat(15, 1fr); align-items: center; font-size: clamp(14px, 5.6cqw, 32px); line-height: 1.5; }
-.q2-madina.is-opening .q2-madina-lines { grid-template-rows: repeat(8, auto); align-content: center; gap: 0.45em; }
+.q2-mframe {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  border: clamp(9px, 3.6cqw, 20px) solid transparent;
+  border-image: var(--q2-madina-band) 16 round;
+  outline: 1.4px solid var(--q2-madina-rule);
+  outline-offset: 1.5px;
+  background: var(--q2-madina-paper);
+}
+.q2-madina-lines {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(15, minmax(0, 1fr));
+  align-items: center;
+  padding: 0.6cqw 2.2cqw;
+  font-size: clamp(14px, 5.75cqw, 36px);
+  line-height: 1.45;
+}
+.q2-madina.is-opening .q2-madina-lines { grid-template-rows: repeat(8, auto); align-content: center; gap: 0.55em; padding: 6cqw 8cqw; }
 .q2-mline { display: flex; justify-content: space-between; align-items: center; white-space: nowrap; min-width: 0; direction: rtl; }
 .q2-madina.is-opening .q2-mline { justify-content: center; gap: 0.2em; }
 .q2-mline.is-surah, .q2-mline.is-basmala { justify-content: center; }
 .q2-mline.is-basmala { font-family: "UthmanicHafs", "Amiri Quran", serif; font-size: 0.86em; }
+
+/* The surah's title, in a framed band across the line. */
 .q2-cartouche {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 62%;
-  padding: 0.05em 1.6em;
-  font-family: var(--q2-serif);
-  font-weight: 700;
-  font-size: 0.62em;
-  color: #f6e7bf;
-  background: linear-gradient(180deg, #24604c, #173f32);
-  border: 1.5px solid #c9a24e;
-  border-radius: 999px;
-  box-shadow: 0 0 0 2px var(--q2-madina-paper), 0 0 0 3px #c9a24e;
+  gap: 0.6em;
+  width: 96%;
+  height: 1.35em;
+  font-family: "Amiri", var(--q2-serif);
+  font-size: 0.66em;
+  color: var(--q2-madina-ink);
+  background:
+    linear-gradient(90deg, transparent, color-mix(in srgb, #5b8f50 16%, transparent) 18%, color-mix(in srgb, #5b8f50 16%, transparent) 82%, transparent),
+    var(--q2-madina-paper);
+  border-block: 1.5px solid var(--q2-madina-rule);
+  box-shadow: inset 0 3px 0 -1.5px var(--q2-madina-paper), inset 0 4px 0 -1.5px color-mix(in srgb, var(--q2-madina-rule) 55%, transparent), inset 0 -3px 0 -1.5px var(--q2-madina-paper), inset 0 -4px 0 -1.5px color-mix(in srgb, var(--q2-madina-rule) 55%, transparent);
+}
+.q2-cartouche b { font-weight: 700; padding-inline: 0.6em; }
+.q2-cartouche i {
+  width: 1.1em;
+  height: 1.1em;
+  flex: none;
+  background: #b9475b;
+  -webkit-mask: var(--q2-rosette) center / contain no-repeat;
+  mask: var(--q2-rosette) center / contain no-repeat;
 }
 .q2-cartouche::before, .q2-cartouche::after {
   content: "";
   position: absolute;
   top: 50%;
-  width: 0.7em;
-  height: 0.7em;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
   transform: translateY(-50%);
-  background: #d9b45f;
-  clip-path: polygon(50% 0%, 64.6% 14.6%, 85.4% 14.6%, 85.4% 35.4%, 100% 50%, 85.4% 64.6%, 85.4% 85.4%, 64.6% 85.4%, 50% 100%, 35.4% 85.4%, 14.6% 85.4%, 14.6% 64.6%, 0% 50%, 14.6% 35.4%, 14.6% 14.6%, 35.4% 14.6%);
+  border: 1.5px solid var(--q2-madina-rule);
+  background: var(--q2-madina-paper);
 }
-.q2-cartouche::before { right: 0.5em; }
-.q2-cartouche::after { left: 0.5em; }
+.q2-cartouche::before { right: -0.25em; }
+.q2-cartouche::after { left: -0.25em; }
+
+/* The hizb marks, in the outer margin, at their line. */
+.q2-hizb {
+  position: absolute;
+  z-index: 1;
+  width: 7.4cqw;
+  height: 7.4cqw;
+  min-width: 22px;
+  min-height: 22px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--q2-madina-paper) 0 52%, transparent 53%),
+    conic-gradient(from 0deg, #d8697c 0 12.5%, #5b8f50 0 25%, #d8697c 0 37.5%, #5b8f50 0 50%, #d8697c 0 62.5%, #5b8f50 0 75%, #d8697c 0 87.5%, #5b8f50 0);
+  box-shadow: 0 0 0 1px var(--q2-madina-rule);
+  opacity: 0.92;
+}
+.q2-hizb::after { content: ""; width: 34%; height: 34%; border-radius: 50%; background: #e2b44c; }
+.q2-hizb > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.q2-madina.is-right .q2-hizb { right: calc(clamp(9px, 3.6cqw, 20px) * -1 - 3.7cqw); }
+.q2-madina.is-left .q2-hizb { left: calc(clamp(9px, 3.6cqw, 20px) * -1 - 3.7cqw); }
+
 .q2-glyph { cursor: pointer; border-radius: 6px; transition: background-color 0.2s ease, color 0.2s ease; }
-.q2-glyph.is-end { color: #8a6a25; }
-.q2[data-palette="night"] .q2-glyph.is-end { color: #d9b45f; }
-.q2-glyph.is-now { background: radial-gradient(90% 130% at 50% 100%, color-mix(in srgb, var(--q2-lamp) 50%, transparent), transparent 75%); }
-.q2-glyph.is-sel { background: color-mix(in srgb, #24604c 16%, transparent); }
-.q2-madina-foot { display: flex; justify-content: center; margin-top: 4px; }
-.q2-madina-num {
-  min-width: 2.4em;
-  padding: 0.1em 0.5em;
-  font-family: var(--q2-serif);
-  font-size: clamp(10px, 2.6cqw, 14px);
-  text-align: center;
-  color: #8a6a25;
-  border: 1px solid #c9a24e;
-  border-radius: 999px;
+.q2-glyph.is-end { color: var(--q2-madina-soft); }
+.q2-glyph.is-now { background: radial-gradient(90% 130% at 50% 100%, color-mix(in srgb, var(--q2-lamp) 55%, transparent), transparent 75%); }
+.q2-glyph.is-sel { background: color-mix(in srgb, #2f7a55 18%, transparent); }
+.q2-madina-foot { display: flex; justify-content: center; padding-top: 0.9cqw; }
+.q2-madina-num { font-family: "Amiri", var(--q2-serif); font-size: clamp(11px, 3.4cqw, 18px); color: var(--q2-madina-ink); }
+
+/* The controls over the page, out of the way until called for. */
+.q2-mchrome {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  color: var(--q2-ink);
+  background: var(--q2-glass);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease;
 }
+.q2-mchrome.is-top { top: 0; padding-top: calc(var(--q2-top) + 6px); border-bottom: 1px solid var(--q2-line); }
+.q2-mchrome.is-bottom { bottom: 0; padding-bottom: calc(var(--q2-bottom) + 8px); border-top: 1px solid var(--q2-line); }
+.q2-mushaf.is-full:not(.has-chrome) .q2-mchrome.is-top { transform: translateY(-110%); opacity: 0; pointer-events: none; }
+.q2-mushaf.is-full:not(.has-chrome) .q2-mchrome.is-bottom { transform: translateY(110%); opacity: 0; pointer-events: none; }
+.q2-mchrome-title { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; line-height: 1.3; }
+.q2-mchrome-title b { font-family: var(--q2-display); font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.q2-mchrome-title span { font-size: 11.5px; color: var(--q2-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.q2-icon-btn.is-on { color: var(--q2-green); background: var(--q2-green-soft); }
+.q2-mslider { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.q2-mslider input { flex: 1; min-width: 0; accent-color: var(--q2-green); }
+.q2-mslider-num { font-family: var(--q2-display); font-size: 13px; color: var(--q2-soft); white-space: nowrap; }
+.q2-mplaying {
+  position: absolute;
+  bottom: calc(var(--q2-bottom) + 10px);
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--q2-green);
+  background: var(--q2-glass);
+  border: 1px solid var(--q2-line);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+@media (prefers-reduced-motion: reduce) { .q2-mchrome { transition: none; } }
+
+/* A tafsir kept on the phone. */
+.q2-offline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--q2-soft); }
+.q2-offline.is-done { color: var(--q2-green); font-weight: 600; }
+
+/* «التسميع» with the tajweed engine: each word's verdict, the voice meter, a remark. */
+.q2-tw.q2-tj-ok { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--q2-green) 70%, transparent); }
+.q2-tw.q2-tj-khafi { box-shadow: inset 0 -3px 0 var(--q2-gold); background: var(--q2-gold-soft); }
+.q2-tw.q2-tj-jali { box-shadow: inset 0 -3px 0 var(--q2-danger); background: color-mix(in srgb, var(--q2-danger) 12%, transparent); }
+.q2-meter { display: inline-block; width: 64px; height: 6px; margin-inline-start: 10px; border-radius: 99px; background: var(--q2-line); overflow: hidden; vertical-align: middle; }
+.q2-meter > span { display: block; height: 100%; background: var(--q2-green); transform-origin: right; transition: transform 0.15s linear; }
+.q2-note { padding: 10px 12px; border-radius: 14px; font-size: 14.5px; line-height: 1.8; border: 1px solid var(--q2-line); }
+.q2-note.is-jali { border-color: color-mix(in srgb, var(--q2-danger) 40%, transparent); background: color-mix(in srgb, var(--q2-danger) 8%, transparent); }
+.q2-note.is-khafi { border-color: var(--q2-gold-line); background: var(--q2-gold-soft); }

@@ -1,7 +1,7 @@
 /**
  * «مشكاة» — the section's signature shapes (docs/QURAN_V2_DESIGN.md): the niche
- * (a pointed arch, the mihrab's profile) holding a lamp, the eight-point star, and
- * a progress ring drawn as a gilded orbit.
+ * (a pointed arch, the mihrab's profile) holding a lamp, the rosette of the
+ * Madina mushaf's border, and a progress ring drawn as a gilded orbit.
  */
 import * as React from "react";
 
@@ -47,16 +47,19 @@ export function Lamp({ size = 34 }: { size?: number }) {
   );
 }
 
-/** The eight-point star (khatam), as an ornament or a medallion. */
-export function Star({ size = 14, className = "", filled = true }: { size?: number; className?: string; filled?: boolean }) {
+/**
+ * A small flower of eight rounded petals, the rosette of the Madina mushaf's
+ * border, as an ornament or a medallion.
+ */
+export function Rosette({ size = 14, className = "", filled = true }: { size?: number; className?: string; filled?: boolean }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <path
-        d="M12 1l3.2 4.3 5.3.6-.6 5.3L24 12l-4.1 3.2.6 5.3-5.3-.6L12 24l-3.2-4.1-5.3.6.6-5.3L0 12l4.1-3.2-.6-5.3 5.3.6z"
-        fill={filled ? "currentColor" : "none"}
-        stroke={filled ? "none" : "currentColor"}
-        strokeWidth="1.2"
-      />
+      <g fill={filled ? "currentColor" : "none"} stroke={filled ? "none" : "currentColor"} strokeWidth="1">
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((r) => (
+          <ellipse key={r} cx="12" cy="6.4" rx="2.6" ry="4.9" transform={`rotate(${r} 12 12)`} opacity={r % 90 === 0 ? 1 : 0.62} />
+        ))}
+      </g>
+      <circle cx="12" cy="12" r="2.4" fill={filled ? "var(--q2-card, #fff)" : "currentColor"} />
     </svg>
   );
 }

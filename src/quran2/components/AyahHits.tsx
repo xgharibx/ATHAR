@@ -24,7 +24,7 @@ export function AyahHits({ hits, text, meta }: { hits: AyahHit[]; text: Q2Text; 
               type="button"
               className="q2-row q2-press"
               style={{ display: "block" }}
-              onClick={() => navigate(`/q2/read/${hit.s}?a=${hit.a}`)}
+              onClick={() => navigate(`/quran/read/${hit.s}?a=${hit.a}`)}
             >
               <span className="q2-eyebrow">
                 {meta.surahs[hit.s - 1]!.name}، {arDigits(hit.a)}

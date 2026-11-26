@@ -53,11 +53,10 @@ export function ListenMiniPlayer({ variant = "classic" }: { variant?: "classic" 
             <button type="button" className="ls-icon-btn" aria-label="التالي" onClick={nextTrack}>
               <SkipBack size={19} aria-hidden="true" />
             </button>
-          ) : (
-            <button type="button" className="ls-icon-btn" aria-label="إغلاق المشغّل" onClick={stopListen}>
-              <X size={18} aria-hidden="true" />
-            </button>
-          )}
+          ) : null}
+          <button type="button" className="ls-icon-btn is-close" aria-label="إغلاق المشغّل" onClick={stopListen}>
+            <X size={18} aria-hidden="true" />
+          </button>
           <span className="ls-mini-bar" aria-hidden="true">
             <i style={{ width: `${progress}%` }} />
           </span>

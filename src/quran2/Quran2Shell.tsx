@@ -1,85 +1,115 @@
 import * as React from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, BookOpenText, Brain, Home, Mic, Moon, ScrollText, Search, Sun } from "lucide-react";
+import { createPortal } from "react-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { BookOpenText, Brain, Home, Mic, Moon, ScrollText, Search, Sparkles, Sun } from "lucide-react";
 import "./quran2.css";
-import { useQ2Store } from "./store";
+import { useQuranLook, type QuranLook } from "./look";
 
-/** The dock (docs/QURAN_V2_DESIGN.md): «التسميع» raised in the middle. */
-const NAV = [
-  { to: "/q2", label: "الرئيسية", Icon: Home, end: true },
-  { to: "/q2/index", label: "المصحف", Icon: BookOpenText, also: ["/q2/page", "/q2/roots", "/q2/numbers", "/q2/marks", "/q2/khatma", "/q2/search"] },
-  { to: "/q2/tasmee", label: "التسميع", Icon: Mic, center: true },
-  { to: "/q2/hifz", label: "الحفظ", Icon: Brain },
-  { to: "/q2/tafsir", label: "التفسير", Icon: ScrollText },
-] as const;
+const LiveGardenBackdrop = React.lazy(() =>
+  import("@/components/ufuq/garden/LiveGardenBackdrop").then((m) => ({ default: m.LiveGardenBackdrop })),
+);
 
-/** «القرآن ٢»: its own world inside Athar, with its own look and navigation. */
-export function Quran2Shell() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const palette = useQ2Store((s) => s.prefs.palette);
-  const setPrefs = useQ2Store((s) => s.setPrefs);
-  const path = location.pathname;
-  const reading = path.startsWith("/q2/read") || path.startsWith("/q2/hifz/session") || path.startsWith("/q2/page") || path.startsWith("/q2/madina") || path.startsWith("/q2/tasmee/session");
+const LOOK_NAMES: Record<QuranLook, string> = { paper: "السَّحَر", night: "الليل", afaq: "أفق" };
 
+/** The phone's status bar takes the colour of the page. */
+function useThemeColor(look: QuranLook) {
   React.useEffect(() => {
+    if (look === "afaq") return;
     const meta = document.querySelector('meta[name="theme-color"]');
     const previous = meta?.getAttribute("content") ?? null;
-    meta?.setAttribute("content", palette === "night" ? "#070c0b" : "#f6f0e2");
+    meta?.setAttribute("content", look === "night" ? "#070c0b" : "#f6f0e2");
     return () => {
       if (meta && previous) meta.setAttribute("content", previous);
     };
-  }, [palette]);
+  }, [look]);
+}
 
+/**
+ * The section's own sky behind the app's header and bars: the page colour,
+ * the lamp's light at the top and the ornament around it. Drawn in <body>,
+ * apart from the page (which moves as it enters), so it stays still.
+ */
+function Q2Backdrop({ look }: { look: Exclude<QuranLook, "afaq"> }) {
+  return createPortal(<div className="q2-backdrop" data-palette={look} aria-hidden="true" />, document.body);
+}
+
+/** The places of the Quran, under the app's header. */
+const TABS = [
+  { to: "/quran", label: "الرئيسية", Icon: Home, end: true },
+  { to: "/quran/index", label: "المصحف", Icon: BookOpenText, also: ["/quran/roots", "/quran/numbers", "/quran/marks", "/quran/khatma", "/quran/search", "/quran/about"] },
+  { to: "/quran/tasmee", label: "التسميع", Icon: Mic, star: true },
+  { to: "/quran/hifz", label: "الحفظ", Icon: Brain },
+  { to: "/quran/tafsir", label: "التفسير", Icon: ScrollText },
+] as const;
+
+function QuranTabs() {
+  const location = useLocation();
+  const path = location.pathname;
+  const { look, cycle, next } = useQuranLook();
   return (
-    <div className="q2" data-palette={palette} dir="rtl" lang="ar">
-      {!reading ? (
-        <header className="q2-top">
-          <button type="button" className="q2-icon-btn q2-press" onClick={() => navigate("/quran")} aria-label="العودة إلى أثر">
-            <ArrowRight size={20} aria-hidden="true" />
-          </button>
-          <button type="button" className="q2-icon-btn q2-press" onClick={() => navigate("/q2/search")} aria-label="البحث في القرآن">
-            <Search size={19} aria-hidden="true" />
-          </button>
-          <div className="q2-top-title">
-            القرآن <span className="q2-orn">✦</span> ٢
-          </div>
-          <span className="q2-icon-btn" aria-hidden="true" />
-          <button
-            type="button"
-            className="q2-icon-btn q2-press"
-            onClick={() => setPrefs({ palette: palette === "night" ? "paper" : "night" })}
-            aria-label={palette === "night" ? "لون السَّحَر" : "لون الليل"}
-          >
-            {palette === "night" ? <Sun size={19} aria-hidden="true" /> : <Moon size={19} aria-hidden="true" />}
-          </button>
-        </header>
+    <div className="q2-tabs" role="navigation" aria-label="أقسام القرآن">
+      <div className="q2-tabs-row">
+        {TABS.map((tab) => {
+          const also = "also" in tab ? tab.also : [];
+          return (
+            <NavLink
+              key={tab.to}
+              to={tab.to}
+              end={"end" in tab}
+              className={({ isActive }) => ["q2-tab q2-press", isActive || also.some((p) => path.startsWith(p)) ? "active" : "", "star" in tab ? "is-star" : ""].join(" ")}
+            >
+              <tab.Icon size={17} aria-hidden="true" />
+              <span>{tab.label}</span>
+            </NavLink>
+          );
+        })}
+      </div>
+      <div className="q2-tabs-tools">
+        <NavLink to="/quran/search" className="q2-icon-btn q2-press" aria-label="البحث في القرآن">
+          <Search size={18} aria-hidden="true" />
+        </NavLink>
+        <button type="button" className="q2-icon-btn q2-press" onClick={cycle} aria-label={`لون ${LOOK_NAMES[next]}`} title={`اللون الآن: ${LOOK_NAMES[look]}`}>
+          {next === "afaq" ? <Sparkles size={18} aria-hidden="true" /> : next === "night" ? <Moon size={18} aria-hidden="true" /> : <Sun size={18} aria-hidden="true" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * «القرآن الكريم» inside the app's own frame (the classic header and bottom
+ * bar, or «أفق»'s top bar and tab bar), with its places in a row of tabs.
+ */
+export function Quran2Shell() {
+  const { look } = useQuranLook();
+  useThemeColor(look);
+  return (
+    <div className="q2 is-shell" data-palette={look} dir="rtl" lang="ar">
+      {look !== "afaq" ? <Q2Backdrop look={look} /> : null}
+      <QuranTabs />
+      <Outlet />
+    </div>
+  );
+}
+
+/**
+ * Reading, memorising and reciting take the whole screen: the surah, the
+ * printed page, a memorisation session, a recitation. In «أفق» the garden is
+ * behind it, as on every other page there.
+ */
+export function QuranReadingShell() {
+  const { look } = useQuranLook();
+  useThemeColor(look);
+  return (
+    <div className="q2 is-reading" data-palette={look} dir="rtl" lang="ar">
+      {look === "afaq" ? (
+        <div className="q2-afaq-sky" aria-hidden="true">
+          <React.Suspense fallback={null}>
+            <LiveGardenBackdrop />
+          </React.Suspense>
+        </div>
       ) : null}
       <Outlet />
-      {!reading ? (
-        <nav className="q2-nav" aria-label="أقسام القرآن ٢">
-          {NAV.map((item) => {
-            const { to, label, Icon } = item;
-            const also = "also" in item ? item.also : [];
-            const isCenter = "center" in item;
-            return (
-              <NavLink
-                key={to}
-                to={to}
-                end={"end" in item}
-                className={({ isActive }) => [isActive || also.some((p) => path.startsWith(p)) ? "active" : "", isCenter ? "is-center" : ""].join(" ")}
-              >
-                {isCenter ? (
-                  <span className="q2-medal"><Icon size={24} aria-hidden="true" /></span>
-                ) : (
-                  <Icon size={21} aria-hidden="true" />
-                )}
-                <span>{label}</span>
-              </NavLink>
-            );
-          })}
-        </nav>
-      ) : null}
     </div>
   );
 }

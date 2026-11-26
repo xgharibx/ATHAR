@@ -58,13 +58,13 @@ describe("«مصحف المدينة»: the fifteen lines", () => {
 describe("«التسميع»: the log and its backup", () => {
   it("keeps the latest recitations and restores only valid ones", () => {
     useQ2Store.setState({ tasmeeLog: [] });
-    useQ2Store.getState().logTasmee({ at: 1, label: "الكهف ١–١٠", target: "/q2/tasmee/session?s=18&from=1&to=10&mode=hidden", said: 140, total: 150, missed: ["18:2:3"] });
+    useQ2Store.getState().logTasmee({ at: 1, label: "الكهف ١–١٠", target: "/quran/tasmee/session?s=18&from=1&to=10&mode=hidden", said: 140, total: 150, missed: ["18:2:3"] });
     const blob = exportQuran2();
     useQ2Store.setState({ tasmeeLog: [] });
     expect(adoptQuran2(blob)).toBe(true);
     expect(useQ2Store.getState().tasmeeLog).toHaveLength(1);
-    expect(adoptQuran2({ ...blob, tasmeeLog: [{ at: 2, label: "x", target: "https://evil.example", said: 1, total: 1, missed: [] }, { at: 3, label: "y", target: "/q2/tasmee", said: 1, total: 2, missed: ["bad", "2:3:4"] }] })).toBe(true);
-    expect(useQ2Store.getState().tasmeeLog).toEqual([{ at: 3, label: "y", target: "/q2/tasmee", said: 1, total: 2, missed: ["2:3:4"] }]);
+    expect(adoptQuran2({ ...blob, tasmeeLog: [{ at: 2, label: "x", target: "https://evil.example", said: 1, total: 1, missed: [] }, { at: 3, label: "y", target: "/quran/tasmee", said: 1, total: 2, missed: ["bad", "2:3:4"] }] })).toBe(true);
+    expect(useQ2Store.getState().tasmeeLog).toEqual([{ at: 3, label: "y", target: "/quran/tasmee", said: 1, total: 2, missed: ["2:3:4"] }]);
   });
 
   it("reads the display mode, hidden by default", () => {

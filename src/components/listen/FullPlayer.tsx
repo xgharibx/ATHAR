@@ -41,6 +41,7 @@ import {
   setListenRate,
   setSleepTimer,
   skipBy,
+  stopListen,
   toggleListen,
   toggleShuffle,
 } from "@/lib/listen/player";
@@ -51,8 +52,13 @@ import { closeFullPlayer } from "@/lib/listen/ui";
 import { useListenPlayer } from "@/lib/listen/useListen";
 import { ayahAt, loadAyahTimings, type AyahTiming } from "@/lib/listen/timing";
 import { useQuranDB } from "@/data/useQuranDB";
+import { AtharLogo } from "@/components/brand/AtharLogo";
 import { shareText } from "@/lib/shareTargets";
-import { ReciterMark } from "@/components/listen/ReciterMark";
+
+// The player is drawn over «أفق»'s own garden at night: sky, moon and flowers.
+const LiveGardenBackdrop = React.lazy(() =>
+  import("@/components/ufuq/garden/LiveGardenBackdrop").then((m) => ({ default: m.LiveGardenBackdrop })),
+);
 
 const RATES = [0.75, 1, 1.25, 1.5];
 
@@ -224,42 +230,57 @@ export default function FullPlayer() {
 
   return createPortal(
     <div
-      className="ls-full"
+      className="ls-full has-garden"
       role="dialog"
       aria-modal="true"
       aria-label={`يُتلى الآن: ${track.title}`}
       style={{ ["--h" as string]: hueFor(track.artist), ["--ls-anim" as string]: playing ? "running" : "paused" }}
     >
+      <div className="ls-full-garden" aria-hidden="true">
+        <React.Suspense fallback={null}>
+          <LiveGardenBackdrop forcedMode="night" stage />
+        </React.Suspense>
+      </div>
       <div className="ls-full-top">
         <button type="button" className="ls-icon-btn" aria-label="تصغير المشغّل" onClick={closeFullPlayer}>
           <ChevronDown size={26} aria-hidden="true" />
         </button>
         <div className="ls-full-kicker">
+          <AtharLogo className="ls-full-print" />
           {track.album}
           {p.queue.length > 1 ? <div>{arabicDigits(p.index + 1)} من {arabicDigits(p.queue.length)}</div> : null}
         </div>
-        {hasVerses ? (
+        <div className="flex items-center">
+          {hasVerses ? (
+            <button
+              type="button"
+              className={`ls-icon-btn ${view === "verses" ? "is-on" : ""}`}
+              aria-pressed={view === "verses"}
+              aria-label={view === "verses" ? "إخفاء الآيات" : "عرض الآيات مع التلاوة"}
+              onClick={() => setView(view === "verses" ? "art" : "verses")}
+            >
+              <Type size={21} aria-hidden="true" />
+            </button>
+          ) : null}
           <button
             type="button"
-            className={`ls-icon-btn ${view === "verses" ? "is-on" : ""}`}
-            aria-pressed={view === "verses"}
-            aria-label={view === "verses" ? "إخفاء الآيات" : "عرض الآيات مع التلاوة"}
-            onClick={() => setView(view === "verses" ? "art" : "verses")}
+            className="ls-icon-btn"
+            aria-label="إيقاف التلاوة وإغلاق المشغّل"
+            onClick={() => {
+              stopListen();
+              closeFullPlayer();
+            }}
           >
-            <Type size={21} aria-hidden="true" />
+            <X size={22} aria-hidden="true" />
           </button>
-        ) : (
-          <span className="w-[38px]" />
-        )}
+        </div>
       </div>
 
       <div className="ls-full-stage">
         {view === "verses" && track.surah ? (
           <Verses surah={track.surah} timings={timings} positionMs={p.positionMs} canSeek={p.canSeek} />
         ) : (
-          <div className="ls-full-art">
-            <ReciterMark name={track.artist} gold={track.album.includes("مجوّد")} />
-          </div>
+          <div className="ls-full-art" aria-hidden="true" />
         )}
         {view === "verses" && track.surah && !timings ? (
           <p className="text-[11.5px] opacity-60 text-center">تتبُّع الآيات مع الصوت متاح لتلاوات كثير من القرّاء؛ هنا تقرأ السورة مع التلاوة.</p>
@@ -356,7 +377,7 @@ export default function FullPlayer() {
             type="button"
             onClick={() => {
               closeFullPlayer();
-              navigate(`/mushaf?surah=${track.surah}&ayah=${timings ? Math.max(1, ayahAt(timings, p.positionMs)) : 1}`);
+              navigate(`/quran/read/${track.surah}?a=${timings ? Math.max(1, ayahAt(timings, p.positionMs)) : 1}`);
             }}
           >
             <BookOpen size={19} aria-hidden="true" />

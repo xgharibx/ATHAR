@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — questions on similar ayahs: the words two ayahs share, the
+ * «القرآن الكريم» — questions on similar ayahs: the words two ayahs share, the
  * surah you are in, and which continuation belongs here. Built from the
  * similar-ayah index, so every question and answer is the text itself.
  */

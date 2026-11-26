@@ -119,7 +119,7 @@ export const REMINDER_TEMPLATES: ReminderTemplate[] = [
     defaultRepeat: "daily",
     defaultIcon: "📖",
     suggestedActions: ["قراءة صفحة", "تدبر آية", "حفظ آية"],
-    deeplink: { route: "/mushaf", hash: "page=1" },
+    deeplink: { route: "/quran/page" },
     suggestion: "افتح المصحف",
   },
   {
@@ -144,7 +144,7 @@ export const REMINDER_TEMPLATES: ReminderTemplate[] = [
     defaultRepeat: "daily",
     defaultIcon: "🌟",
     suggestedActions: ["قراءة جزء", "تسجيل التقدم", "دعاء ختم المجلس"],
-    deeplink: { route: "/quran/plans" },
+    deeplink: { route: "/quran/khatma" },
     suggestion: "افتح خطة الختمة",
   },
   {

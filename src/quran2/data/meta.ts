@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the Quran's structure, from Tanzil's metadata (ver 1.0,
+ * «القرآن الكريم» — the Quran's structure, from Tanzil's metadata (ver 1.0,
  * CC BY 3.0), bundled as public/data/quran2/tanzil-meta.json.
  */
 

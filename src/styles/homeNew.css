@@ -75,21 +75,21 @@ html.light .nh {
   backdrop-filter: blur(14px) saturate(1.1);
   -webkit-backdrop-filter: blur(14px) saturate(1.1);
 }
-/* The eight-pointed star, as a faint lattice behind the title. */
+/* A vine of leaves, as around the Madina mushaf's pages, faint behind the title. */
 .nh-hero::before {
   content: "";
   position: absolute;
   inset: 0 0 45% 0;
   pointer-events: none;
   opacity: 0.07;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='white' stroke-width='1'%3E%3Crect x='12' y='12' width='20' height='20'/%3E%3Crect x='12' y='12' width='20' height='20' transform='rotate(45 22 22)'/%3E%3Cpath d='M0 22h7.9M36.1 22H44M22 0v7.9M22 36.1V44'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 44px 44px;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='32'%20viewBox='0%200%2048%2032'%3E%3Cg%20fill='none'%20stroke='white'%20stroke-width='1'%20stroke-linecap='round'%3E%3Cpath%20d='M0%2016C6%206%2018%206%2024%2016S42%2026%2048%2016'/%3E%3C/g%3E%3Cg%20fill='white'%3E%3Cpath%20d='M10%208.6c2.4-3.2%206.8-3.4%208.8%200-2%203.2-6.4%203.2-8.8%200z'/%3E%3Cpath%20d='M29%2023.4c2.4-3.2%206.8-3.4%208.8%200-2%203.2-6.4%203.2-8.8%200z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 48px 32px;
   -webkit-mask-image: linear-gradient(to left, black, transparent 75%);
   mask-image: linear-gradient(to left, black, transparent 75%);
 }
 html.light .nh-hero::before {
   opacity: 0.09;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='black' stroke-width='1'%3E%3Crect x='12' y='12' width='20' height='20'/%3E%3Crect x='12' y='12' width='20' height='20' transform='rotate(45 22 22)'/%3E%3Cpath d='M0 22h7.9M36.1 22H44M22 0v7.9M22 36.1V44'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='32'%20viewBox='0%200%2048%2032'%3E%3Cg%20fill='none'%20stroke='black'%20stroke-width='1'%20stroke-linecap='round'%3E%3Cpath%20d='M0%2016C6%206%2018%206%2024%2016S42%2026%2048%2016'/%3E%3C/g%3E%3Cg%20fill='black'%3E%3Cpath%20d='M10%208.6c2.4-3.2%206.8-3.4%208.8%200-2%203.2-6.4%203.2-8.8%200z'/%3E%3Cpath%20d='M29%2023.4c2.4-3.2%206.8-3.4%208.8%200-2%203.2-6.4%203.2-8.8%200z'/%3E%3C/g%3E%3C/svg%3E");
 }
 .nh-hero > * { position: relative; }
 .nh-hero-meta {

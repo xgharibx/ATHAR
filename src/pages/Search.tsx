@@ -574,7 +574,7 @@ export function SearchPage() {
                 <div key={qKey} role="listitem">
               {r.type === "surah" ? (
                 <button type="button"
-                  onClick={() => navigate(`/mushaf?surah=${r.surah.id}`)}
+                  onClick={() => navigate(`/quran/read/${r.surah.id}`)}
                   className="w-full text-right glass rounded-3xl p-4 hover:bg-(--card-2) transition border border-(--stroke) press-effect glass-hover"
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -593,7 +593,7 @@ export function SearchPage() {
                 // a phone never saw it).
                 <div className="relative">
                   <button type="button"
-                    onClick={() => navigate(`/mushaf?surah=${r.surah.id}&ayah=${r.ayahIndex}`)}
+                    onClick={() => navigate(`/quran/read/${r.surah.id}?a=${r.ayahIndex}`)}
                     className="w-full text-right glass rounded-3xl p-4 hover:bg-(--card-2) transition border border-(--stroke) press-effect glass-hover"
                   >
                     <div className="flex items-center justify-between gap-3">

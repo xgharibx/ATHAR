@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the similar ayahs (mutashabihat), found in the text itself.
+ * «القرآن الكريم» — the similar ayahs (mutashabihat), found in the text itself.
  *
  * Two ayahs are similar when they share a run of at least MIN_RUN words in a
  * row (compared without diacritics). For each pair the shared run is kept, and

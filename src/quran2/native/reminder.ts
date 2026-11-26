@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — a daily reminder for the memorisation session, on phones.
+ * «القرآن الكريم» — a daily reminder for the memorisation session, on phones.
  *
  * One repeating local notification at the chosen time (a calendar trigger, so
  * it keeps the wall-clock time across reboots and daylight saving). Tapping it
@@ -64,7 +64,7 @@ export async function syncHifzReminder(options: { enabled: boolean; time: string
       await LocalNotifications.createChannel({
         id: CHANNEL_ID,
         name: "ورد الحفظ",
-        description: "تذكير يومي بجلسة الحفظ والمراجعة في القرآن ٢",
+        description: "تذكير يومي بجلسة الحفظ والمراجعة في القرآن الكريم",
         importance: 4,
         visibility: 1,
       }).catch(() => {});
@@ -79,7 +79,7 @@ export async function syncHifzReminder(options: { enabled: boolean; time: string
           smallIcon: "ic_stat_athar_notification",
           iconColor: "#2F4F37",
           schedule: { on: { hour: time.hour, minute: time.minute, second: 0 }, allowWhileIdle: true },
-          extra: { route: "/q2/hifz", reminderKey: "quran2-hifz", accountOwner: owner },
+          extra: { route: "/quran/hifz", reminderKey: "quran2-hifz", accountOwner: owner },
         },
       ],
     });

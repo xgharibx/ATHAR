@@ -250,7 +250,7 @@ const DESTINATIONS: Array<{ route: string; label: string }> = [
   { route: "/c/morning", label: "أذكار الصباح" },
   { route: "/c/evening", label: "أذكار المساء" },
   { route: "/c/sleep", label: "أذكار النوم" },
-  { route: "/mushaf", label: "المصحف (حيث توقفت)" },
+  { route: "/quran/page", label: "المصحف (حيث توقفت)" },
   { route: "/quran", label: "القرآن" },
   { route: "/listen", label: "السماع" },
   { route: "/wird", label: "جدول الورد" },

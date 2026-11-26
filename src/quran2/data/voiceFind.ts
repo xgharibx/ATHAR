@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — finding an ayah from a few words recited aloud.
+ * «القرآن الكريم» — finding an ayah from a few words recited aloud.
  *
  * The speech recogniser writes everyday spelling and makes mistakes. Each heard
  * word is looked up the way search does (data/search.ts), then each ayah is

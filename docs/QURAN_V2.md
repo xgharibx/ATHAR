@@ -1,4 +1,4 @@
-# «القرآن ٢» — the charter
+# «القرآن الكريم» — the charter
 
 This file is the brief that Quran V2 is built from: the prompt, the decisions, and the road. It is kept up to date in the same pull request as any change to the section.
 
@@ -82,7 +82,7 @@ No single app joins these together; several exist nowhere in Arabic:
 - `src/quran2/`: the whole section, independent of the existing Quran code.
   - `data/`: text, metadata, morphology, timings, tafsir, Arabic normalisation.
   - `hifz/`: the memory model and the memorisation store.
-  - `pages/`, `components/`, `quran2.css`: the screens, in the section's own shell at `/q2`.
+  - `pages/`, `components/`, `quran2.css`: the screens, in the section's own shell at `/quran`.
 - `reading/`: the khatma (one bit per ayah), the reading log, and the tracker that
   notices what is read.
 - `native/`: what V2 hands to the phone: the widget payload, the daily reminder, and
@@ -95,7 +95,7 @@ No single app joins these together; several exist nowhere in Arabic:
 ## Road
 
 **Phase 1 (this release)**
-- The section, its shell and the entry button «القرآن ٢».
+- The section, its shell and the entry button «القرآن الكريم».
 - The surah index, in mushaf or revelation order.
 - The reader: word-synced audio for 14 reciters, the word lens, hearing any word, and the ayah sheet with seven tafsirs.
 - Hifz: FSRS with new, near and far review, the memory map, and the self-test sessions.
@@ -161,7 +161,7 @@ No single app joins these together; several exist nowhere in Arabic:
 
 **Phase 4: the «مشكاة» design and new sections (done)**
 - A new design for the whole section, «مشكاة» (docs/QURAN_V2_DESIGN.md): the niche and
-  its lamp, the girih lattice revealed by the light, gilded edges, the eight-point star,
+  its lamp, the girih lattice revealed by the light (since phase 5: a vine), gilded edges, the eight-point star (since phase 5: a rosette),
   Reem Kufi titles; a floating dock with «التسميع» raised in the middle.
 - A new home: today's ayah inside the lit niche, where you stopped, three orbits (the
   khatma, today's memorisation, your marks), and every world as an arch tile; and a new
@@ -177,16 +177,63 @@ No single app joins these together; several exist nowhere in Arabic:
   words or shown; followed word by word, missed words marked, every word playable in the
   reciter's voice, your own recitation to listen back (website), and a log of sessions.
 
-**Next: the tajweed engine for «التسميع»**
-- Letter-level and tajweed checking on the device, with HisnLabs Tajweed v2 (Apache-2.0,
-  distilled from Quran Muaalem, MIT): the madd lengths, ghunna, ikhfa, iqlab, idgham,
-  qalqala, wrong letters and vowels, skipped words, each named per word in Arabic, with
-  your own voice and the reciter's for the word. Its rule engine and the quran-transcript
-  phonetizer (MIT) are to be ported to TypeScript and checked against the originals.
-- Tajweed colours. Quran.com has tajweed annotations for all 6236 ayahs (17 rules:
-  hamzat al-wasl, lam shamsiyya, the madd kinds, ghunna, qalqala, ikhfa, idgham,
-  iqlab…), but on another Uthmani edition: 4280 ayahs differ from Tanzil in code
-  points (ٲ for the dagger alef, a zero-width joiner before pause marks, sukun for the
-  small round zero, other hamza spellings, the basmala in the first ayah). The rules
-  will be aligned letter by letter onto this section's text and checked ayah by
-  ayah; an ayah that does not align stays uncoloured rather than coloured wrongly.
+**Phase 5: the one Quran of the app (done)**
+- «القرآن الكريم» is the app's Quran: at `/quran`, inside the classic header and bottom
+  bar and inside «أفق»'s bars, its places as a row of tabs (home, the mushaf, التسميع,
+  الحفظ, التفسير). Reading, the printed page, memorising and reciting take the whole
+  screen. Every earlier address (`/mushaf`, `/mushaf/:page`, `/mushaf?surah=&ayah=`,
+  `/q2/*`, `/tafsir`, `/tasmee`, `/quran/plans`) leads to its place here, so saved links,
+  widgets, notifications, Siri and Spotlight keep working; the native shortcuts and
+  widgets now open the new addresses directly.
+- One record of what you keep: bookmarks, notes and colours are written to the account's
+  fields too (they travel to your other devices) and whatever arrives there comes in; the
+  earlier section's marks and the place you stopped were brought over. Reading here counts
+  for the day's wird, the streak, the khatma plan (ticked off once its ayahs are read),
+  the garden and the widgets.
+- The khatma plan (a week to a year, the day's wird, the week, a daily reminder) is in
+  «ختمتي»; «الميسّر» is built in for reading the tafsir with no connection, and the
+  other six can be kept on the phone.
+- «أفق»: in that design the Quran takes «أفق»'s colours over its sky and garden (or
+  either of its own palettes); Athar's mark is in every bar.
+- The Madina page redrawn as printed, full screen: the juz' named in words and the surah
+  above the frame, green rules around a band of vine, leaves and pink flowers, the surah
+  titles in their framed band, the hizb marks in the outer margin, the page number under
+  the frame; the controls float over it and step aside. The tajweed colours, from the King
+  Fahd Complex's own colour fonts (QCF V4, the same glyphs as V2), one tap away.
+- The eight-point star is gone from the design: the rosette and the vine of the Madina
+  border take its place (headings, medallions, the share image, the reciters' covers).
+
+**Phase 6: the tajweed engine for «التسميع» (done)**
+- HisnLabs Tajweed v2 (Apache-2.0; a Whisper-base encoder distilled from Quran Muaalem,
+  MIT) runs on the device in ONNX Runtime Web (one thread, in a worker): the model hears
+  the recitation in the Quran phonetic script, and the rule engine (imam.py, ported to
+  `src/quran2/tajweed/imam.ts`) names what a teacher would correct, word by word: madd
+  lengths (timed against the reciter's own pace), ghunnah, ikhfa, iqlab, idgham, shadda,
+  qalqalah, another letter or vowel, a sound dropped or added, a word skipped, where the
+  reciter stopped and started again.
+- The expected pronunciation of every word comes from quran-transcript's phonetizer (MIT),
+  computed ahead of time (`tools/quran2/tajweed/pieces.py`): each word continuing, starting
+  a breath, ending one and alone (1.5 MB for the whole Quran). A stretch of an ayah is put
+  together from them; `verify.py` checked 37,416 random stretches of every ayah against
+  the phonetizer itself, all equal.
+- The port is checked against the Python reference (`tests/quran2Tajweed.test.ts`): 244
+  recitations (two reciters from everyayah heard by the model, and the same scripts with
+  mistakes put in) give the same breaths, the same rules and the same remark on every word;
+  the alignment reproduces python-Levenshtein's choices exactly. The features match
+  faster-whisper's (`tests/quran2TajweedMel.test.ts`), and run through the same runtime the
+  app uses, the model hears the same script as in Python.
+- The whole recitation is cut at its quiet moments into pieces of at most 28 s, each heard
+  by the model, laid over the passage with affine gaps and a whole-ayah skip (an ayah left
+  out is taken as left out), then judged ayah by ayah. Measured in Chromium: al-Ikhlas in
+  4 s, al-Mulk 1–5 (2 minutes) in 15 s; a professional recitation gets remarks on about 3%
+  of its words, as the model card says.
+- The engine (the model and the runtime's WebAssembly, 38 MB) is downloaded once at a fixed
+  revision, checked against its SHA-256 and kept on the device; nothing is sent anywhere.
+  On the website the recogniser still follows the words live while the engine records; on
+  phones the engine listens alone (the phone's recogniser cannot share the microphone) and
+  says which words were said.
+
+**Next**
+- Live word following by the engine itself on phones (a sliding window every few seconds).
+- Warsh (the model and the rules know it; the Warsh mushaf text is needed).
+- The sifat heads (tafkhim and tarqiq of ر and the lam of the Name) with the PyTorch weights.

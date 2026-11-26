@@ -81,7 +81,7 @@ export function WordLens({ s, a, w, text, surahName, meaning, canHear, onHear }:
           </div>
 
           {facts.root ? (
-            <button type="button" className="q2-root q2-press" onClick={() => navigate(`/q2/roots/${encodeURIComponent(facts.root!)}`)}>
+            <button type="button" className="q2-root q2-press" onClick={() => navigate(`/quran/roots/${encodeURIComponent(facts.root!)}`)}>
               <span className="q2-root-letters">{spacedRoot(facts.root)}</span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <b style={{ display: "block", fontSize: 14 }}>الجذر</b>
@@ -102,7 +102,7 @@ export function WordLens({ s, a, w, text, surahName, meaning, canHear, onHear }:
               <span className="q2-small" style={{ flex: 1 }}>
                 اللفظ (المدخل المعجمي): ورد {arCount(facts.lemmaCount, "مرة واحدة", "مرتين", "مرات", "مرة")}
               </span>
-              <button type="button" className="q2-link" onClick={() => navigate(`/q2/search?lemma=${encodeURIComponent(facts.lemma!)}`)}>
+              <button type="button" className="q2-link" onClick={() => navigate(`/quran/search?lemma=${encodeURIComponent(facts.lemma!)}`)}>
                 مواضعه
               </button>
             </div>

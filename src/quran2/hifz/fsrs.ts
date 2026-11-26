@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the memory model: FSRS 4.5 (Free Spaced Repetition Scheduler,
+ * «القرآن الكريم» — the memory model: FSRS 4.5 (Free Spaced Repetition Scheduler,
  * open-spaced-repetition), with its published default parameters.
  *
  * Each memorised page has a stability S (days until the chance of recalling it

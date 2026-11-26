@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — translations of the meanings (Quran.com API v4), one well-known
+ * «القرآن الكريم» — translations of the meanings (Quran.com API v4), one well-known
  * translation per language and a second in English. A surah's translation is
  * kept on the device once read.
  */

@@ -7,6 +7,7 @@ import { buildDrill, type DrillQuestion } from "../hifz/similarDrill";
 import { arDigits } from "../data/arabic";
 import { pageRange, refFromIndex, type Q2Meta } from "../data/meta";
 import { Q2Loading } from "../components/ui";
+import { Rosette } from "../components/Mishkat";
 
 type Scope = "mine" | "amma" | "all";
 const ROUND = 10;
@@ -61,7 +62,7 @@ export default function Q2SimilarDrill() {
 
   return (
     <main className="q2-main">
-      <button type="button" className="q2-link" onClick={() => navigate("/q2/hifz")}>
+      <button type="button" className="q2-link" onClick={() => navigate("/quran/hifz")}>
         <ArrowRight size={15} aria-hidden="true" /> الحفظ
       </button>
       <h1 className="q2-h1">المتشابهات</h1>
@@ -147,7 +148,7 @@ export default function Q2SimilarDrill() {
         </section>
       ) : (
         <section className="q2-card" style={{ padding: 20, marginTop: 16, textAlign: "center" }}>
-          <div style={{ fontSize: 36, color: "var(--q2-gold)" }}>✦</div>
+          <div style={{ color: "var(--q2-gold)", display: "grid", placeItems: "center" }}><Rosette size={40} /></div>
           <h2 className="q2-h2" style={{ marginTop: 6 }}>{arDigits(score)} من {arDigits(questions.length)}</h2>
           <p className="q2-soft" style={{ marginTop: 6 }}>{score === questions.length ? "أحسنت، فرّقت بينها كلها." : "راجع ما أخطأت فيه، فهو موضع الخلط عندك."}</p>
           <button type="button" className="q2-btn q2-press" style={{ marginTop: 14 }} onClick={() => reset()}>

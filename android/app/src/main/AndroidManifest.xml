@@ -333,7 +333,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_qadaa_info" />
         </receiver>
-        <!-- «القرآن ٢» memorisation widget (4×2): pages due today -->
+        <!-- «القرآن الكريم» memorisation widget (4×2): pages due today -->
         <receiver
             android:name=".NoorQ2HifzWidgetProvider"
             android:exported="true"

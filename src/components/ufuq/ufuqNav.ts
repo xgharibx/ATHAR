@@ -7,7 +7,7 @@
  */
 import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3, BookMarked, Headphones, BookOpen, BookOpenText, Bookmark, Clapperboard, Compass, Droplets, Feather, GraduationCap,
+  BarChart3, BookMarked, Brain, Headphones, BookOpen, BookOpenText, Bookmark, Clapperboard, Compass, Droplets, Feather, GraduationCap,
   HandHeart, Heart, History, Landmark, Library, ListChecks, MapPin, MessageCircle, Mic, MoonStar, NotebookPen,
   ScrollText, Settings2, Shield, Sparkles, Star, Sun, TimerReset, Trophy, Users, Zap, Atom, BellRing, Scale, Gem,
 } from "lucide-react";
@@ -26,7 +26,7 @@ export const UFUQ_TABS: ReadonlyArray<{ id: UfuqTabId; path: string; label: stri
 export function ufuqTabFor(pathname: string): UfuqTabId {
   if (pathname === "/") return "today";
   if (pathname.startsWith("/c/")) return "today";
-  if (pathname.startsWith("/quran") || pathname.startsWith("/listen") || pathname.startsWith("/mushaf") || pathname.startsWith("/tafsir") || pathname.startsWith("/tasmee")) return "quran";
+  if (pathname.startsWith("/quran") || pathname.startsWith("/listen") || pathname.startsWith("/mushaf") || pathname.startsWith("/tafsir") || pathname.startsWith("/tasmee") || pathname.startsWith("/quran-vocab")) return "quran";
   if (pathname.startsWith("/prayer-times") || pathname.startsWith("/qibla") || pathname.startsWith("/mosques") || pathname.startsWith("/qadaa")) return "prayer";
   if (pathname.startsWith("/sebha")) return "tasbeeh";
   return "explore";
@@ -45,11 +45,13 @@ export const UFUQ_EXPLORE_GROUPS: readonly UfuqGroup[] = [
     id: "quran",
     title: "القرآن وعلومه",
     items: [
-      { path: "/mushaf", title: "المصحف", sub: "صفحات المصحف كاملة مع التلاوة", icon: BookOpenText },
+      { path: "/quran", title: "القرآن الكريم", sub: "المصحف والتلاوة والتسميع والحفظ والتفسير", icon: BookOpenText },
+      { path: "/quran/page", title: "مصحف المدينة", sub: "صفحات المصحف كما طُبعت، مع التلاوة", icon: BookOpen },
       { path: "/listen", title: "السماع", sub: "القرآن كاملًا بأصوات قرّاء العالم وقيام الحرمين والتواشيح", icon: Headphones },
-      { path: "/quran/plans", title: "خطط التلاوة والختمة", sub: "وِرد يومي يوصلك إلى الختم", icon: ListChecks },
-      { path: "/tafsir", title: "التفسير", sub: "معاني الآيات من كتب التفسير", icon: ScrollText },
-      { path: "/tasmee", title: "التسميع", sub: "راجع حفظك بصوتك", icon: Mic },
+      { path: "/quran/khatma", title: "الختمة وخطتها", sub: "وِرد يومي يوصلك إلى الختم", icon: ListChecks },
+      { path: "/quran/tafsir", title: "التفسير", sub: "سبعة تفاسير، آيةً آية", icon: ScrollText },
+      { path: "/quran/tasmee", title: "التسميع", sub: "سمِّع حفظك بصوتك، كلمةً كلمة", icon: Mic },
+      { path: "/quran/hifz", title: "الحفظ", sub: "خطة حفظ ومراجعة يومية", icon: Brain },
       { path: "/quran-vocab", title: "مفردات القرآن", sub: "كلمة كل يوم ومعناها", icon: Feather },
       { path: "/ijaz", title: "الإعجاز", sub: "آيات وحقائق تأمّل", icon: Atom },
     ],
@@ -122,7 +124,17 @@ const TITLES: Record<string, string> = {
   "/": "اليوم",
   "/explore": "اكتشف",
   "/quran": "القرآن الكريم",
-  "/quran/plans": "خطط التلاوة",
+  "/quran/index": "المصحف",
+  "/quran/khatma": "الختمة",
+  "/quran/marks": "علاماتي",
+  "/quran/search": "البحث في القرآن",
+  "/quran/roots": "معجم الجذور",
+  "/quran/numbers": "القرآن بالأرقام",
+  "/quran/hifz": "الحفظ",
+  "/quran/hifz/similar": "المتشابهات",
+  "/quran/tasmee": "التسميع",
+  "/quran/tafsir": "التفسير",
+  "/quran/about": "عن القرآن في أثر",
   "/sebha": "السبحة",
   "/companion": "أثر",
   "/library/sharh": "الموسوعة الحديثية",
@@ -161,6 +173,9 @@ const TITLES: Record<string, string> = {
 export function ufuqTitleFor(pathname: string): string {
   if (TITLES[pathname]) return TITLES[pathname]!;
   if (pathname.startsWith("/settings/")) return "الإعدادات";
+  if (pathname.startsWith("/quran/tafsir/")) return "التفسير";
+  if (pathname.startsWith("/quran/roots/")) return "الجذر";
+  if (pathname.startsWith("/quran")) return "القرآن الكريم";
   if (pathname.startsWith("/listen")) {
     const sub: Record<string, string> = {
       reciters: "قرّاء العالم", reciter: "القارئ", surah: "سورة بأصوات القرّاء", golden: "التسجيلات الذهبية",

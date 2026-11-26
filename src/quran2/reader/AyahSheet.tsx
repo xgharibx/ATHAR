@@ -181,7 +181,7 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
           ) : null}
           {q.data && !paragraphs.length ? <p className="q2-small">لا نص لهذه الآية في هذا التفسير (قد يكون مضمومًا إلى آية قبلها).</p> : null}
         </div>
-        <button type="button" className="q2-btn is-ghost q2-press" style={{ width: "100%", marginTop: 10 }} onClick={() => navigate(`/q2/tafsir/${s}/${a}`)}>
+        <button type="button" className="q2-btn is-ghost q2-press" style={{ width: "100%", marginTop: 10 }} onClick={() => navigate(`/quran/tafsir/${s}/${a}`)}>
           <Columns3 size={16} aria-hidden="true" /> قارن التفاسير السبعة معًا
         </button>
         <p className="q2-credit">التفاسير عبر واجهة Quran.com.</p>

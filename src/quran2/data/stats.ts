@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the Quran in numbers, counted from the text itself.
+ * «القرآن الكريم» — the Quran in numbers, counted from the text itself.
  *
  * Counting methods differ between scholars and sources, so each count here
  * states its method:

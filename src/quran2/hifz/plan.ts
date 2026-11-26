@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the day's memorisation, the way it is taught in the halaqah:
+ * «القرآن الكريم» — the day's memorisation, the way it is taught in the halaqah:
  *   الجديد  the new lesson (sabaq): the next page or pages to learn;
  *   القريب  the near review (sabqi): your latest pages, every day, while they settle;
  *   البعيد  the far review (manzil): older pages, each on the day the memory model

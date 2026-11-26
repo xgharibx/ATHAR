@@ -137,7 +137,7 @@ export default function Q2Hifz() {
 
       <section className="q2-section">
         <div className="q2-head">
-          <h2 className="q2-h2"><span className="q2-orn">✦</span> جلسة اليوم</h2>
+          <h2 className="q2-h2"><span className="q2-orn" aria-hidden="true" /> جلسة اليوم</h2>
           <span className="q2-small">{total ? `${arDigits(total)} صفحة` : "لا شيء الآن"}</span>
         </div>
         <div className="q2-card">
@@ -161,10 +161,10 @@ export default function Q2Hifz() {
             </div>
           ))}
         </div>
-        <button type="button" className="q2-btn q2-press" style={{ width: "100%", marginTop: 12 }} disabled={!total} onClick={() => navigate("/q2/hifz/session")}>
+        <button type="button" className="q2-btn q2-press" style={{ width: "100%", marginTop: 12 }} disabled={!total} onClick={() => navigate("/quran/hifz/session")}>
           <Play size={17} aria-hidden="true" /> ابدأ جلسة اليوم
         </button>
-        <button type="button" className="q2-btn is-ghost q2-press" style={{ width: "100%", marginTop: 8 }} onClick={() => navigate("/q2/hifz/similar")}>
+        <button type="button" className="q2-btn is-ghost q2-press" style={{ width: "100%", marginTop: 8 }} onClick={() => navigate("/quran/hifz/similar")}>
           تدرّب على المتشابهات
         </button>
         <ReminderRow />
@@ -172,7 +172,7 @@ export default function Q2Hifz() {
 
       <section className="q2-section">
         <div className="q2-head">
-          <h2 className="q2-h2"><span className="q2-orn">✦</span> خريطة حفظك</h2>
+          <h2 className="q2-h2"><span className="q2-orn" aria-hidden="true" /> خريطة حفظك</h2>
           <span className="q2-small">٦٠٤ صفحات</span>
         </div>
         <div className="q2-map" role="group" aria-label="صفحات المصحف ملوّنة بقوة حفظها">
@@ -202,7 +202,7 @@ export default function Q2Hifz() {
       </section>
 
       <section className="q2-section">
-        <h2 className="q2-h2"><span className="q2-orn">✦</span> خطتك</h2>
+        <h2 className="q2-h2"><span className="q2-orn" aria-hidden="true" /> خطتك</h2>
         <div className="q2-small" style={{ marginTop: 10 }}>مقدار الجديد كل يوم</div>
         <div className="q2-chips" style={{ marginTop: 6 }}>
           {[
@@ -244,7 +244,7 @@ export default function Q2Hifz() {
               <p className="q2-soft" style={{ marginTop: 8 }}>ليست في حفظك بعد.</p>
             )}
             <div className="q2-chips" style={{ marginTop: 12, flexWrap: "wrap" }}>
-              <button type="button" className="q2-chip is-on q2-press" onClick={() => navigate(`/q2/hifz/session?pages=${picked}`)}>
+              <button type="button" className="q2-chip is-on q2-press" onClick={() => navigate(`/quran/hifz/session?pages=${picked}`)}>
                 <Play size={15} aria-hidden="true" /> {card ? "راجعها الآن" : "احفظها الآن"}
               </button>
               <button
@@ -252,7 +252,7 @@ export default function Q2Hifz() {
                 className="q2-chip q2-press"
                 onClick={() => {
                   const [s, a] = refFromIndex(m, pageRange(m, picked)[0]);
-                  navigate(`/q2/read/${s}?a=${a}`);
+                  navigate(`/quran/read/${s}?a=${a}`);
                 }}
               >
                 <BookOpen size={15} aria-hidden="true" /> اقرأها

@@ -34,7 +34,7 @@ describe("Siri knows the surahs by the app's names", () => {
 
   it("opens each action on its screen", () => {
     const intents = fs.readFileSync("ios/App/App/AtharIntents.swift", "utf8");
-    for (const route of ['"/sebha"', '"/c/morning"', '"/c/evening"', '"/mushaf"', '"/qibla"', '"/mushaf?surah=\\(surah.id)"']) {
+    for (const route of ['"/sebha"', '"/c/morning"', '"/c/evening"', '"/quran/page"', '"/qibla"', '"/quran/read/\\(surah.id)"']) {
       expect(intents).toContain(`OpenInApp.route(${route})`);
     }
     expect(fs.readFileSync("ios/App/App/AppDelegate.swift", "utf8")).toContain("AtharShortcuts.updateAppShortcutParameters()");
@@ -46,7 +46,7 @@ describe("Athar in iPhone search", () => {
 
   it("lists the main screens, all 114 surahs and the adhkar sections", () => {
     expect(items.length).toBe(SPOTLIGHT_SECTIONS.length + 114 + adhkar.sections.length);
-    expect(items).toContainEqual(expect.objectContaining({ route: "/mushaf?surah=18", title: "سورة الكهف" }));
+    expect(items).toContainEqual(expect.objectContaining({ route: "/quran/read/18", title: "سورة الكهف" }));
     expect(items).toContainEqual(expect.objectContaining({ route: "/c/morning", title: "أذكار الصباح" }));
     expect(new Set(items.map((item) => item.route)).size).toBe(items.length);
   });
@@ -82,7 +82,7 @@ describe("Android «تابع القراءة» shortcut", () => {
   it("is registered and opens the Mushaf page", () => {
     expect(fs.readFileSync("android/app/src/main/java/com/athar/adhkar/AtharActivity.java", "utf8")).toContain("registerPlugin(AppShortcutsPlugin.class)");
     const plugin = fs.readFileSync("android/app/src/main/java/com/athar/adhkar/AppShortcutsPlugin.java", "utf8");
-    expect(plugin).toContain('"/mushaf/" + page');
+    expect(plugin).toContain('"/quran/page/" + page');
     expect(plugin).toContain("pushDynamicShortcut");
   });
 });

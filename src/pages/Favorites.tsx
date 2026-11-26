@@ -515,7 +515,7 @@ export function FavoritesPage() {
                         )}
                         <button type="button"
                           className="flex-1 text-right min-w-0"
-                          onClick={() => navigate(`/mushaf?surah=${bm.surahId}&ayah=${bm.ayahIndex}`)}
+                          onClick={() => navigate(`/quran/read/${bm.surahId}?a=${bm.ayahIndex}`)}
                         >
                           <div className="flex items-center gap-2">
                             <span className="text-sm arabic-text font-medium">{bm.surahName}</span>

@@ -37,7 +37,7 @@ export function SimilarList({ s, a, onOpen }: { s: number; a: number; onOpen?: (
               style={{ display: "block" }}
               onClick={() => {
                 onOpen?.();
-                navigate(`/q2/read/${m.s}?a=${m.a}`);
+                navigate(`/quran/read/${m.s}?a=${m.a}`);
               }}
             >
               <span className="q2-eyebrow">

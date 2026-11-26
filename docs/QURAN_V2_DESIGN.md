@@ -1,10 +1,10 @@
-# «القرآن ٢» — the design: «مشكاة»
+# «القرآن الكريم» — the design: «مشكاة»
 
 The brief the section's look is built from. Kept up to date with the code.
 
 ## The prompt
 
-> Design «القرآن ٢» so that it feels like nothing a Quran app has looked like: premium,
+> Design «القرآن الكريم» so that it feels like nothing a Quran app has looked like: premium,
 > calm, unmistakably Islamic without a single cliché sticker, and modern enough to sit
 > beside the best apps of 2026. The Quran is the light; the interface is the niche that
 > holds it. Every screen should feel lit from within, quiet, and made by hand.
@@ -83,3 +83,12 @@ as the printed Madina mushaf: ornamented frame, surah cartouches, page medallion
 - Glass (backdrop blur) only on floating layers (dock, top bar, sheets), never on long lists,
   to stay smooth on phones.
 - Everything works with motion reduced and at 200 % text size.
+
+## Revision, phase 5
+
+The eight-point star read as cheap, and the first Madina page was too far from the printed one. What changed:
+
+- **The rosette and the vine** take the star's and the girih's place. Both come from the Madina mushaf's own border: a flower of eight rounded petals heads each section and closes the share image's cartouche; a scroll of stem, leaves and small blossoms is the light's ornament (`public/data/quran2/ornament/vine*.svg`). Numbers sit in round medallions with a gilded double rim, like the mushaf's ayah markers.
+- **No dock.** The section lives inside the app's own frame (the classic header and bottom bar, or «أفق»'s), its places in a row of tabs under the header, «التسميع» in gold.
+- **«أفق»** as a palette of its own: in that design the section takes «أفق»'s colours over its sky and garden; reading keeps the garden behind a calm veil.
+- **The Madina page as printed, full screen:** the juz' named in words at the top right and the surah at the top left, above the frame; thin dark-green rules around a band of vine with green leaves and pink and red flowers (`madina-band.svg`, a night version too); surah titles in a framed band with two rosettes; the hizb marks as small flowers in the outer margin; the page number under the frame. The controls float over the page and step aside; a tap on the margin brings them back. The tajweed colours are the King Fahd Complex's own colour fonts.

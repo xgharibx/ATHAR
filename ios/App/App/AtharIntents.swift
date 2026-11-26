@@ -60,7 +60,7 @@ struct ContinueQuranIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult {
         // The Mushaf without a page number opens the last page read.
-        OpenInApp.route("/mushaf")
+        OpenInApp.route("/quran/page")
         return .result()
     }
 }
@@ -136,7 +136,7 @@ struct OpenSurahIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        OpenInApp.route("/mushaf?surah=\(surah.id)")
+        OpenInApp.route("/quran/read/\(surah.id)")
         return .result()
     }
 }

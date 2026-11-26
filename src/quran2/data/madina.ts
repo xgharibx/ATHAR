@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — «مصحف المدينة»: a page drawn the way the Madina mushaf is printed,
+ * «القرآن الكريم» — «مصحف المدينة»: a page drawn the way the Madina mushaf is printed,
  * with the King Fahd Complex's own page fonts (QCF V2, one font per page: each
  * word of the page is one glyph, as on the printed page) and the glyph codes and
  * line numbers Quran.com publishes for them.
@@ -48,20 +48,44 @@ export function loadMadinaPage(page: number, wordCount: (s: number, a: number) =
   });
 }
 
-const fontLoads = new Map<number, Promise<string>>();
+const fontLoads = new Map<string, Promise<string>>();
+
+/** Which page fonts: plain (QCF V2), or with the tajweed colours (QCF V4, same glyphs). */
+export type MadinaFontKind = "plain" | "tajweed" | "tajweed-dark";
+
+/**
+ * The colour fonts come in two formats: COLRv1 (Chromium: Android, desktop)
+ * and OpenType-SVG with its colours drawn in (WebKit: iPhone, iPad, Safari),
+ * in a light and a dark printing.
+ */
+function tajweedFormat(dark: boolean): string {
+  const ua = typeof navigator === "undefined" ? "" : navigator.userAgent;
+  const webkitOnly = /AppleWebKit/.test(ua) && !/(Chrome|Chromium|CriOS|Edg|Android)/.test(ua);
+  const firefox = /Firefox|FxiOS/.test(ua);
+  if (webkitOnly || firefox) return `ot-svg/${dark ? "dark" : "light"}/woff2`;
+  return "colrv1/woff2";
+}
+
+export function madinaFontUrl(page: number, kind: MadinaFontKind): string {
+  if (kind === "plain") return `https://static.qurancdn.com/fonts/quran/hafs/v2/woff2/p${page}.woff2`;
+  return `https://verses.quran.foundation/fonts/quran/hafs/v4/${tajweedFormat(kind === "tajweed-dark")}/p${page}.woff2`;
+}
 
 /**
  * The page's own font, loaded once; resolves to its family name. The font's bytes
  * are fetched as data and kept on the device (so a page read once opens offline),
  * which also keeps the app's font policy (fonts from the app only) unchanged.
  */
-export function madinaFont(page: number): Promise<string> {
-  let p = fontLoads.get(page);
+export function madinaFont(page: number, kind: MadinaFontKind = "plain"): Promise<string> {
+  const url = madinaFontUrl(page, kind);
+  const id = `${kind}:${url}`;
+  let p = fontLoads.get(id);
   if (!p) {
-    const family = `q2-madina-p${page}`;
+    const family = kind === "plain" ? `q2-madina-p${page}` : `q2-madina-${kind}-p${page}-${url.includes("colrv1") ? "c" : "s"}`;
     p = (async () => {
-      const bytes = await cached(`madina-font:${page}`, async () => {
-        const res = await fetch(`https://static.qurancdn.com/fonts/quran/hafs/v2/woff2/p${page}.woff2`);
+      const key = kind === "plain" ? `madina-font:${page}` : `madina-font:${url}`;
+      const bytes = await cached(key, async () => {
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`madina font: HTTP ${res.status}`);
         return res.arrayBuffer();
       });
@@ -70,10 +94,10 @@ export function madinaFont(page: number): Promise<string> {
       document.fonts.add(face);
       return family;
     })().catch((error) => {
-      fontLoads.delete(page);
+      fontLoads.delete(id);
       throw error;
     });
-    fontLoads.set(page, p);
+    fontLoads.set(id, p);
   }
   return p;
 }

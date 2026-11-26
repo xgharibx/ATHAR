@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — hear one word, or one ayah, in the reciter's own voice: the surah's
+ * «القرآن الكريم» — hear one word, or one ayah, in the reciter's own voice: the surah's
  * recitation is played from the word's start to its end (the reciter's word
  * timings, data/timings.ts). One audio element serves every word.
  */

@@ -33,7 +33,7 @@ public class AppShortcutsPlugin extends Plugin {
         String label = call.getString("label", "تابع القراءة");
         Intent intent = new Intent(getContext(), AtharActivity.class)
             .setAction(Intent.ACTION_VIEW)
-            .putExtra(AtharWidgetProvider.EXTRA_ROUTE, "/mushaf/" + page);
+            .putExtra(AtharWidgetProvider.EXTRA_ROUTE, "/quran/page/" + page);
         ShortcutInfoCompat shortcut = new ShortcutInfoCompat.Builder(getContext(), CONTINUE_READING_ID)
             .setShortLabel("تابع القراءة")
             .setLongLabel(label)

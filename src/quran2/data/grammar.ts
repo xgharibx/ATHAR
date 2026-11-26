@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the Quranic Arabic Corpus tags, in the terms of Arabic grammar.
+ * «القرآن الكريم» — the Quranic Arabic Corpus tags, in the terms of Arabic grammar.
  * Tag set: corpus.quran.com/documentation/tagset.jsp, with the additions of the
  * mustafa0x/quran-morphology edition (NV, ATT, DIST, ADDR, ACT_PCPL, PASS_PCPL).
  */

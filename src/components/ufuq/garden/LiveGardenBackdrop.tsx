@@ -10,6 +10,7 @@ import { useNoorStore } from "@/store/noorStore";
 import type { GardenMode } from "@/components/ufuq/garden/GardenEngine";
 import { createGardenController, type GardenController } from "@/components/ufuq/garden/gardenController";
 import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
+import { coverGarden, isGardenCovered, onGardenCover } from "@/components/ufuq/garden/gardenCover";
 
 function currentMode(): GardenMode {
   return document.documentElement.dataset.ufuqPalette === "night" ? "night" : "day";
@@ -19,7 +20,11 @@ function prefersReducedMotion(): boolean {
   return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
 }
 
-export function LiveGardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } = {}) {
+/**
+ * `stage`: drawn behind a full-screen view of its own (the player), with no
+ * reading veil; the page's garden rests while it shows.
+ */
+export function LiveGardenBackdrop({ forcedMode, stage = false }: { forcedMode?: GardenMode; stage?: boolean } = {}) {
   const location = useLocation();
   const hostRef = React.useRef<HTMLDivElement>(null);
   const engineRef = React.useRef<GardenController | null>(null);
@@ -43,7 +48,7 @@ export function LiveGardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } =
     };
   }, []);
 
-  const initial = React.useRef({ mode, live, ...growth });
+  const initial = React.useRef({ mode, live, stage, ...growth });
 
   React.useEffect(() => {
     const host = hostRef.current;
@@ -97,7 +102,12 @@ export function LiveGardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } =
     };
     engine.setScroll(window.scrollY);
 
-    const onVisible = () => (document.hidden ? engine.stop() : engine.start());
+    const isStage = initial.current.stage;
+    const resting = () => document.hidden || (!isStage && isGardenCovered());
+    const onVisible = () => (resting() ? engine.stop() : engine.start());
+    const uncover = isStage ? coverGarden() : null;
+    const offCover = isStage ? null : onGardenCover(onVisible);
+    if (resting()) engine.stop();
     const onScroll = () => engine.setScroll(window.scrollY);
     let lastX = 0;
     let lastT = 0;
@@ -124,6 +134,8 @@ export function LiveGardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } =
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onDown);
       document.removeEventListener("visibilitychange", onVisible);
+      uncover?.();
+      offCover?.();
       engine.destroy();
       engineRef.current = null;
       bgCanvas.remove();
@@ -143,6 +155,14 @@ export function LiveGardenBackdrop({ forcedMode }: { forcedMode?: GardenMode } =
 
   // The garden frames the page: clear sky above, flowers below, and a soft
   // veil across the middle where the reading happens (lighter on «اليوم»).
+  if (stage) {
+    return (
+      <>
+        <div ref={hostRef} className="contents" aria-hidden="true" />
+        <div className="u-garden-grade" aria-hidden="true" />
+      </>
+    );
+  }
   return (
     <>
       <div ref={hostRef} className="contents" aria-hidden="true" />

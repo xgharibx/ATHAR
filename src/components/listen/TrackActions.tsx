@@ -81,7 +81,7 @@ export function TrackActions({ track, onClose }: { track: ListenTrack; onClose: 
               )
             ) : null}
             {track.surah ? (
-              <button type="button" className="ls-option" onClick={() => { onClose(); navigate(`/mushaf?surah=${track.surah}&ayah=1`); }}>
+              <button type="button" className="ls-option" onClick={() => { onClose(); navigate(`/quran/read/${track.surah}`); }}>
                 <BookOpen size={19} aria-hidden="true" /> قراءتها في المصحف
               </button>
             ) : null}

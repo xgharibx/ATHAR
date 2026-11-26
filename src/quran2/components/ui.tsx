@@ -1,8 +1,9 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import { arDigits } from "../data/arabic";
 
-/** A bottom sheet. Escape or a tap outside closes it. */
+/** A bottom sheet. Its ✕, Escape or a tap outside closes it. */
 export function Q2Sheet({ open, onClose, label, children }: {
   open: boolean;
   onClose: () => void;
@@ -28,6 +29,9 @@ export function Q2Sheet({ open, onClose, label, children }: {
       <div className="q2-sheet-back" onClick={onClose} aria-hidden="true" />
       <div className="q2-sheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1} ref={ref}>
         <div className="q2-sheet-grip" aria-hidden="true" />
+        <button type="button" className="q2-sheet-close q2-press" aria-label="إغلاق" onClick={onClose}>
+          <X size={18} aria-hidden="true" />
+        </button>
         <div className="q2-sheet-body">{children}</div>
       </div>
     </>,

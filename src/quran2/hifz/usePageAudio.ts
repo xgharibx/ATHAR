@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — a page in the reciter's voice, two ways:
+ * «القرآن الكريم» — a page in the reciter's voice, two ways:
  *   continuous  the page from first ayah to last, again if asked;
  *   talqeen     each ayah, then a silence as long as the ayah for you to repeat
  *               it, so many times, then the next ayah: the way a teacher

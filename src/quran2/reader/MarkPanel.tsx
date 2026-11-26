@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — your own marks on an ayah: a bookmark, a colour and a note.
+ * «القرآن الكريم» — your own marks on an ayah: a bookmark, a colour and a note.
  * Kept on the device and in the account backup; listed in «علاماتي».
  */
 import * as React from "react";

@@ -1050,7 +1050,7 @@ export function InsightsPage() {
           {/* Quran */}
           <button
             type="button"
-            onClick={() => navigate(quranLastRead ? `/mushaf?surah=${quranLastRead.surahId}&ayah=${quranLastRead.ayahIndex}` : "/quran")}
+            onClick={() => navigate(quranLastRead ? `/quran/read/${quranLastRead.surahId}?a=${quranLastRead.ayahIndex}` : "/quran")}
             className="flex flex-col items-center rounded-2xl bg-(--card) border border-(--stroke) px-2 py-3 gap-0.5 transition hover:bg-(--card-2) active:scale-[.97]"
           >
             <span className="text-lg leading-none mb-0.5" aria-hidden="true">📖</span>

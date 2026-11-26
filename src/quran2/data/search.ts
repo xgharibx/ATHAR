@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — finding words in the Quran the way people type them.
+ * «القرآن الكريم» — finding words in the Quran the way people type them.
  *
  * Every word of the text gets the keys of data/arabic.ts (everyday spelling,
  * with and without the small alef, and the consonant skeleton). A typed word
