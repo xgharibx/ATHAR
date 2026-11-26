@@ -1,8 +1,7 @@
 /**
  * One page of «مصحف المدينة», laid out like the printed page: the juz' named
- * in words at the top right and the surah at the top left, above the frame;
- * the frame of green rules around a band of vine, leaves and flowers; the
- * fifteen lines in the King Fahd Complex's page font (plain, or with the
+ * in words at the top right and the surah at the top left; the fifteen lines
+ * in the King Fahd Complex's page font (plain, or with the
  * tajweed colours); the surah titles in their cartouche; the hizb marks in the
  * margin; and the page number under the frame. Every glyph is touchable (it
  * opens its ayah); the ayah being recited is lit; a chosen ayah is marked.

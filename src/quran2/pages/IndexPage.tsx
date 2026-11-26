@@ -52,16 +52,16 @@ export default function Q2Index() {
           </button>
         ))}
       </div>
-      <div className="q2-chips" style={{ marginTop: 12 }} role="tablist">
-        <button type="button" role="tab" aria-selected={tab === "surahs"} className={`q2-chip${tab === "surahs" ? " is-on" : ""}`} onClick={() => setTab("surahs")}>السور</button>
-        <button type="button" role="tab" aria-selected={tab === "juz"} className={`q2-chip${tab === "juz" ? " is-on" : ""}`} onClick={() => setTab("juz")}>الأجزاء</button>
+      <div className="q2-index-tabs" style={{ marginTop: 16 }} role="tablist" aria-label="فهرس المصحف">
+        <button type="button" role="tab" aria-selected={tab === "surahs"} className={`q2-index-tab${tab === "surahs" ? " is-on" : ""}`} onClick={() => setTab("surahs")}>السور</button>
+        <button type="button" role="tab" aria-selected={tab === "juz"} className={`q2-index-tab${tab === "juz" ? " is-on" : ""}`} onClick={() => setTab("juz")}>الأجزاء</button>
       </div>
 
       {tab === "surahs" ? (
         <>
-          <div className="q2-chips" style={{ marginTop: 10 }}>
-            <button type="button" className={`q2-chip${order === "mushaf" ? " is-on" : ""}`} onClick={() => setOrder("mushaf")} aria-pressed={order === "mushaf"}>ترتيب المصحف</button>
-            <button type="button" className={`q2-chip${order === "revelation" ? " is-on" : ""}`} onClick={() => setOrder("revelation")} aria-pressed={order === "revelation"}>ترتيب النزول</button>
+          <div className="q2-index-tabs q2-order-tabs" style={{ marginTop: 10 }} role="group" aria-label="ترتيب السور">
+            <button type="button" className={`q2-index-tab${order === "mushaf" ? " is-on" : ""}`} onClick={() => setOrder("mushaf")} aria-pressed={order === "mushaf"}>ترتيب المصحف</button>
+            <button type="button" className={`q2-index-tab${order === "revelation" ? " is-on" : ""}`} onClick={() => setOrder("revelation")} aria-pressed={order === "revelation"}>ترتيب النزول</button>
           </div>
           <input className="q2-input" style={{ marginTop: 12 }} placeholder="ابحث باسم السورة أو رقمها" value={q} onChange={(e) => setQ(e.target.value)} aria-label="ابحث عن سورة" />
           {order === "revelation" ? (

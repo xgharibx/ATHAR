@@ -206,7 +206,6 @@
   --q2-madina-paper: #fdf8ea;
   --q2-madina-ink: #1a1610;
   --q2-madina-rule: #1e4d38;
-  --q2-madina-band: url("/data/quran2/ornament/madina-band.svg");
   --q2-madina-soft: #6d5a2e;
   background: transparent;
   color-scheme: inherit;
@@ -327,6 +326,39 @@
 .q2-chip.is-on { color: var(--q2-green); border-color: color-mix(in srgb, var(--q2-green) 50%, transparent); background: var(--q2-green-soft); }
 .q2-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .q2-chips::-webkit-scrollbar { display: none; }
+.q2-index-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--q2-line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--q2-ink) 4%, var(--q2-card));
+}
+.q2-order-tabs { margin-top: 10px; }
+.q2-index-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  color: var(--q2-soft);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+.q2-index-tab.is-on {
+  color: var(--q2-green);
+  border-color: color-mix(in srgb, var(--q2-green) 18%, transparent);
+  background: var(--q2-card);
+  box-shadow: 0 2px 9px rgba(0, 0, 0, 0.08);
+}
+.q2-index-tab:focus-visible { outline: 2px solid var(--q2-green); outline-offset: 2px; }
+@media (max-width: 360px) { .q2-index-tab { font-size: 12px; padding-inline: 6px; } }
 .q2-input {
   width: 100%;
   min-height: 48px;
@@ -749,21 +781,17 @@
 .q2-hide.q2-tw.is-lit { background: linear-gradient(var(--q2-gold), var(--q2-gold)) bottom 0.45em left 0 / 100% 3px no-repeat, radial-gradient(80% 120% at 50% 100%, color-mix(in srgb, var(--q2-lamp) 45%, transparent), transparent 70%); }
 
 /* ── «مصحف المدينة» ─────────────────────────────────────────────────── */
-/* The printed page: cream paper, green rules around a band of vine, leaves
-   and flowers (public/data/quran2/ornament), the juz' and the surah above the
-   frame, the page number under it. It fills the screen. */
+/* The verified printed text fills the screen; the controls float above it. */
 .q2 {
   --q2-madina-paper: #fdf8ea;
   --q2-madina-ink: #1a1610;
   --q2-madina-rule: #1e4d38;
-  --q2-madina-band: url("/data/quran2/ornament/madina-band.svg");
   --q2-madina-soft: #6d5a2e;
 }
 .q2[data-palette="night"] {
   --q2-madina-paper: #0d1713;
   --q2-madina-ink: #ece3cc;
   --q2-madina-rule: #b99a52;
-  --q2-madina-band: url("/data/quran2/ornament/madina-band-dark.svg");
   --q2-madina-soft: #c9b27a;
 }
 
@@ -772,18 +800,16 @@
   inset: 0;
   z-index: 20;
   overflow: hidden;
-  background:
-    radial-gradient(120% 80% at 50% 45%, transparent 55%, rgba(120, 90, 30, 0.08)),
-    var(--q2-madina-paper);
+  background: var(--q2-madina-paper);
   color: var(--q2-madina-ink);
   touch-action: pan-y;
 }
 .q2[data-palette="night"] .q2-mushaf.is-full {
-  background: radial-gradient(120% 80% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.35)), var(--q2-madina-paper);
+  background: var(--q2-madina-paper);
 }
 .q2-mstage {
   position: absolute;
-  inset: calc(var(--q2-top) + 6px) 6px calc(var(--q2-bottom) + 6px);
+  inset: calc(var(--q2-top) + 6px) 0 calc(var(--q2-bottom) + 6px);
   display: grid;
   place-items: center;
 }
@@ -812,11 +838,9 @@
   position: relative;
   min-height: 0;
   display: flex;
-  border: clamp(9px, 3.6cqw, 20px) solid transparent;
-  border-image: var(--q2-madina-band) 16 round;
-  outline: 1.4px solid var(--q2-madina-rule);
-  outline-offset: 1.5px;
-  background: var(--q2-madina-paper);
+  border: 0;
+  outline: 0;
+  background: transparent;
 }
 .q2-madina-lines {
   flex: 1;
@@ -828,75 +852,53 @@
   font-size: clamp(14px, 5.75cqw, 36px);
   line-height: 1.45;
 }
-.q2-madina.is-opening .q2-madina-lines { grid-template-rows: repeat(8, auto); align-content: center; gap: 0.55em; padding: 6cqw 8cqw; }
+.q2-madina.is-opening .q2-madina-lines { grid-template-rows: repeat(8, auto); align-content: center; gap: 0.55em; padding: 2.5cqw 4.5cqw; }
 .q2-mline { display: flex; justify-content: space-between; align-items: center; white-space: nowrap; min-width: 0; direction: rtl; }
 .q2-madina.is-opening .q2-mline { justify-content: center; gap: 0.2em; }
 .q2-mline.is-surah, .q2-mline.is-basmala { justify-content: center; }
 .q2-mline.is-basmala { font-family: "UthmanicHafs", "Amiri Quran", serif; font-size: 0.86em; }
 
-/* The surah's title, in a framed band across the line. */
+/* A quiet divider marks the beginning of a surah without a printed ornament. */
 .q2-cartouche {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.6em;
-  width: 96%;
-  height: 1.35em;
+  width: 100%;
+  min-height: 1.35em;
   font-family: "Amiri", var(--q2-serif);
   font-size: 0.66em;
   color: var(--q2-madina-ink);
-  background:
-    linear-gradient(90deg, transparent, color-mix(in srgb, #5b8f50 16%, transparent) 18%, color-mix(in srgb, #5b8f50 16%, transparent) 82%, transparent),
-    var(--q2-madina-paper);
-  border-block: 1.5px solid var(--q2-madina-rule);
-  box-shadow: inset 0 3px 0 -1.5px var(--q2-madina-paper), inset 0 4px 0 -1.5px color-mix(in srgb, var(--q2-madina-rule) 55%, transparent), inset 0 -3px 0 -1.5px var(--q2-madina-paper), inset 0 -4px 0 -1.5px color-mix(in srgb, var(--q2-madina-rule) 55%, transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--q2-madina-rule) 7%, transparent) 20%, color-mix(in srgb, var(--q2-madina-rule) 7%, transparent) 80%, transparent);
+  border-block: 1px solid color-mix(in srgb, var(--q2-madina-rule) 35%, transparent);
 }
 .q2-cartouche b { font-weight: 700; padding-inline: 0.6em; }
-.q2-cartouche i {
-  width: 1.1em;
-  height: 1.1em;
-  flex: none;
-  background: #b9475b;
-  -webkit-mask: var(--q2-rosette) center / contain no-repeat;
-  mask: var(--q2-rosette) center / contain no-repeat;
-}
+.q2-cartouche i { display: none; }
 .q2-cartouche::before, .q2-cartouche::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 0.5em;
-  height: 0.5em;
-  border-radius: 50%;
-  transform: translateY(-50%);
-  border: 1.5px solid var(--q2-madina-rule);
-  background: var(--q2-madina-paper);
+  content: none;
 }
-.q2-cartouche::before { right: -0.25em; }
-.q2-cartouche::after { left: -0.25em; }
 
 /* The hizb marks, in the outer margin, at their line. */
 .q2-hizb {
   position: absolute;
   z-index: 1;
-  width: 7.4cqw;
-  height: 7.4cqw;
-  min-width: 22px;
-  min-height: 22px;
+  width: 4cqw;
+  height: 4cqw;
+  min-width: 12px;
+  min-height: 12px;
   transform: translateY(-50%);
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background:
-    radial-gradient(circle, var(--q2-madina-paper) 0 52%, transparent 53%),
-    conic-gradient(from 0deg, #d8697c 0 12.5%, #5b8f50 0 25%, #d8697c 0 37.5%, #5b8f50 0 50%, #d8697c 0 62.5%, #5b8f50 0 75%, #d8697c 0 87.5%, #5b8f50 0);
-  box-shadow: 0 0 0 1px var(--q2-madina-rule);
-  opacity: 0.92;
+  border: 1px solid color-mix(in srgb, var(--q2-madina-rule) 42%, transparent);
+  background: var(--q2-madina-paper);
+  opacity: 0.8;
 }
-.q2-hizb::after { content: ""; width: 34%; height: 34%; border-radius: 50%; background: #e2b44c; }
+.q2-hizb::after { content: ""; width: 35%; height: 35%; border-radius: 50%; background: var(--q2-madina-rule); }
 .q2-hizb > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-.q2-madina.is-right .q2-hizb { right: calc(clamp(9px, 3.6cqw, 20px) * -1 - 3.7cqw); }
-.q2-madina.is-left .q2-hizb { left: calc(clamp(9px, 3.6cqw, 20px) * -1 - 3.7cqw); }
+.q2-madina.is-right .q2-hizb { right: 0; }
+.q2-madina.is-left .q2-hizb { left: 0; }
 
 .q2-glyph { cursor: pointer; border-radius: 6px; transition: background-color 0.2s ease, color 0.2s ease; }
 .q2-glyph.is-end { color: var(--q2-madina-soft); }

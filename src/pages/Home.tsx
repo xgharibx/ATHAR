@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Sparkles,
-  Shuffle,
   RotateCw,
   Copy,
   Share2,
@@ -594,13 +593,6 @@ export function HomePage() {
     }
   };
 
-  const onRandom = () => {
-    if (!data?.flat?.length) return;
-    const r = data.flat[Math.floor(Math.random() * data.flat.length)];
-    trackUxEvent("home_cta:random_dhikr");
-    navigate(`/c/${r.sectionId}?focus=${r.index}`);
-  };
-
   const onQuick = (id: string) => {
     trackUxEvent(`home_cta:quick_${id}`);
     navigate(`/c/${id}`);
@@ -894,33 +886,6 @@ export function HomePage() {
     <div className={initialLaunch ? "stack-y-3" : "stack-y-3 page-enter"}>
       <AdhkarLoadStatus hasData error={error} isFetching={isFetching} onRetry={() => { void refetch(); }} />
       <Card className="p-5 overflow-hidden relative">
-        {/* Two quiet doors to the tables, in the corner the decoration used to fill. */}
-        <div className="absolute top-3 left-3 z-10 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => { markNewSeen("wird"); navigate("/wird"); }}
-            aria-label="جدول الورد"
-            className={`relative w-10 h-10 rounded-full glass border border-(--stroke) flex items-center justify-center active:scale-95 transition-transform text-(--accent) ${newWird ? "new-glow" : ""}`}
-          >
-            <CalendarCheck size={18} aria-hidden="true" />{newWird && <NewMark />}
-          </button>
-          <button
-            type="button"
-            onClick={() => { markNewSeen("muhasaba"); navigate("/muhasaba"); }}
-            aria-label="جدول المحاسبة"
-            className={`relative w-10 h-10 rounded-full glass border border-(--stroke) flex items-center justify-center active:scale-95 transition-transform text-(--accent) ${newMuhasaba ? "new-glow" : ""}`}
-          >
-            <Scale size={18} aria-hidden="true" />{newMuhasaba && <NewMark />}
-          </button>
-          <button
-            type="button"
-            onClick={() => { markNewSeen("qadaa"); navigate("/qadaa"); }}
-            aria-label="قضاء الفوائت"
-            className={`relative w-10 h-10 rounded-full glass border border-(--stroke) flex items-center justify-center active:scale-95 transition-transform text-(--accent) ${newQadaa ? "new-glow" : ""}`}
-          >
-            <TimerReset size={18} aria-hidden="true" />{newQadaa && <NewMark />}
-          </button>
-        </div>
         <div className="absolute -top-10 -left-8 opacity-80" aria-hidden="true">
           <div className="w-32 h-32">
             <React.Suspense fallback={null}>
@@ -932,7 +897,7 @@ export function HomePage() {
         <motion.div initial={initialLaunch ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }}>
           <div>
             <div>
-              <div className="mb-2 flex items-center gap-2 flex-wrap" style={{ paddingInlineEnd: 96 }}>
+              <div className="mb-2 flex items-center gap-2 flex-wrap">
                 <Sparkles size={14} className="text-(--accent)" aria-hidden="true" />
                 <span className="text-xs font-medium opacity-65">{timeGreeting(new Date().getHours())}</span>
                 {(() => { const h = getHijriDate(prayerTimes.data?.data?.date?.hijri); return h ? <span className="text-xs opacity-50 border border-(--stroke) rounded-full px-2 py-0.5">{h}</span> : null; })()}
@@ -951,7 +916,7 @@ export function HomePage() {
                 )}
               </div>
               <h1 className="text-xl md:text-2xl font-semibold leading-tight">
-                أثر — اترك <span className="text-(--accent)">أثراً</span> طيباً
+                <span className="text-(--accent)">أثر</span> — اترك <span className="text-(--accent)">أثراً</span> طيباً
               </h1>
               <div className="mt-2 text-sm opacity-70 leading-6 max-w-2xl">
                 {"﴿وَقُلْ رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا﴾"}
@@ -967,13 +932,6 @@ export function HomePage() {
                   <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/quran/page/1"); }}>المصحف</Button>
                 )}
                 <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:sebha"); navigate("/sebha"); }}>السبحة</Button>
-                <button type="button"
-                  onClick={onRandom}
-                  aria-label="ذكر عشوائي"
-                  className="press-effect inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-(--card) border border-(--stroke) hover:bg-(--card-2) active:scale-[.97] transition shrink-0"
-                >
-                  <Shuffle size={16} aria-hidden="true" />
-                </button>
               </div>
 
               {/* «السماع»: the Quran in the voices of the great reciters, one tap away. */}
@@ -1374,6 +1332,38 @@ export function HomePage() {
                   : "bg-accent-8 border-accent-20"
               )}>
                 {step}
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2" role="group" aria-label="اختصارات يومية">
+                <button
+                  type="button"
+                  onClick={() => { markNewSeen("wird"); navigate("/wird"); }}
+                  aria-label="جدول الورد"
+                  className={`relative flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-(--stroke) bg-(--card) px-2 text-(--accent) transition-all active:scale-[.97] hover:bg-(--card-2) ${newWird ? "new-glow" : ""}`}
+                >
+                  <CalendarCheck size={17} aria-hidden="true" />
+                  <span className="text-xs font-medium text-(--fg)">الورد</span>
+                  {newWird && <NewMark />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { markNewSeen("muhasaba"); navigate("/muhasaba"); }}
+                  aria-label="جدول المحاسبة"
+                  className={`relative flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-(--stroke) bg-(--card) px-2 text-(--accent) transition-all active:scale-[.97] hover:bg-(--card-2) ${newMuhasaba ? "new-glow" : ""}`}
+                >
+                  <Scale size={17} aria-hidden="true" />
+                  <span className="text-xs font-medium text-(--fg)">المحاسبة</span>
+                  {newMuhasaba && <NewMark />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { markNewSeen("qadaa"); navigate("/qadaa"); }}
+                  aria-label="قضاء الفوائت"
+                  className={`relative flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-(--stroke) bg-(--card) px-2 text-(--accent) transition-all active:scale-[.97] hover:bg-(--card-2) ${newQadaa ? "new-glow" : ""}`}
+                >
+                  <TimerReset size={17} aria-hidden="true" />
+                  <span className="text-xs font-medium text-(--fg)">القضاء</span>
+                  {newQadaa && <NewMark />}
+                </button>
               </div>
             </Card>
           );
