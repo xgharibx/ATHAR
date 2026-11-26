@@ -23,7 +23,7 @@ type Options = {
   upstreamStatus?: number;
   sseAnswer?: string;
   /** Answer through OpenAI (OPENAI_API_KEY set): output items of a Responses reply. */
-  openai?: { output?: unknown[]; searchOutput?: unknown[]; stream?: string };
+  openai?: { output?: unknown[]; searchOutput?: unknown[]; stream?: string; key?: string };
 };
 
 function edge(options: Options = {}) {
@@ -150,7 +150,7 @@ function edge(options: Options = {}) {
       env: {
         get: (name: string) => ({
           MINIMAX_API_KEY: "synthetic-provider-key",
-          ...(options.openai ? { OPENAI_API_KEY: "synthetic-openai-key" } : {}),
+          ...(options.openai ? { OPENAI_API_KEY: options.openai.key ?? "synthetic-openai-key" } : {}),
           SUPABASE_URL: "https://synthetic.supabase.co",
           SUPABASE_ANON_KEY: "synthetic-publishable-key",
           SUPABASE_SERVICE_ROLE_KEY: "synthetic-service-key",
@@ -857,6 +857,13 @@ describe("Companion on OpenAI (GPT-6 Luna)", () => {
     expect(instructions).toContain("https://www.islamweb.net/ar/fatwa/1");
     expect(instructions).toContain("يكره إفراد الجمعة بالصيام");
     expect(instructions).not.toContain("attacker.invalid");
+  });
+
+  it("uses a key pasted with quotes, a Bearer prefix or spaces", async () => {
+    const app = edge({ openai: { key: ' "Bearer synthetic-openai-key"\n', output: [message("الصدقة تطفئ غضب الرب، وهي من أفضل القربات.")] } });
+    await app.sendRaw(JSON.stringify({ max_tokens: 512, system: "synthetic system prompt", messages: [{ role: "user", content: "ما فضل الصدقة؟" }] }), "Bearer synthetic-user-token");
+    const [answer] = openAiBodies(app);
+    expect(new Headers(answer?.init.headers).get("Authorization")).toBe("Bearer synthetic-openai-key");
   });
 
   it("falls back to MiniMax while no OpenAI key is set", async () => {

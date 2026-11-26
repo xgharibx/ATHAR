@@ -392,7 +392,9 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     };
   };
 
-  const apiKey = denoRuntime.env.get(PROVIDER === "openai" ? "OPENAI_API_KEY" : "MINIMAX_API_KEY");
+  // A key pasted into the secrets with quotes, a "Bearer " prefix or spaces still works.
+  const apiKey = (denoRuntime.env.get(PROVIDER === "openai" ? "OPENAI_API_KEY" : "MINIMAX_API_KEY") ?? "")
+    .trim().replace(/^["']|["']$/g, "").replace(/^Bearer\s+/i, "").trim();
   if (!apiKey) return jsonError(req, "no server key configured", 503);
 
   if (!bearer) return jsonError(req, "sign-in-required", 401);
@@ -605,7 +607,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     if (!upstream.ok || !upstream.body) {
       await upstream.body?.cancel().catch(() => undefined);
       const failure = upstreamFailure(upstream.status);
-      console.error(`companion: model service answered ${upstream.status}`);
+      console.error(`companion: model service (${PROVIDER}, ${MINIMAX_MODEL}) answered ${upstream.status}`);
       return { ok: false, ...failure };
     }
     return { ok: true, upstream, gathered };
