@@ -129,7 +129,6 @@ describe("the ways in", () => {
     // The floating button of the classic design is «السماع» now; the radio is one of its ways.
     expect(read("src/components/layout/AppShell.tsx")).toContain("<FloatingMedia drawerOpen={drawerOpen} />");
     expect(read("src/components/layout/FloatingMedia.tsx")).toContain('to: "/listen/golden"');
-    expect(read("src/pages/Quran.tsx")).toContain("<ListenEntry />");
     expect(read("src/components/ufuq/UfuqHome.tsx")).toContain("<ListenEntry />");
     expect(read("src/components/ufuq/UfuqShell.tsx")).toContain('<ListenMiniPlayer variant="ufuq" />');
     expect(read("src/components/layout/AppShell.tsx")).toContain("<ListenMiniPlayer />");

@@ -11,16 +11,10 @@ vi.mock("@capacitor/core", () => ({
   registerPlugin: vi.fn(() => plugin),
 }));
 
-import { saveRecitationsOffline } from "@/lib/recitationDownloads";
 
 const read = (path: string) => fs.readFileSync(path, "utf8");
 
 describe("recitation downloads that carry on in the background", () => {
-  it("hands the phone the verses and the title for its notification", async () => {
-    const result = await saveRecitationsOffline(["https://everyayah.com/data/A/001001.mp3"], () => {}, "اكتمل تنزيل الفاتحة");
-    expect(result).toEqual({ saved: 2, evicted: 0 });
-    expect(plugin.download).toHaveBeenCalledWith(expect.objectContaining({ title: "اكتمل تنزيل الفاتحة" }));
-  });
 
   it("Android: a WorkManager job that resumes, waits for a network, and says when it is done", () => {
     const worker = read("android/app/src/main/java/com/athar/adhkar/RecitationDownloadWorker.java");

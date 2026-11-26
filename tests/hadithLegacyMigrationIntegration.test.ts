@@ -65,7 +65,7 @@ describe("real legacy Hadith migration", () => {
       state: Record<string, unknown>;
       version: number;
     };
-    expect(saved.version).toBe(38);
+    expect(saved.version).toBe(39);
     expect(saved.state).not.toHaveProperty("hadithNotes");
   });
 });

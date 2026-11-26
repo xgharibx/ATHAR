@@ -141,22 +141,8 @@ describe("premium share image", () => {
 
 describe("where images are shared from", () => {
   const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
-
-  it("uses the premium design for ayah, dhikr, hadith and reflection images", () => {
-    const mushaf = read("src/pages/Mushaf.tsx");
-    expect(mushaf).toContain("<PremiumShareComposer");
-    expect(mushaf).toContain('kind: "ayah"');
-    expect(mushaf).toContain('kind: "reflection"');
+  it("uses the premium design for dhikr and hadith images", () => {
     expect(read("src/components/dhikr/SharePosterModal.tsx")).toContain('kind: "dhikr"');
     expect(read("src/pages/HadithReader.tsx")).toContain('kind: "hadith"');
-    expect(mushaf).not.toContain("athar.app");
-  });
-
-  it("keeps the Mushaf share menu to three clear choices", () => {
-    const mushaf = read("src/pages/Mushaf.tsx");
-    const sheet = mushaf.slice(mushaf.indexOf('className="mushaf-share-grid is-three"'));
-    const choices = sheet.slice(0, sheet.indexOf("</div>")).match(/className="mushaf-share-opt/g) ?? [];
-    expect(choices).toHaveLength(3);
-    expect(mushaf).not.toContain("صورة فنية");
   });
 });

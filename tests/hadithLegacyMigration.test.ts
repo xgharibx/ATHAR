@@ -67,7 +67,7 @@ describe("legacy Hadith state migration", () => {
     }
 
     await hydration;
-    expect(readStoredSnapshot().version).toBe(38);
+    expect(readStoredSnapshot().version).toBe(39);
     expect(migrateHadithStateToIDBMock).toHaveBeenCalledWith({
       bookmarks: LEGACY_HADITH_STATE.hadithBookmarks,
       progress: LEGACY_HADITH_STATE.hadithProgress,

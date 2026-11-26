@@ -104,25 +104,6 @@ afterEach(() => {
 });
 
 describe("Home resume action", () => {
-  it("resumes the last visited locally saved custom adhkar pack", async () => {
-    await act(async () => {
-      root.render(
-        <MemoryRouter initialEntries={["/"]}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/c/:id" element={<LocationProbe />} />
-          </Routes>
-        </MemoryRouter>,
-      );
-      await Promise.resolve();
-    });
-
-    const resume = Array.from(container.querySelectorAll("button"))
-      .find((button) => button.textContent?.includes("تابع آخر قسم"));
-    expect(resume).toBeDefined();
-    act(() => resume?.click());
-    expect(container.querySelector('[data-testid="location"]')?.textContent).toBe("/c/custom_trip");
-  });
 
   it("refreshes the hero and smart adhkar actions at the local-hour boundary", async () => {
     vi.useFakeTimers();

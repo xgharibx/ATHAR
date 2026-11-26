@@ -74,13 +74,13 @@ const DEFAULT_HOME_WIDGETS = {
   prayer: true,
   hadith: true,
   wisdom: true,
-  smart: true,
-  checklist: true,
+  smart: false,
+  checklist: false,
   dailyStep: true,
-  tasbeeh: true,
-  dailyWird: true,
-  dailyVerse: true,
-  quests: true,
+  tasbeeh: false,
+  dailyWird: false,
+  dailyVerse: false,
+  quests: false,
 } satisfies Record<HomeWidgetKey, boolean>;
 
 
@@ -218,7 +218,6 @@ export function HomePage() {
   const quran = useQuranDB();
   const activity = useNoorStore((s) => s.activity);
   const progressMap = useNoorStore((s) => s.progress);
-  const lastVisitedSectionId = useNoorStore((s) => s.lastVisitedSectionId);
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
 
@@ -607,13 +606,6 @@ export function HomePage() {
     navigate(`/c/${id}`);
   };
 
-  const lastVisitedSection = React.useMemo(() => {
-    if (!lastVisitedSectionId) return null;
-    return sections.find((s) => s.id === lastVisitedSectionId)
-      ?? customPacks.find((pack) => pack.id === lastVisitedSectionId)
-      ?? null;
-  }, [lastVisitedSectionId, sections, customPacks]);
-
   const quickTotal = React.useMemo(() => {
     const target = tasbeehTarget;
     const done = QUICK_TASBEEH.reduce((acc, it) => acc + Math.min(target, quickTasbeeh[it.key] ?? 0), 0);
@@ -732,7 +724,7 @@ export function HomePage() {
           : null;
 
     const actionRoute = !isDailyWirdDone
-      ? (prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : "/mushaf/1")
+      ? (prefs.quranMushafPage ? `/quran/page/${prefs.quranMushafPage}` : "/quran/page/1")
       : timeRoute
         ? timeRoute
         : nextChecklist
@@ -968,17 +960,12 @@ export function HomePage() {
               <div className="mt-4 flex flex-wrap gap-2 max-w-xl">
                 <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" onClick={() => onQuick(heroAdhkar.id)}>{heroAdhkar.label}</Button>
                 {prefs.quranMushafPage ? (
-                  <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:continue_quran"); navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : `/mushaf/1`); }}>
+                  <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:continue_quran"); navigate(prefs.quranMushafPage ? `/quran/page/${prefs.quranMushafPage}` : `/quran/page/1`); }}>
                     📖 {quranResumeMeta?.surahName ? `تابع ${quranResumeMeta.surahName}` : "تابع القرآن"}
                   </Button>
                 ) : (
-                  <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/mushaf/1"); }}>المصحف</Button>
+                  <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/quran/page/1"); }}>المصحف</Button>
                 )}
-                {lastVisitedSection ? (
-                  <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:last_section"); navigate(`/c/${lastVisitedSection.id}`); }}>
-                    تابع آخر قسم
-                  </Button>
-                ) : null}
                 <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:sebha"); navigate("/sebha"); }}>السبحة</Button>
                 <button type="button"
                   onClick={onRandom}
@@ -995,7 +982,7 @@ export function HomePage() {
               {/* Quran reading progress micro-bar */}
               {quranReadingPct > 0 && (
                 <button type="button"
-                  onClick={() => navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : "/mushaf/1")}
+                  onClick={() => navigate(prefs.quranMushafPage ? `/quran/page/${prefs.quranMushafPage}` : "/quran/page/1")}
                   className="mt-3 inline-flex max-w-full flex-wrap items-center gap-2.5 group text-right"
                   aria-label={`القرآن: ${quranReadingPct}% مقروء`}
                 >
@@ -1614,7 +1601,7 @@ export function HomePage() {
                     <button type="button"
                       key={`${p.surahId}:${p.ayahIndex}`}
                       className="glass rounded-3xl p-4 text-right transition border border-(--stroke) press-effect glass-hover"
-                      onClick={() => navigate(`/mushaf?surah=${p.surahId}&ayah=${p.ayahIndex}`)}
+                      onClick={() => navigate(`/quran/read/${p.surahId}?a=${p.ayahIndex}`)}
                     >
                       <div className="text-xs opacity-65 mb-2">
                         {p.surahName} • ({p.surahId}) • ﴿{p.ayahIndex}﴾
@@ -1639,7 +1626,7 @@ export function HomePage() {
           return null;
         }
         if (widgetKey === "dailyVerse") {
-          if (!quran.data) return null;
+          if (!homeWidgets.dailyVerse || !quran.data) return null;
           const dayNum = Math.floor(Date.now() / 86400000);
           // Cycle through a curated list of meaningful ayahs by day
           const VERSE_REFS: Array<{ s: number; a: number }> = [
@@ -1658,7 +1645,7 @@ export function HomePage() {
             <button
               type="button"
               key={widgetKey}
-              onClick={() => navigate(`/mushaf?surah=${ref.s}&ayah=${ref.a}`)}
+              onClick={() => navigate(`/quran/read/${ref.s}?a=${ref.a}`)}
               className="w-full text-right rounded-3xl border transition-all active:scale-[0.99] p-4"
               style={{
                 background: "color-mix(in srgb, var(--accent) 5%, var(--card))",
@@ -1719,39 +1706,6 @@ export function HomePage() {
         );
       })()}
 
-      {/* ── مكتبة المحتوى ── */}
-      <Card className="p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-base" aria-hidden="true">📚</span>
-          <div className="text-sm font-semibold">مكتبة المحتوى</div>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { icon: "✨", label: "أسماء الله", route: "/asma" },
-            { icon: "🤲", label: "الأدعية", route: "/duas" },
-            { icon: "📖", label: "مفردات القرآن", route: "/quran-vocab" },
-            { icon: "🕌", label: "قصص الأنبياء", route: "/stories" },
-            { icon: "🧎", label: "كيفية الصلاة", route: "/prayer-guide" },
-            { icon: "💧", label: "الوضوء", route: "/wudu" },
-            { icon: "🌟", label: "الصحابة", route: "/companions" },
-            { icon: "📜", label: "الرقية الشرعية", route: "/ruqyah" },
-            { icon: "🕌", label: "السيرة النبوية", route: "/seerah" },
-            { icon: "📚", label: "الأحاديث", route: "/hadith" },
-            { icon: "🏅", label: "حفظ الحديث", route: "/hadith/memo" },
-            { icon: "📊", label: "الإحصاءات", route: "/insights" },
-          ].map(({ icon, label, route }) => (
-            <button type="button"
-              key={route}
-              onClick={() => navigate(route)}
-              className="flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 transition active:scale-95"
-              style={{ background: "var(--card)", border: "1px solid var(--stroke)", color: "var(--fg)" }}
-            >
-              <span className="text-2xl">{icon}</span>
-              <span className="text-[11px] font-medium text-center leading-4 opacity-80">{label}</span>
-            </button>
-          ))}
-        </div>
-      </Card>
 
       {/* Floating Athar entry point removed on request (2026-08-24).
           The component and the Companion page are untouched — only the

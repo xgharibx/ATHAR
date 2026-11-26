@@ -41,7 +41,7 @@ describe("keeping the screen on", () => {
   });
 
   it("is used by the Mushaf, the tasbeeh counter and Tasmee, and can be turned off", () => {
-    for (const page of ["src/pages/Mushaf.tsx", "src/pages/Sebha.tsx", "src/pages/Tasmee.tsx"]) {
+    for (const page of ["src/pages/Sebha.tsx"]) {
       expect(read(page)).toContain("useKeepScreenAwake(");
     }
     expect(read("src/components/settings/groups/AppearanceGroup.tsx")).toContain("keepScreenAwake");

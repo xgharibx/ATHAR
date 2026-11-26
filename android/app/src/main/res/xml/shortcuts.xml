@@ -54,7 +54,7 @@
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.athar.adhkar"
             android:targetClass="com.athar.adhkar.AtharActivity">
-            <extra android:name="athar_route" android:value="/mushaf" />
+            <extra android:name="athar_route" android:value="/quran/page" />
         </intent>
     </shortcut>
 </shortcuts>
