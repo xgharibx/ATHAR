@@ -20,20 +20,23 @@
 
 ## Features
 
-- Adhkar collections with a tasbeeh counter, favourites and progress tracking
-- Quran reader (Mushaf), tafsir, translations, memorisation and recitation tools
-- Prayer times, Qibla direction and reminders
-- Hadith library and learning content
-- "Ask Athar", an optional assistant for Islamic questions
-- Optional accounts with cloud sync and leaderboards
-- Offline-first: core content works without a connection
+- **Adhkar** collections with a tasbeeh counter (also voice and Home Screen), favourites and progress tracking
+- **القرآن الكريم**: the Madina mushaf page as printed (bundled, offline), tajweed colours, word-synced recitation, tafsirs side by side, translations, roots and word meanings, memorisation with spaced review, and التسميع with an on-device tajweed engine
+- **السماع**: the whole Quran by the great reciters, golden recordings, the night prayers of the two Harams, tawasheeh and the live Quran radio, with native background playback and downloads
+- **Prayer times**, Qibla, Adhan alerts that keep going a week ahead, and a Live Activity for the next prayer
+- **Hadith**, stories, the Seerah, Asma al-Husna, duas, ruqyah and learning guides
+- **Tracking**: wird, muhasaba, insights, missed prayers (qadaa) and the leaderboard
+- **"Ask Athar"**, an optional assistant for Islamic questions
+- **Three designs**: classic, the new classic and «أفق»
+- **Native on both platforms**: Home Screen and Lock Screen widgets (prayer, adhkar, wird, tasbeeh, Qibla, memorisation, and the «السماع» player with play, pause and skip), Control Center controls, Siri and app shortcuts, Face ID / fingerprint lock, Wear OS tile, Android Auto
+- **Offline-first**: core content works without a connection
 
 ## Technology
 
 | Layer | Stack |
 |---|---|
 | App | React 19, TypeScript, Vite, Tailwind CSS 4 |
-| Mobile | Capacitor 8 (Android 7+, iOS 16.4+) |
+| Mobile | Capacitor 8 (Android 7+, iOS 16.4+), native Swift (WidgetKit, App Intents, AVFoundation) and Java (Media3, App Widgets) |
 | Backend | Supabase (Auth, Postgres, Edge Functions) |
 | Tests | Vitest, pgTAP |
 
@@ -76,6 +79,8 @@ npm run dev
 Client configuration is read from `VITE_*` variables; see `.env.example`. Server credentials are stored only as Supabase Edge Function secrets and must never be given a `VITE_` prefix or committed.
 
 ## Releases
+
+Changes for each version are in [CHANGELOG.md](CHANGELOG.md). Bump the version everywhere at once with `npm run version:bump` (checked by `npm run version:check`).
 
 - Web: deployed by the `Deploy GitHub Pages` workflow on every push to `main`.
 - Android: see `tools/android/README.md` and `docs/RELEASE_CHECKLIST_MOBILE_AR.md`.

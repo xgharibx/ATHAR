@@ -6,11 +6,11 @@ Athar is proprietary software (see [LICENSE](LICENSE)). It incorporates and conn
 
 The app is built with open-source packages, including React, Vite, Tailwind CSS, Capacitor, the Supabase client, Three.js, Framer Motion, Dexie, Zustand and others.
 
-The copyright notice and licence text of every package that ships in the app are generated at build time and published with it at <https://www.athark.org/third-party-licenses.txt>. A test fails the build if a shipped package carries a copyleft or unreviewed licence. The native projects additionally use the dependencies declared in `android/` (Gradle) and `ios/` (CocoaPods).
+The copyright notice and licence text of every package that ships in the app are generated at build time and published with it at <https://www.athark.org/third-party-licenses.txt>. A test fails the build if a shipped package carries a copyleft or unreviewed licence. The native projects additionally use the dependencies declared in `android/` (Gradle) and `ios/` (Swift Package Manager).
 
 ## Religious texts and content
 
-Quran text, translations, tafsir, hadith collections and adhkar included in or retrieved by the app originate from their respective publishers and scholarly sources. Attribution for each collection is shown inside the app on its Sources screens. This content is not covered by the Athar licence and is not claimed as Athar's own work.
+Quran text, translations, tafsir, hadith collections and adhkar included in or retrieved by the app originate from their respective publishers and scholarly sources. Attribution for each collection is listed in the app (the Sources screen) and in the privacy policy, under «مصادر المحتوى وتراخيصه». This content is not covered by the Athar licence and is not claimed as Athar's own work.
 
 The source, terms and confirmation status of each item are tracked in [docs/CONTENT_LICENSES.md](docs/CONTENT_LICENSES.md).
 
@@ -24,16 +24,19 @@ Depending on the features a user enables, the app requests data from:
 | AlAdhan | Prayer-time calculation |
 | OpenStreetMap Overpass | Nearby mosque search |
 | Quran.com / Quran Foundation | Word-by-word data and translations |
-| EveryAyah | Quran recitation audio |
+| EveryAyah, QuranicAudio | Quran recitation audio and word timings |
+| mp3quran.net, Internet Archive | «السماع»: recitations, tawasheeh and ibtihalat |
+| Quran.com CDN, Quran Foundation | Madina mushaf page fonts, tafsirs and translations |
+| Hugging Face, jsDelivr | The on-device tajweed model and runtime (downloaded once, checked against their SHA-256) |
 | HadeethEnc, Dorar | Hadith explanations and verification |
 | MiniMax | Language model behind "Ask Athar" |
-| YouTube, RadioJar | Video and radio streams |
+| YouTube, Qurango, RadioJar | Video and radio streams |
 
 Use of each service is subject to that service's terms and privacy policy. See the privacy policy at <https://www.athark.org/privacy.html> for what is sent to each.
 
 ## Fonts, audio and artwork
 
-Fonts, recitation and adhan audio, animations and icons bundled with the app are used under the licences granted by their respective authors.
+Fonts, recitation and adhan audio, animations and icons bundled with the app are used under the licences granted by their respective authors. The bundled fonts (IBM Plex Sans Arabic, Amiri, Amiri Quran, Cairo, Tajawal, Scheherazade New, Noto Naskh Arabic, Reem Kufi) are under the SIL Open Font License 1.1. The King Fahd Complex mushaf fonts are fetched on the device, not redistributed. Each item, with its status, is in [docs/CONTENT_LICENSES.md](docs/CONTENT_LICENSES.md).
 
 ## Corrections
 
