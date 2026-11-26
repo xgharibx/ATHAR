@@ -59,7 +59,8 @@ export function useScrollRestoration() {
       // A route without a saved position must not inherit the previous page's
       // window offset. Reset before paint so first-time destinations open at
       // their heading instead of showing an arbitrary middle section.
-      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+      // (Already at the top: nothing to do, and no layout forced mid-render.)
+      if (window.scrollY !== 0) window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
     }
     // We intentionally do NOT clear the saved value here so it survives
     // multiple back navigations within the same session.
