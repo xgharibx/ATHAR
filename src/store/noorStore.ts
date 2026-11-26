@@ -786,13 +786,13 @@ const DEFAULT_PREFS: Preferences = {
     prayer: true,
     hadith: true,
     wisdom: true,
-    smart: true,
-    checklist: true,
+    smart: false,
+    checklist: false,
     dailyStep: true,
-    tasbeeh: true,
-    dailyWird: true,
-    dailyVerse: true,
-    quests: true,
+    tasbeeh: false,
+    dailyWird: false,
+    dailyVerse: false,
+    quests: false,
   },
 };
 
@@ -2779,7 +2779,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 38,
+      version: 39,
       migrate: (persisted: unknown, previousVersion: number) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -2802,6 +2802,10 @@ export const useNoorStore = create<NoorState>()(
             };
         // Apply the historic v27 default only once; preserve later user choices.
         if (previousVersion < 27) normalizedPrefs.mushafTajweedMode = true;
+        // A calmer classic home (v39): these cards start hidden once; each can be shown again in Settings → Home.
+        if (previousVersion < 39) {
+          normalizedPrefs.homeWidgets = { ...normalizedPrefs.homeWidgets, smart: false, checklist: false, tasbeeh: false, dailyWird: false, dailyVerse: false, quests: false };
+        }
 
         return {
           ...state,

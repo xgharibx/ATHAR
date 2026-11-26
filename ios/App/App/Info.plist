@@ -155,7 +155,7 @@
 			<key>UIApplicationShortcutItemUserInfo</key>
 			<dict>
 				<key>route</key>
-				<string>/mushaf</string>
+				<string>/quran/page</string>
 			</dict>
 		</dict>
 	</array>

@@ -8,7 +8,7 @@
  */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BookOpen, Check, Compass, HandHeart, Library, MapPin, MessageCircle, MoonStar, RotateCcw, Sparkles, Sun } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, Compass, HandHeart, Library, MapPin, MessageCircle, MoonStar, RotateCcw, Sparkles, Sun, Trophy } from "lucide-react";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useStartupReady } from "@/hooks/useStartupReady";
 import { usePrayerTimes, formatPrayerHijriDate } from "@/hooks/usePrayerTimes";
@@ -441,6 +441,19 @@ export function UfuqHome() {
             <span className="flex-1 min-w-0">
               <span className="block text-[16px] font-semibold">اسأل أثر</span>
               <span className="block text-[13px] text-(--muted) mt-0.5">سؤال في دينك؟ رفيقك يجيبك بهدوء ومصادر</span>
+            </span>
+            <ArrowLeft size={16} className="opacity-35 shrink-0" aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            className="u-card u-card-press w-full mt-3 p-5 text-start flex items-center gap-4"
+            onClick={() => navigate("/leaderboard")}
+          >
+            <span className="u-tile-icon" aria-hidden="true"><Trophy size={18} /></span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-[16px] font-semibold">المتصدرون</span>
+              <span className="block text-[13px] text-(--muted) mt-0.5">تنافس مع أصدقائك في الخير، والتحدي الأسبوعي</span>
             </span>
             <ArrowLeft size={16} className="opacity-35 shrink-0" aria-hidden="true" />
           </button>

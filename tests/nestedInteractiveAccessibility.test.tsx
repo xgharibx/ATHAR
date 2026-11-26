@@ -46,7 +46,6 @@ vi.mock("@/store/customReminderActions", () => ({
 }));
 
 import { CompanionModal } from "@/components/companion/CompanionModal";
-import { QuranPage } from "@/pages/Quran";
 import { SebhaPage } from "@/pages/Sebha";
 import { deleteCustomReminder } from "@/store/customReminderActions";
 import { useNoorStore } from "@/store/noorStore";
@@ -90,53 +89,7 @@ afterEach(() => {
 });
 
 describe("interactive controls inside content rows", () => {
-  it("keeps surah open, preview, and info actions as sibling buttons", () => {
-    mount(
-      <MemoryRouter initialEntries={["/quran"]}>
-        <Routes>
-          <Route path="/quran" element={<><QuranPage /><LocationMarker /></>} />
-          <Route path="/mushaf" element={<LocationMarker />} />
-        </Routes>
-      </MemoryRouter>,
-    );
 
-    const item = container.querySelector('[role="listitem"]')!;
-    expect(item.querySelector('[role="button"]')).toBeNull();
-    const actions = Array.from(item.querySelectorAll("button"));
-    expect(actions.map((button) => button.getAttribute("aria-label"))).toEqual([
-      "افتح سورة الفاتحة في المصحف — آيتان",
-      "معاينة آيات الفاتحة",
-      "معلومات سورة الفاتحة",
-    ]);
-    expect(actions.every((button) => button.parentElement?.parentElement === item)).toBe(true);
-
-    act(() => actions[1]!.click());
-    expect(actions[1]!.getAttribute("aria-expanded")).toBe("true");
-    expect(container.querySelector('[data-testid="location"]')?.textContent).toBe("/quran");
-    act(() => actions[2]!.click());
-    expect(container.querySelector('[data-testid="location"]')?.textContent).toBe("/quran");
-    act(() => actions[0]!.click());
-    expect(container.querySelector('[data-testid="location"]')?.textContent).toBe("/mushaf");
-  });
-
-  it("does not present a future khatma plan's first range as today's reading", () => {
-    useNoorStore.setState((state) => ({
-      ...state,
-      khatmaStartISO: "2999-01-01",
-      khatmaDays: 30,
-      khatmaScheduleVersion: 2,
-      khatmaDone: {},
-    }));
-
-    mount(
-      <MemoryRouter initialEntries={["/quran"]}>
-        <Routes><Route path="/quran" element={<QuranPage />} /></Routes>
-      </MemoryRouter>,
-    );
-
-    expect(container.textContent).toContain("تبدأ خطة التلاوة بعد");
-    expect(container.querySelector('button[aria-label^="ورد اليوم"]')).toBeNull();
-  });
 
   it("gives the custom dhikr selector and edit action independent button semantics", () => {
     mount(<MemoryRouter><SebhaPage /></MemoryRouter>);

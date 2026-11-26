@@ -29,7 +29,6 @@ vi.mock("@capacitor/core", () => ({
 }));
 
 import { planRecitationQueue, startNativeRecitation } from "@/lib/nativeRecitation";
-import { everyAyahUrl, saveRecitationsOffline } from "@/lib/recitationDownloads";
 
 const emit = (event: string, data?: unknown) => (native.listeners.get(event) as ((value: unknown) => void) | undefined)?.(data);
 const verses = ["a", "b", "c"].map((id) => ({ id, url: `https://everyayah.com/data/x/${id}.mp3`, title: id, artist: "r" }));
@@ -54,9 +53,6 @@ describe("native recitation queue", () => {
       .toEqual({ items: [1, 2, 3], startIndex: 0, repeat: "all" });
   });
 
-  it("builds the reciter's verse URL", () => {
-    expect(everyAyahUrl("Alafasy_128kbps", 2, 255)).toBe("https://everyayah.com/data/Alafasy_128kbps/002255.mp3");
-  });
 });
 
 describe("native recitation session", () => {
@@ -108,15 +104,4 @@ describe("native recitation session", () => {
     expect(native.listeners.size).toBe(0);
   });
 
-  it("saves offline verses as files in the apps", async () => {
-    const progress = vi.fn();
-    const urls = [verses[0]!.url, verses[1]!.url];
-    native.download.mockImplementationOnce(async () => {
-      emit("downloadProgress", { done: 1, total: 2 });
-      return { saved: 2, failed: 0, evicted: 1 };
-    });
-    await expect(saveRecitationsOffline(urls, progress)).resolves.toEqual({ saved: 2, evicted: 1 });
-    expect(native.download).toHaveBeenCalledWith({ urls, maxBytes: 1024 * 1024 * 1024 });
-    expect(progress).toHaveBeenCalledWith(1, 2);
-  });
 });

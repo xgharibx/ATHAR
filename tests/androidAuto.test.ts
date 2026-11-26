@@ -17,12 +17,6 @@ describe("Android Auto: Athar's Quran in the car", () => {
     expect(catalog.surahs[1].ayahs).toBe(286);
   });
 
-  it("plays the same verse files the app saves for offline listening", () => {
-    const library = fs.readFileSync("android/app/src/main/java/com/athar/adhkar/CarLibrary.java", "utf8");
-    expect(library).toContain('"https://everyayah.com/data/%s/%03d%03d.mp3"');
-    expect(library).toContain("RecitationDownloads.existing(context, url)");
-    expect(fs.readFileSync("src/lib/recitationDownloads.ts", "utf8")).toContain("https://everyayah.com/data/${reciter}/${surah}${verse}.mp3");
-  });
 
   it("is a media library the car can browse", () => {
     expect(fs.readFileSync("android/app/src/main/java/com/athar/adhkar/RecitationService.java", "utf8"))

@@ -23,7 +23,6 @@ import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 import { useCloudSync } from "@/hooks/useCloudSync";
 import { useQueryClient } from "@tanstack/react-query";
-import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { idbPruneQuranTranslationCache } from "@/lib/quranIDB";
 import { ANGELS_SECTION } from "@/data/angels";
 import { DIVINE_BOOKS_SECTION } from "@/data/divineBooks";
@@ -410,47 +409,8 @@ function AppContent() {
     return () => document.removeEventListener("visibilitychange", prune);
   }, []);
 
-  React.useEffect(() => {
-    const w = globalThis as typeof globalThis & {
-      requestIdleCallback?: (cb: () => void) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-
-    // Respect the OS/browser data-saver signal — this prefetch pulls the
-    // entire Quran's word-by-word dataset (114 requests) in the background;
-    // don't spend a metered/limited connection's data budget on it uninvited.
-    const connection = (navigator as Navigator & {
-      connection?: { saveData?: boolean; effectiveType?: string };
-    }).connection;
-    const isDataConstrained = !!connection?.saveData || connection?.effectiveType === "2g" || connection?.effectiveType === "slow-2g";
-
-    const prepareMushaf = () => {
-      if (isDataConstrained) return;
-      // The small Quran core the rest of the app reads (search, the daily
-      // cards, the player's verses). The Quran section keeps its own text.
-      void ensureMushafCoreOffline().catch(() => {
-        // Settings expose a retry path if the first background attempt fails.
-      });
-    };
-
-    let active = true;
-    let cancelScheduled: (() => void) | undefined;
-    const cancelWaiting = afterStartupReady(() => {
-      const run = () => { if (active) prepareMushaf(); };
-      if (typeof w.requestIdleCallback === "function") {
-        const id = w.requestIdleCallback(run);
-        cancelScheduled = () => w.cancelIdleCallback?.(id);
-      } else {
-        const id = globalThis.setTimeout(run, 1200);
-        cancelScheduled = () => globalThis.clearTimeout(id);
-      }
-    });
-    return () => {
-      active = false;
-      cancelWaiting();
-      cancelScheduled?.();
-    };
-  }, []);
+  // The Quran the rest of the app reads (search, the daily cards, the player's
+  // verses) is bundled with the app and read on demand: nothing to copy at startup.
 
   // Prayer times follow the person when they travel (src/lib/travelLocation.ts).
   const followLocation = useNoorStore((s) => s.prefs.prayerLocationFollow !== false);

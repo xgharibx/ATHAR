@@ -11,7 +11,7 @@ const iosRoutes = [...infoPlist.matchAll(/<key>route<\/key>\s*<string>([^<]+)<\/
 
 describe("app-icon shortcuts", () => {
   it("offers the same four screens on Android and iPhone", () => {
-    expect(androidRoutes).toEqual(["/prayer-times", "/qibla", "/sebha", "/mushaf"]);
+    expect(androidRoutes).toEqual(["/prayer-times", "/qibla", "/sebha", "/quran/page"]);
     expect(iosRoutes).toEqual(androidRoutes);
   });
 
