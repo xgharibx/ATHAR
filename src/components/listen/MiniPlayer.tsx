@@ -8,7 +8,7 @@ import "@/styles/listen.css";
 import { nextTrack, stopListen, toggleListen } from "@/lib/listen/player";
 import { openFullPlayer, useFullPlayerOpen } from "@/lib/listen/ui";
 import { useListenPlayer } from "@/lib/listen/useListen";
-import { ReciterMark } from "@/components/listen/ReciterMark";
+import { ListenEmblem } from "@/components/listen/ListenEmblem";
 import { cn } from "@/lib/utils";
 
 const FullPlayer = React.lazy(() => import("@/components/listen/FullPlayer"));
@@ -34,7 +34,7 @@ export function ListenMiniPlayer({ variant = "classic" }: { variant?: "classic" 
       {visible && track ? (
         <div className={cn("ls-mini", variant === "ufuq" && "is-ufuq")} role="region" aria-label="يُتلى الآن">
           <button type="button" className="flex items-center gap-2.5 flex-1 min-w-0" onClick={openFullPlayer} aria-label={`فتح المشغّل: ${track.title}`}>
-            <ReciterMark name={track.artist} withName={false} />
+            <ListenEmblem playing={p.status === "playing"} size={40} />
             <span className="ls-mini-text">
               <b>{track.title}</b>
               <span>{p.error ?? track.artist}</span>

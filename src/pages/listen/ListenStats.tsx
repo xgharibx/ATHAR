@@ -8,7 +8,6 @@ import { Flame, RotateCcw, Sparkles, Trophy } from "lucide-react";
 import "@/styles/listen.css";
 import { arabicDigits, formatListened, surahName } from "@/lib/listen/catalog";
 import { dayKey, lastSevenDays, listeningStreak, useListenStore } from "@/lib/listen/store";
-import { ReciterMark } from "@/components/listen/ReciterMark";
 
 const GOALS = [5, 10, 15, 30, 60];
 
@@ -111,7 +110,6 @@ export function ListenStatsPage() {
             {topArtists.map(([name, sec], i) => (
               <div key={name} className="ls-row">
                 <span className="ls-row-num">{arabicDigits(i + 1)}</span>
-                <ReciterMark name={name} style={{ width: 38, height: 38, fontSize: 12, flexShrink: 0 }} />
                 <span className="ls-row-main">
                   <span className="ls-row-title block">{name}</span>
                 </span>

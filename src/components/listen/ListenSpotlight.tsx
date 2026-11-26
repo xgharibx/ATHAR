@@ -1,21 +1,19 @@
 /**
- * «السماع» on the classic home: a card that draws the eye — three of the
- * great reciters, the section's name, a sound that seems to move — and one
+ * «السماع» on the classic home: a card that draws the eye — the section's
+ * name, a sound that seems to move — and one
  * round button that starts listening at once (the recitation you stopped, or
  * the section itself). While something plays, it shows what, and opens the
  * player.
  */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Headphones, Loader2, Pause, Play } from "lucide-react";
+import { Loader2, Pause, Play } from "lucide-react";
 import "@/styles/listen.css";
 import { playTracks, toggleListen } from "@/lib/listen/player";
 import { resumable, useListenStore } from "@/lib/listen/store";
 import { openFullPlayer } from "@/lib/listen/ui";
 import { useListenNowPlaying } from "@/lib/listen/useListen";
-import { ReciterMark } from "@/components/listen/ReciterMark";
-
-const FACES = ["عبدالباسط عبدالصمد", "محمد صديق المنشاوي", "مشاري العفاسي"];
+import { ListenEmblem } from "@/components/listen/ListenEmblem";
 
 function Waves({ live }: { live: boolean }) {
   return (
@@ -38,7 +36,7 @@ export function ListenSpotlight({ className = "" }: { className?: string }) {
     return (
       <div className={`ls-spot is-now ${className}`}>
         <button type="button" className="ls-spot-main ls-press" onClick={openFullPlayer} aria-label={`فتح المشغّل: ${track.title}`}>
-          <ReciterMark name={track.artist} withName={false} />
+          <ListenEmblem playing={playing} size={46} />
           <span className="ls-spot-text">
             <small>يُتلى الآن</small>
             <b>{track.title}</b>
@@ -56,15 +54,9 @@ export function ListenSpotlight({ className = "" }: { className?: string }) {
   return (
     <div className={`ls-spot ${className}`}>
       <button type="button" className="ls-spot-main ls-press" onClick={() => navigate("/listen")} aria-label="السماع: القرآن كاملًا بأصوات كبار القرّاء">
-        <span className="ls-entry-marks" aria-hidden="true">
-          {FACES.map((n) => (
-            <ReciterMark key={n} name={n} withName={false} />
-          ))}
-        </span>
+        <ListenEmblem size={46} />
         <span className="ls-spot-text">
-          <b>
-            <Headphones size={17} aria-hidden="true" /> السماع
-          </b>
+          <b>السماع</b>
           <span>{last ? `أكمل: ${last.track.title}، ${last.track.artist}` : "القرآن كاملًا بأصوات كبار القرّاء، والتسجيلات الذهبية، وقيام الحرمين"}</span>
         </span>
         <Waves live={false} />

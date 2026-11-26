@@ -13,7 +13,6 @@ import {
   cityName,
   findMoshaf,
   formatDuration,
-  hueFor,
   parseSurahList,
   qiyamTitle,
   qiyamTrack,
@@ -26,7 +25,6 @@ import { useListenStore } from "@/lib/listen/store";
 import { canDownloadListening, reconcileDownloads, removeDownloadedTracks } from "@/lib/listen/downloads";
 import { downloadedRecitationBytes } from "@/lib/nativeRecitation";
 import { useListenCatalog } from "@/lib/listen/useListen";
-import { ReciterMark } from "@/components/listen/ReciterMark";
 import { TrackRow } from "@/components/listen/TrackRow";
 
 function Loading() {
@@ -40,7 +38,7 @@ function Loading() {
 function ListHeader({ title, sub, tracks, gold, artist }: { title: string; sub?: string; tracks: ListenTrack[]; gold?: boolean; artist?: string }) {
   return (
     <header className="ls-card ls-head">
-      {artist ? <ReciterMark name={artist} gold={gold} /> : null}
+      {artist ? <span className={`ls-head-kicker${gold ? " is-gold" : ""}`}>{artist}</span> : null}
       <h1>{title}</h1>
       {sub ? <p>{sub}</p> : null}
       {tracks.length ? (
@@ -127,7 +125,7 @@ export function ListenSurahPage() {
         {voices.map((t, i) => (
           <div key={t.id} className="ls-row">
             <button type="button" className="flex items-center gap-3 flex-1 min-w-0 text-right" onClick={() => playTracks(voices, i)}>
-              <ReciterMark name={t.artist} style={{ width: 40, height: 40, fontSize: 13, flexShrink: 0 }} />
+              <span className="ls-row-num">{arabicDigits(i + 1)}</span>
               <span className="ls-row-main">
                 <span className="ls-row-title block">{t.artist}</span>
                 <span className="ls-row-meta">{t.timing ? "الآيات مع الصوت" : "مرتّل"}</span>
@@ -158,7 +156,6 @@ export function ListenGoldenPage() {
           if (!found) return null;
           return (
             <Link key={g.moshaf} to={`/listen/reciter/${g.reciter}?m=${g.moshaf}`} className="ls-gold ls-press" style={{ width: "100%" }}>
-              <ReciterMark name={found.reciter.n} gold withName={false} />
               <span className="min-w-0">
                 <b>{found.reciter.n}</b>
                 <span>{g.note}</span>
@@ -234,11 +231,9 @@ export function ListenTawasheehPage() {
       <div className="grid grid-cols-2 gap-4">
         {catalog.tawasheeh.map((a) => (
           <Link key={a.id} to={`/listen/album/${a.id}`} className="ls-album ls-press" style={{ width: "100%" }}>
-            <span className="ls-album-art" style={{ width: "100%", height: "auto", aspectRatio: "1", ["--h" as string]: (hueFor(a.artist) % 60) + 15 }}>
-              {a.artist}
-            </span>
             <b>{a.title}</b>
-            <span>{arabicDigits(a.tracks.length)} مقطعًا</span>
+            <span>{a.artist}</span>
+            <span className="ls-album-count">{arabicDigits(a.tracks.length)} مقطعًا</span>
           </Link>
         ))}
       </div>
@@ -257,10 +252,6 @@ export function ListenAlbumPage() {
     <div className="ls-page page-enter">
       <ListHeader title={album.title} sub={`${album.artist}، ${arabicDigits(tracks.length)} مقطعًا`} tracks={tracks} artist={album.artist} gold />
       <TrackList tracks={tracks} meta={(t) => (t.artist !== album.artist ? <span>{t.artist}</span> : null)} />
-      <p className="ls-credit">
-        من <a href={album.src} target="_blank" rel="noreferrer">أرشيف الإنترنت</a>
-        {album.pd ? "، في الملك العام" : ""}.
-      </p>
     </div>
   );
 }

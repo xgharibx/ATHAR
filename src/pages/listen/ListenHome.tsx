@@ -8,12 +8,12 @@ import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BarChart3, ChevronLeft, CloudDownload, Flame, Heart, ListMusic, Moon, Play, Search, Shuffle, Sparkles } from "lucide-react";
 import "@/styles/listen.css";
-import { arabicDigits, cityName, findMoshaf, formatListened, hueFor, randomMix, surahName, type ListenCatalog } from "@/lib/listen/catalog";
+import { arabicDigits, cityName, findMoshaf, formatListened, moshafLabel, randomMix, surahName, type ListenCatalog } from "@/lib/listen/catalog";
 import { playTracks } from "@/lib/listen/player";
 import { lastSevenDays, listeningStreak, resumable, useListenStore, dayKey } from "@/lib/listen/store";
 import { isKahfTime, MOMENTS, momentTracks } from "@/lib/listen/moments";
 import { useListenCatalog } from "@/lib/listen/useListen";
-import { ReciterMark } from "@/components/listen/ReciterMark";
+import { ReciterNameCard } from "@/components/listen/ListenEmblem";
 
 function Section({ title, sub, more, children }: { title: string; sub?: string; more?: { to: string; label?: string }; children: React.ReactNode }) {
   return (
@@ -94,7 +94,9 @@ function ContinueRail() {
               className="ls-card ls-press text-right p-3 w-[220px] flex items-center gap-3"
               onClick={() => playTracks([h.track], 0, { resume: true })}
             >
-              <ReciterMark name={h.track.artist} style={{ width: 46, height: 46, fontSize: 14, flexShrink: 0 }} />
+              <span className="ls-resume" style={{ ["--p" as string]: `${pct}%` }} aria-hidden="true">
+                <Play size={15} fill="currentColor" />
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[13.5px] font-bold truncate">{h.track.title}</span>
                 <span className="block text-[11.5px] text-(--muted) truncate">{h.track.artist}</span>
@@ -135,6 +137,11 @@ function Moments({ catalog }: { catalog: ListenCatalog }) {
       </div>
     </Section>
   );
+}
+
+/** A word on a reciter's recitations: the one, or how many. */
+function reciterMeta(r: { m: Array<Parameters<typeof moshafLabel>[0]> }): string {
+  return r.m.length > 1 ? `${arabicDigits(r.m.length)} مصاحف` : r.m[0] ? moshafLabel(r.m[0]) : "";
 }
 
 const SURAH_PICKS = [18, 36, 67, 55, 56, 1, 2, 12, 19, 20, 25, 73];
@@ -235,10 +242,7 @@ export function ListenHomePage() {
             <Section title="قرّاؤك">
               <div className="ls-rail">
                 {favoriteReciters.map((id) => reciterById.get(id)).filter(Boolean).map((r) => (
-                  <Link key={r!.id} to={`/listen/reciter/${r!.id}`} className="ls-reciter ls-press">
-                    <ReciterMark name={r!.n} />
-                    <span className="ls-reciter-name">{r!.n}</span>
-                  </Link>
+                  <ReciterNameCard key={r!.id} to={`/listen/reciter/${r!.id}`} name={r!.n} meta={reciterMeta(r!)} />
                 ))}
               </div>
             </Section>
@@ -247,10 +251,7 @@ export function ListenHomePage() {
           <Section title="قرّاء العالم" sub={`${arabicDigits(catalog.reciters.length)} قارئًا، بالمصحف كاملًا وبروايات متعددة`} more={{ to: "/listen/reciters" }}>
             <div className="ls-rail">
               {catalog.famous.slice(0, 24).map((id) => reciterById.get(id)).filter(Boolean).map((r) => (
-                <Link key={r!.id} to={`/listen/reciter/${r!.id}`} className="ls-reciter ls-press">
-                  <ReciterMark name={r!.n} />
-                  <span className="ls-reciter-name">{r!.n}</span>
-                </Link>
+                <ReciterNameCard key={r!.id} to={`/listen/reciter/${r!.id}`} name={r!.n} meta={reciterMeta(r!)} />
               ))}
             </div>
           </Section>
@@ -264,7 +265,6 @@ export function ListenHomePage() {
                 if (!found) return null;
                 return (
                   <Link key={g.moshaf} to={`/listen/reciter/${g.reciter}?m=${g.moshaf}`} className="ls-gold ls-press">
-                    <ReciterMark name={found.reciter.n} gold withName={false} />
                     <span className="min-w-0">
                       <b>{found.reciter.n}</b>
                       <span>{g.note}</span>
@@ -279,11 +279,10 @@ export function ListenHomePage() {
             <div className="ls-rail">
               {latestQiyam.map((y) => (
                 <Link key={y.id} to={`/listen/qiyam/${y.id}`} className="ls-night ls-press">
+                  <Moon size={16} className="ls-night-moon" aria-hidden="true" />
                   <b>{cityName(y.city)}</b>
                   <span>رمضان {arabicDigits(y.year)}هـ</span>
-                  <span style={{ marginTop: 26 }}>
-                    <Play size={14} fill="currentColor" aria-hidden="true" style={{ display: "inline" }} /> {arabicDigits(Object.keys(y.d).length)} سورة
-                  </span>
+                  <span className="ls-night-count">{arabicDigits(Object.keys(y.d).length)} سورة</span>
                 </Link>
               ))}
             </div>
@@ -293,11 +292,9 @@ export function ListenHomePage() {
             <div className="ls-rail">
               {catalog.tawasheeh.map((a) => (
                 <Link key={a.id} to={`/listen/album/${a.id}`} className="ls-album ls-press">
-                  <span className="ls-album-art" style={{ ["--h" as string]: hueFor(a.artist) % 60 + 15 }}>
-                    {a.artist}
-                  </span>
                   <b>{a.title}</b>
-                  <span>{arabicDigits(a.tracks.length)} مقطعًا</span>
+                  <span>{a.artist}</span>
+                  <span className="ls-album-count">{arabicDigits(a.tracks.length)} مقطعًا</span>
                 </Link>
               ))}
             </div>
@@ -338,11 +335,6 @@ export function ListenHomePage() {
             </div>
           </Section>
 
-          <p className="ls-credit">
-            التلاوات من <a href="https://mp3quran.net" target="_blank" rel="noreferrer">mp3quran.net</a>، وقيام الحرمين من{" "}
-            <a href="https://quranicaudio.com" target="_blank" rel="noreferrer">QuranicAudio</a>، والتواشيح من{" "}
-            <a href="https://archive.org" target="_blank" rel="noreferrer">أرشيف الإنترنت</a>. تُبث من مصادرها مباشرة.
-          </p>
         </>
       )}
     </div>
