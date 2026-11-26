@@ -66,6 +66,13 @@ describe("«السماع» widget on Android", () => {
     expect(helper).toContain("PendingIntent.getForegroundService(context, requestCode, intent, flags)");
   });
 
+  it("uses only views a home-screen widget may hold", () => {
+    const allowed = new Set(["FrameLayout", "LinearLayout", "RelativeLayout", "ImageView", "TextView", "Chronometer", "ViewFlipper", "ProgressBar"]);
+    const tags = [...layout.matchAll(/<([A-Z][A-Za-z]*)\b/g)].map((m) => m[1]!);
+    expect(tags.length).toBeGreaterThan(10);
+    for (const tag of tags) expect(allowed.has(tag), tag).toBe(true);
+  });
+
   it("runs the clock in the launcher, and the controls left to right", () => {
     expect(provider).toContain("views.setChronometer(R.id.listen_elapsed, SystemClock.elapsedRealtime() - positionMs, null, true)");
     expect(layout).toContain('android:layoutDirection="ltr"');
