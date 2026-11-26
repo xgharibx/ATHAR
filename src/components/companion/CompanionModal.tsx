@@ -494,7 +494,7 @@ export function CompanionModal(props: {
   // the sheet. From <body> it is a true top-level overlay.
   return createPortal(
     <>
-    <div className="fixed inset-0 z-10000 flex items-end justify-center p-2 sm:p-4 pb-[max(env(safe-area-inset-bottom,0px),0px)]" dir="rtl">
+    <div className="fixed inset-0 z-10000 flex items-end justify-center p-2 sm:p-4" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), var(--kb, 0px))" }} dir="rtl">
       <div
         aria-hidden="true"
         onClick={props.onClose}
@@ -503,6 +503,7 @@ export function CompanionModal(props: {
       <div
         className="relative flex h-[88vh] mt-[3vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl backdrop-blur-2xl"
         style={{
+          maxHeight: "calc(100dvh - var(--kb, 0px) - 24px)",
           // Theme-aware, not emerald-hardcoded: the sheet used to be tinted
           // emerald/teal regardless of the active theme, which read as a
           // foreign surface on فحم (pure black) and زهور (burgundy).
@@ -677,6 +678,7 @@ export function CompanionModal(props: {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(input); } }}
               rows={1}
+              style={{ fontSize: "max(16px, 1rem)" }}
               placeholder={props.context?.title ? `اسأل أثر عن «${props.context.title}»…` : "اسأل أثر…"}
               className="form-field-readable max-h-28 flex-1 resize-none rounded-xl border border-emerald-400/20 bg-white/5 px-3 py-2 text-sm text-emerald-50 placeholder:text-emerald-200/40 focus:outline-hidden focus:border-emerald-400/60"
             />

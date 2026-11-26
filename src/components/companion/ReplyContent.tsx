@@ -16,7 +16,7 @@ import * as React from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles } from "lucide-react";
+import { BookOpen, BookText, ExternalLink, Info, Lightbulb, Link2, MessageCircleHeart, Sparkles, TriangleAlert } from "lucide-react";
 
 import { ROUTE_LABELS } from "@/lib/companionAI";
 import { splitIntoSegments } from "@/lib/companionBlocks";
@@ -29,20 +29,21 @@ import type { CalloutKind } from "@/lib/companionMarkdown";
 type Size = "page" | "compact";
 
 /** One hue per kind of card; text colours are mixed from the theme's own foreground. */
-const KIND: Record<CalloutKind, { hue: string; label: string; icon: string }> = {
-  verse: { hue: "#38bdf8", label: "آية كريمة", icon: "📖" },
-  hadith: { hue: "#34d399", label: "حديث نبوي", icon: "📜" },
-  dua: { hue: "#fb7185", label: "دعاء", icon: "🤲" },
-  tip: { hue: "#fbbf24", label: "نصيحة", icon: "💡" },
-  warn: { hue: "#f87171", label: "تنبيه", icon: "⚠️" },
-  info: { hue: "#a78bfa", label: "معلومة", icon: "ℹ️" },
-  cite: { hue: "#22d3ee", label: "مرجع", icon: "🔗" },
-} as Record<CalloutKind, { hue: string; label: string; icon: string }>;
+const KIND: Record<CalloutKind, { hue: string; label: string; icon: React.ElementType }> = {
+  verse: { hue: "#38bdf8", label: "آية كريمة", icon: BookOpen },
+  hadith: { hue: "#34d399", label: "حديث نبوي", icon: BookText },
+  dua: { hue: "#fb7185", label: "دعاء", icon: MessageCircleHeart },
+  tip: { hue: "var(--fg)", label: "نصيحة", icon: Lightbulb },
+  warn: { hue: "#f87171", label: "تنبيه", icon: TriangleAlert },
+  info: { hue: "#a78bfa", label: "معلومة", icon: Info },
+  cite: { hue: "#22d3ee", label: "مرجع", icon: Link2 },
+};
 
 function cardStyle(hue: string): React.CSSProperties {
   return {
-    borderColor: `color-mix(in srgb, ${hue} 42%, transparent)`,
-    background: `color-mix(in srgb, ${hue} 9%, transparent)`,
+    borderColor: `color-mix(in srgb, ${hue} 28%, transparent)`,
+    background: `linear-gradient(145deg, color-mix(in srgb, ${hue} 9%, var(--bg)), color-mix(in srgb, ${hue} 3%, var(--bg)))`,
+    boxShadow: "0 8px 24px color-mix(in srgb, var(--bg-deep, var(--bg)) 18%, transparent)",
     ["--card-hue" as string]: hue,
   };
 }
@@ -50,10 +51,11 @@ const labelStyle: React.CSSProperties = { color: "color-mix(in srgb, var(--card-
 
 function CardLabel({ kind, end }: { kind: CalloutKind; end?: React.ReactNode }) {
   const k = KIND[kind] ?? KIND.info;
+  const Icon = k.icon;
   return (
-    <div className="flex items-center justify-between gap-2 px-3 pt-2 text-[11px] font-bold" style={labelStyle}>
-      <span className="flex items-center gap-1.5">
-        <span aria-hidden="true">{k.icon}</span>
+    <div className="flex items-center justify-between gap-2 px-4 pt-3 text-xs font-bold" style={labelStyle}>
+      <span className="flex items-center gap-2">
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg" style={{ background: "color-mix(in srgb, var(--card-hue) 12%, transparent)" }}><Icon size={15} aria-hidden="true" /></span>
         <span>{k.label}</span>
       </span>
       {end}
@@ -63,7 +65,7 @@ function CardLabel({ kind, end }: { kind: CalloutKind; end?: React.ReactNode }) 
 
 function GradeChip({ grade, grader }: { grade: string; grader?: string }) {
   const accepted = isAcceptedGrade(grade);
-  const hue = accepted ? "#34d399" : "#f59e0b";
+  const hue = accepted ? "#34d399" : "var(--fg)";
   return (
     <span
       className="rounded-full border px-2 py-0.5 text-[10.5px] font-bold"
@@ -158,7 +160,7 @@ function HadithCard({ body, size, reveal }: { body: string; size: Size; reveal?:
   return (
     <figure className={["relative my-2.5 overflow-hidden rounded-2xl border", r.card.className ?? ""].join(" ")} style={{ ...cardStyle(KIND.hadith.hue), ...r.card.style }}>
       <CardLabel kind="hadith" end={parts.grade ? <span {...r.after(words)}><GradeChip grade={parts.grade} grader={grader} /></span> : null} />
-      <blockquote className={["arabic-text px-3.5 pt-1.5 text-(--fg) whitespace-pre-wrap", size === "page" ? "text-[17px] leading-9" : "text-[15px] leading-8"].join(" ")}>
+      <blockquote className={["arabic-text px-4 pt-2 text-(--fg) whitespace-pre-wrap", size === "page" ? "text-[17px] leading-9" : "text-[15px] leading-8"].join(" ")}>
         <Written text={parts.text} reveal={r.text} />
       </blockquote>
       {footer.length > 0 ? (
@@ -179,7 +181,7 @@ function VerseCard({ body, size, reveal }: { body: string; size: Size; reveal?: 
     <figure className={["relative my-2.5 overflow-hidden rounded-2xl border", r.card.className ?? ""].join(" ")} style={{ ...cardStyle(KIND.verse.hue), ...r.card.style }}>
       <CardLabel kind="verse" />
       <blockquote
-        className={["quran-text px-3.5 pt-1.5 text-center text-(--fg)", size === "page" ? "text-[21px] leading-[2.1]" : "text-[18px] leading-[2]"].join(" ")}
+        className={["quran-text px-4 pt-2 text-center text-(--fg)", size === "page" ? "text-[20px] leading-[2.15]" : "text-[18px] leading-[2]"].join(" ")}
         style={{ fontFamily: "var(--font-quran)" }}
       >
         <Written text={parts.text} reveal={r.text} />
@@ -202,7 +204,7 @@ function NoteCard({ kind, body, size, reveal }: { kind: CalloutKind; body: strin
       <CardLabel kind={kind} />
       <div
         className={[
-          "px-3.5 pb-2.5 pt-1 text-(--fg) whitespace-pre-wrap",
+          "px-4 pb-4 pt-2 text-(--fg) whitespace-pre-wrap",
           prayer ? "arabic-text" : "",
           prayer ? (size === "page" ? "text-[16px] leading-8" : "text-[15px] leading-7") : (size === "page" ? "text-sm leading-7" : "text-[13.5px] leading-6"),
         ].join(" ")}

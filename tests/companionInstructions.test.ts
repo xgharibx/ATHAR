@@ -22,8 +22,9 @@ describe("one consistent set of instructions", () => {
     expect(SERVER_SYSTEM_PROMPT).toMatch(/الدعاء المأثور يأتي من كتلة الحديث وحدها/);
   });
 
-  it("allows a longer answer exactly when the reader asks for one", () => {
-    expect(SERVER_SYSTEM_PROMPT).toMatch(/فإن طلب المستخدم تفصيلًا أو خاطرة فإلى نحو مئتي كلمة/);
+  it("allows detail without imposing the previous fixed word limit", () => {
+    expect(SERVER_SYSTEM_PROMPT).toContain("قدّم شرحًا وافيًا منظّمًا");
+    expect(SERVER_SYSTEM_PROMPT).not.toContain("لا يتجاوز كلامك مئة كلمة");
   });
 
   it("never teaches the model to talk about its attachments", () => {

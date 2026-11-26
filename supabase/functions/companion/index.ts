@@ -394,6 +394,8 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
 
   const apiKey = denoRuntime.env.get(PROVIDER === "openai" ? "OPENAI_API_KEY" : "MINIMAX_API_KEY");
   if (!apiKey) return jsonError(req, "no server key configured", 503);
+  // Consent names OpenAI. Never silently send a question to a different provider.
+  if (PROVIDER !== "openai") return jsonError(req, "AI service unavailable", 503);
 
   if (!bearer) return jsonError(req, "sign-in-required", 401);
 
