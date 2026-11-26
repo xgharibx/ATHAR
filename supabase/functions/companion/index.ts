@@ -1,7 +1,8 @@
 /**
  * companion — Messages-API proxy for رفيق أثر.
  *
- * Routes requests to MiniMax only. The app has a single assistant surface;
+ * Routes requests to OpenAI's GPT-6 Luna (openai.ts), or to MiniMax while no
+ * OpenAI key is set. The app has a single assistant surface;
  * provider and model selection are not exposed to clients and are not honoured
  * here if attempted. The client SDK points its base URL at this function; the
  * function injects the upstream key, applies CORS, and streams SSE through.
@@ -21,7 +22,8 @@ import { companionCorsHeaders } from "./cors.ts";
 import { EVIDENCE_STEP_SYSTEM, EVIDENCE_TOOL, buildEvidenceBlock, gatherHadith, gatherVerses, loadQuran, readEvidencePlan } from "./evidence.ts";
 import { type GuardContext, ReplyGuard, UNAVAILABLE_REPLY, finalizeReplyDetailed, isUsableReply } from "./guard.ts";
 import { CLIENT_BASE_PROMPT_OPENING, CLIENT_CONTEXT_HEADING, CREATE_REMINDER_TOOL, SERVER_SYSTEM_PROMPT, focusClientContext } from "./prompt.ts";
-import { SEARCH_STEP_SYSTEM, buildTrustedResultsBlock, selectTrustedResults } from "./sources.ts";
+import { type MessagesRequest, OPENAI_DEFAULT_MODEL, OPENAI_MODELS, callOpenAi } from "./openai.ts";
+import { OPENAI_SEARCH_STEP_SYSTEM, SEARCH_STEP_SYSTEM, buildTrustedResultsBlock, selectTrustedResults } from "./sources.ts";
 import { guardMessage, guardSseStream } from "./stream.ts";
 
 const COMPANION_TOOL_NAMES = new Set(["next_step", "cite", "search_library", "create_reminder"]);
@@ -32,12 +34,21 @@ const MAX_MESSAGES = 16;
 const MAX_HISTORY_CHARS = 48_000;
 const MAX_LATEST_USER_MESSAGE_CHARS = 8_000;
 
+const serverEnv = (name: string) =>
+  (globalThis as { Deno?: { env?: { get(k: string): string | undefined } } }).Deno?.env?.get(name)?.trim() || undefined;
+
+// The model behind the assistant. OpenAI's GPT-6 Luna answers whenever the
+// OPENAI_API_KEY secret is set (see openai.ts); until then, and as a fallback
+// that needs only the secret removed, MiniMax answers with MINIMAX_API_KEY.
+const PROVIDER: "openai" | "minimax" = serverEnv("OPENAI_API_KEY") ? "openai" : "minimax";
 const DEFAULT_MODEL = "MiniMax-M3.1-Flash";
-// The answering model, chosen on the server (COMPANION_MODEL secret): the
-// default Flash model reasons at a tunable depth; MiniMax-M3 (twice the price)
-// takes reasoning on or off. Anything else falls back to the default.
+// The answering model, chosen on the server (COMPANION_MODEL secret). On
+// OpenAI: gpt-6-luna (default) or gpt-6-sol. On MiniMax: the default Flash
+// model reasons at a tunable depth; MiniMax-M3 (twice the price) takes
+// reasoning on or off. Anything else falls back to the default.
 const MINIMAX_MODEL: string = (() => {
-  const chosen = (globalThis as { Deno?: { env?: { get(k: string): string | undefined } } }).Deno?.env?.get("COMPANION_MODEL")?.trim();
+  const chosen = serverEnv("COMPANION_MODEL");
+  if (PROVIDER === "openai") return chosen && OPENAI_MODELS.has(chosen) ? chosen : OPENAI_DEFAULT_MODEL;
   return chosen === "MiniMax-M3" || chosen === DEFAULT_MODEL ? chosen : DEFAULT_MODEL;
 })();
 const MINIMAX_UPSTREAM = "https://api.minimax.io/anthropic/v1/messages";
@@ -88,7 +99,7 @@ const limiter = new Map<string, { count: number; startAt: number }>();
 
 /** The two supported models take different reasoning controls. */
 function reasoningSettings(effort: string): Record<string, unknown> {
-  if (MINIMAX_MODEL === "MiniMax-M3.1-Flash") return { output_config: { effort } };
+  if (PROVIDER === "openai" || MINIMAX_MODEL === "MiniMax-M3.1-Flash") return { output_config: { effort } };
   // MiniMax-M3 has no depth setting: it reasons only when asked to.
   return effort === REASONING_EFFORT ? {} : { thinking: { type: "adaptive" } };
 }
@@ -381,7 +392,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     };
   };
 
-  const apiKey = denoRuntime.env.get("MINIMAX_API_KEY");
+  const apiKey = denoRuntime.env.get(PROVIDER === "openai" ? "OPENAI_API_KEY" : "MINIMAX_API_KEY");
   if (!apiKey) return jsonError(req, "no server key configured", 503);
 
   if (!bearer) return jsonError(req, "sign-in-required", 401);
@@ -427,6 +438,11 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     "x-api-key": apiKey,
     "anthropic-version": ANTHROPIC_VERSION,
   };
+  /** One model call, in the Messages shape whichever provider answers. */
+  const callModel = (requestBody: Record<string, unknown>, signal: AbortSignal, forceTool = false): Promise<Response> =>
+    PROVIDER === "openai"
+      ? callOpenAi(requestBody as MessagesRequest, apiKey, MINIMAX_MODEL, signal, forceTool)
+      : fetch(MINIMAX_UPSTREAM, { method: "POST", headers: upstreamHeaders, body: JSON.stringify(requestBody), signal });
 
   const question = boundedMessages.messages[boundedMessages.messages.length - 1]?.content.trim() ?? "";
   const substantive = question.length >= SEARCH_MIN_QUESTION_CHARS;
@@ -438,20 +454,15 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     if (!substantive) return NO_PLAN;
     let recent = boundedMessages.messages.slice(-EVIDENCE_CONTEXT_MESSAGES);
     while (recent[0]?.role === "assistant") recent = recent.slice(1);
-    const response = await fetch(MINIMAX_UPSTREAM, {
-      method: "POST",
-      headers: upstreamHeaders,
-      body: JSON.stringify({
-        model: MINIMAX_MODEL,
-        max_tokens: EVIDENCE_MAX_TOKENS,
-        stream: false,
-        system: EVIDENCE_STEP_SYSTEM,
-        messages: recent.map((message) => ({ role: message.role, content: message.content.slice(0, EVIDENCE_CONTEXT_CHARS) })),
-        tools: [EVIDENCE_TOOL],
-        ...reasoningSettings("low"),
-      }),
-      signal: AbortSignal.timeout(EVIDENCE_TIMEOUT_MS),
-    });
+    const response = await callModel({
+      model: MINIMAX_MODEL,
+      max_tokens: EVIDENCE_MAX_TOKENS,
+      stream: false,
+      system: EVIDENCE_STEP_SYSTEM,
+      messages: recent.map((message) => ({ role: message.role, content: message.content.slice(0, EVIDENCE_CONTEXT_CHARS) })),
+      tools: [EVIDENCE_TOOL],
+      ...reasoningSettings("low"),
+    }, AbortSignal.timeout(EVIDENCE_TIMEOUT_MS), true);
     if (!response.ok) {
       await response.body?.cancel().catch(() => undefined);
       return NO_PLAN;
@@ -463,20 +474,16 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   // list. The provider does not enforce a domain restriction itself.
   const searchTrustedSources = async (wanted: boolean) => {
     if (!wanted || !substantive) return [];
-    const response = await fetch(MINIMAX_UPSTREAM, {
-      method: "POST",
-      headers: upstreamHeaders,
-      body: JSON.stringify({
-        model: MINIMAX_MODEL,
-        max_tokens: SEARCH_MAX_TOKENS,
-        stream: false,
-        system: SEARCH_STEP_SYSTEM,
-        messages: [{ role: "user", content: question.slice(0, SEARCH_MAX_QUESTION_CHARS) }],
-        tools: [{ type: "web_search_20250305", name: WEB_SEARCH_TOOL_NAME }],
-        ...reasoningSettings("low"),
-      }),
-      signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
-    });
+    const response = await callModel({
+      model: MINIMAX_MODEL,
+      max_tokens: SEARCH_MAX_TOKENS,
+      stream: false,
+      // OpenAI's search gives no page text: the step reports what each source says, with citations.
+      system: PROVIDER === "openai" ? OPENAI_SEARCH_STEP_SYSTEM : SEARCH_STEP_SYSTEM,
+      messages: [{ role: "user", content: question.slice(0, SEARCH_MAX_QUESTION_CHARS) }],
+      tools: [{ type: "web_search_20250305", name: WEB_SEARCH_TOOL_NAME }],
+      ...reasoningSettings("low"),
+    }, AbortSignal.timeout(SEARCH_TIMEOUT_MS), true);
     if (!response.ok) {
       await response.body?.cancel().catch(() => undefined);
       return [];
@@ -538,7 +545,8 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
         hadith,
         // The app's own library excerpts arrive in the system prompt; together
         // with the trusted web excerpts they are the only other quotable text.
-        trustedTexts: [systemText, ...webResults.map((result) => result.excerpt)],
+        // OpenAI's excerpts are the search model's own sentences: information, never quotable.
+        trustedTexts: [systemText, ...(PROVIDER === "openai" ? [] : webResults.map((result) => result.excerpt))],
         sourceUrls: webResults.map((result) => result.url),
         userTexts: boundedMessages.messages.filter((message) => message.role === "user").slice(-2).map((message) => message.content),
       },
@@ -559,12 +567,10 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     if (first && first.text && first.damage < RETRY_DAMAGE_THRESHOLD) return first.text;
     let second: { text: string; damage: number } | null = null;
     try {
-      const retry = await fetch(MINIMAX_UPSTREAM, {
-        method: "POST",
-        headers: upstreamHeaders,
-        body: JSON.stringify({ ...buildUpstreamBody([...serverBlocks, RETRY_INSTRUCTION], true), stream: false, tools: undefined }),
-        signal: AbortSignal.timeout(RETRY_TIMEOUT_MS),
-      });
+      const retry = await callModel(
+        { ...buildUpstreamBody([...serverBlocks, RETRY_INSTRUCTION], true), stream: false, tools: undefined },
+        AbortSignal.timeout(RETRY_TIMEOUT_MS),
+      );
       if (retry.ok) {
         const content = (await retry.json() as { content?: unknown }).content;
         const text = Array.isArray(content)
@@ -590,12 +596,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     const upstreamSignal = AbortSignal.timeout(deep ? DEEP_UPSTREAM_TIMEOUT_MS : UPSTREAM_TIMEOUT_MS);
     let upstream: Response;
     try {
-      upstream = await fetch(MINIMAX_UPSTREAM, {
-        method: "POST",
-        headers: upstreamHeaders,
-        body: JSON.stringify(buildUpstreamBody(gathered.serverBlocks)),
-        signal: upstreamSignal,
-      });
+      upstream = await callModel(buildUpstreamBody(gathered.serverBlocks), upstreamSignal);
     } catch {
       return upstreamSignal.aborted
         ? { ok: false, status: 504, type: "api_error", message: "model request timed out" }

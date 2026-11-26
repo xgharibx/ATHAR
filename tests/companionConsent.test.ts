@@ -77,6 +77,16 @@ describe("iOS Ask Athar sharing consent", () => {
     expect(hasCompanionAiConsent()).toBe(false);
   });
 
+  it("asks again when the service changes: a MiniMax approval does not cover OpenAI", () => {
+    setAccountStorageOwner("user:account-a");
+    storageState.set("athar_companion_minimax_consent_v2::account-a", "granted");
+    storageState.set("athar_companion_minimax_consent_v2", "granted");
+
+    expect(hasCompanionAiConsent()).toBe(false);
+    grantCompanionAiConsent();
+    expect(hasCompanionAiConsent()).toBe(true);
+  });
+
   it("asks again after permission is withdrawn", () => {
     grantCompanionAiConsent();
     revokeCompanionAiConsent();

@@ -29,7 +29,7 @@ Depending on the features a user enables, the app requests data from:
 | Quran.com CDN, Quran Foundation | Madina mushaf page fonts, tafsirs and translations |
 | Hugging Face, jsDelivr | The on-device tajweed model and runtime (downloaded once, checked against their SHA-256) |
 | HadeethEnc, Dorar | Hadith explanations and verification |
-| MiniMax | Language model behind "Ask Athar" |
+| OpenAI | Language model behind "Ask Athar" (GPT-6 Luna) |
 | YouTube, Qurango, RadioJar | Video and radio streams |
 
 Use of each service is subject to that service's terms and privacy policy. See the privacy policy at <https://www.athark.org/privacy.html> for what is sent to each.

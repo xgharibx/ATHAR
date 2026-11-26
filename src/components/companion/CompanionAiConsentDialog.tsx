@@ -11,7 +11,7 @@ export function CompanionAiConsentDialog(props: {
     <Modal
       open={props.open}
       onClose={props.onCancel}
-      ariaLabel="إذن إرسال الرسائل إلى MiniMax"
+      ariaLabel="إذن إرسال الرسائل إلى OpenAI"
       portalClassName="z-10001"
     >
       <div className="stack-y-4 px-5 pb-6 pt-4" dir="rtl">
@@ -22,7 +22,7 @@ export function CompanionAiConsentDialog(props: {
           <h2 className="text-base font-bold text-(--fg)">إذن استخدام اسأل أثر</h2>
         </div>
         <Dialog.Description className="text-sm leading-7 text-(--fg) opacity-80">
-          عند المتابعة، تُرسل رسالتك وسياق المحادثة والصفحة عبر خادم أثر إلى MiniMax لإنشاء الرد. وتسمح موافقتك بإرسال الرسائل التالية أيضًا حتى تسحب الإذن من الإعدادات. وإذا فعّلت السياق الشخصي، فقد تُرسل المعلومات التي اخترت إضافتها. قد تتم معالجة البيانات خارج بلدك؛ فلا ترسل ما لا ترغب في مشاركته.
+          عند المتابعة، تُرسل رسالتك وسياق المحادثة والصفحة عبر خادم أثر إلى OpenAI (نموذج GPT-6 Luna) لإنشاء الرد، ولا تُستخدم في تدريب نماذجها. وتسمح موافقتك بإرسال الرسائل التالية أيضًا حتى تسحب الإذن من الإعدادات. وإذا فعّلت السياق الشخصي، فقد تُرسل المعلومات التي اخترت إضافتها. قد تتم معالجة البيانات خارج بلدك؛ فلا ترسل ما لا ترغب في مشاركته.
         </Dialog.Description>
         <a
           href="https://www.athark.org/privacy.html"

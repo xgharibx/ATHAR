@@ -82,6 +82,16 @@ Write the query in plain Arabic only: the core of the user's question in a few w
 site:islamweb.net OR site:dorar.net OR site:islamqa.info OR site:binbaz.org.sa
 Do not add any other language, commentary or characters to the query.`;
 
+/**
+ * The search step on OpenAI, whose search returns no page text: the step
+ * reports, with a citation, what each source says. The sources are limited to
+ * the trusted sites by the search tool itself.
+ */
+export const OPENAI_SEARCH_STEP_SYSTEM = `You are the search step of an Islamic knowledge assistant. Do not answer the question yourself and do not give your own opinion.
+Search the web once for the user's question, in Arabic.
+Then, for at most two of the most relevant pages, write in Arabic one or two sentences that state faithfully and plainly what that page says about this exact question, each followed by its citation.
+Report only what the pages say. Do not quote hadith or verses from memory. If no page answers the question, write nothing.`;
+
 export function buildTrustedResultsBlock(results: TrustedSearchResult[]): string {
   const lines = results.map((result, index) =>
     `${index + 1}. ${result.title || "بلا عنوان"}\nالرابط: ${result.url}\nالمقتطف: ${result.excerpt}`);

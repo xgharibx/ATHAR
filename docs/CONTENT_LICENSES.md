@@ -67,7 +67,7 @@ Nothing in this table is redistributed by Athar; the app requests it from the pr
 | Assistant web sources | The sites in `supabase/functions/companion/sources.ts` | Short excerpts with a link to the source page | Confirmed practice; excerpts are limited in length and always linked |
 | «السماع» recitations, night prayers of the two Harams, tawasheeh | mp3quran.net, QuranicAudio, Internet Archive (archive.org), streamed from their sources (and saved on the device when the user downloads them) | Providers' terms | To confirm |
 | Video and radio | YouTube, Qurango, RadioJar | Played through the providers' own players and streams | Confirmed practice |
-| Language model | MiniMax | MiniMax platform terms | Confirmed; described in the privacy policy |
+| Language model | OpenAI (GPT-6 Luna) | OpenAI API terms and usage policies | Confirmed; described in the privacy policy |
 
 ## Open items
 

@@ -27,7 +27,7 @@ live in `ios/fastlane/metadata/*/release_notes.txt` (App Store) and
 - Hadith, the Miracles, the Seerah and stories, duas, Asma al-Husna and ruqyah reworked from A to Z.
 - Tracking (wird, muhasaba, insights, qadaa), a shared group khatma, the leaderboard with live friends and a working weekly challenge.
 - Native: Sign in with Apple, share sheet, back swipe, file save, pull-to-refresh, notifications with action buttons, widget taps that land on the right screen, Wear OS tile, and widgets for missed prayers, hadith and Qibla.
-- «اسأل أثر» writes its answers onto the screen and goes deeper on long questions.
+- «اسأل أثر» now answers with OpenAI GPT-6 Luna (in place of MiniMax), writes its answers onto the screen, goes deeper on long questions, and searches only the trusted scholarly sites. Everyone is asked for consent again, naming the new service.
 - Content sources and licences are listed in the privacy policy, under «مصادر المحتوى وتراخيصه».
 
 ## 1.2.91 and earlier
