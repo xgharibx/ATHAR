@@ -66,7 +66,7 @@ export default function Q2Index() {
           <input className="q2-input" style={{ marginTop: 12 }} placeholder="ابحث باسم السورة أو رقمها" value={q} onChange={(e) => setQ(e.target.value)} aria-label="ابحث عن سورة" />
           {order === "revelation" ? (
             <p className="q2-small" style={{ marginTop: 10, lineHeight: 1.8 }}>
-              ترتيب النزول المعتمد في بيانات مشروع تنزيل (وهو ترتيب المصحف المصري المشهور)؛ وللعلماء في ترتيب بعض السور أقوال.
+              ترتيب النزول المشهور (وهو ترتيب المصحف المصري)؛ وللعلماء في ترتيب بعض السور أقوال.
             </p>
           ) : null}
           <div className="q2-card" style={{ marginTop: 12 }}>

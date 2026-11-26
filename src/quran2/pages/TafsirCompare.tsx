@@ -103,7 +103,6 @@ export default function Q2TafsirCompare() {
           <TafsirCard key={`${t.id}:${s}:${a}`} t={t} s={s} a={a} />
         ))}
       </div>
-      <p className="q2-credit">التفاسير عبر واجهة Quran.com، كلٌّ بنصه كما نشره.</p>
     </main>
   );
 }

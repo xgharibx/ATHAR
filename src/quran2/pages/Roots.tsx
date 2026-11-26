@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQ2Morph } from "../hooks";
 import { arCount, arDigits, plainKey } from "../data/arabic";
-import { MORPHOLOGY_CREDIT, spacedRoot, splitKey } from "../data/morphology";
+import { spacedRoot, splitKey } from "../data/morphology";
 import { Q2Error, Q2Loading } from "../components/ui";
 
 const LETTERS = "ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن ه و ي".split(" ");
@@ -81,9 +81,6 @@ export default function Q2Roots() {
           اعرض المزيد ({arDigits(list.length - shown)})
         </button>
       ) : null}
-      <p className="q2-credit">
-        الجذور من <a href={MORPHOLOGY_CREDIT.url} target="_blank" rel="noreferrer">{MORPHOLOGY_CREDIT.name}</a>، برخصة <bdi dir="ltr">{MORPHOLOGY_CREDIT.licence}</bdi>.
-      </p>
     </main>
   );
 }

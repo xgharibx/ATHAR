@@ -12,6 +12,9 @@ Update this file in the same pull request as any change to bundled content.
 
 ## Bundled in the app
 
+
+The screens of the Quran section and «السماع» show no source lines; every source and licence below is listed for users in the privacy policy, under «مصادر المحتوى وتراخيصه» (`public/privacy.html#sources`, and `#sources-en`).
+
 | Asset | Location | Source | Terms | Status |
 |---|---|---|---|---|
 | Quran text (Uthmani script) | `public/data/quran.json` | Not recorded | The text must be reproduced exactly; most publishers also require attribution | To confirm: record the publisher and edition |

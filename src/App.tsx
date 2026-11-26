@@ -115,9 +115,9 @@ const Quran2Shell = React.lazy(() => import("@/quran2/Quran2Shell").then((m) => 
 const QuranReadingShell = React.lazy(() => import("@/quran2/Quran2Shell").then((m) => ({ default: m.QuranReadingShell })));
 const QuranRedirect = React.lazy(() => import("@/quran2/redirects").then((m) => ({ default: m.QuranRedirect })));
 const Q2Hub = React.lazy(() => import("@/quran2/pages/Hub"));
+const Q2Downloads = React.lazy(() => import("@/quran2/pages/Downloads"));
 const Q2Index = React.lazy(() => import("@/quran2/pages/IndexPage"));
 const Q2Reader = React.lazy(() => import("@/quran2/pages/Reader"));
-const Q2About = React.lazy(() => import("@/quran2/pages/About"));
 const Q2Hifz = React.lazy(() => import("@/quran2/pages/Hifz"));
 const Q2HifzSession = React.lazy(() => import("@/quran2/pages/HifzSession"));
 const Q2Roots = React.lazy(() => import("@/quran2/pages/Roots"));
@@ -676,7 +676,8 @@ function AppContent() {
           <Route path="quran" element={<S><Quran2Shell /></S>}>
             <Route index element={<S><Q2Hub /></S>} />
             <Route path="index" element={<S><Q2Index /></S>} />
-            <Route path="about" element={<S><Q2About /></S>} />
+            <Route path="about" element={<Navigate to="/quran" replace />} />
+            <Route path="downloads" element={<S><Q2Downloads /></S>} />
             <Route path="hifz" element={<S><Q2Hifz /></S>} />
             <Route path="hifz/similar" element={<S><Q2SimilarDrill /></S>} />
             <Route path="roots" element={<S><Q2Roots /></S>} />

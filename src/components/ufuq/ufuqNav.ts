@@ -134,7 +134,7 @@ const TITLES: Record<string, string> = {
   "/quran/hifz/similar": "المتشابهات",
   "/quran/tasmee": "التسميع",
   "/quran/tafsir": "التفسير",
-  "/quran/about": "عن القرآن في أثر",
+  "/quran/downloads": "التنزيلات",
   "/sebha": "السبحة",
   "/companion": "أثر",
   "/library/sharh": "الموسوعة الحديثية",

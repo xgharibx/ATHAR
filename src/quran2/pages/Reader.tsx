@@ -293,9 +293,6 @@ export default function Q2Reader() {
             translationLang={translationInfo?.lang}
           />
         </div>
-        <p className="q2-credit">
-          نص المصحف: <a href="https://tanzil.net" target="_blank" rel="noreferrer">مشروع تنزيل</a> (الرسم العثماني، الإصدار ١٫١)، دون أي تعديل.
-        </p>
       </main>
 
       <div className="q2-player">

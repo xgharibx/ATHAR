@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQ2Meta, useQ2Morph, useQ2Text } from "../hooks";
 import { arCount, arDigits } from "../data/arabic";
-import { MORPHOLOGY_CREDIT, spacedRoot, splitKey } from "../data/morphology";
+import { spacedRoot, splitKey } from "../data/morphology";
 import { hitsFromWords, perSurah } from "../data/search";
 import { AyahHits } from "../components/AyahHits";
 import { Q2Error, Q2Loading, Q2Strip } from "../components/ui";
@@ -95,9 +95,6 @@ export default function Q2RootPage() {
         </div>
         <AyahHits key={lemma ?? "all"} hits={data.hits} text={text.data} meta={meta.data} />
       </section>
-      <p className="q2-credit">
-        من <a href={MORPHOLOGY_CREDIT.url} target="_blank" rel="noreferrer">{MORPHOLOGY_CREDIT.name}</a>، برخصة <bdi dir="ltr">{MORPHOLOGY_CREDIT.licence}</bdi>.
-      </p>
     </main>
   );
 }

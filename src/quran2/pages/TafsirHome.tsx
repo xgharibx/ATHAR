@@ -179,7 +179,6 @@ export default function Q2TafsirHome() {
             </div>
           ))}
         </div>
-        <p className="q2-credit">التفاسير عبر واجهة Quran.com، كلٌّ بنصه كما نشره؛ والميسّر مضمَّن من مجمع الملك فهد.</p>
       </section>
     </main>
   );

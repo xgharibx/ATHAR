@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Volume2 } from "lucide-react";
 import { useQ2Morph } from "../hooks";
 import { describeSegment } from "../data/grammar";
-import { MORPHOLOGY_CREDIT, spacedRoot, splitKey, wordKey } from "../data/morphology";
+import { spacedRoot, splitKey, wordKey } from "../data/morphology";
 import { arCount, arDigits } from "../data/arabic";
 import { Q2Error, Q2Loading } from "../components/ui";
 import type { Q2WordLang } from "../data/wordMeanings";
@@ -110,9 +110,6 @@ export function WordLens({ s, a, w, text, surahName, meaning, canHear, onHear }:
         </>
       ) : null}
 
-      <p className="q2-credit">
-        الصرف والإعراب من <a href={MORPHOLOGY_CREDIT.url} target="_blank" rel="noreferrer">{MORPHOLOGY_CREDIT.name}</a>، برخصة <bdi dir="ltr">{MORPHOLOGY_CREDIT.licence}</bdi>.
-      </p>
     </div>
   );
 }
