@@ -27,7 +27,7 @@ describe("tapping the Android widgets", () => {
 
   it("opens each part of the dashboard on its own screen, and the wird on the Mushaf page last read", () => {
     const dashboard = java("NoorDashboardWidgetProvider");
-    for (const route of ['"/prayer-times"', '"/c/morning"', '"/c/evening"', '"/mushaf"']) expect(dashboard).toContain(route);
-    expect(java("NoorWirdWidgetProvider")).toContain('openApp(context, appWidgetId * 21, "/mushaf")');
+    for (const route of ['"/prayer-times"', '"/c/morning"', '"/c/evening"', '"/quran/page"']) expect(dashboard).toContain(route);
+    expect(java("NoorWirdWidgetProvider")).toContain('openApp(context, appWidgetId * 21, "/quran/page")');
   });
 });

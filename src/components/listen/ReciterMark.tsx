@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 
 /**
  * A reciter's cover, drawn rather than photographed: a deep colour of their
- * own (the same everywhere in the app), the eight-pointed star lattice of
- * Islamic geometric art, a gilded medallion, and their name in full, set
- * like the title of a book. The golden recordings are bound in gold.
+ * own (the same everywhere in the app), a scroll of vine and leaves like the
+ * border of the Madina mushaf, a gilded flower for a seal, and their name in
+ * full, set like the title of a book. The golden recordings are bound in gold.
  *
  * Small sizes (the mini player, list rows) keep only the medallion, which
  * stays crisp where a name would not fit.
@@ -47,12 +47,13 @@ function Medallion({ id, gold }: { id: string; gold: boolean }) {
           <stop offset="1" stopColor={gold ? "#c99a3c" : "#b88a36"} />
         </radialGradient>
       </defs>
-      {/* Rub el Hizb: two squares, one turned an eighth of a turn. */}
+      {/* A rosette of eight rounded petals, the flower of the mushaf's border. */}
       <g transform="translate(50 50)">
-        <rect x="-15" y="-15" width="30" height="30" fill={`url(#${id}-m)`} opacity="0.95" />
-        <rect x="-15" y="-15" width="30" height="30" fill={`url(#${id}-m)`} opacity="0.95" transform="rotate(45)" />
-        <circle r="10.5" fill="none" stroke={ring} strokeOpacity="0.85" strokeWidth="1.2" />
-        <circle r="4" fill={ring} opacity="0.9" />
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((r) => (
+          <ellipse key={r} cx="0" cy="-10.5" rx="5.4" ry="9" fill={`url(#${id}-m)`} opacity={r % 90 === 0 ? 0.96 : 0.78} transform={`rotate(${r})`} />
+        ))}
+        <circle r="7.5" fill="none" stroke={ring} strokeOpacity="0.85" strokeWidth="1.1" />
+        <circle r="3.6" fill={ring} opacity="0.92" />
       </g>
     </g>
   );
@@ -95,20 +96,19 @@ export function ReciterMark({
             <stop offset="0" stopColor={glow} stopOpacity="0.55" />
             <stop offset="1" stopColor={glow} stopOpacity="0" />
           </radialGradient>
-          {/* The lattice: eight-pointed stars on a square grid. */}
-          <pattern id={`${uid}-star`} width="20" height="20" patternUnits="userSpaceOnUse" patternTransform={`rotate(${hue % 45})`}>
-            <g fill="none" stroke={line} strokeWidth="0.7">
-              <rect x="5" y="5" width="10" height="10" />
-              <rect x="5" y="5" width="10" height="10" transform="rotate(45 10 10)" />
-              <circle cx="0" cy="0" r="3" />
-              <circle cx="20" cy="0" r="3" />
-              <circle cx="0" cy="20" r="3" />
-              <circle cx="20" cy="20" r="3" />
+          {/* The vine: a stem in waves with its leaves, row after row. */}
+          <pattern id={`${uid}-vine`} width="24" height="16" patternUnits="userSpaceOnUse" patternTransform={`rotate(${(hue % 5) * 6 - 12})`}>
+            <g fill="none" stroke={line} strokeWidth="0.7" strokeLinecap="round">
+              <path d="M0 8C3 3 9 3 12 8S21 13 24 8" />
+            </g>
+            <g fill={line}>
+              <path d="M6 4.6c1.2-1.6 3.4-1.7 4.4 0-1 1.6-3.2 1.6-4.4 0z" />
+              <path d="M14 11.4c1.2-1.6 3.4-1.7 4.4 0-1 1.6-3.2 1.6-4.4 0z" />
             </g>
           </pattern>
         </defs>
         <rect width="100" height="100" fill={`url(#${uid}-bg)`} />
-        <rect width="100" height="100" fill={`url(#${uid}-star)`} />
+        <rect width="100" height="100" fill={`url(#${uid}-vine)`} />
         <rect width="100" height="100" fill={`url(#${uid}-glow)`} />
         {/* With a name, the medallion sits small above it, like a seal on a book. */}
         <g transform={showName ? "translate(25 6) scale(0.5)" : undefined}>

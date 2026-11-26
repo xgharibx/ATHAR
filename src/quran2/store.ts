@@ -77,6 +77,8 @@ export type Q2Prefs = {
   ufuqPalette: Q2UfuqPalette;
   /** Tajweed colours on the Madina page (King Fahd's colour fonts). */
   tajweed: boolean;
+  /** «التسميع»: check the tajweed too, with the engine on the device (once it is downloaded). */
+  tajweedCheck: boolean;
 };
 
 type State = {
@@ -134,6 +136,7 @@ export const Q2_DEFAULT_PREFS: Q2Prefs = {
   pageStyle: "madina",
   ufuqPalette: "afaq",
   tajweed: false,
+  tajweedCheck: true,
 };
 
 export const useQ2Store = create<State>()(

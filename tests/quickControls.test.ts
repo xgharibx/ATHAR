@@ -8,7 +8,7 @@ describe("iPhone controls (Control Center, Lock Screen, Action button)", () => {
   const bundle = read("ios/App/AtharWidgets/AtharWidgets.swift");
 
   it("offers the tasbeeh, prayer times, Mushaf and Qibla on iOS 18 and later", () => {
-    for (const [name, route] of [["Sebha", "/sebha"], ["Prayer", "/prayer-times"], ["Mushaf", "/mushaf"], ["Qibla", "/qibla"]]) {
+    for (const [name, route] of [["Sebha", "/sebha"], ["Prayer", "/prayer-times"], ["Mushaf", "/quran/page"], ["Qibla", "/qibla"]]) {
       expect(controls).toContain(`struct Athar${name}Control: ControlWidget`);
       expect(controls).toContain(`OpenAtharScreenIntent(route: "${route}")`);
       expect(bundle).toMatch(new RegExp(`if #available\\(iOS 18\\.0, \\*\\) \\{[\\s\\S]*Athar${name}Control\\(\\)`));

@@ -160,13 +160,12 @@
 }
 
 .ls-mark::before {
-  /* An eight-pointed star, the old pattern of Islamic art, very faint. */
+  /* A faint double ring, like a seal. */
   content: "";
   position: absolute;
   inset: 12%;
-  background: conic-gradient(from 22.5deg, rgb(255 255 255 / 0.1) 0 12.5%, transparent 0 25%, rgb(255 255 255 / 0.1) 0 37.5%, transparent 0 50%, rgb(255 255 255 / 0.1) 0 62.5%, transparent 0 75%, rgb(255 255 255 / 0.1) 0 87.5%, transparent 0);
-  -webkit-mask-image: radial-gradient(circle, #000 55%, transparent 72%);
-  mask-image: radial-gradient(circle, #000 55%, transparent 72%);
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 0 60%, rgb(255 255 255 / 0.12) 61% 63%, transparent 64% 80%, rgb(255 255 255 / 0.08) 81% 83%, transparent 84%);
   z-index: -1;
 }
 
@@ -1135,4 +1134,65 @@
 .ls-icon-btn.is-close {
   width: 34px;
   color: var(--muted);
+}
+
+/* The full player over «أفق»'s garden at night: the sky and the moon above,
+   palms and flowers below, a quiet shade where the verses and the controls are. */
+.ls-full.has-garden {
+  background: #05070d;
+  isolation: isolate;
+}
+
+.ls-full-garden {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.ls-full-garden::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(180deg, rgb(3 6 14 / 0.35) 0%, rgb(3 6 14 / 0.05) 26%, rgb(3 6 14 / 0.15) 50%, rgb(3 6 14 / 0.72) 72%, rgb(3 6 14 / 0.88) 100%);
+}
+
+.ls-full.has-garden .ls-lyrics {
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 10%, #000 88%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 10%, #000 88%, transparent);
+}
+
+.ls-full.has-garden .ls-full-art {
+  width: min(60vw, 260px);
+}
+
+.ls-full.has-garden .ls-full-art::before,
+.ls-full.has-garden .ls-full-art::after {
+  border-color: rgb(255 236 190 / 0.18);
+}
+
+.ls-full.has-garden .ls-full-meta h2,
+.ls-full.has-garden .ls-full-kicker {
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.6);
+}
+
+.ls-full.has-garden .ls-ayah {
+  text-shadow: 0 1px 14px rgb(0 0 0 / 0.85), 0 0 2px rgb(0 0 0 / 0.6);
+}
+
+/* Athar's mark at the top of the player, as in the app's header. */
+.ls-full-kicker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ls-full-print {
+  width: 30px;
+  height: 30px;
+  --accent: #e9c46a;
+  --fg: #fff8e8;
 }

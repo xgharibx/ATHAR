@@ -217,7 +217,8 @@
 :root[data-ufuq-palette="night"] .q2[data-palette="afaq"] .q2-btn:not(.is-ghost) { color: #0d1311; }
 /* Reading in «أفق»: the garden behind, the words on a calm veil. */
 .q2-afaq-sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
-.q2.is-reading[data-palette="afaq"] .q2-top { background: var(--u-glass, var(--q2-glass)); }
+.q2-afaq-sky::after { content: ""; position: fixed; inset: 0; z-index: 1; background: color-mix(in srgb, var(--bg) 62%, transparent); }
+.q2.is-reading[data-palette="afaq"] .q2-top { background: color-mix(in srgb, var(--bg) 84%, transparent); }
 
 /* The places of the Quran, a row of tabs under the app's header. */
 .q2-tabs {
@@ -235,34 +236,36 @@
   border-radius: 0 0 18px 18px;
 }
 .q2[data-palette="afaq"] .q2-tabs { background: var(--u-glass, var(--q2-glass)); border: 1px solid var(--q2-line); border-top: 0; }
-.q2-tabs-row { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
-.q2-tabs-row::-webkit-scrollbar { display: none; }
+.q2-tabs-row { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
 .q2-tab {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  min-height: 38px;
-  padding: 0 13px;
-  border-radius: 999px;
+  justify-content: center;
+  gap: 2px;
+  min-height: 50px;
+  padding: 4px 2px;
+  border-radius: 16px;
   white-space: nowrap;
   font-family: var(--q2-display);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--q2-soft);
   border: 1px solid transparent;
 }
-.q2-tab.active { color: var(--q2-green); background: var(--q2-green-soft); border-color: color-mix(in srgb, var(--q2-green) 30%, transparent); }
+.q2-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.q2-tab.active { color: var(--q2-green); background: var(--q2-green-soft); border-color: color-mix(in srgb, var(--q2-green) 26%, transparent); }
 .q2-tab.is-star:not(.active) { color: var(--q2-gold); }
 .q2-tab.is-star.active { color: #241a06; background: linear-gradient(160deg, var(--q2-lamp), var(--q2-gold)); border-color: transparent; }
-.q2-tabs-tools { display: flex; gap: 2px; flex: none; }
-.q2-tabs-tools .q2-icon-btn { width: 38px; height: 38px; }
+.q2-tabs-tools { display: flex; gap: 0; flex: none; }
+.q2-tabs-tools .q2-icon-btn { width: 36px; height: 44px; border-radius: 12px; }
 
 /* Athar's mark in the Quran's own bars. */
 .q2-print { display: inline-grid; place-items: center; flex: none; border-radius: 12px; }
 .q2-print .q2-print-mark { width: 34px; height: 34px; }
 .q2 .athar-logo-print { background: linear-gradient(160deg, color-mix(in srgb, var(--q2-gold) 70%, #fff 30%), var(--q2-gold) 55%, color-mix(in srgb, var(--q2-gold) 70%, #000 30%)); }
 .q2 .athar-logo-word { background: var(--q2-ink); }
-.q2-top-title { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.q2-top-title { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .q2-top-title .q2-print .q2-print-mark { width: 30px; height: 30px; }
 
 /* A switch, a day of the week, and words for screen readers only. */
@@ -966,3 +969,13 @@
 /* A tafsir kept on the phone. */
 .q2-offline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--q2-soft); }
 .q2-offline.is-done { color: var(--q2-green); font-weight: 600; }
+
+/* «التسميع» with the tajweed engine: each word's verdict, the voice meter, a remark. */
+.q2-tw.q2-tj-ok { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--q2-green) 70%, transparent); }
+.q2-tw.q2-tj-khafi { box-shadow: inset 0 -3px 0 var(--q2-gold); background: var(--q2-gold-soft); }
+.q2-tw.q2-tj-jali { box-shadow: inset 0 -3px 0 var(--q2-danger); background: color-mix(in srgb, var(--q2-danger) 12%, transparent); }
+.q2-meter { display: inline-block; width: 64px; height: 6px; margin-inline-start: 10px; border-radius: 99px; background: var(--q2-line); overflow: hidden; vertical-align: middle; }
+.q2-meter > span { display: block; height: 100%; background: var(--q2-green); transform-origin: right; transition: transform 0.15s linear; }
+.q2-note { padding: 10px 12px; border-radius: 14px; font-size: 14.5px; line-height: 1.8; border: 1px solid var(--q2-line); }
+.q2-note.is-jali { border-color: color-mix(in srgb, var(--q2-danger) 40%, transparent); background: color-mix(in srgb, var(--q2-danger) 8%, transparent); }
+.q2-note.is-khafi { border-color: var(--q2-gold-line); background: var(--q2-gold-soft); }

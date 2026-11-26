@@ -52,6 +52,7 @@ import { closeFullPlayer } from "@/lib/listen/ui";
 import { useListenPlayer } from "@/lib/listen/useListen";
 import { ayahAt, loadAyahTimings, type AyahTiming } from "@/lib/listen/timing";
 import { useQuranDB } from "@/data/useQuranDB";
+import { AtharLogo } from "@/components/brand/AtharLogo";
 import { shareText } from "@/lib/shareTargets";
 
 // The player is drawn over «أفق»'s own garden at night: sky, moon and flowers.
@@ -245,6 +246,7 @@ export default function FullPlayer() {
           <ChevronDown size={26} aria-hidden="true" />
         </button>
         <div className="ls-full-kicker">
+          <AtharLogo className="ls-full-print" />
           {track.album}
           {p.queue.length > 1 ? <div>{arabicDigits(p.index + 1)} من {arabicDigits(p.queue.length)}</div> : null}
         </div>

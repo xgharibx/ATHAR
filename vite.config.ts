@@ -219,6 +219,9 @@ export default defineConfig(({ mode }) => {
   resolve: {
     alias: [
       { find: "@", replacement: path.resolve(__dirname, "./src") },
+      // «التسميع»'s tajweed engine: ONNX Runtime Web without its 15 MB WebAssembly in
+      // the app (the engine downloads it, checked, with the model: src/quran2/tajweed/engine.ts).
+      { find: /^onnxruntime-web\/wasm-extern$/, replacement: path.resolve(__dirname, "node_modules/onnxruntime-web/dist/ort.wasm.min.mjs") },
       // webgl-constants declares a UMD build in "browser" next to an ES module
       // build. Vite 8 no longer detects that and would import the UMD build,
       // whose default export arrives wrapped. Use the ES module build.

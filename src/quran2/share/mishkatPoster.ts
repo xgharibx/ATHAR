@@ -1,8 +1,8 @@
 /**
  * «القرآن الكريم» — an ayah as an image, in the «مشكاة» design (docs/QURAN_V2_DESIGN.md):
- * the ayah inside a niche drawn in gold hairlines, its lamp lit at the top, the
- * eight-point-star lattice glowing only around the light, the surah and ayah in
- * a small cartouche under it. Two palettes (ليل، سَحَر), three sizes.
+ * the ayah inside a niche drawn in gold hairlines, its lamp lit at the top, a
+ * vine of leaves (as around the Madina mushaf's pages) glowing only around the
+ * light, the surah and ayah in a small cartouche with two rosettes under it. Two palettes (ليل، سَحَر), three sizes.
  */
 
 export type MishkatPalette = "night" | "dawn";
@@ -42,33 +42,59 @@ function archPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number
   ctx.closePath();
 }
 
-function star(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
-  ctx.beginPath();
-  for (let i = 0; i < 16; i++) {
-    const rr = i % 2 === 0 ? r : r * 0.72;
-    const t = (Math.PI / 8) * i - Math.PI / 2;
-    const px = cx + rr * Math.cos(t);
-    const py = cy + rr * Math.sin(t);
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
+/** A rosette of eight rounded petals, the flower of the mushaf's border. */
+function rosette(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  for (let i = 0; i < 8; i++) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((Math.PI / 4) * i);
+    ctx.globalAlpha = i % 2 ? 0.7 : 1;
+    ctx.beginPath();
+    ctx.ellipse(0, -r * 0.52, r * 0.22, r * 0.42, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
-  ctx.closePath();
 }
 
-/** The lattice of eight-point stars, faded out away from (cx, cy). */
+/** A leaf, pointing along `angle`. */
+function leaf(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, size: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(size * 0.3, -size * 0.34, size * 0.8, -size * 0.36, size, 0);
+  ctx.bezierCurveTo(size * 0.8, size * 0.36, size * 0.3, size * 0.34, 0, 0);
+  ctx.fill();
+  ctx.restore();
+}
+
+/** The vine: rows of a waving stem with its leaves, faded out away from (cx, cy). */
 function lattice(ctx: CanvasRenderingContext2D, w: number, h: number, cx: number, cy: number, radius: number, color: string) {
-  const size = 96;
+  const period = 120;
+  const amp = 16;
   ctx.save();
   ctx.strokeStyle = color;
-  ctx.lineWidth = 1.4;
-  for (let y = -size; y < h + size; y += size) {
-    for (let x = -size; x < w + size; x += size) {
-      const d = Math.hypot(x - cx, y - cy);
+  ctx.fillStyle = color;
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = "round";
+  for (let row = 0, y = 40; y < h + period; y += 84, row++) {
+    const shift = row % 2 ? period / 2 : 0;
+    for (let x = -period + shift; x < w + period; x += period / 2) {
+      const mid = x + period / 4;
+      const d = Math.hypot(mid - cx, y - cy);
       const alpha = Math.max(0, 1 - d / radius);
       if (alpha <= 0.02) continue;
-      ctx.globalAlpha = alpha * 0.3;
-      star(ctx, x, y, size * 0.36);
+      const up = Math.round((x - shift) / (period / 2)) % 2 === 0;
+      const dir = up ? -1 : 1;
+      ctx.globalAlpha = alpha * 0.34;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.bezierCurveTo(x + period * 0.12, y + dir * amp * 1.3, x + period * 0.38, y + dir * amp * 1.3, x + period / 2, y);
       ctx.stroke();
+      ctx.globalAlpha = alpha * 0.26;
+      leaf(ctx, mid, y + dir * amp, up ? -Math.PI * 0.8 : Math.PI * 0.2, 16);
+      leaf(ctx, mid, y + dir * amp, up ? -Math.PI * 0.2 : Math.PI * 0.8, 16);
     }
   }
   ctx.restore();
@@ -195,7 +221,7 @@ export function drawMishkatPoster(content: MishkatContent, palette: MishkatPalet
     y += lh;
   }
 
-  // The cartouche: the surah and the ayah, with a star.
+  // The cartouche: the surah and the ayah, between two rosettes.
   const label = `سورة ${content.surahName}، الآية ${arDigits(content.ayah)}`;
   ctx.font = `500 38px "Reem Kufi", "Amiri", sans-serif`;
   const lw = ctx.measureText(label).width + 110;
@@ -206,10 +232,9 @@ export function drawMishkatPoster(content: MishkatContent, palette: MishkatPalet
   ctx.roundRect(w / 2 - lw / 2, cy - 42, lw, 84, 42);
   ctx.stroke();
   ctx.fillStyle = c.gold;
-  star(ctx, w / 2 + lw / 2 - 40, cy, 13);
-  ctx.fill();
-  star(ctx, w / 2 - lw / 2 + 40, cy, 13);
-  ctx.fill();
+  rosette(ctx, w / 2 + lw / 2 - 40, cy, 15);
+  rosette(ctx, w / 2 - lw / 2 + 40, cy, 15);
+  ctx.globalAlpha = 1;
   ctx.fillStyle = c.ink;
   ctx.textBaseline = "middle";
   ctx.fillText(label, w / 2, cy + 2);

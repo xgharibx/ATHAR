@@ -15,6 +15,7 @@ import { useHifzToday } from "../hifz/useHifzToday";
 import { Q2Error, Q2Loading } from "../components/ui";
 import { Niche, Rosette } from "../components/Mishkat";
 import type { TasmeeMode } from "../tasmee/types";
+import { TajweedEngineCard } from "../tasmee/TajweedEngineCard";
 
 type What = "surah" | "page" | "hifz";
 
@@ -61,6 +62,10 @@ export default function Q2TasmeeHome() {
           </p>
         </div>
       </Niche>
+
+      <section className="q2-section">
+        <TajweedEngineCard />
+      </section>
 
       <section className="q2-section">
         <div className="q2-section-title"><Rosette size={14} /> ماذا تسمّع؟</div>

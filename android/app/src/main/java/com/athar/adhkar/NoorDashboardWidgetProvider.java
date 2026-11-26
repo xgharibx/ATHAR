@@ -154,7 +154,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         for (int id : new int[]{ R.id.dash_evening_icon, R.id.dash_evening_word, R.id.dash_evening_bar, R.id.dash_evening_count }) {
             views.setOnClickPendingIntent(id, eveningPi);
         }
-        views.setOnClickPendingIntent(R.id.dash_wird_row, openApp(context, appWidgetId * 24 + 4, "/quran/khatma"));
+        views.setOnClickPendingIntent(R.id.dash_wird_row, openApp(context, appWidgetId * 24 + 4, "/quran/page"));
 
         // LIGHT theme needs dark ink (the prayer dots pick their own colour
         // by theme above; dash_open_btn keeps fixed light text on its fixed
