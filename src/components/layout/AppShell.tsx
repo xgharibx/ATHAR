@@ -521,7 +521,10 @@ function ClassicAppShell() {
     const PAGE_TITLES: Record<string, string> = {
       "/": "الرئيسية",
       "/quran": "القرآن الكريم",
-      "/quran/plans": "خطط التلاوة",
+      "/quran/khatma": "الختمة",
+      "/quran/tasmee": "التسميع",
+      "/quran/hifz": "الحفظ",
+      "/quran/tafsir": "التفسير",
       "/listen": "السماع",
       "/listen/stats": "أثر سماعك",
       "/sebha": "السبحة الرقمية",
@@ -556,7 +559,7 @@ function ClassicAppShell() {
     const exact = PAGE_TITLES[p];
     let label = exact;
     if (!label) {
-      if (p.startsWith("/mushaf")) label = "المصحف الشريف";
+      if (p.startsWith("/mushaf") || p.startsWith("/quran")) label = "القرآن الكريم";
       else if (p.startsWith("/settings/")) label = "الإعدادات";
       else if (p.startsWith("/hadith/")) label = "قارئ الحديث";
       else if (p.startsWith("/library/")) label = "المكتبة الإسلامية";

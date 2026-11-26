@@ -505,7 +505,12 @@ export const ROUTE_LABELS: Record<string, string> = {
   "/c/evening": "أذكار المساء",
   "/quran": "القرآن",
   "/quran/plans": "خطة الختمة",
+  "/quran/khatma": "الختمة وخطتها",
   "/mushaf": "المصحف",
+  "/quran/page": "المصحف",
+  "/quran/tasmee": "التسميع",
+  "/quran/hifz": "الحفظ",
+  "/quran/tafsir": "التفسير",
   "/sebha": "السبحة",
   "/prayer-times": "مواقيت الصلاة",
   "/duas": "الأدعية",
@@ -1074,7 +1079,7 @@ export async function streamCompanionReply(
 }
 
 /**
- * «القرآن ٢» — a question about one ayah. The server answers it from that
+ * «القرآن الكريم» — a question about one ayah. The server answers it from that
  * ayah's seven tafsirs alone, which it fetches itself; nothing personal is
  * sent, only the question and the ayah's reference.
  */

@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the section's own state: preferences, where you stopped, and your
+ * «القرآن الكريم» — the section's own state: preferences, where you stopped, and your
  * memorisation. Kept on the device only.
  */
 import { create } from "zustand";
@@ -9,6 +9,8 @@ import type { HifzDirection } from "./hifz/plan";
 import { addBits, emptyBits, TOTAL_AYAHS } from "./reading/khatma";
 
 export type Q2Palette = "paper" | "night";
+/** In the «أفق» design the Quran wears «أفق» itself (its sky and garden), or one of its own two. */
+export type Q2UfuqPalette = "afaq" | Q2Palette;
 export type Q2Order = "mushaf" | "revelation";
 
 export type Q2MarkColor = "green" | "gold" | "rose" | "blue";
@@ -71,6 +73,10 @@ export type Q2Prefs = {
   interlinear: boolean;
   /** The printed page: drawn as the Madina mushaf (King Fahd fonts), or in this section's verified text. */
   pageStyle: "madina" | "tanzil";
+  /** The look in the «أفق» design. */
+  ufuqPalette: Q2UfuqPalette;
+  /** Tajweed colours on the Madina page (King Fahd's colour fonts). */
+  tajweed: boolean;
 };
 
 type State = {
@@ -87,6 +93,8 @@ type State = {
   readLog: Record<string, number>;
   /** The latest recitations from memory, newest first. */
   tasmeeLog: Q2TasmeeEntry[];
+  /** The app's earlier Quran section's bookmarks, notes and colours were brought in (once). */
+  adoptedOld: boolean;
   setPrefs: (patch: Partial<Q2Prefs>) => void;
   setLastRead: (s: number, a: number) => void;
   putHifz: (page: number, card: Q2HifzPage) => void;
@@ -124,6 +132,8 @@ export const Q2_DEFAULT_PREFS: Q2Prefs = {
   wordLang: null,
   interlinear: false,
   pageStyle: "madina",
+  ufuqPalette: "afaq",
+  tajweed: false,
 };
 
 export const useQ2Store = create<State>()(
@@ -137,6 +147,7 @@ export const useQ2Store = create<State>()(
       khatma: freshKhatma(),
       readLog: {},
       tasmeeLog: [],
+      adoptedOld: false,
       setPrefs: (patch) => set((s) => ({ prefs: { ...s.prefs, ...patch } })),
       setLastRead: (s, a) => set({ lastRead: { s, a, at: Date.now() } }),
       putHifz: (page, card) => set((s) => ({ hifz: { ...s.hifz, [page]: card } })),
@@ -194,7 +205,9 @@ export const useQ2Store = create<State>()(
           marks: p.marks ?? {},
           khatma: p.khatma && typeof p.khatma.bits === "string" ? { ...freshKhatma(), ...p.khatma } : freshKhatma(),
           readLog: p.readLog ?? {},
-          tasmeeLog: Array.isArray(p.tasmeeLog) ? p.tasmeeLog : [],
+          tasmeeLog: Array.isArray(p.tasmeeLog)
+            ? p.tasmeeLog.map((e) => (typeof e?.target === "string" ? { ...e, target: e.target.replace(/^\/q2\//, "/quran/") } : e))
+            : [],
         };
       },
     },
@@ -254,9 +267,10 @@ function validTasmeeLog(raw: unknown): Q2TasmeeEntry[] | null {
     .filter((e): e is Q2TasmeeEntry => {
       if (!e || typeof e !== "object") return false;
       const x = e as Record<string, unknown>;
-      return num(x.at) && num(x.said) && num(x.total) && typeof x.label === "string" && typeof x.target === "string" && x.target.startsWith("/q2/") && Array.isArray(x.missed);
+      return num(x.at) && num(x.said) && num(x.total) && typeof x.label === "string" && typeof x.target === "string" && /^\/(quran|q2)\//.test(x.target) && Array.isArray(x.missed);
     })
-    .map((e) => ({ ...e, label: e.label.slice(0, 120), missed: e.missed.filter((k) => typeof k === "string" && /^\d{1,3}:\d{1,3}:\d{1,3}$/.test(k)).slice(0, 500) }))
+    // Saved before the section moved from «/q2» to «/quran».
+    .map((e) => ({ ...e, target: e.target.replace(/^\/q2\//, "/quran/"), label: e.label.slice(0, 120), missed: e.missed.filter((k) => typeof k === "string" && /^\d{1,3}:\d{1,3}:\d{1,3}$/.test(k)).slice(0, 500) }))
     .slice(0, 60);
 }
 

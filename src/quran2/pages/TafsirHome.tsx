@@ -1,17 +1,81 @@
 /**
- * «القرآن ٢» — «التفسير»: open the seven tafsirs of any ayah, read a whole surah
+ * «التفسير»: open the seven tafsirs of any ayah, read a whole surah
  * with the tafsir you choose, or ask about an ayah; and what each tafsir is.
  */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Columns3, MessageCircleQuestion, ScrollText } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Columns3, Download, MessageCircleQuestion, ScrollText, Trash2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { useQ2Meta, useQ2Text } from "../hooks";
 import { useQ2Store } from "../store";
-import { Q2_TAFSIRS, Q2_TAFSIR_NOTES } from "../data/tafsir";
+import { Q2_BUNDLED_TAFSIR, Q2_TAFSIRS, Q2_TAFSIR_NOTES, removeTafsirOffline, saveTafsirOffline, savedTafsirSurahCount } from "../data/tafsir";
 import { arDigits, plainKey } from "../data/arabic";
 import { ayahText } from "../data/text";
 import { Q2Error, Q2Loading } from "../components/ui";
-import { Niche, Star } from "../components/Mishkat";
+import { Niche, Rosette } from "../components/Mishkat";
+
+/** Keep a tafsir on the phone, to read it without the internet. */
+function TafsirOffline({ id, name, ayahCounts }: { id: number; name: string; ayahCounts: number[] }) {
+  const [saved, setSaved] = React.useState<number | null>(null);
+  const [progress, setProgress] = React.useState<number | null>(null);
+  const [version, setVersion] = React.useState(0);
+  React.useEffect(() => {
+    let alive = true;
+    void savedTafsirSurahCount(id).then((n) => alive && setSaved(n));
+    return () => {
+      alive = false;
+    };
+  }, [id, version]);
+  if (id === Q2_BUNDLED_TAFSIR) {
+    return (
+      <span className="q2-offline is-done">
+        <CheckCircle2 size={14} aria-hidden="true" /> مضمَّن في التطبيق، يُقرأ بلا إنترنت
+      </span>
+    );
+  }
+  const complete = saved !== null && saved >= 114;
+  if (progress !== null) {
+    return (
+      <span className="q2-offline" role="status" aria-live="polite">
+        <span className="q2-bar" style={{ flex: 1 }}><span style={{ width: `${(progress / 114) * 100}%` }} /></span>
+        {arDigits(progress)} من ١١٤
+      </span>
+    );
+  }
+  return (
+    <span className="q2-offline">
+      {complete ? (
+        <>
+          <span className="q2-offline is-done"><CheckCircle2 size={14} aria-hidden="true" /> محفوظ على الهاتف</span>
+          <button
+            type="button"
+            className="q2-chip q2-press"
+            aria-label={`حذف ${name} من الهاتف`}
+            onClick={() => void removeTafsirOffline(id).then(() => setVersion((v) => v + 1))}
+          >
+            <Trash2 size={14} aria-hidden="true" /> حذف
+          </button>
+        </>
+      ) : (
+        <button
+          type="button"
+          className="q2-chip q2-press"
+          onClick={() => {
+            setProgress(saved ?? 0);
+            void saveTafsirOffline(id, ayahCounts, (done) => setProgress(done)).then((r) => {
+              setProgress(null);
+              setVersion((v) => v + 1);
+              if (r.saved >= r.total) toast.success(`حُفظ ${name} للقراءة دون إنترنت`);
+              else toast.error("حُفظ بعضه، أعد المحاولة عند توفر الاتصال لإكماله");
+            });
+          }}
+        >
+          <Download size={14} aria-hidden="true" /> {saved ? `أكمل الحفظ على الهاتف (${arDigits(saved)} من ١١٤)` : "احفظه على الهاتف"}
+        </button>
+      )}
+    </span>
+  );
+}
 
 export default function Q2TafsirHome() {
   const navigate = useNavigate();
@@ -65,17 +129,17 @@ export default function Q2TafsirHome() {
           {ayahText(chosen)}
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 12 }}>
-          <button type="button" className="q2-btn q2-press" onClick={() => navigate(`/q2/tafsir/${surah}/${a}`)}>
+          <button type="button" className="q2-btn q2-press" onClick={() => navigate(`/quran/tafsir/${surah}/${a}`)}>
             <Columns3 size={16} aria-hidden="true" /> التفاسير السبعة
           </button>
-          <button type="button" className="q2-btn is-ghost q2-press" onClick={() => navigate(`/q2/read/${surah}?a=${a}&ask=1`)}>
+          <button type="button" className="q2-btn is-ghost q2-press" onClick={() => navigate(`/quran/read/${surah}?a=${a}&ask=1`)}>
             <MessageCircleQuestion size={16} aria-hidden="true" /> اسأل عنها
           </button>
         </div>
       </Niche>
 
       <section className="q2-section">
-        <div className="q2-section-title"><Star size={14} /> اقرأ سورة بتفسيرها</div>
+        <div className="q2-section-title"><Rosette size={14} /> اقرأ سورة بتفسيرها</div>
         <p className="q2-small" style={{ marginTop: 4 }}>اختر التفسير، ثم السورة: كل آية وتحتها تفسيرها.</p>
         <div className="q2-chips" style={{ marginTop: 10 }}>
           {Q2_TAFSIRS.map((t) => (
@@ -87,7 +151,7 @@ export default function Q2TafsirHome() {
         <input className="q2-input" style={{ marginTop: 10 }} value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="ابحث عن سورة" aria-label="ابحث عن سورة" />
         <div className="q2-card" style={{ marginTop: 10, maxHeight: 360, overflowY: "auto" }}>
           {surahs.map((x) => (
-            <button key={x.id} type="button" className="q2-row q2-press" onClick={() => navigate(`/q2/tafsir/read/${x.id}?t=${tafsir}`)}>
+            <button key={x.id} type="button" className="q2-row q2-press" onClick={() => navigate(`/quran/tafsir/read/${x.id}?t=${tafsir}`)}>
               <span className="q2-num">{arDigits(x.id)}</span>
               <span style={{ flex: 1 }}>
                 <b style={{ fontFamily: "var(--q2-serif)", fontSize: 18 }}>سورة {x.name}</b>
@@ -100,7 +164,7 @@ export default function Q2TafsirHome() {
       </section>
 
       <section className="q2-section">
-        <div className="q2-section-title"><Star size={14} /> التفاسير السبعة</div>
+        <div className="q2-section-title"><Rosette size={14} /> التفاسير السبعة</div>
         <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
           {Q2_TAFSIRS.map((t) => (
             <div key={t.id} className="q2-card" style={{ padding: "12px 14px" }}>
@@ -109,10 +173,13 @@ export default function Q2TafsirHome() {
                 <span className="q2-small">{t.author}، {Q2_TAFSIR_NOTES[t.id]?.era}</span>
               </div>
               <p className="q2-small" style={{ marginTop: 4, color: "var(--q2-ink)" }}>{Q2_TAFSIR_NOTES[t.id]?.note}</p>
+              <div style={{ marginTop: 8 }}>
+                <TafsirOffline id={t.id} name={t.name} ayahCounts={m.surahs.map((x) => x.ayahs)} />
+              </div>
             </div>
           ))}
         </div>
-        <p className="q2-credit">التفاسير عبر واجهة Quran.com، كلٌّ بنصه كما نشره.</p>
+        <p className="q2-credit">التفاسير عبر واجهة Quran.com، كلٌّ بنصه كما نشره؛ والميسّر مضمَّن من مجمع الملك فهد.</p>
       </section>
     </main>
   );

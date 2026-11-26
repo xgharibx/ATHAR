@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the khatma: which ayahs you have read since you began it.
+ * «القرآن الكريم» — the khatma: which ayahs you have read since you began it.
  *
  * Kept as one bit per ayah (6236 bits, about a kilobyte as text), so it is
  * small enough to live in the store and the account backup. An ayah counts as

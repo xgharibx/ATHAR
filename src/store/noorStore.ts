@@ -377,7 +377,7 @@ export type ExportBlobV1 = {
   sectionCompletions?: Record<string, string[]>;
   customPacks?: CustomAdhkarPack[];
   dataPacks?: NoorPack[];
-  /** «القرآن ٢»: memorisation, where you stopped and the section's settings. */
+  /** «القرآن الكريم»: memorisation, where you stopped and the section's settings. */
   quran2?: unknown;
   customReminders?: CustomReminder[];
   customReminderTemplatesSeen?: Record<string, boolean>;

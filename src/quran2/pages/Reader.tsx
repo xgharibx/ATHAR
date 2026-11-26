@@ -17,6 +17,7 @@ import { AyahSheet } from "../reader/AyahSheet";
 import { OfflineRow } from "../reader/OfflineRow";
 import { learnPage } from "../hifz/actions";
 import { useReadingTracker } from "../reading/useReadingTracker";
+import { QuranPrint } from "../components/QuranPrint";
 
 const RATES = [0.75, 1, 1.25, 1.5];
 const REPEATS: Array<{ mode: RepeatMode; label: string }> = [
@@ -245,11 +246,11 @@ export default function Q2Reader() {
         <button type="button" className="q2-icon-btn q2-press" onClick={() => navigate(-1)} aria-label="رجوع">
           <ArrowRight size={20} aria-hidden="true" />
         </button>
-        <button type="button" className="q2-icon-btn q2-press" disabled={s >= 114} onClick={() => navigate(`/q2/read/${s + 1}`, { replace: true })} aria-label="السورة التالية">
+        <button type="button" className="q2-icon-btn q2-press" disabled={s >= 114} onClick={() => navigate(`/quran/read/${s + 1}`, { replace: true })} aria-label="السورة التالية">
           <ChevronRight size={20} aria-hidden="true" />
         </button>
-        <div className="q2-top-title">سورة {info.name}</div>
-        <button type="button" className="q2-icon-btn q2-press" disabled={s <= 1} onClick={() => navigate(`/q2/read/${s - 1}`, { replace: true })} aria-label="السورة السابقة">
+        <div className="q2-top-title"><QuranPrint />سورة {info.name}</div>
+        <button type="button" className="q2-icon-btn q2-press" disabled={s <= 1} onClick={() => navigate(`/quran/read/${s - 1}`, { replace: true })} aria-label="السورة السابقة">
           <ChevronLeft size={20} aria-hidden="true" />
         </button>
         <button
@@ -258,7 +259,7 @@ export default function Q2Reader() {
           aria-label="اعرض الصفحة كما في المصحف المطبوع"
           onClick={() => {
             const at = useQ2Store.getState().lastRead;
-            navigate(`/q2/page/${pageOf(meta.data!, s, at && at.s === s ? at.a : 1)}`);
+            navigate(`/quran/page/${pageOf(meta.data!, s, at && at.s === s ? at.a : 1)}`);
           }}
         >
           <BookOpen size={19} aria-hidden="true" />
@@ -387,7 +388,7 @@ export default function Q2Reader() {
             onHifz={() => {
               const page = pages[openAyah.a - 1]!;
               if (hifz[page]) {
-                navigate(`/q2/hifz?page=${page}`);
+                navigate(`/quran/hifz?page=${page}`);
                 return;
               }
               learnPage(page);

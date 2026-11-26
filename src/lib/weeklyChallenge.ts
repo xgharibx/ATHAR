@@ -41,7 +41,7 @@ export const WEEKLY_CHALLENGES: Record<WeeklyChallengeKind, {
     emoji: "📖",
     target: 1,
     targetLabel: "مرة واحدة هذا الأسبوع",
-    route: "/mushaf?surah=18",
+    route: "/quran/read/18",
     action: "افتح سورة الكهف",
   },
   evening_adhkar_5days: {
@@ -59,7 +59,7 @@ export const WEEKLY_CHALLENGES: Record<WeeklyChallengeKind, {
     emoji: "📿",
     target: 5,
     targetLabel: "٥ أيام من ٧",
-    route: "/mushaf",
+    route: "/quran/page",
     action: "افتح المصحف",
   },
 };

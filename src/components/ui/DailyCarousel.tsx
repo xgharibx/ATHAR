@@ -490,7 +490,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     <Button
                       className="press-effect text-xs h-7 px-3"
                       variant="secondary"
-                      onClick={() => navigate(`/mushaf?surah=${verse.surahId}&ayah=${verse.ayahIndex}`)}
+                      onClick={() => navigate(`/quran/read/${verse.surahId}?a=${verse.ayahIndex}`)}
                     >
                       <BookOpen size={12} aria-hidden="true" />
                       اقرأ في سياقها

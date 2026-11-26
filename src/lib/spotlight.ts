@@ -19,8 +19,8 @@ export const SPOTLIGHT_SECTIONS: SpotlightItem[] = [
   { route: "/prayer-times", title: "مواقيت الصلاة", subtitle: "أثر", keywords: ["صلاة", "أذان", "prayer times"] },
   { route: "/qibla", title: "اتجاه القبلة", subtitle: "أثر", keywords: ["قبلة", "بوصلة", "qibla"] },
   { route: "/sebha", title: "السبحة", subtitle: "أثر", keywords: ["تسبيح", "مسبحة", "tasbeeh"] },
-  { route: "/mushaf", title: "المصحف", subtitle: "تابع القراءة في أثر", keywords: ["قرآن", "مصحف", "quran"] },
-  { route: "/tasmee", title: "التسميع", subtitle: "سمِّع من حفظك في أثر", keywords: ["حفظ", "تسميع", "memorize"] },
+  { route: "/quran/page", title: "المصحف", subtitle: "تابع القراءة في أثر", keywords: ["قرآن", "مصحف", "quran"] },
+  { route: "/quran/tasmee", title: "التسميع", subtitle: "سمِّع من حفظك في أثر", keywords: ["حفظ", "تسميع", "memorize"] },
   { route: "/asma", title: "أسماء الله الحسنى", subtitle: "أثر", keywords: ["أسماء الله", "asma"] },
   { route: "/duas", title: "الأدعية", subtitle: "أثر", keywords: ["دعاء", "أدعية", "dua"] },
   { route: "/mosques", title: "المساجد القريبة", subtitle: "أثر", keywords: ["مسجد", "mosque"] },
@@ -45,7 +45,7 @@ export function buildSpotlightItems(
   const surahItems = surahs.map((surah) => {
     const name = plainSurahName(surah.name);
     return {
-      route: `/mushaf?surah=${surah.id}`,
+      route: `/quran/read/${surah.id}`,
       title: `سورة ${name}`,
       subtitle: `${surah.ayahs.length} آية — المصحف في أثر`,
       keywords: [name, surah.englishName ?? "", "سورة", "surah"].filter(Boolean),

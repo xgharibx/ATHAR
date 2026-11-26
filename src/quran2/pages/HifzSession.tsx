@@ -14,6 +14,8 @@ import { arCount, arDigits } from "../data/arabic";
 import { PageText } from "../components/PageText";
 import { pageAyahs, pageLabel } from "../data/pages";
 import { Q2Loading } from "../components/ui";
+import { Rosette } from "../components/Mishkat";
+import { QuranPrint } from "../components/QuranPrint";
 
 type Item = { page: number; kind: "new" | "near" | "far" };
 
@@ -137,7 +139,7 @@ export default function Q2HifzSession() {
     const forgot = done.filter((d) => d.grade === 1).length;
     return (
       <main className="q2-main" style={{ textAlign: "center", paddingTop: "calc(var(--q2-top) + 60px)" }}>
-        <div style={{ fontSize: 42, color: "var(--q2-gold)" }}>✦</div>
+        <div style={{ color: "var(--q2-gold)", display: "grid", placeItems: "center" }}><Rosette size={46} /></div>
         <h1 className="q2-h1" style={{ marginTop: 8 }}>{done.length ? "أتممت جلسة اليوم" : "لا شيء في الجلسة"}</h1>
         {done.length ? (
           <p className="q2-soft" style={{ marginTop: 10, lineHeight: 2 }}>
@@ -145,7 +147,7 @@ export default function Q2HifzSession() {
             {forgot ? `، منها ${arCount(forgot, "صفحة", "صفحتان", "صفحات", "صفحة")} ستعود إليك غدًا` : ""}. زادك الله حفظًا وفهمًا.
           </p>
         ) : null}
-        <button type="button" className="q2-btn q2-press" style={{ marginTop: 22 }} onClick={() => navigate("/q2/hifz", { replace: true })}>
+        <button type="button" className="q2-btn q2-press" style={{ marginTop: 22 }} onClick={() => navigate("/quran/hifz", { replace: true })}>
           إلى خريطة حفظك
         </button>
       </main>
@@ -156,10 +158,11 @@ export default function Q2HifzSession() {
   return (
     <div>
       <header className="q2-top">
-        <button type="button" className="q2-icon-btn q2-press" onClick={() => navigate("/q2/hifz")} aria-label="إنهاء الجلسة">
+        <button type="button" className="q2-icon-btn q2-press" onClick={() => navigate("/quran/hifz")} aria-label="إنهاء الجلسة">
           <X size={20} aria-hidden="true" />
         </button>
         <div className="q2-top-title" style={{ fontSize: 16 }}>
+          <QuranPrint />
           {KIND[item.kind]}، {arDigits(index + 1)} من {arDigits(queue.length)}
         </div>
         <span style={{ width: 42 }} />

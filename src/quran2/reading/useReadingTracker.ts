@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — noticing what you read, for the khatma and the reading log.
+ * «القرآن الكريم» — noticing what you read, for the khatma and the reading log.
  *
  * An ayah counts as read when it has been on screen, the app in front, for
  * about the time it takes to read it (0.3 s a word, between 1.5 and 15 s), so
@@ -9,6 +9,7 @@
 import * as React from "react";
 import { dayKey } from "../hooks";
 import { useQ2Store } from "../store";
+import { countAyahsRead } from "../bridge";
 
 const TICK = 1000;
 
@@ -72,7 +73,10 @@ export function useReadingTracker(options: {
           done.push(base + a - 1);
         }
       }
-      if (done.length) markRead(done, dayKey());
+      if (done.length) {
+        markRead(done, dayKey());
+        countAyahsRead(done.length);
+      }
     }, TICK);
     return () => {
       clearInterval(timer);
@@ -88,5 +92,6 @@ export function useReadingTracker(options: {
     previous.current = listening;
     if (base == null || before == null || listening == null || listening !== before + 1) return;
     markRead([base + before - 1], dayKey());
+    countAyahsRead(1);
   }, [listening, base, markRead]);
 }

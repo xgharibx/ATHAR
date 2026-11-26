@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — following a recitation from memory, word by word.
+ * «القرآن الكريم» — following a recitation from memory, word by word.
  *
  * The speech recogniser writes what it hears in everyday spelling; each heard
  * word is compared with the next expected word of the page (data/arabic.ts

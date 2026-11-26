@@ -1,10 +1,10 @@
-# «القرآن ٢» — the design: «مشكاة»
+# «القرآن الكريم» — the design: «مشكاة»
 
 The brief the section's look is built from. Kept up to date with the code.
 
 ## The prompt
 
-> Design «القرآن ٢» so that it feels like nothing a Quran app has looked like: premium,
+> Design «القرآن الكريم» so that it feels like nothing a Quran app has looked like: premium,
 > calm, unmistakably Islamic without a single cliché sticker, and modern enough to sit
 > beside the best apps of 2026. The Quran is the light; the interface is the niche that
 > holds it. Every screen should feel lit from within, quiet, and made by hand.

@@ -71,7 +71,7 @@ export default function Q2RootPage() {
           endLabel="الناس"
           onPick={(i) => {
             const first = data.hits.find((h) => h.s === i + 1);
-            if (first) navigate(`/q2/read/${first.s}?a=${first.a}`);
+            if (first) navigate(`/quran/read/${first.s}?a=${first.a}`);
           }}
         />
       </section>

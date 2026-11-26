@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — a recitation from memory. The passage is shown as chosen (hidden,
+ * «القرآن الكريم» — a recitation from memory. The passage is shown as chosen (hidden,
  * the first word of each ayah, or in full); the speech recogniser follows the
  * recitation word by word (hifz/recite.ts): the word you are on glows like the
  * lamp, words said turn green, words skipped are marked. Touch any word to hear
@@ -20,6 +20,7 @@ import { speechAvailable, startSpeechStream } from "@/lib/voiceTasbeeh";
 import { useReciterWord } from "../tasmee/useReciterWord";
 import { readMode } from "../tasmee/types";
 import { Q2Error, Q2Loading } from "../components/ui";
+import { QuranPrint } from "../components/QuranPrint";
 
 type Ayah = { s: number; a: number; words: Array<{ n: number; text: string; after?: string }>; before?: string };
 type Phase = "ready" | "listening" | "done";
@@ -107,7 +108,7 @@ export default function Q2TasmeeSession() {
     setPhase("done");
     const missed = flat.filter((_, i) => final[i] === "missed").map((w) => w.key);
     const said = final.filter((x) => x === "ok").length;
-    logTasmee({ at: Date.now(), label: passage.label, target: `/q2/tasmee/session?${params.toString()}`, said, total: flat.length, missed });
+    logTasmee({ at: Date.now(), label: passage.label, target: `/quran/tasmee/session?${params.toString()}`, said, total: flat.length, missed });
   }, [flat, passage, logTasmee, params]);
 
   const start = async () => {
@@ -168,10 +169,10 @@ export default function Q2TasmeeSession() {
   return (
     <div>
       <header className="q2-top">
-        <button type="button" className="q2-icon-btn q2-press" onClick={() => navigate("/q2/tasmee")} aria-label="رجوع">
+        <button type="button" className="q2-icon-btn q2-press" onClick={() => navigate("/quran/tasmee")} aria-label="رجوع">
           <ArrowRight size={20} aria-hidden="true" />
         </button>
-        <div className="q2-top-title">التسميع، {passage.label}</div>
+        <div className="q2-top-title"><QuranPrint />التسميع، {passage.label}</div>
         <span className="q2-icon-btn" aria-hidden="true" />
       </header>
 

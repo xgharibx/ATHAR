@@ -1,4 +1,4 @@
-# «القرآن ٢» — the charter
+# «القرآن الكريم» — the charter
 
 This file is the brief that Quran V2 is built from: the prompt, the decisions, and the road. It is kept up to date in the same pull request as any change to the section.
 
@@ -82,7 +82,7 @@ No single app joins these together; several exist nowhere in Arabic:
 - `src/quran2/`: the whole section, independent of the existing Quran code.
   - `data/`: text, metadata, morphology, timings, tafsir, Arabic normalisation.
   - `hifz/`: the memory model and the memorisation store.
-  - `pages/`, `components/`, `quran2.css`: the screens, in the section's own shell at `/q2`.
+  - `pages/`, `components/`, `quran2.css`: the screens, in the section's own shell at `/quran`.
 - `reading/`: the khatma (one bit per ayah), the reading log, and the tracker that
   notices what is read.
 - `native/`: what V2 hands to the phone: the widget payload, the daily reminder, and
@@ -95,7 +95,7 @@ No single app joins these together; several exist nowhere in Arabic:
 ## Road
 
 **Phase 1 (this release)**
-- The section, its shell and the entry button «القرآن ٢».
+- The section, its shell and the entry button «القرآن الكريم».
 - The surah index, in mushaf or revelation order.
 - The reader: word-synced audio for 14 reciters, the word lens, hearing any word, and the ayah sheet with seven tafsirs.
 - Hifz: FSRS with new, near and far review, the memory map, and the self-test sessions.

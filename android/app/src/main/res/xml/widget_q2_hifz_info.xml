@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- «القرآن ٢» memorisation widget — 4×2 default, resizable -->
+<!-- «القرآن الكريم» memorisation widget — 4×2 default, resizable -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:initialLayout="@layout/widget_q2_hifz"
     android:minWidth="250dp"

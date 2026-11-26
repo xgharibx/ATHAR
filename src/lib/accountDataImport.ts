@@ -28,7 +28,7 @@ export async function hasLocalDataToImport(): Promise<boolean> {
   const ignored = new Set(["version", "exportedAt", "prefs", "reminders", "weeklyReportSentISO"]);
   for (const [key, value] of Object.entries(state)) {
     if (ignored.has(key) || value == null || value === false || value === "") continue;
-    // «القرآن ٢» always carries its settings and an empty khatma; it is data to
+    // «القرآن الكريم» always carries its settings and an empty khatma; it is data to
     // import only with memorised pages, a place where you stopped, marks or reading.
     if (key === "quran2") {
       const q = value as { hifz?: object; lastRead?: unknown; marks?: object; readLog?: object };

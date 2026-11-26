@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — keep this surah's recitation on the phone, to listen with no
+ * «القرآن الكريم» — keep this surah's recitation on the phone, to listen with no
  * connection. Phones only: the app's native downloader saves the file, and its
  * player uses the saved copy by itself whenever the same recitation is played.
  */

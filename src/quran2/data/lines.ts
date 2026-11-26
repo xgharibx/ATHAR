@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the printed page: on which of the 15 lines of the Madani mushaf
+ * «القرآن الكريم» — the printed page: on which of the 15 lines of the Madani mushaf
  * each word stands (Quran.com API v4, word line numbers). Only the line number
  * is taken; the words are this section's own Tanzil text.
  *

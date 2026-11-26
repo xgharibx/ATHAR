@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — Arabic for searching and comparing, never for display.
+ * «القرآن الكريم» — Arabic for searching and comparing, never for display.
  *
  * The Uthmani script writes many words differently from everyday spelling:
  * the small (dagger) alef stands for a long ā that everyday spelling sometimes

@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — an ayah as an image, in the «مشكاة» design (docs/QURAN_V2_DESIGN.md):
+ * «القرآن الكريم» — an ayah as an image, in the «مشكاة» design (docs/QURAN_V2_DESIGN.md):
  * the ayah inside a niche drawn in gold hairlines, its lamp lit at the top, the
  * eight-point-star lattice glowing only around the light, the surah and ayah in
  * a small cartouche under it. Two palettes (ليل، سَحَر), three sizes.
@@ -217,7 +217,7 @@ export function drawMishkatPoster(content: MishkatContent, palette: MishkatPalet
   // The mark of the app.
   ctx.font = `400 30px "Reem Kufi", "Amiri", sans-serif`;
   ctx.fillStyle = c.soft;
-  ctx.fillText("أثر — القرآن ٢", w / 2, h - (format === "story" ? 140 : 56));
+  ctx.fillText("أثر", w / 2, h - (format === "story" ? 140 : 56));
   return canvas;
 }
 

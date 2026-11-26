@@ -301,7 +301,7 @@ struct AtharQiblaWidget: Widget {
     }
 }
 
-// ─── «القرآن ٢»: today's memorisation (حفظك اليوم) ───────────────────────────
+// ─── «القرآن الكريم»: today's memorisation (حفظك اليوم) ───────────────────────────
 
 /// Written by src/quran2/native/widget.ts. `dues` holds each older page's next
 /// revision (ms), so the far-review count is made on the day the widget draws.
@@ -357,13 +357,13 @@ private struct HifzWidgetView: View {
             }
             .gaugeStyle(.accessoryCircularCapacity)
             .atharAccessoryBackground()
-            .widgetURL(moreURL("/q2/hifz"))
+            .widgetURL(moreURL("/quran/hifz"))
         default:
             MoreCard {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("حفظك اليوم").font(.headline).foregroundColor(moreGold)
                     if today.memorised == 0 {
-                        Text("ابدأ الحفظ من «القرآن ٢»").font(.subheadline).foregroundColor(.white.opacity(0.8))
+                        Text("ابدأ الحفظ من «القرآن الكريم»").font(.subheadline).foregroundColor(.white.opacity(0.8))
                     } else if today.total == 0 {
                         Text("✓ لا مراجعة اليوم").font(.title3.weight(.bold)).foregroundColor(moreMint)
                     } else {
@@ -379,7 +379,7 @@ private struct HifzWidgetView: View {
                     }
                 }
             }
-            .widgetURL(moreURL(today.total > 0 ? "/q2/hifz/session" : "/q2/hifz"))
+            .widgetURL(moreURL(today.total > 0 ? "/quran/hifz/session" : "/quran/hifz"))
         }
     }
 }

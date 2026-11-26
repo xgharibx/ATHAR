@@ -1,4 +1,4 @@
-/** «القرآن ٢» — what each page of the Madani mushaf holds. */
+/** «القرآن الكريم» — what each page of the Madani mushaf holds. */
 import type { Q2Meta } from "./meta";
 import { pageRange, refFromIndex } from "./meta";
 import type { Q2Text, Q2Ayah } from "./text";

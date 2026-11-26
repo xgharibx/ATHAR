@@ -65,7 +65,7 @@ export default function Q2Roots() {
       </div>
       <div className="q2-card" style={{ marginTop: 12 }}>
         {list.slice(0, shown).map((r, i) => (
-          <button key={r.root} type="button" className="q2-row q2-press" onClick={() => navigate(`/q2/roots/${encodeURIComponent(r.root)}`)}>
+          <button key={r.root} type="button" className="q2-row q2-press" onClick={() => navigate(`/quran/roots/${encodeURIComponent(r.root)}`)}>
             <span className="q2-small" style={{ minWidth: 30, textAlign: "center" }}>{arDigits(i + 1)}</span>
             <span style={{ fontFamily: "var(--q2-serif)", fontSize: 24, fontWeight: 700, color: "var(--q2-gold)", minWidth: 86 }}>{spacedRoot(r.root)}</span>
             <span style={{ flex: 1, minWidth: 0 }} className="q2-small">

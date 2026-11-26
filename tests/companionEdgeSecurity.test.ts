@@ -724,7 +724,7 @@ describe("Companion Edge Function access controls", () => {
     });
   });
 
-  describe("a question about one ayah («القرآن ٢»)", () => {
+  describe("a question about one ayah («القرآن الكريم»)", () => {
     const ask = (athar_ayah: unknown) => JSON.stringify({
       system: [{ type: "text", text: "أنت «أثر»، رفيق إيماني." }, { type: "text", text: "سياق خاص من العميل لا يُعتمد" }],
       messages: [{ role: "user", content: "ما معنى القيوم في هذه الآية؟" }],

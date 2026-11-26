@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — what is fetched once is kept on the device (IndexedDB), so the
+ * «القرآن الكريم» — what is fetched once is kept on the device (IndexedDB), so the
  * section keeps working offline after first use.
  */
 import Dexie, { type Table } from "dexie";

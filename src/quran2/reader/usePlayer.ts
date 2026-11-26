@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the reader's player: one whole-surah recitation, with the
+ * «القرآن الكريم» — the reader's player: one whole-surah recitation, with the
  * reciter's word timings telling which word is being said.
  *
  * Two backends behind one logic:
@@ -217,7 +217,7 @@ export function useQ2Player(options: {
         setView((v) => ({ ...v, waiting: true, error: false }));
         session = await startNativeRecitation(
           {
-            verses: [{ id: `q2:${t.audioUrl}`, url: t.audioUrl, title: meta.current.title, artist: meta.current.artist, album: "القرآن ٢ — أثر" }],
+            verses: [{ id: `q2:${t.audioUrl}`, url: t.audioUrl, title: meta.current.title, artist: meta.current.artist, album: "القرآن الكريم — أثر" }],
             startIndex: 0,
             rate: viewRef.current.rate,
             volume: 1,
@@ -287,7 +287,7 @@ export function useQ2Player(options: {
   React.useEffect(() => {
     if (!("mediaSession" in navigator) || !view.playing || view.native) return;
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title, artist, album: "القرآن ٢ — أثر" });
+      navigator.mediaSession.metadata = new MediaMetadata({ title, artist, album: "القرآن الكريم — أثر" });
     } catch {
       // Not supported here.
     }

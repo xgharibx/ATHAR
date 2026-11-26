@@ -17,7 +17,7 @@ const PERMISSIVE = /^(MIT|ISC|0BSD|BSD-2-Clause|BSD-3-Clause|Apache-2\.0|Zlib|Un
  *   not; it only forbids selling the font files on their own.
  * - The app's Arabic fonts (src/styles/fonts.css): Amiri, Amiri Quran, Scheherazade New,
  *   Noto Naskh Arabic, Cairo and Tajawal, under the same SIL Open Font License 1.1.
- * - Reem Kufi, the title face of «القرآن ٢» (src/quran2/quran2.css), the same licence.
+ * - Reem Kufi, the title face of «القرآن الكريم» (src/quran2/quran2.css), the same licence.
  */
 const REVIEWED = new Set([
   "gsap",

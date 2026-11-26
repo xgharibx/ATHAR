@@ -23,7 +23,6 @@ import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 import { useCloudSync } from "@/hooks/useCloudSync";
 import { useQueryClient } from "@tanstack/react-query";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
-import { ensureAllWbwSurahsCached } from "@/lib/quranWBW";
 import { idbPruneQuranTranslationCache } from "@/lib/quranIDB";
 import { ANGELS_SECTION } from "@/data/angels";
 import { DIVINE_BOOKS_SECTION } from "@/data/divineBooks";
@@ -77,14 +76,11 @@ const SourcesPage = React.lazy(() => import("@/pages/Sources").then((m) => ({ de
 const InsightsPage = React.lazy(() => import("@/pages/Insights").then((m) => ({ default: m.InsightsPage })));
 const LeaderboardPage = React.lazy(() => import("@/pages/Leaderboard").then((m) => ({ default: m.LeaderboardPage })));
 const NotFoundPage = React.lazy(() => import("@/pages/NotFound").then((m) => ({ default: m.NotFoundPage })));
-const QuranPage = React.lazy(() => import("@/pages/Quran").then((m) => ({ default: m.QuranPage })));
-const MushafPage = React.lazy(() => import("@/pages/Mushaf").then((m) => ({ default: m.MushafPage })));
 const PrayerTimesPage = React.lazy(() => import("@/pages/PrayerTimes").then((m) => ({ default: m.PrayerTimesPage })));
 const SebhaPage = React.lazy(() => import("@/pages/Sebha").then((m) => ({ default: m.SebhaPage })));
 const CompanionPage = React.lazy(() => import("@/pages/Companion").then((m) => ({ default: m.CompanionPage })));
 const RemindersPage = React.lazy(() => import("@/pages/Reminders").then((m) => ({ default: m.RemindersPage })));
 const HadithSharhPage = React.lazy(() => import("@/pages/HadithSharh").then((m) => ({ default: m.HadithSharhPage })));
-const TasmeePage = React.lazy(() => import("@/pages/Tasmee").then((m) => ({ default: m.TasmeePage })));
 const QiblaPage = React.lazy(() => import("@/pages/Qibla").then((m) => ({ default: m.QiblaPage })));
 
 // C1-C7: New content pages
@@ -105,19 +101,19 @@ const HadithReaderPage = React.lazy(() => import("@/pages/HadithReader").then((m
 const HadithMemoPage = React.lazy(() => import("@/pages/HadithMemo").then((m) => ({ default: m.HadithMemoPage })));
 const CompanionsPage = React.lazy(() => import("@/pages/Companions"));
 const SeerahPage = React.lazy(() => import("@/pages/SeerahTimeline"));
-const QuranPlansPage = React.lazy(() => import("@/pages/QuranPlans").then((m) => ({ default: m.QuranPlansPage })));
 const QadaaPage = React.lazy(() => import("@/pages/Qadaa").then((m) => ({ default: m.QadaaPage })));
 const WirdPage = React.lazy(() => import("@/pages/Wird").then((m) => ({ default: m.WirdPage })));
 const MuhasabaPage = React.lazy(() => import("@/pages/Muhasaba").then((m) => ({ default: m.MuhasabaPage })));
 const CustomAdhkarPage = React.lazy(() => import("@/pages/CustomAdhkar").then((m) => ({ default: m.CustomAdhkarPage })));
 const NearbyMosquesPage = React.lazy(() => import("@/pages/NearbyMosques").then((m) => ({ default: m.NearbyMosquesPage })));
-const TafsirPage = React.lazy(() => import("@/pages/Tafsir").then((m) => ({ default: m.TafsirPage })));
 const ShortsPage = React.lazy(() => import("@/pages/Shorts").then((m) => ({ default: m.ShortsPage })));
 
 // ── الإعجاز العلمي (MIRC) section ──
 import { IjazShell } from "@/components/layout/IjazShell";
-// «القرآن ٢»: a second Quran section, built separately from the first (docs/QURAN_V2.md).
+// «القرآن الكريم»: a second Quran section, built separately from the first (docs/QURAN_V2.md).
 const Quran2Shell = React.lazy(() => import("@/quran2/Quran2Shell").then((m) => ({ default: m.Quran2Shell })));
+const QuranReadingShell = React.lazy(() => import("@/quran2/Quran2Shell").then((m) => ({ default: m.QuranReadingShell })));
+const QuranRedirect = React.lazy(() => import("@/quran2/redirects").then((m) => ({ default: m.QuranRedirect })));
 const Q2Hub = React.lazy(() => import("@/quran2/pages/Hub"));
 const Q2Index = React.lazy(() => import("@/quran2/pages/IndexPage"));
 const Q2Reader = React.lazy(() => import("@/quran2/pages/Reader"));
@@ -262,7 +258,7 @@ function AppContent() {
 
   // iPhone: the edge swipe goes back, except where the screen swipes sideways
   // itself (turning Mushaf pages, the next and previous hadith).
-  const swipesSideways = /^\/mushaf(\/|$)|^\/hadith\/[^/]+\/[^/]+$/.test(location.pathname);
+  const swipesSideways = /^\/(mushaf|quran\/page)(\/|$)|^\/hadith\/[^/]+\/[^/]+$/.test(location.pathname);
   React.useEffect(() => {
     void setBackSwipe(!swipesSideways);
   }, [swipesSideways]);
@@ -377,10 +373,10 @@ function AppContent() {
 
     // The pages people open first, so the first tap on a tab is as quick as the rest.
     const runPrefetch = () => {
-      void import("@/pages/Quran");
+      void import("@/quran2/pages/Hub");
       void import("@/pages/PrayerTimes");
       void import("@/pages/Sebha");
-      void import("@/pages/Mushaf");
+      void import("@/quran2/pages/Reader");
       void import("@/pages/listen/ListenHome");
       void import("@/pages/Leaderboard");
       void import("@/pages/VideoLibrary");
@@ -430,19 +426,11 @@ function AppContent() {
 
     const prepareMushaf = () => {
       if (isDataConstrained) return;
-      // Only warm the small Mushaf core on first launch. WBW (Tajweed
-      // colors) is heavier — defer it until the user actually opens
-      // Mushaf at least once, so fresh installs don't burn 30 MB before
-      // any user interaction.
-      const hasOpenedMushaf = localStorage.getItem("athar_mushaf_opened") === "1";
+      // The small Quran core the rest of the app reads (search, the daily
+      // cards, the player's verses). The Quran section keeps its own text.
       void ensureMushafCoreOffline().catch(() => {
-        // Settings and the reader expose a retry path if the first background attempt fails.
+        // Settings expose a retry path if the first background attempt fails.
       });
-      if (hasOpenedMushaf) {
-        void ensureAllWbwSurahsCached().catch(() => {
-          // Mushaf still exposes a manual retry inside the reader if background warming fails.
-        });
-      }
     };
 
     let active = true;
@@ -621,13 +609,19 @@ function AppContent() {
     return () => window.removeEventListener("athar-data-packs-changed", onPacks);
   }, [queryClient]);
 
-  // «القرآن ٢» on phones: the "حفظك اليوم" widget and the memorisation reminder.
+  // «القرآن الكريم»: on phones, the "حفظك اليوم" widget and the memorisation
+  // reminder; everywhere, its bookmarks, notes and reading kept in step with
+  // the rest of the app and the account.
   React.useEffect(() => {
-    let stop: (() => void) | undefined;
+    const stops: Array<() => void> = [];
     let cancelled = false;
     void import("@/quran2/native/sync").then((m) => {
-      if (!cancelled) stop = m.startQuran2Native();
+      if (!cancelled) stops.push(m.startQuran2Native());
     });
+    void import("@/quran2/bridge").then((m) => {
+      if (!cancelled) stops.push(m.startQuranBridge());
+    });
+    const stop = () => stops.forEach((fn) => fn());
     return () => {
       cancelled = true;
       stop?.();
@@ -649,29 +643,17 @@ function AppContent() {
       <LeaderboardSyncBridge />
       <PwaInstallBanner />
       <Routes>
-        <Route path="mushaf/:page?" element={<S><MushafPage /></S>} />
-        <Route path="q2" element={<S><Quran2Shell /></S>}>
-          <Route index element={<S><Q2Hub /></S>} />
-          <Route path="index" element={<S><Q2Index /></S>} />
-          <Route path="read/:surah" element={<S><Q2Reader /></S>} />
-          <Route path="about" element={<S><Q2About /></S>} />
-          <Route path="hifz" element={<S><Q2Hifz /></S>} />
-          <Route path="hifz/session" element={<S><Q2HifzSession /></S>} />
-          <Route path="hifz/similar" element={<S><Q2SimilarDrill /></S>} />
-          <Route path="roots" element={<S><Q2Roots /></S>} />
-          <Route path="roots/:root" element={<S><Q2RootPage /></S>} />
-          <Route path="search" element={<S><Q2Search /></S>} />
-          <Route path="numbers" element={<S><Q2Numbers /></S>} />
-          <Route path="tafsir" element={<S><Q2TafsirHome /></S>} />
-          <Route path="tafsir/read/:surah" element={<S><Q2TafsirRead /></S>} />
-          <Route path="tafsir/:surah/:ayah" element={<S><Q2TafsirCompare /></S>} />
-          <Route path="tasmee" element={<S><Q2TasmeeHome /></S>} />
-          <Route path="tasmee/session" element={<S><Q2TasmeeSession /></S>} />
-          <Route path="marks" element={<S><Q2Marks /></S>} />
-          <Route path="khatma" element={<S><Q2Khatma /></S>} />
-          <Route path="page" element={<S><Q2MushafPage /></S>} />
-          <Route path="page/:page" element={<S><Q2MushafPage /></S>} />
+        {/* «القرآن الكريم»: reading, the printed page, memorising and reciting take the whole screen. */}
+        <Route element={<S><QuranReadingShell /></S>}>
+          <Route path="quran/read/:surah" element={<S><Q2Reader /></S>} />
+          <Route path="quran/page" element={<S><Q2MushafPage /></S>} />
+          <Route path="quran/page/:page" element={<S><Q2MushafPage /></S>} />
+          <Route path="quran/hifz/session" element={<S><Q2HifzSession /></S>} />
+          <Route path="quran/tasmee/session" element={<S><Q2TasmeeSession /></S>} />
         </Route>
+        {/* The app's earlier Quran addresses (links, widgets, notifications, shortcuts) land in it. */}
+        <Route path="mushaf/:page?" element={<S><QuranRedirect from="mushaf" /></S>} />
+        <Route path="q2/*" element={<S><QuranRedirect from="q2" /></S>} />
         {/* ── الإعجاز العلمي section (full-screen dark theme) ── */}
         <Route path="ijaz" element={<IjazShell />}>
           <Route index element={<S><IjazHome /></S>} />
@@ -691,8 +673,24 @@ function AppContent() {
           <Route path="explore" element={<S><ExplorePage /></S>} />
           <Route path="favorites" element={<S><FavoritesPage /></S>} />
           <Route path="shorts" element={<S><ShortsPage /></S>} />
-          <Route path="quran" element={<S><QuranPage /></S>} />
-          <Route path="quran/plans" element={<S><QuranPlansPage /></S>} />
+          <Route path="quran" element={<S><Quran2Shell /></S>}>
+            <Route index element={<S><Q2Hub /></S>} />
+            <Route path="index" element={<S><Q2Index /></S>} />
+            <Route path="about" element={<S><Q2About /></S>} />
+            <Route path="hifz" element={<S><Q2Hifz /></S>} />
+            <Route path="hifz/similar" element={<S><Q2SimilarDrill /></S>} />
+            <Route path="roots" element={<S><Q2Roots /></S>} />
+            <Route path="roots/:root" element={<S><Q2RootPage /></S>} />
+            <Route path="search" element={<S><Q2Search /></S>} />
+            <Route path="numbers" element={<S><Q2Numbers /></S>} />
+            <Route path="tafsir" element={<S><Q2TafsirHome /></S>} />
+            <Route path="tafsir/read/:surah" element={<S><Q2TafsirRead /></S>} />
+            <Route path="tafsir/:surah/:ayah" element={<S><Q2TafsirCompare /></S>} />
+            <Route path="tasmee" element={<S><Q2TasmeeHome /></S>} />
+            <Route path="marks" element={<S><Q2Marks /></S>} />
+            <Route path="khatma" element={<S><Q2Khatma /></S>} />
+            <Route path="plans" element={<Navigate to="/quran/khatma" replace />} />
+          </Route>
           <Route path="listen" element={<S><ListenHomePage /></S>} />
           <Route path="listen/reciters" element={<S><ListenRecitersPage /></S>} />
           <Route path="listen/reciter/:id" element={<S><ListenReciterPage /></S>} />
@@ -711,11 +709,11 @@ function AppContent() {
           <Route path="muhasaba" element={<S><MuhasabaPage /></S>} />
           <Route path="adhkar/custom" element={<S><CustomAdhkarPage /></S>} />
           <Route path="sebha" element={<S><SebhaPage /></S>} />
-          <Route path="tafsir" element={<S><TafsirPage /></S>} />
+          <Route path="tafsir" element={<S><QuranRedirect from="tafsir" /></S>} />
           <Route path="companion" element={<S><CompanionPage /></S>} />
           <Route path="reminders" element={<S><RemindersPage /></S>} />
           <Route path="library/sharh" element={<S><HadithSharhPage /></S>} />
-          <Route path="tasmee" element={<S><TasmeePage /></S>} />
+          <Route path="tasmee" element={<Navigate to="/quran/tasmee" replace />} />
           <Route path="qibla" element={<S><QiblaPage /></S>} />
           <Route path="mosques" element={<S><NearbyMosquesPage /></S>} />
           <Route path="prayer-times" element={<S><PrayerTimesPage /></S>} />

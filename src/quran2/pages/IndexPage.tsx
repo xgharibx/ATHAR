@@ -9,11 +9,11 @@ import { BookMarked, BookOpen, Flag, Hash, Sprout } from "lucide-react";
 
 /** The other ways into the mushaf, at the top of «المصحف». */
 const WAYS = [
-  { to: "/q2/page", Icon: BookOpen, label: "مصحف المدينة" },
-  { to: "/q2/khatma", Icon: Flag, label: "ختمتي" },
-  { to: "/q2/marks", Icon: BookMarked, label: "علاماتي" },
-  { to: "/q2/roots", Icon: Sprout, label: "الجذور" },
-  { to: "/q2/numbers", Icon: Hash, label: "بالأرقام" },
+  { to: "/quran/page", Icon: BookOpen, label: "مصحف المدينة" },
+  { to: "/quran/khatma", Icon: Flag, label: "ختمتي" },
+  { to: "/quran/marks", Icon: BookMarked, label: "علاماتي" },
+  { to: "/quran/roots", Icon: Sprout, label: "الجذور" },
+  { to: "/quran/numbers", Icon: Hash, label: "بالأرقام" },
 ] as const;
 
 /** The surahs (in mushaf order or the order of revelation) and the thirty juz. */
@@ -73,7 +73,7 @@ export default function Q2Index() {
             {surahs.map((s) => {
               const [p1] = surahPages(m, s.id);
               return (
-                <button key={s.id} type="button" className="q2-row q2-press" onClick={() => navigate(`/q2/read/${s.id}`)}>
+                <button key={s.id} type="button" className="q2-row q2-press" onClick={() => navigate(`/quran/read/${s.id}`)}>
                   <span className="q2-num"><span>{arDigits(order === "revelation" ? s.order : s.id)}</span></span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <b style={{ fontFamily: "var(--q2-serif)", fontSize: 19 }}>{s.name}</b>
@@ -96,7 +96,7 @@ export default function Q2Index() {
             const [first, last] = juzRange(m, i + 1);
             const [ls, la] = refFromIndex(m, last);
             return (
-              <button key={i} type="button" className="q2-row q2-press" onClick={() => navigate(`/q2/read/${s}?a=${a}`)}>
+              <button key={i} type="button" className="q2-row q2-press" onClick={() => navigate(`/quran/read/${s}?a=${a}`)}>
                 <span className="q2-num"><span>{arDigits(i + 1)}</span></span>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <b style={{ fontFamily: "var(--q2-serif)", fontSize: 18 }}>الجزء {arDigits(i + 1)}</b>

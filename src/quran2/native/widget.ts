@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — what the home-screen widget "حفظك اليوم" shows.
+ * «القرآن الكريم» — what the home-screen widget "حفظك اليوم" shows.
  *
  * The widget redraws on its own (at midnight and whenever the app asks), long
  * after the app last ran, so it is given the far-review dates themselves and

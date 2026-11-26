@@ -162,7 +162,7 @@ export default function Q2Search() {
         hits: hitsFromWords(refs),
         words: refs.length,
         label: (
-          <button type="button" className="q2-link" onClick={() => navigate(`/q2/roots/${encodeURIComponent(root)}`)}>
+          <button type="button" className="q2-link" onClick={() => navigate(`/quran/roots/${encodeURIComponent(root)}`)}>
             افتح الجذر «{spacedRoot(root)}» في المعجم
           </button>
         ),
@@ -237,7 +237,7 @@ export default function Q2Search() {
                   endLabel="الناس"
                   onPick={(i) => {
                     const first = result.hits.find((h) => h.s === i + 1);
-                    if (first) navigate(`/q2/read/${first.s}?a=${first.a}`);
+                    if (first) navigate(`/quran/read/${first.s}?a=${first.a}`);
                   }}
                 />
               </div>

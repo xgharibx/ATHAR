@@ -3,12 +3,12 @@
  *
  * One idea per block, top to bottom, in the order a day is lived:
  *   the date and a greeting → the sky and the coming prayer → today's path
- *   (adhkar, wird, tasbeeh, prayers) → the verse of the day → carry on
+ *   (adhkar, wird, tasbeeh, qadaa) → the ayah, hadith and sunnah of the day → carry on
  *   reading → the collections → everything else.
  */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BookOpen, Check, Compass, HandHeart, Library, MapPin, MessageCircle, MoonStar, Share2, Sparkles, Sun } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, Compass, HandHeart, Library, MapPin, MessageCircle, MoonStar, RotateCcw, Sparkles, Sun } from "lucide-react";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useStartupReady } from "@/hooks/useStartupReady";
 import { usePrayerTimes, formatPrayerHijriDate } from "@/hooks/usePrayerTimes";
@@ -21,21 +21,15 @@ import { formatHijri, getTodayIslamicInfo } from "@/lib/hijri";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { coerceCount, type Section } from "@/data/types";
-import { DAILY_VERSES } from "@/data/dailyVerses";
 import { SURAH_NAMES } from "@/lib/surahNames";
 import { arNum } from "@/lib/formatNumber";
-import { shareText } from "@/lib/shareTargets";
 import { getHomeAdhkarAction } from "@/lib/homeTimeActions";
 import { trackUxEvent } from "@/lib/uxMetrics";
 import { ListenEntry } from "@/components/listen/ListenEntry";
+import { UfuqDaily } from "@/components/ufuq/UfuqDaily";
+import { useQadaa } from "@/hooks/useQadaa";
 import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
 import { PRAYER_KEYS, durationLabel, phaseTargetLabel, skyPhaseFor, ufuqClock, ufuqGreeting, untilLabel } from "@/components/ufuq/ufuqTime";
-
-function dailyIndex(key: string, length: number): number {
-  let hash = 7;
-  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-  return length ? hash % length : 0;
-}
 
 function useNow(intervalMs = 30_000) {
   const [now, setNow] = React.useState(() => new Date());
@@ -179,7 +173,6 @@ function TodayPath({ sections }: { sections: Section[] }) {
   const mushafPage = useNoorStore((s) => s.prefs.quranMushafPage);
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const quranGoal = useNoorStore((s) => s.prefs.quranDailyGoal);
-  const prayerLog = useNoorStore((s) => s.prayerLog);
 
   const tasbeehToday = React.useMemo(
     () => Object.values(tasbeehDailyLog[today] ?? {}).reduce((sum, v) => sum + (Number(v) || 0), 0),
@@ -188,7 +181,6 @@ function TodayPath({ sections }: { sections: Section[] }) {
   const tasbeehGoal = dailyGoal && dailyGoal > 0 ? dailyGoal : sebhaTarget || 100;
   const ayahsToday = Number(quranDailyAyahs[today] ?? 0);
   const ayahGoal = quranGoal > 0 ? quranGoal : 10;
-  const prayed = PRAYER_KEYS.filter((p) => prayerLog[today]?.[p]).length;
 
   const adhkarTitle = action.id === "morning" ? "أذكار الصباح" : action.id === "evening" ? "أذكار المساء" : "أذكار النوم";
 
@@ -206,7 +198,7 @@ function TodayPath({ sections }: { sections: Section[] }) {
         sub={ayahsToday > 0 ? `${arNum(ayahsToday)} من ${arNum(ayahGoal)} آيات اليوم` : mushafPage ? `تابع من الصفحة ${arNum(mushafPage)}` : "ابدأ من الفاتحة"}
         percent={Math.round((ayahsToday / ayahGoal) * 100)}
         icon={<BookOpen size={17} />}
-        onClick={() => navigate(mushafPage ? `/mushaf/${mushafPage}` : "/mushaf/1")}
+        onClick={() => navigate(mushafPage ? `/quran/page/${mushafPage}` : "/quran/page/1")}
       />
       <PathRow
         title="التسبيح"
@@ -215,14 +207,43 @@ function TodayPath({ sections }: { sections: Section[] }) {
         icon={<span className="text-[13px] font-bold u-num">{arNum(Math.min(99, tasbeehToday))}</span>}
         onClick={() => navigate("/sebha")}
       />
-      <PathRow
-        title="الصلوات"
-        sub={prayed === 5 ? "صلّيت الخمس، الحمد لله" : `سجّلت ${arNum(prayed)} من ٥`}
-        percent={prayed * 20}
-        icon={<span className="text-[13px] font-bold u-num">{arNum(prayed)}</span>}
-        onClick={() => navigate("/prayer-times")}
-      />
+      <QadaaRow />
     </div>
+  );
+}
+
+/** «القضاء»: today's share of the prayers being made up, or a first step. */
+function QadaaRow() {
+  const navigate = useNavigate();
+  const q = useQadaa();
+  const owesPrayers = q.owedTotal > 0;
+  const finished = owesPrayers && q.remainingTotal === 0;
+  let sub: string;
+  let percent: number;
+  if (!owesPrayers && q.fastRemaining <= 0) {
+    sub = "سجّل ما فاتك من صلاة أو صيام، وابدأ خطة هادئة";
+    percent = 0;
+  } else if (finished) {
+    sub = q.fastRemaining > 0 ? `أتممت قضاء الصلوات، وبقي ${arNum(q.fastRemaining)} من الصيام` : "أتممت ما عليك، تقبّل الله";
+    percent = 100;
+  } else if (q.quotaTotal > 0) {
+    const doneToday = q.quotaTotal - q.quotaLeftTotal;
+    sub = q.todayComplete
+      ? `أتممت حصة اليوم، وبقي ${arNum(q.remainingTotal)}`
+      : `${arNum(doneToday)} من ${arNum(q.quotaTotal)} اليوم، وبقي ${arNum(q.remainingTotal)}`;
+    percent = Math.round((doneToday / q.quotaTotal) * 100);
+  } else {
+    sub = owesPrayers ? `بقي ${arNum(q.remainingTotal)} صلاة` : `بقي ${arNum(q.fastRemaining)} من الصيام`;
+    percent = q.percent;
+  }
+  return (
+    <PathRow
+      title="القضاء"
+      sub={sub}
+      percent={percent}
+      icon={<RotateCcw size={16} />}
+      onClick={() => navigate("/qadaa")}
+    />
   );
 }
 
@@ -259,41 +280,6 @@ function GardenGrowthCard() {
   );
 }
 
-function VerseOfTheDay() {
-  const navigate = useNavigate();
-  const today = useTodayKey();
-  const verse = DAILY_VERSES[dailyIndex(today, DAILY_VERSES.length)];
-  if (!verse) return null;
-  const ref = `${verse.surahName} · ${arNum(verse.ayahIndex)}`;
-  return (
-    <figure className="u-card u-verse">
-      <figcaption className="u-verse-mark">آية اليوم</figcaption>
-      <blockquote className="u-verse-text">{verse.arabic}</blockquote>
-      <div className="u-verse-ref">{ref}</div>
-      {verse.meaning ? <p className="mt-3 text-[13.5px] leading-7 text-(--muted)">{verse.meaning}</p> : null}
-      <div className="mt-5 flex items-center justify-center gap-2">
-        <button
-          type="button"
-          className="u-pill-btn is-quiet"
-          onClick={() => navigate(`/mushaf?surah=${verse.surahId}&ayah=${verse.ayahIndex}`)}
-        >
-          <BookOpen size={16} aria-hidden="true" />
-          في المصحف
-        </button>
-        <button
-          type="button"
-          className="u-pill-btn is-quiet"
-          aria-label="مشاركة الآية"
-          onClick={() => void shareText(`﴿${verse.arabic}﴾\n— ${ref}`)}
-        >
-          <Share2 size={16} aria-hidden="true" />
-          مشاركة
-        </button>
-      </div>
-    </figure>
-  );
-}
-
 function ContinueReading() {
   const navigate = useNavigate();
   const lastRead = useNoorStore((s) => s.quranLastRead);
@@ -305,7 +291,7 @@ function ContinueReading() {
     <button
       type="button"
       className="u-card u-card-press w-full p-4 text-start flex items-center gap-4"
-      onClick={() => navigate(page ? `/mushaf/${page}` : "/quran")}
+      onClick={() => navigate(page ? `/quran/page/${page}` : "/quran")}
     >
       <span className="u-tile-icon" aria-hidden="true"><BookOpen size={18} /></span>
       <span className="flex-1 min-w-0">
@@ -390,6 +376,8 @@ export function UfuqHome() {
           {hijri ? <span>{hijri}</span> : null}
         </div>
         <h1 className="u-display mt-2">{ufuqGreeting(hour)}</h1>
+        {/* As on the classic home: the app is a sadaqa for the parents. */}
+        <p className="u-home-dedication">﴿وَقُلْ رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا﴾</p>
       </header>
 
       <Sky />
@@ -414,9 +402,9 @@ export function UfuqHome() {
       <ListenEntry />
 
       <div className="u-section-head">
-        <h2>من كتاب الله</h2>
+        <h2>زاد اليوم</h2>
       </div>
-      <VerseOfTheDay />
+      <UfuqDaily sections={sections} />
 
       <div className="mt-3">
         <ContinueReading />

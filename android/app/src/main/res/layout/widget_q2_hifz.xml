@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  «القرآن ٢» memorisation widget (4×2): pages due today, memorised so far, and a bar.
+  «القرآن الكريم» memorisation widget (4×2): pages due today, memorised so far, and a bar.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/q2hifz_root"

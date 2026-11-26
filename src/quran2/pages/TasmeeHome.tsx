@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — «التسميع»: recite from memory and be followed word by word. Choose
+ * «القرآن الكريم» — «التسميع»: recite from memory and be followed word by word. Choose
  * what to recite (a passage of a surah, a page, or today's memorisation) and how
  * the text is shown (hidden, the first word of each ayah, or in full to practise
  * the reading itself); then see your past recitations.
@@ -13,7 +13,7 @@ import { pageOf } from "../data/meta";
 import { arDigits } from "../data/arabic";
 import { useHifzToday } from "../hifz/useHifzToday";
 import { Q2Error, Q2Loading } from "../components/ui";
-import { Niche, Star } from "../components/Mishkat";
+import { Niche, Rosette } from "../components/Mishkat";
 import type { TasmeeMode } from "../tasmee/types";
 
 type What = "surah" | "page" | "hifz";
@@ -47,8 +47,8 @@ export default function Q2TasmeeHome() {
   const duePages = [...today.plan.near, ...today.plan.far];
 
   const start = () => {
-    if (what === "surah") navigate(`/q2/tasmee/session?s=${surah}&from=${f}&to=${t}&mode=${mode}`);
-    else if (what === "page") navigate(`/q2/tasmee/session?page=${p}&mode=${mode}`);
+    if (what === "surah") navigate(`/quran/tasmee/session?s=${surah}&from=${f}&to=${t}&mode=${mode}`);
+    else if (what === "page") navigate(`/quran/tasmee/session?page=${p}&mode=${mode}`);
   };
 
   return (
@@ -63,7 +63,7 @@ export default function Q2TasmeeHome() {
       </Niche>
 
       <section className="q2-section">
-        <div className="q2-section-title"><Star size={14} /> ماذا تسمّع؟</div>
+        <div className="q2-section-title"><Rosette size={14} /> ماذا تسمّع؟</div>
         <div className="q2-chips" style={{ marginTop: 10 }} role="tablist">
           {([["surah", "مقطع من سورة"], ["page", "صفحة"], ["hifz", "من حفظك"]] as Array<[What, string]>).map(([id, label]) => (
             <button key={id} type="button" role="tab" aria-selected={what === id} className={`q2-chip q2-press${what === id ? " is-on" : ""}`} onClick={() => setWhat(id)}>
@@ -103,7 +103,7 @@ export default function Q2TasmeeHome() {
           <div className="q2-card" style={{ marginTop: 10 }}>
             {duePages.length ? (
               duePages.slice(0, 12).map((pg) => (
-                <button key={pg} type="button" className="q2-row q2-press" onClick={() => navigate(`/q2/tasmee/session?page=${pg}&mode=${mode}`)}>
+                <button key={pg} type="button" className="q2-row q2-press" onClick={() => navigate(`/quran/tasmee/session?page=${pg}&mode=${mode}`)}>
                   <span className="q2-num">{arDigits(pg)}</span>
                   <span style={{ flex: 1 }}>الصفحة {arDigits(pg)}، {today.plan.near.includes(pg) ? "مراجعة القريب" : "مراجعة البعيد"}</span>
                   <ArrowLeft size={16} aria-hidden="true" />
@@ -117,7 +117,7 @@ export default function Q2TasmeeHome() {
       </section>
 
       <section className="q2-section">
-        <div className="q2-section-title"><Star size={14} /> كيف يظهر النص؟</div>
+        <div className="q2-section-title"><Rosette size={14} /> كيف يظهر النص؟</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 10 }}>
           {MODES.map((x) => (
             <button key={x.id} type="button" aria-pressed={mode === x.id} className={`q2-card q2-press${mode === x.id ? " is-on" : ""}`} style={{ padding: "12px 8px", textAlign: "center", borderColor: mode === x.id ? "var(--q2-green)" : undefined }} onClick={() => setMode(x.id)}>
@@ -136,7 +136,7 @@ export default function Q2TasmeeHome() {
 
       {log.length ? (
         <section className="q2-section">
-          <div className="q2-section-title"><Star size={14} /> تسميعك الأخير</div>
+          <div className="q2-section-title"><Rosette size={14} /> تسميعك الأخير</div>
           <div className="q2-card" style={{ marginTop: 10 }}>
             {log.slice(0, 8).map((e) => {
               const pct = e.total ? Math.round((e.said / e.total) * 100) : 0;

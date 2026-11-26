@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the Quran text.
+ * «القرآن الكريم» — the Quran text.
  *
  * Source: Tanzil Quran Text (Uthmani, Version 1.1), bundled verbatim in
  * public/data/quran2/tanzil-uthmani.txt with its copyright block (CC BY 3.0,

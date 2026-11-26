@@ -283,7 +283,7 @@ function PopoverContent(props: {
         {sajdas.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
             {sajdas.map((s) => (
-              <Link key={s.ayahIndex} to={`/mushaf?surah=${s.surahId}&ayah=${s.ayahIndex}`} onClick={onClose}
+              <Link key={s.ayahIndex} to={`/quran/read/${s.surahId}?a=${s.ayahIndex}`} onClick={onClose}
                 aria-disabled="false"
                 className="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-100 transition hover:bg-amber-500/20 active:scale-95">
                 آية {toArabicNumeral(s.ayahIndex)}
@@ -323,7 +323,7 @@ function PopoverContent(props: {
 
         {/* Action buttons */}
         <div className="grid grid-cols-3 gap-1.5 pt-1">
-          <Link to={`/mushaf?surah=${surah.id}`} onClick={onClose}
+          <Link to={`/quran/read/${surah.id}`} onClick={onClose}
             aria-disabled="false"
             className="flex items-center justify-center gap-1 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-semibold text-emerald-100 transition hover:bg-emerald-500/20 active:scale-95">
             <BookOpen className="h-3 w-3" aria-hidden="true" />

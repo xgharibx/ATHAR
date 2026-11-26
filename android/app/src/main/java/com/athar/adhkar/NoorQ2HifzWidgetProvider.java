@@ -12,7 +12,7 @@ import java.util.Calendar;
 import java.util.Locale;
 
 /**
- * «القرآن ٢» memorisation widget (4×2): how many pages today's session holds
+ * «القرآن الكريم» memorisation widget (4×2): how many pages today's session holds
  * (new lesson, near review, far review), how much of the mushaf is memorised,
  * and a bar.
  *
@@ -30,9 +30,9 @@ public class NoorQ2HifzWidgetProvider extends AtharWidgetProvider {
         return new AtharWidgetSpec(
             R.layout.widget_q2_hifz,
             "حفظك اليوم",
-            new String[] { "افتح القرآن ٢ لتبدأ الحفظ" },
+            new String[] { "افتح القرآن الكريم لتبدأ الحفظ" },
             "ابدأ الجلسة",
-            "/q2/hifz"
+            "/quran/hifz"
         );
     }
 
@@ -67,7 +67,7 @@ public class NoorQ2HifzWidgetProvider extends AtharWidgetProvider {
         views.setTextViewText(R.id.q2hifz_date, "");
 
         float progress = 0f;
-        String sessionRoute = "/q2/hifz";
+        String sessionRoute = "/quran/hifz";
         try {
             String json = WidgetData.readJson(context, WIDGET_KEY);
             JSONObject payload = json != null ? new JSONObject(json) : null;
@@ -93,7 +93,7 @@ public class NoorQ2HifzWidgetProvider extends AtharWidgetProvider {
                 } else {
                     views.setTextViewText(R.id.q2hifz_ayahs_read, arabicDigits(total) + (total == 1 ? " صفحة" : " صفحات"));
                     views.setTextViewText(R.id.q2hifz_goal_label, "في جلسة اليوم");
-                    sessionRoute = "/q2/hifz/session";
+                    sessionRoute = "/quran/hifz/session";
                 }
                 views.setTextViewText(R.id.q2hifz_surah_name, arabicDigits(memorised) + " صفحة محفوظة");
                 views.setTextViewText(R.id.q2hifz_ayah_ref,
@@ -102,7 +102,7 @@ public class NoorQ2HifzWidgetProvider extends AtharWidgetProvider {
                     arabicDigits(Math.round(progress * 100)) + "٪ من المصحف");
             } else {
                 views.setTextViewText(R.id.q2hifz_ayahs_read, "--");
-                views.setTextViewText(R.id.q2hifz_goal_label, "ابدأ الحفظ من «القرآن ٢»");
+                views.setTextViewText(R.id.q2hifz_goal_label, "ابدأ الحفظ من «القرآن الكريم»");
                 views.setTextViewText(R.id.q2hifz_surah_name, "حفظك اليوم");
                 views.setTextViewText(R.id.q2hifz_ayah_ref, "");
                 views.setTextViewText(R.id.q2hifz_progress_label, "");
@@ -125,7 +125,7 @@ public class NoorQ2HifzWidgetProvider extends AtharWidgetProvider {
             new int[]{ R.id.q2hifz_stars, R.id.q2hifz_stars_2, R.id.q2hifz_stars_3 },
             widgetDark, sz[0], sz[1], System.currentTimeMillis() / 60000);
 
-        views.setOnClickPendingIntent(R.id.q2hifz_root, openApp(context, appWidgetId * 29, "/q2/hifz"));
+        views.setOnClickPendingIntent(R.id.q2hifz_root, openApp(context, appWidgetId * 29, "/quran/hifz"));
         PendingIntent session = openApp(context, appWidgetId * 29 + 1, sessionRoute);
         views.setOnClickPendingIntent(R.id.q2hifz_open_btn, session);
 

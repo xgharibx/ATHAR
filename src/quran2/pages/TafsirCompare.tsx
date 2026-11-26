@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the seven tafsirs of one ayah, side by side: in columns on a
+ * «القرآن الكريم» — the seven tafsirs of one ayah, side by side: in columns on a
  * wide screen, one under another on a phone. Each is shortened to its opening
  * and can be read in full; move to the ayah before or after without leaving.
  */
@@ -55,7 +55,7 @@ export default function Q2TafsirCompare() {
   const index = ayahIndex(m, s, a);
   const go = (i: number) => {
     const [ns, na] = refFromIndex(m, i);
-    navigate(`/q2/tafsir/${ns}/${na}`, { replace: true });
+    navigate(`/quran/tafsir/${ns}/${na}`, { replace: true });
   };
   const shown = Q2_TAFSIRS.filter((t) => !hidden.has(t.id));
 
@@ -72,7 +72,7 @@ export default function Q2TafsirCompare() {
         <button type="button" className="q2-chip q2-press" disabled={index >= 6235} onClick={() => go(index + 1)}>
           الآية التالية <ChevronLeft size={15} aria-hidden="true" />
         </button>
-        <button type="button" className="q2-chip q2-press" onClick={() => navigate(`/q2/read/${s}?a=${a}`)}>
+        <button type="button" className="q2-chip q2-press" onClick={() => navigate(`/quran/read/${s}?a=${a}`)}>
           <BookOpen size={15} aria-hidden="true" /> في المصحف
         </button>
       </div>

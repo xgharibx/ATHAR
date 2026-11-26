@@ -39,7 +39,7 @@ struct AtharPrayerControl: ControlWidget {
 struct AtharMushafControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(kind: "com.athar.adhkar.control.mushaf") {
-            ControlWidgetButton(action: OpenAtharScreenIntent(route: "/mushaf")) {
+            ControlWidgetButton(action: OpenAtharScreenIntent(route: "/quran/page")) {
                 Label("المصحف", systemImage: "book")
             }
         }

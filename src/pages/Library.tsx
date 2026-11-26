@@ -49,7 +49,7 @@ const LIBRARY_SECTIONS: LibrarySection[] = [
     description: "أخفِ الآيات وسمِّع من حفظك — كشف تدريجي كلمة بكلمة، ومتابعة صوتية حيّة حيث يدعمها جهازك.",
     icon: "🎙️",
     accent: "#7b6cf6",
-    route: "/tasmee",
+    route: "/quran/tasmee",
     badge: "جديد",
     featured: true,
   },

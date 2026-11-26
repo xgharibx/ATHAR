@@ -249,7 +249,7 @@ const LOADING_SURAH_KEYS = [
   "load-surah-12",
 ] as const;
 
-/** The door to «القرآن ٢»: a lit niche, and its four main places. */
+/** The door to «القرآن الكريم»: a lit niche, and its four main places. */
 function Q2Door({ onOpen }: { onOpen: (to: string) => void }) {
   const places: Array<[string, string]> = [["/q2/tasmee", "التسميع"], ["/q2/page", "مصحف المدينة"], ["/q2/tafsir", "التفسير"], ["/q2/hifz", "الحفظ"]];
   return (
@@ -266,7 +266,7 @@ function Q2Door({ onOpen }: { onOpen: (to: string) => void }) {
         type="button"
         onClick={() => onOpen("/q2")}
         className="press-effect w-full flex items-center gap-4 px-4 pt-4 pb-3 text-right"
-        aria-label="افتح القرآن ٢، الإصدار الثاني من قسم القرآن"
+        aria-label="افتح القرآن الكريم، الإصدار الثاني من قسم القرآن"
       >
         <svg width="58" height="78" viewBox="0 0 100 140" aria-hidden="true" className="shrink-0">
           <defs>
@@ -282,7 +282,7 @@ function Q2Door({ onOpen }: { onOpen: (to: string) => void }) {
         </svg>
         <span className="min-w-0 flex-1">
           <span className="block text-[11px] font-bold" style={{ color: "#d8b56a" }}>الإصدار الثاني من قسم القرآن</span>
-          <span className="block text-2xl font-bold" style={{ fontFamily: "Amiri, serif" }}>القرآن ٢</span>
+          <span className="block text-2xl font-bold" style={{ fontFamily: "Amiri, serif" }}>القرآن الكريم</span>
           <span className="block text-xs leading-5" style={{ opacity: 0.75 }}>تسميع يتتبعك كلمةً كلمة، ومصحف المدينة بصفحاته، وسبعة تفاسير، وخطة حفظ تتذكّر عنك</span>
         </span>
         <span aria-hidden="true" className="text-xl" style={{ opacity: 0.6 }}>‹</span>
@@ -708,7 +708,7 @@ export function QuranPage() {
   return (
     <div className="stack-y-4 page-enter">
 
-      {/* «القرآن ٢»: the second Quran section, built apart from this one (src/quran2,
+      {/* «القرآن الكريم»: the second Quran section, built apart from this one (src/quran2,
           docs/QURAN_V2.md). Its door, in its own «مشكاة» look: a lit niche. */}
       <Q2Door onOpen={(to) => navigate(to)} />
 

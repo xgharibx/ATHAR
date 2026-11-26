@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — «اسأل عن الآية»: a question about this ayah, answered by «أثر»
+ * «القرآن الكريم» — «اسأل عن الآية»: a question about this ayah, answered by «أثر»
  * from the ayah's seven tafsirs only (the server fetches them and binds the
  * answer to them; supabase/functions/companion/ayah.ts). Asks for the same
  * consent as the companion before the first question leaves the device.
@@ -113,7 +113,7 @@ export function AskPanel({ s, a }: { s: number; a: number }) {
         </div>
       ) : null}
 
-      <button type="button" className="q2-link" style={{ marginTop: 8 }} onClick={() => navigate(`/q2/tafsir/${s}/${a}`)}>
+      <button type="button" className="q2-link" style={{ marginTop: 8 }} onClick={() => navigate(`/quran/tafsir/${s}/${a}`)}>
         <Columns3 size={14} aria-hidden="true" /> اقرأ التفاسير السبعة بنفسك
       </button>
       <p className="q2-credit">الجواب يلخّص ما في التفاسير وقد يخطئ؛ النصوص نفسها في صفحة التفاسير السبعة.</p>

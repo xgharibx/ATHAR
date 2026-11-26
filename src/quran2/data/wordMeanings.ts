@@ -1,5 +1,5 @@
 /**
- * «القرآن ٢» — the meaning of each word, word by word (Quran.com API v4), in the
+ * «القرآن الكريم» — the meaning of each word, word by word (Quran.com API v4), in the
  * languages it has them for. Arabic is not among them: no open, word-by-word
  * Arabic gloss (غريب القرآن) is published as data, so Arabic readers have the
  * word's root, lemma and grammar in the word lens, and the tafsirs.

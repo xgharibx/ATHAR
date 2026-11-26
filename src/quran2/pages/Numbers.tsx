@@ -61,7 +61,7 @@ export default function Q2Numbers() {
       </p>
 
       <section className="q2-section">
-        <h2 className="q2-h2"><span className="q2-orn">✦</span> مكي ومدني</h2>
+        <h2 className="q2-h2"><span className="q2-orn" aria-hidden="true" /> مكي ومدني</h2>
         <div style={{ display: "flex", height: 14, borderRadius: 99, overflow: "hidden", marginTop: 12 }} role="img" aria-label="نسبة الآيات المكية والمدنية">
           <span style={{ width: `${(stats.meccan.ayahs / stats.ayahs) * 100}%`, background: "var(--q2-gold)" }} />
           <span style={{ flex: 1, background: "var(--q2-green)" }} />
@@ -74,26 +74,26 @@ export default function Q2Numbers() {
       </section>
 
       <section className="q2-section">
-        <h2 className="q2-h2"><span className="q2-orn">✦</span> طول السور</h2>
+        <h2 className="q2-h2"><span className="q2-orn" aria-hidden="true" /> طول السور</h2>
         <div style={{ marginTop: 12 }}>
           <Q2Strip
             counts={stats.surahWords}
             label="عدد كلمات كل سورة"
             startLabel="الفاتحة"
             endLabel="الناس"
-            onPick={(i) => navigate(`/q2/read/${i + 1}`)}
+            onPick={(i) => navigate(`/quran/read/${i + 1}`)}
           />
         </div>
         <div className="q2-card" style={{ marginTop: 12 }}>
-          <button type="button" className="q2-row" onClick={() => navigate(`/q2/read/${stats.longestSurah.s}`)}>
+          <button type="button" className="q2-row" onClick={() => navigate(`/quran/read/${stats.longestSurah.s}`)}>
             <span style={{ flex: 1 }}>أطول سورة</span>
             <b>{name(stats.longestSurah.s)}، {arDigits(stats.longestSurah.words)} كلمة</b>
           </button>
-          <button type="button" className="q2-row" onClick={() => navigate(`/q2/read/${stats.shortestSurah.s}`)}>
+          <button type="button" className="q2-row" onClick={() => navigate(`/quran/read/${stats.shortestSurah.s}`)}>
             <span style={{ flex: 1 }}>أقصر سورة</span>
             <b>{name(stats.shortestSurah.s)}، {arDigits(stats.shortestSurah.words)} كلمات</b>
           </button>
-          <button type="button" className="q2-row" onClick={() => navigate(`/q2/read/${stats.longestAyah.s}?a=${stats.longestAyah.a}`)}>
+          <button type="button" className="q2-row" onClick={() => navigate(`/quran/read/${stats.longestAyah.s}?a=${stats.longestAyah.a}`)}>
             <span style={{ flex: 1 }}>أطول آية</span>
             <b>{name(stats.longestAyah.s)} {arDigits(stats.longestAyah.a)}، {arDigits(stats.longestAyah.words)} كلمة</b>
           </button>
@@ -104,7 +104,7 @@ export default function Q2Numbers() {
         </div>
         <div className="q2-chips" style={{ marginTop: 10, flexWrap: "wrap" }}>
           {stats.oneWordAyahs.map(({ s, a }) => (
-            <button key={`${s}:${a}`} type="button" className="q2-chip q2-press" onClick={() => navigate(`/q2/read/${s}?a=${a}`)}>
+            <button key={`${s}:${a}`} type="button" className="q2-chip q2-press" onClick={() => navigate(`/quran/read/${s}?a=${a}`)}>
               <span style={{ fontFamily: "var(--q2-quran)", fontSize: 17 }}>{text.data!.surahs[s - 1]!.ayahs[a - 1]!.words[0]!.text}</span>
               <span className="q2-small">{name(s)} {arDigits(a)}</span>
             </button>
@@ -113,7 +113,7 @@ export default function Q2Numbers() {
       </section>
 
       <section className="q2-section">
-        <h2 className="q2-h2"><span className="q2-orn">✦</span> أكثر الحروف</h2>
+        <h2 className="q2-h2"><span className="q2-orn" aria-hidden="true" /> أكثر الحروف</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 8, marginTop: 12 }}>
           {stats.letterFrequency.slice(0, 12).map(([ch, n]) => (
             <div key={ch} className="q2-card" style={{ padding: "10px 6px", textAlign: "center" }}>
@@ -126,7 +126,7 @@ export default function Q2Numbers() {
       </section>
 
       <section className="q2-section">
-        <h2 className="q2-h2"><span className="q2-orn">✦</span> لغة القرآن</h2>
+        <h2 className="q2-h2"><span className="q2-orn" aria-hidden="true" /> لغة القرآن</h2>
         {roots ? (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 10, marginTop: 12 }}>
@@ -148,7 +148,7 @@ export default function Q2Numbers() {
             <div className="q2-head" style={{ marginTop: 16 }}><b>أكثر الجذور ورودًا</b></div>
             <div className="q2-card">
               {roots.top.map((r) => (
-                <button key={r.r} type="button" className="q2-row q2-press" onClick={() => navigate(`/q2/roots/${encodeURIComponent(r.r)}`)}>
+                <button key={r.r} type="button" className="q2-row q2-press" onClick={() => navigate(`/quran/roots/${encodeURIComponent(r.r)}`)}>
                   <span style={{ fontFamily: "var(--q2-serif)", fontSize: 22, fontWeight: 700, color: "var(--q2-gold)", minWidth: 80 }}>{spacedRoot(r.r)}</span>
                   <span style={{ flex: 1 }}>
                     <span className="q2-bar"><span style={{ width: `${(r.n / maxTop) * 100}%` }} /></span>

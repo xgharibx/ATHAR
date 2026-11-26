@@ -21,8 +21,14 @@ import { addDays, daysBetween, parseISO } from "@/lib/qadaa";
 import { TOTAL_QURAN_AYAHS } from "@/lib/quranMeta";
 import { countCompletedKhatmaDays, getKhatmaDayRange, getKhatmaPlanStatus } from "@/lib/quranKhatma";
 
-/** Where the reminder opens: the mushaf, at the page last read. */
-export const KHATMA_REMINDER_ROUTE = "/mushaf?khatma=1";
+/** Where the reminder opens: the khatma, with today's portion and where to start it. */
+export const KHATMA_REMINDER_ROUTE = "/quran/khatma";
+/** The address reminders set up before the Quran section moved carry. */
+export const LEGACY_KHATMA_REMINDER_ROUTE = "/mushaf?khatma=1";
+
+export function isKhatmaReminderRoute(route: unknown): boolean {
+  return route === KHATMA_REMINDER_ROUTE || route === LEGACY_KHATMA_REMINDER_ROUTE;
+}
 export const DEFAULT_KHATMA_REMINDER_TIME = "20:00";
 
 export type KhatmaPlanState = {
@@ -35,7 +41,7 @@ export type KhatmaPlanState = {
 };
 
 export function isKhatmaReminder(reminder: Pick<CustomReminder, "deeplink"> | null | undefined): boolean {
-  return reminder?.deeplink?.route === KHATMA_REMINDER_ROUTE;
+  return isKhatmaReminderRoute(reminder?.deeplink?.route);
 }
 
 export function findKhatmaReminder(reminders: readonly CustomReminder[] | undefined): CustomReminder | undefined {
@@ -117,5 +123,7 @@ export function khatmaReminderChange(reminder: CustomReminder | undefined, plan:
   if (reminder.body !== fields.body) patch.body = fields.body;
   if ((reminder.startDate ?? undefined) !== fields.startDate) patch.startDate = fields.startDate;
   if (reminder.endDate !== fields.endDate) patch.endDate = fields.endDate;
+  // Set up before the Quran section moved: it now opens the khatma there.
+  if (reminder.deeplink?.route === LEGACY_KHATMA_REMINDER_ROUTE) patch.deeplink = { ...reminder.deeplink, route: KHATMA_REMINDER_ROUTE };
   return Object.keys(patch).length ? { kind: "update", id: reminder.id, patch } : { kind: "none" };
 }

@@ -80,10 +80,10 @@ function useHideOnScroll() {
  * Athar's own mark — the fingerprint with «أثر» across it, taken from the
  * app icon — and its line, «همسة تطمئن قلبك، وتترك أثرًا».
  */
-function UfuqBrand() {
+function UfuqBrand({ compact = false }: { compact?: boolean }) {
   const base = import.meta.env.BASE_URL ?? "/";
   return (
-    <NavLink to="/" className="u-brand" aria-label="أثر — همسة تطمئن قلبك، وتترك أثرًا">
+    <NavLink to="/" className={`u-brand${compact ? " is-compact" : ""}`} aria-label="أثر — همسة تطمئن قلبك، وتترك أثرًا">
       <span
         className="u-brand-mark"
         aria-hidden="true"
@@ -95,11 +95,13 @@ function UfuqBrand() {
         <span className="u-brand-print" />
         <span className="u-brand-word" />
       </span>
-      <span className="u-brand-slogan" aria-hidden="true">
-        همسة تطمئن قلبك،
-        <br />
-        وتترك أثرًا
-      </span>
+      {compact ? null : (
+        <span className="u-brand-slogan" aria-hidden="true">
+          همسة تطمئن قلبك،
+          <br />
+          وتترك أثرًا
+        </span>
+      )}
     </NavLink>
   );
 }
@@ -118,14 +120,18 @@ function UfuqTopBar({ onSearch }: { onSearch: () => void }) {
           {root ? (
             <UfuqBrand />
           ) : (
-            <button
-              type="button"
-              className="u-icon-btn"
-              aria-label="رجوع"
-              onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
-            >
-              <ChevronRight size={22} aria-hidden="true" />
-            </button>
+            <>
+              <button
+                type="button"
+                className="u-icon-btn"
+                aria-label="رجوع"
+                onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
+              >
+                <ChevronRight size={22} aria-hidden="true" />
+              </button>
+              {/* Athar's mark on every page, not only the tabs' own. */}
+              <UfuqBrand compact />
+            </>
           )}
         </div>
         <div className="u-topbar-title">
