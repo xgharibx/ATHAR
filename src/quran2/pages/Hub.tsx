@@ -5,7 +5,7 @@
  */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BookMarked, BookOpen, BookOpenText, Brain, Feather, Hash, Headphones, Info, Landmark, ListChecks, ListOrdered, Mic, ScrollText, Search, Sprout } from "lucide-react";
+import { ArrowLeft, BookMarked, BookOpen, BookOpenText, Brain, CloudDownload, Feather, Hash, Headphones, ListChecks, ListOrdered, Mic, ScrollText, Search, Sprout } from "lucide-react";
 import { dayKey, useQ2Meta, useQ2Text } from "../hooks";
 import { useQ2Store } from "../store";
 import { arDigits } from "../data/arabic";
@@ -36,7 +36,7 @@ const WORLDS = [
   { to: "/quran/index?order=revelation", Icon: ListOrdered, title: "ترتيب النزول", line: "من «اقرأ» إلى آخر ما نزل" },
   { to: "/listen", Icon: Headphones, title: "السماع", line: "القرآن كاملًا بأصوات قرّاء العالم" },
   { to: "/quran-vocab", Icon: Feather, title: "مفردات القرآن", line: "كلمة كل يوم ومعناها" },
-  { to: "/quran/about", Icon: Landmark, title: "عن القرآن في أثر", line: "مصادره وكيف بُني" },
+  { to: "/quran/downloads", Icon: CloudDownload, title: "التنزيلات", line: "مصحف المدينة والتفاسير والتلاوات على جهازك" },
 ] as const;
 
 export default function Q2Hub() {
@@ -136,9 +136,6 @@ export default function Q2Hub() {
         </div>
       </section>
 
-      <button type="button" className="q2-link" style={{ marginTop: 18 }} onClick={() => navigate("/quran/about")}>
-        <Info size={15} aria-hidden="true" /> عن «القرآن الكريم» ومصادره
-      </button>
     </main>
   );
 }

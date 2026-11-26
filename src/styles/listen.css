@@ -141,81 +141,6 @@
   transform: scale(0.97);
 }
 
-/* ── Reciter marks ── */
-
-.ls-mark {
-  --h: 200;
-  position: relative;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  color: #fff;
-  font-weight: 800;
-  isolation: isolate;
-  overflow: hidden;
-  background:
-    radial-gradient(70% 70% at 30% 25%, hsl(var(--h) 70% 62% / 0.95), transparent 70%),
-    linear-gradient(145deg, hsl(var(--h) 55% 34%), hsl(calc(var(--h) + 40) 50% 18%));
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14), 0 8px 22px -10px hsl(var(--h) 60% 30% / 0.9);
-}
-
-.ls-mark::before {
-  /* A faint double ring, like a seal. */
-  content: "";
-  position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  background: radial-gradient(circle, transparent 0 60%, rgb(255 255 255 / 0.12) 61% 63%, transparent 64% 80%, rgb(255 255 255 / 0.08) 81% 83%, transparent 84%);
-  z-index: -1;
-}
-
-.ls-mark.ls-cover {
-  border-radius: 22%;
-  background: none;
-  color: inherit;
-  box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.65), inset 0 0 0 1px rgb(255 255 255 / 0.1);
-}
-
-.ls-mark.ls-cover::before {
-  display: none;
-}
-
-.ls-mark.ls-cover > svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.ls-mark.is-gold {
-  background:
-    radial-gradient(70% 70% at 30% 25%, #ffe7a3, transparent 70%),
-    linear-gradient(145deg, #b8862c, #5a3a0c);
-  color: #fff8e6;
-}
-
-.ls-reciter {
-  width: 96px;
-  text-align: center;
-}
-
-.ls-reciter .ls-mark {
-  width: 84px;
-  height: 84px;
-  margin: 0 auto;
-  font-size: 22px;
-}
-
-.ls-reciter-name {
-  margin-top: 8px;
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 /* ── Today ── */
 
 .ls-today {
@@ -332,13 +257,6 @@
     var(--card);
 }
 
-.ls-gold .ls-mark {
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
-  font-size: 16px;
-}
-
 .ls-gold b {
   display: block;
   font-size: 14px;
@@ -368,18 +286,6 @@
   border: 1px solid rgb(255 226 160 / 0.14);
 }
 
-.ls-night::before {
-  /* A minaret and dome on the horizon. */
-  content: "";
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 54px;
-  background:
-    radial-gradient(22px 22px at 70% 100%, rgb(255 226 160 / 0.22) 98%, transparent 100%),
-    linear-gradient(rgb(255 226 160 / 0.2), rgb(255 226 160 / 0.2)) 88% 100% / 5px 46px no-repeat,
-    linear-gradient(rgb(255 226 160 / 0.2), rgb(255 226 160 / 0.2)) 52% 100% / 5px 40px no-repeat;
-}
-
 .ls-night b {
   position: relative;
   display: block;
@@ -398,27 +304,6 @@
 .ls-album {
   width: 172px;
   text-align: right;
-}
-
-.ls-album-art {
-  width: 172px;
-  height: 172px;
-  border-radius: 22px;
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 750;
-  line-height: 1.5;
-  padding: 16px;
-  text-align: center;
-  --h: 30;
-  background:
-    radial-gradient(90% 70% at 50% 0%, hsl(var(--h) 75% 58% / 0.55), transparent 70%),
-    repeating-conic-gradient(from 0deg at 50% 50%, hsl(var(--h) 40% 22%) 0 15deg, hsl(var(--h) 45% 17%) 15deg 30deg);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
 }
 
 .ls-album b {
@@ -572,13 +457,6 @@
   padding: 24px 16px 18px;
 }
 
-.ls-head .ls-mark {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto;
-  font-size: 32px;
-}
-
 .ls-head h1 {
   margin-top: 14px;
   font-size: 24px;
@@ -700,13 +578,6 @@
   }
 }
 
-.ls-mini .ls-mark {
-  width: 42px;
-  height: 42px;
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
 .ls-mini-text {
   flex: 1;
   min-width: 0;
@@ -813,12 +684,6 @@
   position: relative;
   width: min(68vw, 300px);
   aspect-ratio: 1;
-}
-
-.ls-full-art .ls-mark {
-  width: 100%;
-  height: 100%;
-  font-size: clamp(40px, 12vw, 64px);
 }
 
 .ls-full-art::before,
@@ -1072,22 +937,6 @@
     var(--card);
 }
 
-.ls-entry-marks {
-  display: flex;
-  flex-shrink: 0;
-}
-
-.ls-entry-marks .ls-mark {
-  width: 38px;
-  height: 38px;
-  font-size: 12px;
-  border: 2px solid var(--bg);
-}
-
-.ls-entry-marks .ls-mark + .ls-mark {
-  margin-inline-start: -12px;
-}
-
 .ls-entry-text > b {
   display: flex;
   align-items: center;
@@ -1291,12 +1140,6 @@
   white-space: nowrap;
 }
 
-.ls-spot.is-now .ls-mark {
-  width: 46px;
-  height: 46px;
-  flex-shrink: 0;
-}
-
 /* The sound, drawn: bars that breathe (and dance while a recitation plays). */
 .ls-spot-waves {
   display: flex;
@@ -1422,4 +1265,229 @@
 .fm-tile span {
   font-size: 11px;
   color: var(--muted);
+}
+
+/* ── «السماع» without covers: names set like book titles, fine rules, quiet cards ── */
+.ls-page {
+  --ls-serif: "Amiri", "Amiri Quran", serif;
+  --ls-gold: #c99a3c;
+}
+
+.ls-title {
+  font-family: var(--ls-serif);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.ls-section-head h2 {
+  font-family: var(--ls-serif);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.ls-section-head p {
+  font-size: 12.5px;
+}
+
+/* The emblem: headphones in a ring of light, or the sound moving while it plays. */
+.ls-emblem {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 999px;
+  color: var(--accent);
+  background:
+    radial-gradient(80% 80% at 30% 20%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%),
+    color-mix(in srgb, var(--accent) 10%, var(--card));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+.ls-emblem .fm-eq {
+  height: 40%;
+}
+
+/* A reciter by name. */
+.ls-name {
+  position: relative;
+  width: 148px;
+  min-height: 124px;
+  padding: 16px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 1px;
+  border-radius: 20px;
+  text-align: right;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--stroke));
+  background:
+    radial-gradient(110% 90% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 62%),
+    var(--card);
+  overflow: hidden;
+}
+
+.ls-name b {
+  font-family: var(--ls-serif);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--fg);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ls-name b + b {
+  color: color-mix(in srgb, var(--fg) 78%, transparent);
+}
+
+.ls-name i {
+  display: block;
+  width: 26px;
+  height: 1.5px;
+  margin: 9px 0 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  opacity: 0.7;
+}
+
+.ls-name span {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.ls-name.is-gold i {
+  background: var(--ls-gold);
+}
+
+/* Where you stopped: a ring that is the progress, a play in its middle. */
+.ls-resume {
+  --p: 0%;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--accent);
+  background:
+    radial-gradient(closest-side, var(--card) 82%, transparent 84%),
+    conic-gradient(var(--accent) var(--p), color-mix(in srgb, var(--fg) 10%, transparent) 0);
+}
+
+/* The golden recordings: a gilded edge, the name in full. */
+.ls-gold {
+  position: relative;
+  min-height: 96px;
+  padding: 16px 18px 16px 14px;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.ls-gold::before {
+  content: "";
+  position: absolute;
+  inset: 14px 0 14px auto;
+  width: 3px;
+  border-radius: 999px 0 0 999px;
+  background: linear-gradient(180deg, #f3d488, var(--ls-gold));
+}
+
+.ls-gold b {
+  font-family: var(--ls-serif);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* The night prayers: a quiet night card, a crescent, the season. */
+.ls-night {
+  min-height: 120px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background:
+    radial-gradient(90% 70% at 100% 0%, rgb(255 226 160 / 0.16), transparent 65%),
+    linear-gradient(180deg, #101a33, #070b18);
+}
+
+.ls-night b {
+  font-family: var(--ls-serif);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.ls-night-moon {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  color: #f3d488;
+  opacity: 0.9;
+}
+
+.ls-night-count {
+  margin-top: 10px !important;
+  font-weight: 600;
+  opacity: 0.9 !important;
+}
+
+/* The tawasheeh: the album by its title. */
+.ls-album {
+  min-height: 112px;
+  padding: 16px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  border-radius: 20px;
+  border: 1px solid var(--stroke);
+  background:
+    radial-gradient(110% 90% at 100% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 62%),
+    var(--card);
+}
+
+.ls-album b {
+  margin-top: 0;
+  font-family: var(--ls-serif);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.ls-album-count {
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--accent) !important;
+}
+
+/* A page's head: its kicker, then the name large. */
+.ls-head h1 {
+  margin-top: 6px;
+  font-family: var(--ls-serif);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ls-head-kicker {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+.ls-head-kicker.is-gold {
+  color: var(--ls-gold);
+  border-color: color-mix(in srgb, var(--ls-gold) 45%, transparent);
+}
+
+.ls-entry .ls-emblem,
+.ls-spot .ls-emblem {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent), 0 10px 24px -14px color-mix(in srgb, var(--accent) 80%, transparent);
 }

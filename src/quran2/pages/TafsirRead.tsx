@@ -85,7 +85,6 @@ export default function Q2TafsirRead() {
           </article>
         ))}
       </div>
-      <p className="q2-credit">{edition.name} عبر واجهة Quran.com.</p>
     </main>
   );
 }

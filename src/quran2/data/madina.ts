@@ -9,7 +9,8 @@
  * ayahs, docs/QURAN_V2.md). An ayah whose word count does not match ours is
  * still drawn, but its words are not linked to anything.
  */
-import { cached } from "./cache";
+import { cached, cacheDelete, cachedKeys } from "./cache";
+import { layoutPage } from "./layout";
 
 export type MadinaGlyph = { s: number; a: number; /** word number, or 0 for the ayah's end marker */ n: number; line: number; code: string };
 export type MadinaPage = { page: number; glyphs: MadinaGlyph[]; /** ayahs whose words matched ours */ linked: string[] };
@@ -39,7 +40,14 @@ export function parseMadinaPage(page: number, verses: ApiVerse[], wordCount: (s:
   return { page, glyphs, linked };
 }
 
-export function loadMadinaPage(page: number, wordCount: (s: number, a: number) => number | undefined): Promise<MadinaPage> {
+export async function loadMadinaPage(page: number, wordCount: (s: number, a: number) => number | undefined): Promise<MadinaPage> {
+  // Kept in the app: the page opens with no connection.
+  try {
+    const verses = await layoutPage(page);
+    if (verses.length) return parseMadinaPage(page, verses, wordCount);
+  } catch {
+    // The app's copy did not load: the network, as before.
+  }
   return cached(`madina:${page}`, async () => {
     const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${page}?words=true&word_fields=code_v2,line_number&mushaf=1&per_page=50`);
     if (!res.ok) throw new Error(`madina: HTTP ${res.status}`);
@@ -71,6 +79,63 @@ export function madinaFontUrl(page: number, kind: MadinaFontKind): string {
   return `https://verses.quran.foundation/fonts/quran/hafs/v4/${tajweedFormat(kind === "tajweed-dark")}/p${page}.woff2`;
 }
 
+/** Where a page's font is kept on the device. */
+function fontKey(page: number, kind: MadinaFontKind): string {
+  return kind === "plain" ? `madina-font:${page}` : `madina-font:${madinaFontUrl(page, kind)}`;
+}
+
+/** On Apple devices the colour fonts are drawn in (OpenType-SVG): several times larger. */
+export function madinaTajweedIsSvg(): boolean {
+  return tajweedFormat(false).startsWith("ot-svg");
+}
+
+/** How many of the 604 pages' fonts of this kind are on the device. */
+export async function madinaFontsSaved(kind: MadinaFontKind): Promise<number> {
+  const keys = new Set(await cachedKeys("madina-font:"));
+  let n = 0;
+  for (let p = 1; p <= 604; p++) if (keys.has(fontKey(p, kind))) n++;
+  return n;
+}
+
+/** Keep every page's font of this kind on the device (the ones missing), a few at a time. */
+export async function saveMadinaFonts(kind: MadinaFontKind, onProgress: (done: number, total: number) => void, signal?: AbortSignal): Promise<{ saved: number; total: number }> {
+  const have = new Set(await cachedKeys("madina-font:"));
+  let saved = 0;
+  const todo: number[] = [];
+  for (let p = 1; p <= 604; p++) {
+    if (have.has(fontKey(p, kind))) saved++;
+    else todo.push(p);
+  }
+  onProgress(saved, 604);
+  let next = 0;
+  const worker = async () => {
+    while (next < todo.length && !signal?.aborted) {
+      const p = todo[next++]!;
+      try {
+        await cached(fontKey(p, kind), async () => {
+          const res = await fetch(madinaFontUrl(p, kind), { signal });
+          if (!res.ok) throw new Error(`madina font: HTTP ${res.status}`);
+          return res.arrayBuffer();
+        });
+        saved++;
+      } catch {
+        // Fetched again on the next try.
+      }
+      onProgress(saved, 604);
+    }
+  };
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  return { saved, total: 604 };
+}
+
+/** Remove the pages' fonts of this kind from the device. */
+export async function removeMadinaFonts(kind: MadinaFontKind): Promise<void> {
+  const keys = new Set(await cachedKeys("madina-font:"));
+  const drop: string[] = [];
+  for (let p = 1; p <= 604; p++) if (keys.has(fontKey(p, kind))) drop.push(fontKey(p, kind));
+  await cacheDelete(drop);
+}
+
 /**
  * The page's own font, loaded once; resolves to its family name. The font's bytes
  * are fetched as data and kept on the device (so a page read once opens offline),
@@ -83,7 +148,7 @@ export function madinaFont(page: number, kind: MadinaFontKind = "plain"): Promis
   if (!p) {
     const family = kind === "plain" ? `q2-madina-p${page}` : `q2-madina-${kind}-p${page}-${url.includes("colrv1") ? "c" : "s"}`;
     p = (async () => {
-      const key = kind === "plain" ? `madina-font:${page}` : `madina-font:${url}`;
+      const key = fontKey(page, kind);
       const bytes = await cached(key, async () => {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`madina font: HTTP ${res.status}`);

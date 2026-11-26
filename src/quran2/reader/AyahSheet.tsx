@@ -48,7 +48,7 @@ function TranslationPanel({ s, a }: { s: number; a: number }) {
           <p dir={t.dir} lang={t.lang} style={{ fontSize: 16, lineHeight: 1.9, textAlign: "start" }}>{q.data[a - 1]}</p>
         ) : null}
       </div>
-      <p className="q2-credit">ترجمة معاني القرآن، لا تقوم مقام النص العربي. عبر واجهة Quran.com.</p>
+      <p className="q2-credit">ترجمة معاني القرآن، لا تقوم مقام النص العربي.</p>
     </div>
   );
 }
@@ -184,7 +184,6 @@ export function AyahSheet({ s, a, text, surahName, page, inHifz, canPlay, onPlay
         <button type="button" className="q2-btn is-ghost q2-press" style={{ width: "100%", marginTop: 10 }} onClick={() => navigate(`/quran/tafsir/${s}/${a}`)}>
           <Columns3 size={16} aria-hidden="true" /> قارن التفاسير السبعة معًا
         </button>
-        <p className="q2-credit">التفاسير عبر واجهة Quran.com.</p>
       </div>
       ) : null}
     </div>

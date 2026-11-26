@@ -57,7 +57,7 @@ export default function Q2Numbers() {
         <Stat n={m.rukus.length} label="ركوعًا" />
       </div>
       <p className="q2-small" style={{ marginTop: 10, lineHeight: 1.8 }}>
-        الكلمات بتقسيم المدوّنة القرآنية العربية، دون البسملة في أوائل السور عدا الفاتحة. والحروف هي المرسومة في الرسم العثماني (تنزيل) دون الحركات والألف الصغيرة والمدّات والعلامات؛ ولأهل العدد طرق أخرى تعطي أرقامًا مختلفة.
+        الكلمات دون البسملة في أوائل السور عدا الفاتحة. والحروف هي المرسومة في الرسم العثماني دون الحركات والألف الصغيرة والمدّات والعلامات؛ ولأهل العدد طرق أخرى تعطي أرقامًا مختلفة.
       </p>
 
       <section className="q2-section">
@@ -70,7 +70,7 @@ export default function Q2Numbers() {
           <span><b style={{ color: "var(--q2-gold)" }}>مكية:</b> {arDigits(stats.meccan.surahs)} سورة، {arDigits(stats.meccan.ayahs)} آية</span>
           <span><b style={{ color: "var(--q2-green)" }}>مدنية:</b> {arDigits(stats.medinan.surahs)} سورة، {arDigits(stats.medinan.ayahs)} آية</span>
         </div>
-        <p className="q2-small">بحسب تصنيف بيانات مشروع تنزيل؛ وفي بعض السور خلاف معروف.</p>
+        <p className="q2-small">بالتصنيف المشهور؛ وفي بعض السور خلاف معروف.</p>
       </section>
 
       <section className="q2-section">

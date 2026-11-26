@@ -23,7 +23,6 @@ import { playTracks } from "@/lib/listen/player";
 import { useListenStore } from "@/lib/listen/store";
 import { canDownloadListening, downloadTracks } from "@/lib/listen/downloads";
 import { useListenCatalog } from "@/lib/listen/useListen";
-import { ReciterMark } from "@/components/listen/ReciterMark";
 import { TrackRow } from "@/components/listen/TrackRow";
 
 export function ListenReciterPage() {
@@ -60,7 +59,7 @@ export function ListenReciterPage() {
   return (
     <div className="ls-page page-enter">
       <header className="ls-card ls-head" style={{ background: "radial-gradient(90% 70% at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%), var(--card)" }}>
-        <ReciterMark name={reciter.n} gold={moshaf.s === "مجوّد"} />
+        <span className={`ls-head-kicker${moshaf.s === "مجوّد" ? " is-gold" : ""}`}>{moshaf.s === "مجوّد" ? "مصحف مجوّد" : "القارئ"}</span>
         <h1>{reciter.n}</h1>
         <p>
           {moshafLabel(moshaf)}، {arabicDigits(surahs.length)} سورة
@@ -227,7 +226,6 @@ export function ListenRecitersPage() {
       <div className="ls-list">
         {list.map((r) => (
           <Link key={r.id} to={`/listen/reciter/${r.id}`} className="ls-row ls-press">
-            <ReciterMark name={r.n} style={{ width: 44, height: 44, fontSize: 14, flexShrink: 0 }} />
             <span className="ls-row-main">
               <span className="ls-row-title block">{r.n}</span>
               <span className="ls-row-meta">{r.m.map((m) => moshafLabel(m)).join("، ")}</span>

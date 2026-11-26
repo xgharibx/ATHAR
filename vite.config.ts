@@ -151,6 +151,8 @@ export default defineConfig(({ mode }) => {
           // «القرآن ٢»: the Tanzil text and metadata, for reading offline.
           "data/quran2/tanzil-uthmani.txt",
           "data/quran2/tanzil-meta.json",
+          // Where every word stands on the Madina mushaf's pages (228 KB): the printed page offline.
+          "data/quran2/madina-layout.json.gz",
         ],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
       },

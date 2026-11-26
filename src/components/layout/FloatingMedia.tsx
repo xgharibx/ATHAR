@@ -15,7 +15,7 @@ import { getRadioState, playRadio, stopRadio, subscribeRadio } from "@/lib/radio
 import { playTracks } from "@/lib/listen/player";
 import { resumable, useListenStore } from "@/lib/listen/store";
 import { useListenNowPlaying } from "@/lib/listen/useListen";
-import { ReciterMark } from "@/components/listen/ReciterMark";
+import { ListenEmblem } from "@/components/listen/ListenEmblem";
 
 function useRadioState() {
   const [state, setState] = React.useState(getRadioState);
@@ -171,7 +171,7 @@ export function FloatingMedia({ drawerOpen }: { drawerOpen?: boolean }) {
             }}
             aria-label={`أكمل الاستماع: ${last.track.title}، ${last.track.artist}`}
           >
-            <ReciterMark name={last.track.artist} withName={false} />
+            <ListenEmblem size={40} />
             <span className="flex-1 min-w-0">
               <span className="block text-[11px] font-bold text-(--accent)">أكمل الاستماع</span>
               <span className="block text-[13px] font-semibold truncate">{last.track.title}</span>

@@ -1,8 +1,9 @@
 /*
  * «القرآن الكريم» — «مشكاة» (docs/QURAN_V2_DESIGN.md): the Quran is the light, the
  * interface the niche that holds it. Two palettes: «سَحَر» (dawn parchment) and
- * «ليل» (night). Reem Kufi for titles and numbers, Amiri for book titles, Amiri
- * Quran for the Quran, IBM Plex Sans Arabic for the interface.
+ * «ليل» (night). Amiri for titles, Amiri Quran for the Quran, IBM Plex Sans
+ * Arabic for the interface, its labels and its cards. (Reem Kufi stays for the
+ * share image only.)
  */
 @font-face {
   font-family: "Reem Kufi";
@@ -42,7 +43,8 @@
   --q2-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 10px 30px -18px rgba(60, 40, 10, 0.35);
   --q2-quran: "Amiri Quran", "Amiri", serif;
   --q2-serif: "Amiri", "Amiri Quran", serif;
-  --q2-display: "Reem Kufi", "Amiri", sans-serif;
+  --q2-display: "IBM Plex Sans Arabic", "Noto Naskh Arabic", system-ui, sans-serif;
+  --q2-title: "Amiri", "Amiri Quran", serif;
   --q2-ui: "IBM Plex Sans Arabic", "Noto Naskh Arabic", system-ui, sans-serif;
   --q2-top: env(safe-area-inset-top, 0px);
   --q2-bottom: env(safe-area-inset-bottom, 0px);
@@ -128,7 +130,7 @@
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
   border-bottom: 1px solid var(--q2-line);
 }
-.q2-top-title { flex: 1; min-width: 0; text-align: center; font-family: var(--q2-display); font-size: 19px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q2-top-title { flex: 1; min-width: 0; text-align: center; font-family: var(--q2-title); font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .q2-icon-btn {
   width: 42px;
   height: 42px;
@@ -220,45 +222,30 @@
 .q2-afaq-sky::after { content: ""; position: fixed; inset: 0; z-index: 1; background: color-mix(in srgb, var(--bg) 62%, transparent); }
 .q2.is-reading[data-palette="afaq"] .q2-top { background: color-mix(in srgb, var(--bg) 84%, transparent); }
 
-/* The places of the Quran, a row of tabs under the app's header. */
-.q2-tabs {
-  position: sticky;
-  top: var(--topbar-h, 0px);
-  z-index: 20;
+/* The page's name at the top of the section's pages (one bar only: the app's own stay). */
+.q2-head-bar {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 -4px 6px;
-  padding: 8px 4px;
-  background: color-mix(in srgb, var(--q2-bg) 72%, transparent);
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  border-radius: 0 0 18px 18px;
+  min-height: 52px;
+  margin: 2px 0 6px;
+  padding: 0 2px;
 }
-.q2[data-palette="afaq"] .q2-tabs { background: var(--u-glass, var(--q2-glass)); border: 1px solid var(--q2-line); border-top: 0; }
-.q2-tabs-row { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
-.q2-tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  min-height: 50px;
-  padding: 4px 2px;
-  border-radius: 16px;
+.q2-head-title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--q2-title);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--q2-ink);
   white-space: nowrap;
-  font-family: var(--q2-display);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--q2-soft);
-  border: 1px solid transparent;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.q2-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.q2-tab.active { color: var(--q2-green); background: var(--q2-green-soft); border-color: color-mix(in srgb, var(--q2-green) 26%, transparent); }
-.q2-tab.is-star:not(.active) { color: var(--q2-gold); }
-.q2-tab.is-star.active { color: #241a06; background: linear-gradient(160deg, var(--q2-lamp), var(--q2-gold)); border-color: transparent; }
-.q2-tabs-tools { display: flex; gap: 0; flex: none; }
-.q2-tabs-tools .q2-icon-btn { width: 36px; height: 44px; border-radius: 12px; }
+.q2-head-bar.is-home .q2-head-title { font-size: 28px; }
+.q2-head-bar.is-slim { min-height: 44px; margin-bottom: 0; }
+.q2-head-tools { display: flex; gap: 2px; flex: none; }
 
 /* Athar's mark in the Quran's own bars. */
 .q2-print { display: inline-grid; place-items: center; flex: none; border-radius: 12px; }
@@ -279,8 +266,8 @@
 .q2-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* ── Building blocks ───────────────────────────────────────────────── */
-.q2-h1 { font-family: var(--q2-display); font-size: 30px; font-weight: 600; line-height: 1.35; }
-.q2-h2 { font-family: var(--q2-display); font-size: 20px; font-weight: 600; line-height: 1.35; }
+.q2-h1 { font-family: var(--q2-title); font-size: 30px; font-weight: 700; line-height: 1.35; }
+.q2-h2 { font-family: var(--q2-title); font-size: 21px; font-weight: 700; line-height: 1.35; }
 .q2-eyebrow { font-family: var(--q2-display); font-size: 12.5px; font-weight: 500; color: var(--q2-gold); letter-spacing: 0; }
 .q2-soft { color: var(--q2-soft); }
 .q2-small { font-size: 12.5px; color: var(--q2-soft); }
@@ -979,3 +966,22 @@
 .q2-note { padding: 10px 12px; border-radius: 14px; font-size: 14.5px; line-height: 1.8; border: 1px solid var(--q2-line); }
 .q2-note.is-jali { border-color: color-mix(in srgb, var(--q2-danger) 40%, transparent); background: color-mix(in srgb, var(--q2-danger) 8%, transparent); }
 .q2-note.is-khafi { border-color: var(--q2-gold-line); background: var(--q2-gold-soft); }
+
+/* ── التنزيلات ── */
+.q2-dl-included { padding: 16px; display: grid; gap: 8px; }
+.q2-dl-included > b { font-family: var(--q2-title); font-size: 19px; }
+.q2-dl-included ul { display: grid; gap: 6px; }
+.q2-dl-included li { display: flex; align-items: center; gap: 8px; font-size: 14.5px; }
+.q2-dl-included li svg { color: var(--q2-green); flex: none; }
+.q2-dl-head { font-family: var(--q2-title); font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.q2-dl-list { padding: 2px 0; }
+.q2-dl { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--q2-line); }
+.q2-dl:last-child { border-bottom: 0; }
+.q2-dl-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.q2-dl-text > b { font-family: var(--q2-display); font-size: 15px; font-weight: 600; }
+.q2-dl-text > span { font-size: 12.5px; color: var(--q2-soft); }
+.q2-dl-state { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--q2-soft); }
+.q2-dl-state.is-done { color: var(--q2-green); font-weight: 600; }
+.q2-dl-bar { display: block; height: 4px; margin-top: 6px; border-radius: 999px; background: var(--q2-line); overflow: hidden; }
+.q2-dl-bar i { display: block; height: 100%; border-radius: inherit; background: var(--q2-green); transition: width 300ms ease; }
+.q2-dl-go { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 999px; color: var(--q2-green); background: var(--q2-green-soft); border: 1px solid color-mix(in srgb, var(--q2-green) 24%, transparent); }

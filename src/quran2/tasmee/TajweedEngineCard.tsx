@@ -80,7 +80,7 @@ export function TajweedEngineCard({ compact = false, onChange }: { compact?: boo
       )}
       {!compact ? (
         <p className="q2-credit" style={{ textAlign: "start", marginTop: 10 }}>
-          نموذج «HisnLabs Tajweed v2» (رخصة Apache 2.0) ومحرّك أحكامه، مع مُصوِّت «quran-transcript» (رخصة MIT). أداة للمراجعة الذاتية، لا تغني عن الشيخ المُقرئ.
+          أداة للمراجعة الذاتية، لا تغني عن الشيخ المُقرئ.
         </p>
       ) : null}
     </div>

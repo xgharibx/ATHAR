@@ -187,8 +187,12 @@ export default function Q2MushafPage() {
   const fontQueries = useQueries({
     queries: shown.map((p) => ({ queryKey: ["q2", "madina-font", p, fontKind], queryFn: () => madinaFont(p, fontKind), enabled: madina, ...forever })),
   });
-  const loading = lineQueries.some((q) => q.isLoading) || (madina && (madinaQueries.some((q) => q.isLoading) || fontQueries.some((q) => q.isLoading)));
-  const failed = lineQueries.some((q) => q.isError) || (madina && (madinaQueries.some((q) => q.isError) || fontQueries.some((q) => q.isError)));
+  // A Madina page whose font is not on the device yet, with no connection: the
+  // page is shown in the text, on the same lines, until it can be had.
+  const madinaMissing = madina && (madinaQueries.some((q) => q.isError) || fontQueries.some((q) => q.isError));
+  const showMadina = madina && !madinaMissing;
+  const loading = lineQueries.some((q) => q.isLoading) || (showMadina && (madinaQueries.some((q) => q.isLoading) || fontQueries.some((q) => q.isLoading)));
+  const failed = lineQueries.some((q) => q.isError);
 
   // Listening to the page(s): the ayah being recited is lit.
   const ayahsShown = React.useMemo<PageAyah[]>(() => (text.data && meta.data ? shown.flatMap((p) => pageAyahs(text.data!, meta.data!, p)) : []), [text.data, meta.data, shown]);
@@ -311,7 +315,7 @@ export default function Q2MushafPage() {
   const title = wide && shown.length > 1 ? `الصفحتان ${arDigits(shown[0]!)} و${arDigits(shown[1]!)}` : `الصفحة ${arDigits(page)}`;
 
   // «مصحف المدينة»: the page fills the screen, the controls float over it.
-  if (madina) {
+  if (showMadina) {
     return (
       <div className={`q2-mushaf is-full${chrome ? " has-chrome" : ""}`} onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
         <header className="q2-mchrome is-top" aria-hidden={!chrome}>
@@ -404,7 +408,7 @@ export default function Q2MushafPage() {
           </button>
         ) : null}
         <p className="q2-sr">
-          خط مصحف المدينة: خطوط مجمع الملك فهد لطباعة المصحف الشريف لكل صفحة، عبر Quran.com؛ كل كلمة مرتبطة بكلمتها من النص المتحقق. المس آية لتفتحها، والمس الهامش لإظهار الأزرار.
+          مصحف المدينة، صفحةً صفحة. المس آية لتفتحها، والمس الهامش لإظهار الأزرار.
         </p>
         {ayahSheet}
       </div>
@@ -435,6 +439,12 @@ export default function Q2MushafPage() {
         </button>
       </header>
 
+      {madinaMissing ? (
+        <p className="q2-note" style={{ margin: "8px 0" }}>
+          خط مصحف المدينة لهذه الصفحة يحتاج الاتصال أول مرة؛ هي هنا بالنص على أسطرها نفسها.{" "}
+          <button type="button" className="q2-link" onClick={() => navigate("/quran/downloads")}>نزّل المصحف كاملًا</button>
+        </p>
+      ) : null}
       {failed ? <Q2Error label="تعذّر تحميل أسطر الصفحة. تحقق من الاتصال." onRetry={() => lineQueries.forEach((q) => void q.refetch())} /> : null}
       {loading ? <Q2Loading label="تُرتَّب الصفحة كما في المصحف المطبوع…" /> : null}
       {!loading && !failed ? (
@@ -452,7 +462,7 @@ export default function Q2MushafPage() {
         </div>
       ) : null}
       <p className="q2-credit" style={{ paddingBottom: "calc(var(--q2-bottom) + 16px)" }}>
-        نص مشروع تنزيل دون تعديل، مرتّبًا على أسطر مصحف المدينة عبر Quran.com. المس آية لتفتحها.
+        المس آية لتفتحها.
       </p>
       {ayahSheet}
     </div>

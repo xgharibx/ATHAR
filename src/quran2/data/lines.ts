@@ -9,6 +9,7 @@
  * of the page view, which then says so.
  */
 import { cached } from "./cache";
+import { layoutSurah } from "./layout";
 
 /** Per ayah, the line (1–15) of each word on its page; null when it does not line up. */
 export type Q2SurahLines = Array<number[] | null>;
@@ -36,7 +37,14 @@ async function fetchPage(s: number, page: number): Promise<{ verses: ApiVerse[];
   return { verses: body.verses ?? [], pages: body.pagination?.total_pages ?? 1 };
 }
 
-export function loadSurahLines(s: number, wordCounts: number[]): Promise<Q2SurahLines> {
+export async function loadSurahLines(s: number, wordCounts: number[]): Promise<Q2SurahLines> {
+  // The Madina mushaf's own lines, kept in the app (the same lines as the Madina page view).
+  try {
+    const verses = await layoutSurah(s);
+    if (verses.length) return parseLines(verses, wordCounts);
+  } catch {
+    // The app's copy did not load: the network, as before.
+  }
   return cached(`lines:${s}`, async () => {
     const first = await fetchPage(s, 1);
     const rest = await Promise.all(Array.from({ length: Math.max(0, first.pages - 1) }, (_, i) => fetchPage(s, i + 2)));

@@ -7,9 +7,7 @@ import { ChevronLeft, Headphones } from "lucide-react";
 import "@/styles/listen.css";
 import { playTracks } from "@/lib/listen/player";
 import { resumable, useListenStore } from "@/lib/listen/store";
-import { ReciterMark } from "@/components/listen/ReciterMark";
-
-const FACES = ["عبدالباسط عبدالصمد", "محمد صديق المنشاوي", "مشاري العفاسي"];
+import { ListenEmblem } from "@/components/listen/ListenEmblem";
 
 export function ListenEntry() {
   const navigate = useNavigate();
@@ -17,11 +15,7 @@ export function ListenEntry() {
   return (
     <div className="flex flex-col gap-2">
       <button type="button" className="ls-entry ls-press" onClick={() => navigate("/listen")}>
-        <span className="ls-entry-marks" aria-hidden="true">
-          {FACES.map((n) => (
-            <ReciterMark key={n} name={n} withName={false} />
-          ))}
-        </span>
+        <ListenEmblem size={46} />
         <span className="ls-entry-text flex-1 min-w-0">
           <b className="inline-flex items-center gap-1.5">
             <Headphones size={16} className="text-(--accent)" aria-hidden="true" /> السماع
