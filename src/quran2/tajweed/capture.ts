@@ -8,6 +8,8 @@ export type Capture = {
   seconds: () => number;
   /** The level of the voice now, 0–1, for the meter. */
   level: () => number;
+  /** The last `seconds` captured, at 16 kHz (to follow the recitation as it goes). */
+  tail: (seconds: number) => Float32Array;
   stop: () => Promise<Float32Array>;
 };
 
@@ -76,6 +78,18 @@ export async function startCapture(): Promise<Capture> {
   return {
     seconds: () => total / ctx.sampleRate,
     level: () => level,
+    tail: (seconds) => {
+      const want = Math.min(total, Math.round(seconds * ctx.sampleRate));
+      const out = new Float32Array(want);
+      let o = want;
+      for (let k = blocks.length - 1; k >= 0 && o > 0; k--) {
+        const b = blocks[k]!;
+        const n = Math.min(o, b.length);
+        out.set(b.subarray(b.length - n), o - n);
+        o -= n;
+      }
+      return resampleTo16k(out, ctx.sampleRate);
+    },
     stop: async () => {
       source.disconnect();
       node.disconnect();

@@ -3,7 +3,7 @@
  * a night prayer or a tawsheeh plays. A tap opens the full player.
  */
 import * as React from "react";
-import { Loader2, Pause, Play, SkipBack, X } from "lucide-react";
+import { Loader2, Pause, Play, SkipForward, X } from "lucide-react";
 import "@/styles/listen.css";
 import { nextTrack, stopListen, toggleListen } from "@/lib/listen/player";
 import { openFullPlayer, useFullPlayerOpen } from "@/lib/listen/ui";
@@ -46,18 +46,18 @@ export function ListenMiniPlayer({ variant = "classic" }: { variant?: "classic" 
             ) : playing ? (
               <Pause size={20} fill="currentColor" aria-hidden="true" />
             ) : (
-              <Play size={20} fill="currentColor" aria-hidden="true" style={{ transform: "scaleX(-1)" }} />
+              <Play size={20} fill="currentColor" aria-hidden="true" />
             )}
           </button>
           {p.index < p.queue.length - 1 ? (
             <button type="button" className="ls-icon-btn" aria-label="التالي" onClick={nextTrack}>
-              <SkipBack size={19} aria-hidden="true" />
+              <SkipForward size={19} fill="currentColor" aria-hidden="true" />
             </button>
           ) : null}
           <button type="button" className="ls-icon-btn is-close" aria-label="إغلاق المشغّل" onClick={stopListen}>
             <X size={18} aria-hidden="true" />
           </button>
-          <span className="ls-mini-bar" aria-hidden="true">
+          <span className="ls-mini-bar" dir="ltr" aria-hidden="true">
             <i style={{ width: `${progress}%` }} />
           </span>
         </div>

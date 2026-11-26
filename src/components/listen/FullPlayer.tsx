@@ -54,11 +54,9 @@ import { ayahAt, loadAyahTimings, type AyahTiming } from "@/lib/listen/timing";
 import { useQuranDB } from "@/data/useQuranDB";
 import { AtharLogo } from "@/components/brand/AtharLogo";
 import { shareText } from "@/lib/shareTargets";
-
 // The player is drawn over «أفق»'s own garden at night: sky, moon and flowers.
-const LiveGardenBackdrop = React.lazy(() =>
-  import("@/components/ufuq/garden/LiveGardenBackdrop").then((m) => ({ default: m.LiveGardenBackdrop })),
-);
+import { LiveGardenLazy } from "@/components/ufuq/ufuqLazy";
+
 
 const RATES = [0.75, 1, 1.25, 1.5];
 
@@ -238,7 +236,7 @@ export default function FullPlayer() {
     >
       <div className="ls-full-garden" aria-hidden="true">
         <React.Suspense fallback={null}>
-          <LiveGardenBackdrop forcedMode="night" stage />
+          <LiveGardenLazy forcedMode="night" stage />
         </React.Suspense>
       </div>
       <div className="ls-full-top">
@@ -303,7 +301,7 @@ export default function FullPlayer() {
         </button>
       </div>
 
-      <div className="ls-seek mt-3">
+      <div className="ls-seek mt-3" dir="ltr">
         <input
           type="range"
           min={0}
@@ -330,7 +328,8 @@ export default function FullPlayer() {
         </div>
       </div>
 
-      <div className="ls-controls">
+      {/* Media controls read left to right in every language, as on every player: earlier on the left, later on the right. */}
+      <div className="ls-controls" dir="ltr">
         <button type="button" className={`ls-icon-btn ${p.shuffle ? "is-on" : ""}`} aria-pressed={p.shuffle} aria-label="ترتيب عشوائي" onClick={toggleShuffle}>
           <Shuffle size={20} aria-hidden="true" />
         </button>
@@ -338,13 +337,13 @@ export default function FullPlayer() {
           <Rewind size={20} aria-hidden="true" />
         </button>
         <button type="button" className="ls-icon-btn" aria-label="السابق" onClick={previousTrack}>
-          <SkipForward size={26} aria-hidden="true" />
+          <SkipBack size={26} aria-hidden="true" />
         </button>
         <button type="button" className="ls-big" aria-label={playing ? "إيقاف مؤقت" : "تشغيل"} onClick={toggleListen}>
-          {playing ? <Pause size={30} fill="currentColor" aria-hidden="true" /> : <Play size={30} fill="currentColor" aria-hidden="true" style={{ transform: "scaleX(-1)" }} />}
+          {playing ? <Pause size={30} fill="currentColor" aria-hidden="true" /> : <Play size={30} fill="currentColor" aria-hidden="true" />}
         </button>
         <button type="button" className="ls-icon-btn" aria-label="التالي" onClick={nextTrack}>
-          <SkipBack size={26} aria-hidden="true" />
+          <SkipForward size={26} aria-hidden="true" />
         </button>
         <button type="button" className="ls-icon-btn" aria-label="تقديم ١٥ ثانية" disabled={!p.canSeek} onClick={() => skipBy(15)}>
           <FastForward size={20} aria-hidden="true" />

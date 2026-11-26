@@ -210,7 +210,11 @@ describe("the switch in Settings", () => {
     expect(container!.textContent).toContain("سمة التطبيق");
     expect(container!.textContent).not.toContain("النهار والليل");
 
-    await act(async () => radio().click());
+    // «أفق» is made ready before it appears (a moment at most).
+    await act(async () => {
+      radio().click();
+      for (let i = 0; i < 60 && useNoorStore.getState().prefs.designMode !== "ufuq"; i++) await new Promise((r) => setTimeout(r, 25));
+    });
     expect(useNoorStore.getState().prefs.designMode).toBe("ufuq");
     expect(container!.textContent).toContain("النهار والليل");
     expect(container!.textContent).not.toContain("سمة التطبيق");

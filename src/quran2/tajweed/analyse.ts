@@ -7,7 +7,7 @@
  * ayah then gets the sounds that fell on it, and imam.ts judges it — where the
  * reciter stopped and started again, every rule, every word.
  */
-import { boundaries, expected, listen, recited, type AyahPieces, type Ref, type WordResult } from "./imam";
+import { boundaries, expected, listen, recited, soundGroups, TAFKHEEM, type AyahPieces, type Ref, type Tafkheem, type WordResult } from "./imam";
 import type { Heard } from "./ctc";
 
 export const RATE = 16000;
@@ -145,7 +145,7 @@ export function alignPiece(expectedAll: string, from: number, heard: string, sta
   return { to: from + end, b };
 }
 
-export type AyahHeard = { heard: string; probs: number[]; times: number[] };
+export type AyahHeard = { heard: string; probs: number[]; times: number[]; sifat: number[] };
 
 /** Each ayah's share of what was heard, across the pieces of the recitation. */
 export function splitByAyah(scripts: string[], pieces: TimedHeard[]): AyahHeard[] {
@@ -156,7 +156,7 @@ export function splitByAyah(scripts: string[], pieces: TimedHeard[]): AyahHeard[
     all += s;
   }
   starts.push(all.length);
-  const parts: AyahHeard[] = scripts.map(() => ({ heard: "", probs: [], times: [] }));
+  const parts: AyahHeard[] = scripts.map(() => ({ heard: "", probs: [], times: [], sifat: [] }));
   const lastEnd: number[] = scripts.map(() => 0);
   let at = 0;
   for (const piece of pieces) {
@@ -173,6 +173,7 @@ export function splitByAyah(scripts: string[], pieces: TimedHeard[]): AyahHeard[
       part.heard += piece.heard.slice(hs, he);
       part.probs.push(...piece.probs.slice(hs, he));
       part.times.push(...piece.times.slice(hs, he));
+      part.sifat.push(...(piece.sifat ? piece.sifat.slice(hs, he) : new Array<number>(he - hs).fill(-1)));
       lastEnd[k] = piece.ends[he - 1]!;
     }
     at = to;
@@ -204,7 +205,11 @@ export function judgeAyah(s: number, a: number, pieces: AyahPieces, part: AyahHe
     return { s, a, heard: "", words: timed(ref, "", [], listen(ref, "")) };
   }
   const ref = recited(pieces, part.heard);
-  const words = listen(ref, part.heard, { probs: part.probs, minProb: 0.3, minProbJali: 0.7, times: part.times, tempo });
+  // The tafkhim heard on each heard sound group (where the model said it, and was sure).
+  const sifat = part.sifat.some((x) => x >= 0)
+    ? soundGroups(part.heard).map(([at, g]): [string, Tafkheem | null] => [g, (part.sifat[at] ?? -1) >= 0 ? TAFKHEEM[part.sifat[at]!]! : null])
+    : null;
+  const words = listen(ref, part.heard, { probs: part.probs, minProb: 0.3, minProbJali: 0.7, times: part.times, tempo, sifat });
   return { s, a, words: timed(ref, part.heard, part.times, words), heard: part.heard };
 }
 

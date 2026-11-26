@@ -24,7 +24,7 @@ export function TrackRow({ track, n, onPlay, meta }: { track: ListenTrack; n: nu
     <div className={`ls-row ${isCurrent ? "is-current" : ""}`}>
       <button type="button" className="flex items-center gap-3 flex-1 min-w-0 text-right" onClick={() => (isCurrent ? toggleListen() : onPlay())}>
         <span className="ls-row-num" aria-hidden="true">
-          {isCurrent ? playing ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" style={{ transform: "scaleX(-1)" }} /> : arabicDigits(n)}
+          {isCurrent ? playing ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" /> : arabicDigits(n)}
         </span>
         <span className="ls-row-main">
           <span className="ls-row-title block">{track.title}</span>

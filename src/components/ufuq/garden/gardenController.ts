@@ -5,6 +5,7 @@
  */
 import { GardenEngine, type GardenOptions } from "@/components/ufuq/garden/GardenEngine";
 import type { GardenMessage } from "@/components/ufuq/garden/gardenWorker";
+import { canDrawOffThread, takeGardenWorker } from "@/components/ufuq/garden/gardenWarm";
 
 export type GardenController = {
   readonly offThread: boolean;
@@ -17,15 +18,6 @@ export type GardenController = {
   destroy(): void;
 };
 
-function canDrawOffThread(): boolean {
-  return (
-    typeof Worker !== "undefined" &&
-    typeof OffscreenCanvas !== "undefined" &&
-    typeof HTMLCanvasElement !== "undefined" &&
-    "transferControlToOffscreen" in HTMLCanvasElement.prototype
-  );
-}
-
 function dpr(): number {
   return globalThis.devicePixelRatio || 1;
 }
@@ -33,7 +25,7 @@ function dpr(): number {
 export function createGardenController(bg: HTMLCanvasElement, fg: HTMLCanvasElement, opts: GardenOptions, w: number, h: number): GardenController | null {
   if (canDrawOffThread()) {
     try {
-      const worker = new Worker(new URL("./gardenWorker.ts", import.meta.url), { type: "module", name: "garden" });
+      const worker = takeGardenWorker();
       const bgOff = bg.transferControlToOffscreen();
       const fgOff = fg.transferControlToOffscreen();
       const send = (m: GardenMessage, transfer: Transferable[] = []) => worker.postMessage(m, transfer);

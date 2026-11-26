@@ -12,15 +12,13 @@ import {
   CheckCircle2,
   ChevronDown,
   MoreVertical,
-  Radio,
-  Loader2,
   CalendarCheck,
   Scale,
   TimerReset,
-  Headphones,
 } from "lucide-react";
 
 import { useStartupReady } from "@/hooks/useStartupReady";
+import { ListenSpotlight } from "@/components/listen/ListenSpotlight";
 import { useCurrentHour } from "@/hooks/useCurrentHour";
 import { useHomePrayerClock } from "@/hooks/useHomePrayerClock";
 import { isStartupPending } from "@/lib/startup";
@@ -49,7 +47,6 @@ import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
 import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { DailyCarousel } from "@/components/ui/DailyCarousel";
 import { AdhkarLoadStatus } from "@/components/home/AdhkarLoadStatus";
-import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
 import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useScrollRestoration";
 import { toArabicNumeral } from "@/lib/quranMeta";
 import { arNum } from "@/lib/formatNumber";
@@ -64,11 +61,6 @@ const NO_CHECKLIST: Record<string, boolean> = {};
 const HomePulse = React.lazy(() => import("@/components/brand/HomePulse"));
 
 
-function useRadioState() {
-  const [state, setState] = React.useState(getRadioState);
-  React.useEffect(() => subscribeRadio(() => setState(getRadioState())), []);
-  return state;
-}
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -213,58 +205,6 @@ function rescueTipByCategory(category: DailyChecklistItem["category"]) {
   if (category === "sadaqah") return "نفّذ صدقة بسيطة الآن";
   if (category === "family") return "رسالة صلة رحم سريعة";
   return "دعاء صادق لشخص آخر";
-}
-
-function HomeRadioButton() {
-  const radio = useRadioState();
-  return (
-    <button type="button"
-      onClick={() => toggleRadio()}
-      aria-label={radio.playing ? "إيقاف راديو القرآن" : "تشغيل راديو القرآن"}
-      className="press-effect inline-flex items-center gap-1.5 px-3 h-9 rounded-2xl border transition-all shrink-0"
-      style={
-        radio.playing
-          ? {
-              background: "color-mix(in srgb, var(--ok) 18%, transparent)",
-              borderColor: "color-mix(in srgb, var(--ok) 45%, transparent)",
-              color: "var(--ok)",
-            }
-          : {
-              background: "var(--card)",
-              borderColor: "var(--stroke)",
-              color: "inherit",
-            }
-      }
-    >
-      {radio.loading ? (
-        <Loader2 size={14} className="animate-spin shrink-0" aria-hidden="true" />
-      ) : (
-        <Radio size={14} aria-hidden="true" className="shrink-0" style={radio.playing ? { filter: "drop-shadow(0 0 4px var(--ok))" } : undefined} />
-      )}
-      <span className="text-xs font-medium whitespace-nowrap">
-        {radio.playing ? "القرآن يُبث" : "راديو القرآن"}
-      </span>
-      {radio.playing && (
-        <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0" style={{ background: "var(--ok)" }} />
-      )}
-    </button>
-  );
-}
-
-/** «السماع», next to the radio: the whole Quran in the voices of the world's reciters. */
-function HomeListenButton() {
-  const navigate = useNavigate();
-  return (
-    <button type="button"
-      onClick={() => navigate("/listen")}
-      aria-label="السماع: القرآن كاملًا بأصوات القرّاء"
-      className="press-effect inline-flex items-center gap-1.5 px-3 h-9 rounded-2xl border transition-all shrink-0"
-      style={{ background: "color-mix(in srgb, var(--accent) 14%, var(--card))", borderColor: "color-mix(in srgb, var(--accent) 40%, transparent)", color: "var(--accent)" }}
-    >
-      <Headphones size={14} aria-hidden="true" className="shrink-0" />
-      <span className="text-xs font-semibold whitespace-nowrap">السماع</span>
-    </button>
-  );
 }
 
 export function HomePage() {
@@ -1040,8 +980,6 @@ export function HomePage() {
                   </Button>
                 ) : null}
                 <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:sebha"); navigate("/sebha"); }}>السبحة</Button>
-                <HomeRadioButton />
-                <HomeListenButton />
                 <button type="button"
                   onClick={onRandom}
                   aria-label="ذكر عشوائي"
@@ -1050,6 +988,9 @@ export function HomePage() {
                   <Shuffle size={16} aria-hidden="true" />
                 </button>
               </div>
+
+              {/* «السماع»: the Quran in the voices of the great reciters, one tap away. */}
+              <ListenSpotlight className="mt-4 max-w-xl" />
 
               {/* Quran reading progress micro-bar */}
               {quranReadingPct > 0 && (

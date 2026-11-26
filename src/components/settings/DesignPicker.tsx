@@ -9,6 +9,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { DESIGN_MODES, UFUQ_LOOKS, type DesignMode, type UfuqLook } from "@/lib/design";
 import { cn } from "@/lib/utils";
 import { vibrate } from "@/lib/haptics";
+import { markUfuqArrival, preloadUfuq } from "@/components/ufuq/ufuqLazy";
 
 function ClassicPreview() {
   return (
@@ -35,10 +36,15 @@ export function UfuqPreview() {
 
 function useSetDesign() {
   const setPrefs = useNoorStore((s) => s.setPrefs);
-  return React.useCallback((mode: DesignMode) => {
+  return React.useCallback(async (mode: DesignMode) => {
+    vibrate(12);
+    // «أفق» appears whole: its code, type and garden are made ready first (a moment at most).
+    if (mode === "ufuq") {
+      await Promise.race([preloadUfuq(), new Promise((r) => setTimeout(r, 1200))]);
+      markUfuqArrival();
+    }
     // «أفق» opens at night, its most beautiful hour; the palette can be changed after.
     setPrefs(mode === "ufuq" ? { designMode: mode, ufuqPalette: "night" } : { designMode: mode, lastClassicDesign: mode });
-    vibrate(12);
     toast.success(
       mode === "ufuq" ? "أهلًا بك في «أُفُق»" : mode === "classic-new" ? "جرّب «الكلاسيكي الجديد»: صفحة رئيسية مرتّبة" : "عدتَ إلى التصميم الكلاسيكي",
       { duration: 1800 },
@@ -59,7 +65,9 @@ export function DesignPicker() {
             type="button"
             role="radio"
             aria-checked={active}
-            onClick={() => !active && setDesign(mode.id)}
+            onClick={() => {
+              if (!active) void setDesign(mode.id);
+            }}
             className={cn("design-choice", active && "is-active")}
           >
             {mode.id === "ufuq" ? <UfuqPreview /> : <ClassicPreview />}
@@ -80,7 +88,7 @@ export function DesignPicker() {
 export function DesignInvite() {
   const setDesign = useSetDesign();
   return (
-    <button type="button" className="design-invite" onClick={() => setDesign("ufuq")}>
+    <button type="button" className="design-invite" onClick={() => void setDesign("ufuq")}>
       <UfuqPreview />
       <span className="flex-1 min-w-0">
         <span className="design-invite-title block">جرّب «أُفُق»، التصميم الجديد</span>

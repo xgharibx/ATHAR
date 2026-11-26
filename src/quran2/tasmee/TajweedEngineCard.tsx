@@ -43,7 +43,7 @@ export function TajweedEngineCard({ compact = false, onChange }: { compact?: boo
         <span style={{ flex: 1, minWidth: 0 }}>
           <b style={{ display: "block", fontSize: 15.5 }}>محرك التجويد</b>
           <span className="q2-small">
-            يستمع لتلاوتك على جهازك وحده، فيزن المدود والغنن والقلقلة والإخفاء والإقلاب والإدغام، ويُريك أخطاء النطق كلمةً كلمة.
+            يستمع لتلاوتك على جهازك وحده، فيزن المدود والغنن والقلقلة والإخفاء والإقلاب والإدغام، وتفخيم الراء ولام لفظ الجلالة وترقيقهما، ويُريك أخطاء النطق كلمةً كلمة.
           </span>
         </span>
       </div>

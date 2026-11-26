@@ -20,9 +20,7 @@ import { ListenMiniPlayer } from "@/components/listen/MiniPlayer";
 import { DesignSwitch } from "@/components/layout/DesignSwitch";
 import { isUfuqTabRoot, ufuqTabFor, ufuqTitleFor, UFUQ_TABS, type UfuqTabId } from "@/components/ufuq/ufuqNav";
 
-const LiveGardenBackdrop = React.lazy(() =>
-  import("@/components/ufuq/garden/LiveGardenBackdrop").then((m) => ({ default: m.LiveGardenBackdrop })),
-);
+import { LiveGardenLazy } from "@/components/ufuq/ufuqLazy";
 
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette })),
@@ -282,7 +280,7 @@ export function UfuqShell() {
       </a>
       {garden ? (
         <React.Suspense fallback={null}>
-          <LiveGardenBackdrop />
+          <LiveGardenLazy />
         </React.Suspense>
       ) : (
         <div className="u-horizon" aria-hidden="true" />

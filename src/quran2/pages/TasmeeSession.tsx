@@ -8,9 +8,11 @@
  *
  * With the tajweed engine on the device (tajweed/engine.ts), the recitation
  * is also heard by the tajweed model when it ends: every word gets its
- * remarks (madd, ghunnah, qalqalah, ikhfa, iqlab, idgham, clear mistakes),
- * with your own voice and the reciter's for the same word. On phones the
- * engine is the listener (the phone's recogniser cannot share the microphone).
+ * remarks (madd, ghunnah, qalqalah, ikhfa, iqlab, idgham, tafkhim and tarqiq,
+ * clear mistakes), with your own voice and the reciter's for the same word. On
+ * phones the phone's recogniser cannot share the microphone, so the engine
+ * follows the words live itself (tajweed/follow.ts): every second or two it
+ * hears the last seconds and finds them in the passage.
  */
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -28,7 +30,8 @@ import { readMode } from "../tasmee/types";
 import { Q2Error, Q2Loading, Q2Sheet } from "../components/ui";
 import { QuranPrint } from "../components/QuranPrint";
 import { startCapture, type Capture } from "../tajweed/capture";
-import { judgeRecitation } from "../tajweed/engine";
+import { judgeRecitation, startFollowing } from "../tajweed/engine";
+import { wordAt } from "../tajweed/follow";
 import { ourWord } from "../tajweed/pieces";
 import { playPcm, stopPcm } from "../tajweed/playback";
 import type { AyahVerdict, JudgedWord } from "../tajweed/analyse";
@@ -39,14 +42,15 @@ type Ayah = { s: number; a: number; words: Array<{ n: number; text: string; afte
 type Phase = "ready" | "listening" | "judging" | "done";
 
 /** What a remark is about, for the summary. */
-function noteGroup(rule: string): "madd" | "ghunnah" | "qalqalah" | "shadda" | "jali" {
+function noteGroup(rule: string): "madd" | "ghunnah" | "qalqalah" | "shadda" | "tafkheem" | "jali" {
   if (rule.includes("Madd") || rule === "madd_added") return "madd";
+  if (rule === "tafkheem_or_taqeeq") return "tafkheem";
   if (["ghunnah", "idgham_ghunnah", "ikhfa", "iqlab", "idgham"].includes(rule)) return "ghunnah";
   if (rule === "qalqalah") return "qalqalah";
   if (rule === "shadda") return "shadda";
   return "jali";
 }
-const GROUP_NAMES = { madd: "المدود", ghunnah: "الغنن والنون الساكنة", qalqalah: "القلقلة", shadda: "الشدة", jali: "أخطاء النطق" } as const;
+const GROUP_NAMES = { madd: "المدود", ghunnah: "الغنن والنون الساكنة", qalqalah: "القلقلة", shadda: "الشدة", tafkheem: "التفخيم والترقيق", jali: "أخطاء النطق" } as const;
 
 /** A word's verdicts (a word recited twice, after a stop, has two), merged. */
 type WordVerdict = { notes: JudgedWord["notes"]; madd: JudgedWord["madd"]; at: [number, number] | null; skipped: boolean };
@@ -141,11 +145,17 @@ export default function Q2TasmeeSession() {
   const [opened, setOpened] = React.useState<{ s: number; a: number; n: number; text: string } | null>(null);
   const [following, setFollowing] = React.useState(false);
   const [hasSamples, setHasSamples] = React.useState(false);
+  // The engine following live: which session it belongs to (a new start or the end stops it), and its timer.
+  const followSession = React.useRef(0);
+  const followTimer = React.useRef(0);
+  const [engineFollows, setEngineFollows] = React.useState(false);
 
   React.useEffect(() => {
     void speechAvailable().then(setCanListen, () => setCanListen(false));
   }, []);
   React.useEffect(() => () => {
+    followSession.current++;
+    window.clearTimeout(followTimer.current);
     stopRef.current?.();
     recorder.current?.state === "recording" && recorder.current.stop();
     void capture.current?.stop();
@@ -171,6 +181,8 @@ export default function Q2TasmeeSession() {
   }, [position, phase]);
 
   const finish = React.useCallback(() => {
+    followSession.current++;
+    window.clearTimeout(followTimer.current);
     stopRef.current?.();
     stopRef.current = null;
     if (recorder.current?.state === "recording") recorder.current.stop();
@@ -217,11 +229,70 @@ export default function Q2TasmeeSession() {
     })();
   }, [flat, passage, logTasmee, params]);
 
+  /**
+   * The engine follows the words itself: every second or two it hears the last
+   * six seconds and finds them in the passage; the word reached glows, the
+   * words before it turn green. (Which were really said, the verdict tells at the end.)
+   */
+  const followWithEngine = async () => {
+    const c = capture.current;
+    if (!c || !passage) return;
+    const session = ++followSession.current;
+    const alive = () => followSession.current === session && capture.current === c;
+    let f: Awaited<ReturnType<typeof startFollowing>>;
+    try {
+      f = await startFollowing(passage.ayahs.map((ay) => ({ s: ay.s, a: ay.a })));
+    } catch {
+      return;
+    }
+    if (!alive()) return;
+    const index = new Map(flat.map((w, i) => [w.key, i]));
+    const toFlat = f.words.map((w) => index.get(w.key) ?? -1);
+    let at = 0;
+    let reached = -1;
+    setFollowing(true);
+    setEngineFollows(true);
+    const loop = async () => {
+      if (!alive()) return;
+      if (c.seconds() < 1.5) {
+        followTimer.current = window.setTimeout(() => void loop(), 400);
+        return;
+      }
+      const t0 = performance.now();
+      const heard = await f.step(c.tail(6), at).catch(() => null);
+      if (!alive()) return;
+      if (heard !== null) {
+        at = Math.max(at, heard.to);
+        const fi = toFlat[wordAt(f.words, at)] ?? -1;
+        if (fi > reached) {
+          reached = fi;
+          // Green only for the words heard in these seconds; a stretch left out stays for the verdict to tell.
+          const first = toFlat[wordAt(f.words, heard.from + 1)] ?? 0;
+          setMarks((m) => {
+            const next = [...m];
+            for (let i = Math.max(0, first); i < fi; i++) next[i] ??= "ok";
+            return next;
+          });
+          setPosition(fi);
+        }
+        // The end of the passage: a moment for the last sound, then the verdict.
+        if (at >= f.length - 2) {
+          followTimer.current = window.setTimeout(() => alive() && finish(), 1200);
+          return;
+        }
+      }
+      // As often as the device manages, without crowding it.
+      followTimer.current = window.setTimeout(() => void loop(), Math.max(600, (performance.now() - t0) * 0.8));
+    };
+    void loop();
+  };
+
   const start = async () => {
     if (!passage) return;
     voice.stop();
     stopPcm();
     setVerdicts(null);
+    setEngineFollows(false);
     samples.current = null;
     setHasSamples(false);
     setMarks([]);
@@ -239,7 +310,8 @@ export default function Q2TasmeeSession() {
       }
     }
     // The recogniser follows the words live; on phones it cannot share the
-    // microphone with the engine, which then listens alone.
+    // microphone with the engine, which then follows them itself.
+    let recogniser = false;
     if (!(withTajweed && native)) {
       const t = createReciteTracker(flat.map((w) => w.text), () => {
         setMarks([...t.marks]);
@@ -255,8 +327,14 @@ export default function Q2TasmeeSession() {
           onState: (state) => {
             if (state === "denied") toast.error("اسمح باستخدام الميكروفون لتسمّع");
             if ((state === "denied" || state === "error" || state === "unavailable") && !capture.current) setPhase((p) => (p === "listening" ? "ready" : p));
+            // The recogniser gave up while the engine listens: the engine follows instead.
+            if ((state === "error" || state === "unavailable") && capture.current && tracker.current === t) {
+              tracker.current = null;
+              void followWithEngine();
+            }
           },
         });
+        recogniser = true;
       } catch {
         if (!capture.current) {
           toast.error("لا يمكن الاستماع على هذا الجهاز");
@@ -270,6 +348,7 @@ export default function Q2TasmeeSession() {
       setFollowing(false);
     }
     setPhase("listening");
+    if (withTajweed && !recogniser) void followWithEngine();
     // On the website without the engine, your own recitation is kept to listen back.
     if (!native && !withTajweed && typeof MediaRecorder !== "undefined") {
       try {
@@ -293,7 +372,7 @@ export default function Q2TasmeeSession() {
   if (!passage || !meta.data) return <Q2Loading />;
 
   const said = marks.filter((x) => x === "ok").length;
-  const groups = { madd: 0, ghunnah: 0, qalqalah: 0, shadda: 0, jali: 0 };
+  const groups = { madd: 0, ghunnah: 0, qalqalah: 0, shadda: 0, tafkheem: 0, jali: 0 };
   let clean = 0;
   if (verdicts) {
     for (const w of flat) {
@@ -460,7 +539,10 @@ export default function Q2TasmeeSession() {
             <>
               <span className="q2-small" style={{ flex: 1 }} aria-live="polite">
                 {following ? (
-                  <>أصغي… الكلمة {arDigits(Math.min(position + 1, flat.length))} من {arDigits(flat.length)}</>
+                  <>
+                    أصغي… الكلمة {arDigits(Math.min(position + 1, flat.length))} من {arDigits(flat.length)}
+                    {engineFollows ? <span className="q2-meter" aria-hidden="true"><span style={{ transform: `scaleX(${Math.max(0.04, meter.level)})` }} /></span> : null}
+                  </>
                 ) : (
                   <>
                     أصغي… {arDigits(Math.floor(meter.seconds / 60))}:{arDigits(String(Math.floor(meter.seconds % 60)).padStart(2, "0"))}

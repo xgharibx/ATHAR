@@ -15,6 +15,8 @@ import { useNoorStore } from "@/store/noorStore";
 import type { DesignMode } from "@/lib/design";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
+import { prefetchWhenIdle } from "@/lib/prefetch";
+import { markUfuqArrival, preloadUfuq, preloadUfuqCode } from "@/components/ufuq/ufuqLazy";
 
 const SEEN_KEY = "athar_design_switch_seen";
 
@@ -56,8 +58,13 @@ export function DesignSwitch({ className }: { className?: string }) {
   const ufuq = design === "ufuq";
   // Back from «أفق» to whichever classic design was in use.
   const target: DesignMode = ufuq ? lastClassic : "ufuq";
+  const busy = React.useRef(false);
 
-  const change = () => {
+  // «أفق»'s code and type come while the classic design is idle, so the switch has nothing to wait for.
+  React.useEffect(() => (ufuq ? undefined : prefetchWhenIdle(preloadUfuqCode, 6000)), [ufuq]);
+
+  const change = async () => {
+    if (busy.current) return;
     vibrate(14);
     if (!seen) {
       setSeen(true);
@@ -67,13 +74,22 @@ export function DesignSwitch({ className }: { className?: string }) {
         // Not remembered; the hint shows again next time, which is harmless.
       }
     }
-    const apply = () => setPrefs(ufuq ? { designMode: target } : { designMode: target, lastClassicDesign: design === "classic-new" ? "classic-new" : "classic" });
+    const apply = () => {
+      if (!ufuq) markUfuqArrival();
+      setPrefs(ufuq ? { designMode: target } : { designMode: target, lastClassicDesign: design === "classic-new" ? "classic-new" : "classic" });
+    };
     const doc = document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
     const root = document.documentElement;
     const rect = ref.current?.getBoundingClientRect();
     if (rect) {
       root.style.setProperty("--ds-x", `${rect.left + rect.width / 2}px`);
       root.style.setProperty("--ds-y", `${rect.top + rect.height / 2}px`);
+    }
+    if (!ufuq) {
+      // Everything ready before the change, so it lands whole (already there in most cases; a moment at most).
+      busy.current = true;
+      await Promise.race([preloadUfuq(), new Promise((r) => setTimeout(r, 900))]);
+      busy.current = false;
     }
     if (prefersReducedMotion()) {
       apply();
@@ -104,7 +120,10 @@ export function DesignSwitch({ className }: { className?: string }) {
       aria-label={ufuq ? "التصميم الآن «أفق». اضغط للعودة إلى التصميم الكلاسيكي" : "التصميم الآن الكلاسيكي. اضغط لتجربة تصميم «أفق»"}
       title={ufuq ? "العودة إلى التصميم الكلاسيكي" : "جرّب تصميم «أفق»"}
       className={cn("ds-switch", ufuq && "is-ufuq", !seen && "is-new", className)}
-      onClick={change}
+      onPointerDown={() => {
+        if (!ufuq) void preloadUfuq();
+      }}
+      onClick={() => void change()}
     >
       <span className="ds-label" aria-hidden="true">
         {ufuq ? "كلاسيكي" : "أفق"}

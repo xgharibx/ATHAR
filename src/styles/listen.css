@@ -1196,3 +1196,230 @@
   --accent: #e9c46a;
   --fg: #fff8e8;
 }
+
+/* ── «السماع» on the classic home: the card that invites you in ── */
+.ls-spot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 12px 12px 12px;
+  border-radius: 26px;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background:
+    radial-gradient(90% 140% at 100% 0%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 62%),
+    radial-gradient(80% 120% at 0% 100%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    color-mix(in srgb, var(--card) 88%, transparent);
+  box-shadow: 0 18px 40px -26px color-mix(in srgb, var(--accent) 80%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+/* A slow gleam crossing the card, now and then. */
+.ls-spot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 35%, color-mix(in srgb, var(--accent) 22%, transparent) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: ls-spot-gleam 7s ease-in-out 1.2s infinite;
+  pointer-events: none;
+}
+
+@keyframes ls-spot-gleam {
+  0%,
+  70% {
+    transform: translateX(120%);
+  }
+  100% {
+    transform: translateX(-120%);
+  }
+}
+
+.ls-spot-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+}
+
+.ls-spot-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ls-spot-text > b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--fg);
+}
+
+.ls-spot-text > b svg {
+  color: var(--accent);
+}
+
+.ls-spot-text > small {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.ls-spot-text > span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.ls-spot.is-now .ls-spot-text > b {
+  display: block;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ls-spot.is-now .ls-mark {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+}
+
+/* The sound, drawn: bars that breathe (and dance while a recitation plays). */
+.ls-spot-waves {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.ls-spot-waves i {
+  display: block;
+  width: 3px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transform-origin: center;
+  transform: scaleY(0.3);
+  animation: ls-spot-breathe 2.4s ease-in-out infinite;
+}
+
+.ls-spot-waves.is-live i {
+  animation: ls-spot-dance 0.9s ease-in-out infinite;
+}
+
+@keyframes ls-spot-breathe {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(0.7);
+  }
+}
+
+@keyframes ls-spot-dance {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  25% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.5);
+  }
+  75% {
+    transform: scaleY(0.85);
+  }
+}
+
+.ls-spot-go {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--on-accent, #000);
+  background: var(--accent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 16%, transparent), 0 12px 26px -10px color-mix(in srgb, var(--accent) 90%, transparent);
+  transition: transform 160ms ease;
+}
+
+.ls-spot-go:active {
+  transform: scale(0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-spot::after,
+  .ls-spot-waves i {
+    animation: none;
+  }
+}
+
+/* ── The floating «السماع» button (classic design) ── */
+.fm-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 18px;
+}
+
+.fm-eq i {
+  display: block;
+  width: 3.5px;
+  height: 100%;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: ls-spot-dance 0.9s ease-in-out infinite;
+}
+
+.fm-eq i:nth-child(2) {
+  animation-delay: 160ms;
+}
+
+.fm-eq i:nth-child(3) {
+  animation-delay: 320ms;
+}
+
+.fm-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 18px;
+  text-align: right;
+  background: var(--card);
+  border: 1px solid var(--stroke);
+}
+
+.fm-tile svg {
+  color: var(--accent);
+}
+
+.fm-tile b {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fm-tile span {
+  font-size: 11px;
+  color: var(--muted);
+}

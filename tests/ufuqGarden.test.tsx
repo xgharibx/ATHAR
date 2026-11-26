@@ -108,7 +108,9 @@ describe("the live garden", () => {
     }
     // A flower earned by a tasbeeh grows: the stem rises, then the bud opens.
     expect(engine).toContain("const opening = clamp01((age - 0.8) / 2.6)");
-    expect(read("src/components/ufuq/UfuqShell.tsx")).toContain("<LiveGardenBackdrop />");
+    // Loaded ahead of the switch to «أفق», so it appears with the design, whole (ufuqLazy.ts).
+    expect(read("src/components/ufuq/UfuqShell.tsx")).toContain("<LiveGardenLazy />");
+    expect(read("src/components/ufuq/ufuqLazy.ts")).toContain('import("@/components/ufuq/garden/LiveGardenBackdrop")');
   });
 });
 

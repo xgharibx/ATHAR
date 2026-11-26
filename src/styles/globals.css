@@ -7917,7 +7917,7 @@ body:has([role="dialog"][data-state="open"]) .fab {
    NOTE: only opacity is animated by the parent <motion.div>, so we
    deliberately avoid `will-change: transform` here — that would create
    a new containing block for `position: fixed` descendants and push
-   FloatingAthar/QuranRadioFab/QuickTasbeehFab off the viewport (they
+   FloatingAthar/FloatingMedia/QuickTasbeehFab off the viewport (they
    would be positioned relative to the route wrapper instead of the
    viewport, sitting below the page on long-scroll screens like Home).
    ═══════════════════════════════════════════════════════════════ */

@@ -7,6 +7,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncBridge";
 import { useNoorStore } from "@/store/noorStore";
+import { UfuqHomeLazy } from "@/components/ufuq/ufuqLazy";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { AppLockGate } from "@/components/security/AppLockGate";
 import { getLocalDateKey, getNextIbadahBoundary, getNextLocalMidnight, shiftDateKey } from "@/lib/dayBoundaries";
@@ -57,14 +58,13 @@ function S({ children }: { children: React.ReactNode }) {
 
 const loadHomeRoute = () => import("@/pages/Home").then((m) => ({ default: m.HomePage }));
 const ClassicHomePage = React.lazy(loadHomeRoute);
-const UfuqHomePage = React.lazy(() => import("@/components/ufuq/UfuqHome"));
 const ClassicNewHomePage = React.lazy(() => import("@/pages/HomeNew").then((m) => ({ default: m.ClassicNewHomePage })));
 const ExplorePage = React.lazy(() => import("@/pages/Explore"));
 
 /** «اليوم» in «أفق», the reorganised home in «الكلاسيكي الجديد», the classic home otherwise. */
 function HomePage() {
   const design = useNoorStore((s) => s.prefs.designMode);
-  if (design === "ufuq") return <UfuqHomePage />;
+  if (design === "ufuq") return <UfuqHomeLazy />;
   if (design === "classic-new") return <ClassicNewHomePage />;
   return <ClassicHomePage />;
 }

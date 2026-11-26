@@ -23,10 +23,11 @@ describe("the design switch", () => {
     const sw = box.querySelector<HTMLButtonElement>('[role="switch"]')!;
     expect(sw.getAttribute("aria-checked")).toBe("false");
     expect(sw.textContent).toContain("أفق");
-    // Without View Transitions (as here) the change fades in after a moment.
+    // «أفق» is made ready first (its code and type, a moment at most); then, without
+    // View Transitions (as here), the change fades in after a moment.
     const tap = async () => act(async () => {
       sw.click();
-      await new Promise((r) => setTimeout(r, 320));
+      await new Promise((r) => setTimeout(r, 1300));
     });
     await tap();
     expect(useNoorStore.getState().prefs.designMode).toBe("ufuq");

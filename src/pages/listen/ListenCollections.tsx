@@ -46,7 +46,7 @@ function ListHeader({ title, sub, tracks, gold, artist }: { title: string; sub?:
       {tracks.length ? (
         <div className="ls-actions">
           <button type="button" className="ls-play-btn" onClick={() => playTracks(tracks, 0, { resume: true })}>
-            <Play size={18} fill="currentColor" aria-hidden="true" style={{ transform: "scaleX(-1)" }} /> تشغيل الكل
+            <Play size={18} fill="currentColor" aria-hidden="true" /> تشغيل الكل
           </button>
           {tracks.length > 2 ? (
             <button type="button" className="ls-ghost-btn" onClick={() => playTracks(tracks, Math.floor(Math.random() * tracks.length), { shuffle: true })}>
@@ -116,7 +116,7 @@ export function ListenSurahPage() {
         <p>بأصوات {arabicDigits(voices.length)} قارئًا، برواية حفص عن عاصم</p>
         <div className="ls-actions">
           <button type="button" className="ls-play-btn" onClick={() => playTracks(voices, 0)}>
-            <Play size={18} fill="currentColor" aria-hidden="true" style={{ transform: "scaleX(-1)" }} /> صوتًا بعد صوت
+            <Play size={18} fill="currentColor" aria-hidden="true" /> صوتًا بعد صوت
           </button>
           <Link to="/listen/surah/1?pick=1" className="ls-ghost-btn">
             سورة أخرى

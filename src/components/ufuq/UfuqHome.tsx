@@ -29,6 +29,7 @@ import { ListenEntry } from "@/components/listen/ListenEntry";
 import { UfuqDaily } from "@/components/ufuq/UfuqDaily";
 import { useQadaa } from "@/hooks/useQadaa";
 import { useGardenGrowth } from "@/components/ufuq/garden/useGardenGrowth";
+import { isUfuqArriving } from "@/components/ufuq/ufuqLazy";
 import { PRAYER_KEYS, durationLabel, phaseTargetLabel, skyPhaseFor, ufuqClock, ufuqGreeting, untilLabel } from "@/components/ufuq/ufuqTime";
 
 function useNow(intervalMs = 30_000) {
@@ -341,6 +342,13 @@ export function UfuqHome() {
   const sections = React.useMemo(() => data?.db.sections ?? [], [data]);
   const look = useNoorStore((s) => s.prefs.ufuqLook ?? "live");
   const garden = look !== "plain";
+  // Just switched to «أفق»: what is on screen comes in the switch itself, the rest a moment later.
+  const [whole, setWhole] = React.useState(() => !isUfuqArriving());
+  React.useEffect(() => {
+    if (whole) return;
+    const id = requestAnimationFrame(() => React.startTransition(() => setWhole(true)));
+    return () => cancelAnimationFrame(id);
+  }, [whole]);
 
   const hijri = React.useMemo(() => {
     const fromApi = formatPrayerHijriDate(prayer.data?.data?.date?.hijri);
@@ -387,75 +395,81 @@ export function UfuqHome() {
       </div>
       <TodayPath sections={sections} />
 
-      {garden ? (
+      {whole ? (
         <>
+          {garden ? (
+            <>
+              <div className="u-section-head">
+                <h2>حديقتك</h2>
+              </div>
+              <GardenGrowthCard />
+            </>
+          ) : null}
+
           <div className="u-section-head">
-            <h2>حديقتك</h2>
+            <h2>السماع</h2>
           </div>
-          <GardenGrowthCard />
-        </>
-      ) : null}
+          <ListenEntry />
 
-      <div className="u-section-head">
-        <h2>السماع</h2>
-      </div>
-      <ListenEntry />
-
-      <div className="u-section-head">
-        <h2>زاد اليوم</h2>
-      </div>
-      <UfuqDaily sections={sections} />
-
-      <div className="mt-3">
-        <ContinueReading />
-      </div>
-
-      <div className="u-section-head">
-        <h2>الأذكار</h2>
-        <button type="button" onClick={() => navigate("/explore#adhkar")}>عرض الكل</button>
-      </div>
-      <div className="u-strip" role="list" aria-label="مجموعات الأذكار">
-        {strip.map((section) => (
-          <div role="listitem" key={section.id}>
-            <CollectionCard section={section} />
+          <div className="u-section-head">
+            <h2>زاد اليوم</h2>
           </div>
-        ))}
-      </div>
+          <UfuqDaily sections={sections} />
 
-      <button
-        type="button"
-        className="u-card u-card-press w-full mt-6 p-5 text-start flex items-center gap-4"
-        onClick={() => navigate("/companion")}
-      >
-        <span className="u-tile-icon" aria-hidden="true"><MessageCircle size={18} /></span>
-        <span className="flex-1 min-w-0">
-          <span className="block text-[16px] font-semibold">اسأل أثر</span>
-          <span className="block text-[13px] text-(--muted) mt-0.5">سؤال في دينك؟ رفيقك يجيبك بهدوء ومصادر</span>
-        </span>
-        <ArrowLeft size={16} className="opacity-35 shrink-0" aria-hidden="true" />
-      </button>
+          <div className="mt-3">
+            <ContinueReading />
+          </div>
 
-      <div className="u-section-head">
-        <h2>أدوات</h2>
-        <button type="button" onClick={() => navigate("/explore")}>اكتشف المزيد</button>
-      </div>
-      <div className="u-bento">
-        {TILES.map((tile) => (
-          <button key={tile.path} type="button" className="u-card u-card-press u-tile" onClick={() => navigate(tile.path)}>
-            <span className="u-tile-icon" aria-hidden="true"><tile.icon size={18} /></span>
-            <span>
-              <span className="u-tile-title block">{tile.title}</span>
-              <span className="u-tile-sub block">{tile.sub}</span>
+          <div className="u-section-head">
+            <h2>الأذكار</h2>
+            <button type="button" onClick={() => navigate("/explore#adhkar")}>عرض الكل</button>
+          </div>
+          <div className="u-strip" role="list" aria-label="مجموعات الأذكار">
+            {strip.map((section) => (
+              <div role="listitem" key={section.id}>
+                <CollectionCard section={section} />
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="u-card u-card-press w-full mt-6 p-5 text-start flex items-center gap-4"
+            onClick={() => navigate("/companion")}
+          >
+            <span className="u-tile-icon" aria-hidden="true"><MessageCircle size={18} /></span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-[16px] font-semibold">اسأل أثر</span>
+              <span className="block text-[13px] text-(--muted) mt-0.5">سؤال في دينك؟ رفيقك يجيبك بهدوء ومصادر</span>
             </span>
+            <ArrowLeft size={16} className="opacity-35 shrink-0" aria-hidden="true" />
           </button>
-        ))}
-      </div>
 
-      <p className="u-foot">
-        صدقةٌ جارية
-        <br />
-        اترك أثرًا طيبًا
-      </p>
+          <div className="u-section-head">
+            <h2>أدوات</h2>
+            <button type="button" onClick={() => navigate("/explore")}>اكتشف المزيد</button>
+          </div>
+          <div className="u-bento">
+            {TILES.map((tile) => (
+              <button key={tile.path} type="button" className="u-card u-card-press u-tile" onClick={() => navigate(tile.path)}>
+                <span className="u-tile-icon" aria-hidden="true"><tile.icon size={18} /></span>
+                <span>
+                  <span className="u-tile-title block">{tile.title}</span>
+                  <span className="u-tile-sub block">{tile.sub}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <p className="u-foot">
+            صدقةٌ جارية
+            <br />
+            اترك أثرًا طيبًا
+          </p>
+        </>
+      ) : (
+        <div className="min-h-dvh" aria-hidden="true" />
+      )}
       {garden ? <div className="u-garden-window" aria-hidden="true" /> : null}
     </div>
   );

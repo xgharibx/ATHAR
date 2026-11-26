@@ -16,8 +16,12 @@ import { distance, opcodes } from "./levenshtein";
 /** [start, end) within the word's piece, and the rule (RULES[i]). */
 export type PieceRule = [number, number, number];
 type Variant = string | [string, PieceRule[]];
-/** p: continuing; i: starting a breath; w: ending one (waqf); o: alone. v: its nun / tanween vanishes into the next word. */
-export type WordPiece = { p: string; r?: PieceRule[]; v?: 1; i?: Variant; w?: Variant; o?: Variant };
+/**
+ * p: continuing; i: starting a breath; w: ending one (waqf); o: alone. v: its nun / tanween vanishes into the next word.
+ * f: the tafkhim of its ر / ل / ا sound groups, "offset + m|r|l" (mofakham, moraqaq, low_mofakham) for p, and fi / fw /
+ * fo where another context changes them.
+ */
+export type WordPiece = { p: string; r?: PieceRule[]; v?: 1; i?: Variant; w?: Variant; o?: Variant; f?: string; fi?: string; fw?: string; fo?: string };
 /** One ayah: its words (quran-transcript's Uthmani spelling) and their pieces. */
 export type AyahPieces = { t: string[]; w: WordPiece[] };
 
@@ -46,6 +50,36 @@ const counts = (n: number) => (n ? COUNTS[n] ?? `${n} حركات` : "بلا مد
 
 export type Unit = { s: number; e: number; kind: string; word: number; golden: number; allowed: number[]; rule: string; char: string };
 
+export const TAFKHEEM = ["mofakham", "moraqaq", "low_mofakham"] as const;
+export type Tafkheem = (typeof TAFKHEEM)[number];
+const TAFKHEEM_CODE: Record<string, Tafkheem> = { m: "mofakham", r: "moraqaq", l: "low_mofakham" };
+const TAFKHEEM_NAME: Record<Tafkheem, string> = { mofakham: "تفخيم", moraqaq: "ترقيق", low_mofakham: "تفخيم خفيف" };
+// Only what a teacher corrects: the ر, the lam of the Name, the alif after them (the other letters' tafkhim follows from the letter).
+const TAFKHEEM_LETTERS = new Set(["ر", "ل", "ا"]);
+
+// quran-transcript's sound groups: a letter (repeated: its length or its doubling) and the mark that follows it.
+const CORE = new Set([..."ءبتثجحخدذرزسشصضطظعغفقكلمنهوياۥۦ۾ںـٲ"]);
+const RESIDUAL = new Set([..."َُِڇؙ۪ۜ"]);
+
+/** The script in sound groups, as chunck_phonemes: [start, group]. */
+export function soundGroups(ph: string): Array<[number, string]> {
+  const out: Array<[number, string]> = [];
+  let i = 0;
+  while (i < ph.length) {
+    const c = ph[i]!;
+    if (!CORE.has(c)) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < ph.length && ph[j] === c) j++;
+    if (j < ph.length && RESIDUAL.has(ph[j]!)) j++;
+    out.push([i, ph.slice(i, j)]);
+    i = j;
+  }
+  return out;
+}
+
 export type Ref = {
   words: string[];
   phonemes: string;
@@ -59,6 +93,8 @@ export type Ref = {
   restarts: number[];
   /** Positions in `words` where a breath ends. */
   ends: number[];
+  /** The tafkhim a correct recitation gives the ر / ل / ا groups: [start in the script, which]. */
+  tafkheem: Array<[number, Tafkheem]>;
 };
 
 const unit = (s: number, e: number, kind: string, word: number, golden = 0, allowed: number[] = [], rule = "", char = ""): Unit => ({ s, e, kind, word, golden, allowed, rule, char });
@@ -77,11 +113,15 @@ export function expected(ayah: AyahPieces, a: number, b: number): Ref {
   const spans: Array<[number, number]> = [];
   const tags: Array<[number, number, string]> = [];
   const vanish: boolean[] = [];
+  const tafkheem: Array<[number, Tafkheem]> = [];
   for (let k = a; k < b; k++) {
     const key = b - a === 1 ? "o" : k === a ? "i" : k === b - 1 ? "w" : "p";
     const [p, r] = variant(ayah.w[k]!, key);
     const o = ph.length;
     spans.push([o, o + p.length]);
+    const piece = ayah.w[k]!;
+    const f = key === "p" ? piece.f : piece[`f${key}`] ?? piece.f;
+    for (const m of (f ?? "").matchAll(/(\d+)([mrl])/g)) tafkheem.push([o + Number(m[1]), TAFKHEEM_CODE[m[2]!]!]);
     for (const [x, y, c] of r) tags.push([o + x, o + y, RULES[c]!]);
     vanish.push(Boolean(ayah.w[k]!.v) && k !== b - 1);
     ph += p;
@@ -138,7 +178,7 @@ export function expected(ayah: AyahPieces, a: number, b: number): Ref {
     i = j;
   }
   units.sort((x, y) => x.s - y.s);
-  return { words, phonemes: ph, spans, units, index: words.map((_, k) => k), stops: [], restarts: [0], ends: [words.length - 1] };
+  return { words, phonemes: ph, spans, units, index: words.map((_, k) => k), stops: [], restarts: [0], ends: [words.length - 1], tafkheem };
 }
 
 function join(parts: Array<[Ref, number]>): Ref {
@@ -146,10 +186,12 @@ function join(parts: Array<[Ref, number]>): Ref {
   const index: number[] = [];
   const spans: Array<[number, number]> = [];
   const units: Unit[] = [];
+  const tafkheem: Array<[number, Tafkheem]> = [];
   let ph = "";
   for (const [r, a] of parts) {
     const o = ph.length;
     const w0 = words.length;
+    tafkheem.push(...r.tafkheem.map(([x, t]) => [x + o, t] as [number, Tafkheem]));
     words.push(...r.words);
     index.push(...r.words.map((_, k) => a + k));
     spans.push(...r.spans.map(([x, y]) => [x + o, y + o] as [number, number]));
@@ -162,7 +204,7 @@ function join(parts: Array<[Ref, number]>): Ref {
     k += r.words.length;
     ends.push(k - 1);
   }
-  return { words, phonemes: ph, spans, units, index, stops: ends.slice(0, -1).map((e) => index[e]!), restarts: parts.map(([, a]) => a), ends };
+  return { words, phonemes: ph, spans, units, index, stops: ends.slice(0, -1).map((e) => index[e]!), restarts: parts.map(([, a]) => a), ends, tafkheem };
 }
 
 type Phrase = Array<[number, number]>;
@@ -301,6 +343,7 @@ const MSG = {
   dropped: ({ want }: Record<string, string>) => `سقط حرف: ${want}`,
   added: ({ heard }: Record<string, string>) => `زيادة: ${heard}`,
   word_missing: () => "لم تُقرأ هذه الكلمة",
+  sifa: ({ letter, heard, want }: Record<string, string>) => `${letter}: ${heard} بدل ${want}`,
 } as const;
 type MsgKind = keyof typeof MSG;
 const VOWEL_NAME: Record<string, string> = { "َ": "فتحة", "ُ": "ضمة", "ِ": "كسرة" };
@@ -336,7 +379,15 @@ const subset = (a: string, b: Set<string>) => [...a].every((c) => b.has(c));
 export function listen(
   ref: Ref,
   heardRaw: string,
-  opts: { probs?: number[] | null; minProb?: number; minProbJali?: number; times?: number[] | null; tempo?: number[] | null } = {},
+  opts: {
+    probs?: number[] | null;
+    minProb?: number;
+    minProbJali?: number;
+    times?: number[] | null;
+    tempo?: number[] | null;
+    /** The tafkhim the model heard on each heard sound group, in order (null where it said nothing sure). */
+    sifat?: Array<[string, Tafkheem | null]> | null;
+  } = {},
 ): WordResult[] {
   const heard = heardRaw.replace(/ /g, "");
   const probs = opts.probs ?? null;
@@ -483,6 +534,8 @@ export function listen(
     });
   }
 
+  if (opts.sifat?.length) sifatNotes(ref, opts.sifat, notes);
+
   const stopsAt = new Set(ref.ends.slice(0, -1));
   return ref.words.map((word, k) => ({
     word,
@@ -492,4 +545,47 @@ export function listen(
     notes: notes[k]!,
     madd: maddHeard[k]!,
   }));
+}
+
+/**
+ * Tafkhim and tarqiq, group by group: each expected sound group is matched
+ * with the next heard one of the same text (a little ahead, if the model
+ * split or merged one), and where the ر, the lam of the Name or the alif after
+ * them was heard heavy instead of light (or light instead of heavy), it is
+ * said. Two degrees of the same tafkhim are not a mistake. (imam.py's _sifat_notes.)
+ */
+function sifatNotes(ref: Ref, got: Array<[string, Tafkheem | null]>, notes: Note[][]) {
+  const want = new Map(ref.tafkheem);
+  let gi = 0;
+  for (const [a, p] of soundGroups(ref.phonemes)) {
+    if (gi >= got.length) break;
+    if (got[gi]![0] !== p) {
+      let k = -1;
+      for (let x = gi; x < Math.min(gi + 3, got.length); x++) {
+        if (got[x]![0] === p) {
+          k = x;
+          break;
+        }
+      }
+      if (k < 0) continue;
+      gi = k;
+    }
+    const have = got[gi]![1];
+    gi++;
+    const w = ref.spans.findIndex(([wa, wz]) => wa <= a && a < wz);
+    if (w < 0) continue;
+    const exp = want.get(a);
+    if (!have || !exp || have === exp) continue;
+    const letter = stripLen(p)[0] ?? p[0]!;
+    if (!TAFKHEEM_LETTERS.has(letter)) continue;
+    if (exp !== "moraqaq" && have !== "moraqaq") continue; // mofakham / low_mofakham: degrees of the same tafkhim
+    notes[w]!.push({
+      rule: "tafkheem_or_taqeeq",
+      severity: "khafi",
+      expected: exp,
+      heard: have,
+      pos: a,
+      msg: MSG.sifa({ letter, heard: TAFKHEEM_NAME[have], want: TAFKHEEM_NAME[exp] }),
+    });
+  }
 }
