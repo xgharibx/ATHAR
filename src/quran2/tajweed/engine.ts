@@ -136,6 +136,6 @@ export async function judgeRecitation(audio: Float32Array, ayahs: Array<{ s: num
       }
     };
     w.addEventListener("message", onMsg);
-    w.postMessage({ type: "judge", id, audio, ayahs, base: import.meta.env.BASE_URL ?? "/" } satisfies WorkerIn, [audio.buffer]);
+    w.postMessage({ type: "judge", id, audio, ayahs } satisfies WorkerIn, [audio.buffer]);
   });
 }

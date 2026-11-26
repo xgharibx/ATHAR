@@ -17,10 +17,16 @@ async function gunzipJson<T>(res: Response): Promise<T> {
   return JSON.parse(new TextDecoder().decode(bytes)) as T;
 }
 
-export function loadSurahPieces(s: number, base = "/"): Promise<AyahPieces[]> {
+/** The file of surah s (1–114), on the app's own origin. */
+export function piecesUrl(s: number): string {
+  if (!Number.isInteger(s) || s < 1 || s > 114) throw new Error(`tajweed pieces: no surah ${s}`);
+  return `${import.meta.env.BASE_URL ?? "/"}data/quran2/tajweed/${String(s).padStart(3, "0")}.json.gz`;
+}
+
+export function loadSurahPieces(s: number): Promise<AyahPieces[]> {
   let p = loads.get(s);
   if (!p) {
-    p = fetch(`${base}data/quran2/tajweed/${String(s).padStart(3, "0")}.json.gz`)
+    p = fetch(piecesUrl(s))
       .then((res) => {
         if (!res.ok) throw new Error(`tajweed pieces ${s}: HTTP ${res.status}`);
         return gunzipJson<AyahPieces[]>(res);

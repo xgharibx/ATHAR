@@ -13,7 +13,7 @@ import { loadSurahPieces } from "./pieces";
 
 export type WorkerIn =
   | { type: "init"; model: ArrayBuffer; wasm: ArrayBuffer }
-  | { type: "judge"; id: number; audio: Float32Array; ayahs: Array<{ s: number; a: number }>; base: string };
+  | { type: "judge"; id: number; audio: Float32Array; ayahs: Array<{ s: number; a: number }> };
 export type WorkerOut =
   | { type: "ready" }
   | { type: "error"; id?: number; message: string }
@@ -35,6 +35,9 @@ async function hear(audio: Float32Array) {
 }
 
 self.onmessage = async (e: MessageEvent<WorkerIn>) => {
+  // Messages come only from the page that started this worker (they carry no
+  // origin); anything that names another origin is not ours.
+  if (e.origin && e.origin !== self.location.origin) return;
   const msg = e.data;
   try {
     if (msg.type === "init") {
@@ -57,9 +60,11 @@ self.onmessage = async (e: MessageEvent<WorkerIn>) => {
         heard.push({ heard: piece.heard, probs: piece.probs, times: piece.times.map((t) => t + offset), ends: piece.ends.map((t) => t + offset) });
         post({ type: "progress", id: msg.id, done: i + 1, total });
       }
-      const surahs = [...new Set(msg.ayahs.map((x) => x.s))];
-      const bySurah = new Map(await Promise.all(surahs.map(async (s) => [s, await loadSurahPieces(s, msg.base)] as const)));
-      const ayahs = msg.ayahs.map(({ s, a }) => ({ s, a, pieces: bySurah.get(s)![a - 1]! }));
+      // Only real ayahs: surah 1–114, an ayah that the surah's data has.
+      const asked = msg.ayahs.filter(({ s, a }) => Number.isInteger(s) && s >= 1 && s <= 114 && Number.isInteger(a) && a >= 1 && a <= 286);
+      const surahs = [...new Set(asked.map((x) => x.s))];
+      const bySurah = new Map(await Promise.all(surahs.map(async (s) => [s, await loadSurahPieces(s)] as const)));
+      const ayahs = asked.filter(({ s, a }) => bySurah.get(s)?.[a - 1]).map(({ s, a }) => ({ s, a, pieces: bySurah.get(s)![a - 1]! }));
       const verdicts = judgeRecitation(ayahs, heard);
       post({ type: "progress", id: msg.id, done: total, total });
       post({ type: "verdicts", id: msg.id, verdicts });
