@@ -5,11 +5,16 @@ For each word: its expected phonetic script in four contexts — continuing from
 after (cc), starting a breath (ic), ending a breath (cw, waqf), alone (iw) — with the tajweed rules the phonetizer
 tags on it (madd kinds, qalqalah), relative to the piece, and whether its nun / tanween vanishes into the next word.
 A phrase [a, b) of an ayah is then ic[a] + cc[a+1 .. b-2] + cw[b-1] (or iw[a] alone): verify.py checks this
-against the phonetizer itself."""
+against the phonetizer itself.
+
+With each piece, the tafkhim / tarqiq the phonetizer gives the sound groups that start in it with ر, ل or ا (what a
+teacher corrects: the ر, the lam of the Name, the alif after them), as "offset + m|r|l" (mofakham, moraqaq,
+low_mofakham): f for the continuous piece, fi / fw / fo where another context changes them."""
 import gzip, json, sys, os
 from multiprocessing import Pool
 from quran_transcript import Aya, quran_phonetizer, MoshafAttributes
 M = MoshafAttributes(rewaya='hafs', madd_monfasel_len=4, madd_mottasel_len=4, madd_mottasel_waqf=4, madd_aared_len=4)
+TAFKHEEM = {'mofakham': 'm', 'moraqaq': 'r', 'low_mofakham': 'l'}
 RULES = ['NormalMaddRule', 'MonfaselMaddRule', 'MottaselMaddRule', 'MottaselMaddPauseRule', 'LazemMaddRule', 'AaredMaddRule', 'LeenMaddRule', 'Qalqalah']
 CTX = 3
 
@@ -22,11 +27,20 @@ def run(words):
         ps = [m.pos for m in mp[pos:pos + len(w)] if m.pos[1] > m.pos[0]]
         spans.append((min(p[0] for p in ps), max(p[1] for p in ps)) if ps else (spans[-1][1] if spans else 0,) * 2)
         pos += len(w) + 1
-    return ph, mp, spans, starts
+    groups, at = [], 0
+    for g in o.sifat:
+        groups.append((at, g.phonemes, g.tafkheem_or_taqeeq))
+        at += len(g.phonemes)
+    assert at == len(ph), (words, at, len(ph))
+    return ph, mp, spans, starts, groups
+
+def tafkheem(groups, a, b):
+    """the ر / ل / ا groups starting in [a, b): "offset + m|r|l" each"""
+    return ''.join(f'{at - a}{TAFKHEEM[t]}' for at, g, t in groups if a <= at < b and g[0] in 'رلا')
 
 def piece(words, k):
-    """word k of `words`: its script, its rules relative to its span, and whether it vanishes into the next word"""
-    ph, mp, spans, starts = run(words)
+    """word k of `words`: its script, its rules relative to its span, whether it vanishes into the next word, its tafkhim"""
+    ph, mp, spans, starts, groups = run(words)
     a, b = spans[k]
     w = words[k]; p0 = starts[k]
     rules = []
@@ -38,9 +52,9 @@ def piece(words, k):
                 assert a <= ra <= rb <= b or ra == rb, (words, k, name, m.pos, (a, b))
                 rules.append([ra - a, rb - a, RULES.index(name)])
     vanish = any(m.deleted for m in mp[p0:p0 + len(w)][-3:]) and (w.rstrip('ْۡ').endswith('ن') or any(c in w for c in 'ًࣰٌࣱٍࣲ'))
-    return ph[a:b], rules, vanish
+    return ph[a:b], rules, vanish, tafkheem(groups, a, b)
 
-def pieces_of(words, ph, mp, spans, starts, k):
+def pieces_of(words, ph, mp, spans, starts, groups, k):
     a, b = spans[k]
     w = words[k]; p0 = starts[k]
     rules = []
@@ -51,7 +65,7 @@ def pieces_of(words, ph, mp, spans, starts, k):
                 ra, rb = m.pos
                 rules.append([max(0, ra - a), max(0, min(rb, b) - a), RULES.index(name)])
     vanish = any(m.deleted for m in mp[p0:p0 + len(w)][-3:]) and (w.rstrip('ْۡ').endswith('ن') or any(c in w for c in 'ًࣰٌࣱٍࣲ'))
-    return ph[a:b], rules, vanish
+    return ph[a:b], rules, vanish, tafkheem(groups, a, b)
 
 def ayah(sa):
     s, a = sa
@@ -93,9 +107,12 @@ if __name__ == '__main__':
                 e = {'p': base[0]}
                 if base[1]: e['r'] = base[1]
                 if base[2]: e['v'] = 1
+                if base[3]: e['f'] = base[3]
                 for key, alt in (('i', ic), ('w', cw), ('o', iw)):
                     if alt[0] != base[0] or alt[1] != base[1]:
                         e[key] = [alt[0], alt[1]] if alt[1] else alt[0]
+                    if alt[3] != base[3]:
+                        e['f' + key] = alt[3]
                 ws.append(e)
             ayahs.append({'t': words, 'w': ws})
         raw = json.dumps(ayahs, ensure_ascii=False, separators=(',', ':')).encode()

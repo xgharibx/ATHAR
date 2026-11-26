@@ -115,7 +115,7 @@ export default function Q2Hub() {
           <span className="q2-tile-medal"><Mic size={24} aria-hidden="true" /></span>
           <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
             <b style={{ display: "flex", alignItems: "center", gap: 8 }}>التسميع <span className="q2-badge">جديد</span></b>
-            <span>اتلُ من حفظك، فيتتبعك كلمةً كلمة، ويزن تجويدك على جهازك: المدود والغنن والقلقلة وأخطاء النطق، وتسمع نطقك ونطق القارئ للكلمة نفسها.</span>
+            <span>اتلُ من حفظك، فيتتبعك كلمةً كلمة، ويزن تجويدك على جهازك: المدود والغنن والقلقلة والتفخيم والترقيق وأخطاء النطق، وتسمع نطقك ونطق القارئ للكلمة نفسها.</span>
           </span>
           <ArrowLeft size={18} aria-hidden="true" />
         </button>

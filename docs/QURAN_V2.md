@@ -229,11 +229,29 @@ No single app joins these together; several exist nowhere in Arabic:
   of its words, as the model card says.
 - The engine (the model and the runtime's WebAssembly, 38 MB) is downloaded once at a fixed
   revision, checked against its SHA-256 and kept on the device; nothing is sent anywhere.
-  On the website the recogniser still follows the words live while the engine records; on
-  phones the engine listens alone (the phone's recogniser cannot share the microphone) and
-  says which words were said.
+  On the website the recogniser still follows the words live while the engine records.
+
+**Phase 7: the engine follows on phones, and hears tafkhim**
+- On phones (and wherever the speech recogniser is missing or gives up) the engine follows
+  the words live itself (`src/quran2/tajweed/follow.ts`): every 0.6–1.5 s it hears the last
+  6 s and finds them in the passage's expected script (the whole of what was heard laid over
+  a stretch near where the reciter was, free to start and end anywhere); the word reached
+  glows, the words heard before it turn green, and at the end of the passage the verdict
+  comes by itself. Words skipped are left for the verdict to tell. Checked end to end with a
+  fake microphone: al-Ikhlas (the word lit about a second behind the voice), al-Ikhlas with
+  an ayah left out, al-Mulk 1–2.
+- Tafkhim and tarqiq of the ر, the lam of the Name and the alif after them, as imam.py's
+  `_sifat_notes`: the int8 model has only the phoneme head, so the tafkhim head (8 KB of
+  weights read from the same revision's `model.safetensors`) is written as a protobuf patch
+  (`tools/quran2/tajweed/tafkheem_patch.py`) that, appended to the checked model on the device,
+  adds an output to its graph — protobuf merges a message given twice — and leaves the
+  phoneme output bit for bit the same (checked in ONNX Runtime and ONNX Runtime Web). Its
+  labels are paired with the heard sound groups as the teacher model's decoder does (only
+  when there are as many); the expected tafkhim of every word, in every context, comes with
+  the pieces (`pieces.py`). `tests/quran2Tajweed.test.ts` checks 420 stretches against the
+  phonetizer and 1,059 remarks against imam.py; on 70 professional recitations, 1.3% of the
+  ر / ل / ا groups would get a remark.
 
 **Next**
-- Live word following by the engine itself on phones (a sliding window every few seconds).
 - Warsh (the model and the rules know it; the Warsh mushaf text is needed).
-- The sifat heads (tafkhim and tarqiq of ر and the lam of the Name) with the PyTorch weights.
+- The other sifat heads, if a teacher would correct them (the rest follow from the letter).
