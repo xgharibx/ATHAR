@@ -24,6 +24,7 @@
     <string name="widget_qadaa_label">أثر · القضاء</string>
     <string name="widget_q2_hifz_label">أثر · حفظك اليوم</string>
     <string name="widget_qadaa_board_label">أثر · لوحة القضاء</string>
+    <string name="widget_listen_label">أثر · السماع</string>
     <!-- Quick Settings tiles (PrayerTileService, SebhaTileService). -->
     <string name="tile_prayer_label">الصلاة القادمة</string>
     <string name="tile_prayer_open">افتح مواقيت الصلاة</string>

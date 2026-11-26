@@ -52,6 +52,9 @@
     <color name="widget_l_text_primary">#1A1D29</color>
     <color name="widget_l_text_secondary">#5B5F70</color>
     <color name="widget_l_text_accent">#9A7326</color>
+    <!-- «السماع» widget: the live dot and «يُتلى الآن». -->
+    <color name="widget_listen_live">#7DC7A3</color>
+    <color name="widget_l_listen_live">#2E7D5B</color>
     <color name="widget_l_row_active">#9A7326</color>
     <color name="widget_l_row_active_time">#1A1D29</color>
     <color name="widget_l_row_passed">#7C9A82</color>

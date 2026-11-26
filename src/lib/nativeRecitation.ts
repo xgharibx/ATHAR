@@ -35,7 +35,7 @@ type QuranAudioPlugin = {
     startPositionMs?: number;
   }): Promise<void>;
   /** App builds from before the listening section reject these two. */
-  position(): Promise<{ index: number; positionMs: number; durationMs: number; playing: boolean }>;
+  position(): Promise<{ index: number; id?: string; positionMs: number; durationMs: number; playing: boolean }>;
   seek(options: { positionMs: number; index?: number }): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;
@@ -135,6 +135,11 @@ export async function startNativeRecitation(
     repeat: RecitationRepeat;
     live?: boolean;
     startPositionMs?: number;
+    /**
+     * Follow what the native player is already playing (a widget or the lock
+     * screen started it), without starting it again.
+     */
+    attach?: boolean;
   },
   events: NativeRecitationEvents,
 ): Promise<NativeRecitationSession | null> {
@@ -180,7 +185,7 @@ export async function startNativeRecitation(
         if (!ended) events.onError(message, index);
       }),
     );
-    await native.play({
+    if (!options.attach) await native.play({
       items: options.verses,
       startIndex: options.startIndex,
       rate: options.rate,
@@ -225,7 +230,7 @@ export async function startNativeRecitation(
  * Where the native player is in its current track, or null when there is no
  * native player (or this app build is older than the listening section).
  */
-export async function nativePlaybackPosition(): Promise<{ index: number; positionMs: number; durationMs: number; playing: boolean } | null> {
+export async function nativePlaybackPosition(): Promise<{ index: number; id?: string; positionMs: number; durationMs: number; playing: boolean } | null> {
   const native = nativePlugin();
   if (!native) return null;
   try {

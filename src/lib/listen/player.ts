@@ -251,9 +251,10 @@ function nativeRepeat(): "none" | "one" | "all" {
   return state.repeat === "one" ? "one" : state.repeat === "all" ? "all" : "none";
 }
 
-async function startNative(startIndex: number, startPositionMs: number, myToken: number) {
+async function startNative(startIndex: number, startPositionMs: number, myToken: number, attach = false) {
   const session = await startNativeRecitation(
     {
+      attach,
       verses: state.queue.map((t) => ({ id: t.id, url: t.url, title: t.title, artist: t.artist, album: t.album })),
       startIndex,
       rate: state.rate,
@@ -597,12 +598,32 @@ export function removeFromQueue(index: number) {
   if (native) void load(state.index, state.positionMs);
 }
 
+/**
+ * A widget, the lock screen or Control Center started this queue again while
+ * the page had let go of it (paused from here, then played from the Home
+ * Screen): follow the native player, so the screen shows what is heard.
+ */
+async function adoptNative() {
+  if (native || !hasNativeRecitation() || !state.queue.length || state.status === "playing" || state.status === "loading") return;
+  const pos = await nativePlaybackPosition();
+  if (!pos?.playing || !pos.id || native) return;
+  const index = state.queue.findIndex((t) => t.id === pos.id);
+  // Only the same run of tracks (the player keeps the one it was given last).
+  if (index < 0 || index !== pos.index) return;
+  const myToken = ++token;
+  trackChanged();
+  setState({ index, status: "playing", positionMs: pos.positionMs, durationMs: pos.durationMs, error: null });
+  if (!(await startNative(index, 0, myToken, true)) && myToken === token) setState({ status: "paused" });
+}
+
 if (typeof document !== "undefined") {
-  // Keep the resume point when the app is put away.
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
+      // Keep the resume point when the app is put away.
       flushCredit();
       saveProgress(true);
+    } else {
+      void adoptNative();
     }
   });
 }

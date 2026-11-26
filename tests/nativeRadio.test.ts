@@ -138,9 +138,12 @@ describe("the radio in the apps", () => {
   it("marks the stations as live on both phones", () => {
     const ios = readFileSync(resolve(process.cwd(), "ios/App/App/QuranAudioPlugin.swift"), "utf8");
     const android = readFileSync(resolve(process.cwd(), "android/app/src/main/java/com/athar/adhkar/QuranAudioPlugin.java"), "utf8");
+    // The plugin builds its media items through ListenWidget (shared with the «السماع» widget).
+    const items = readFileSync(resolve(process.cwd(), "android/app/src/main/java/com/athar/adhkar/ListenWidget.java"), "utf8");
     expect(ios).toContain("MPNowPlayingInfoPropertyIsLiveStream: live");
     expect(ios).toContain('call.getBool("live")');
-    expect(android).toContain("MEDIA_TYPE_RADIO_STATION");
+    expect(android).toContain("ListenWidget.station(");
+    expect(items).toContain("MEDIA_TYPE_RADIO_STATION");
     expect(android).toContain('call.getBoolean("live", false)');
   });
 });

@@ -2,14 +2,12 @@ package com.athar.adhkar;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.core.content.ContextCompat;
 import androidx.media3.common.MediaItem;
-import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
@@ -22,7 +20,6 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.common.util.concurrent.ListenableFuture;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -55,8 +52,6 @@ import org.json.JSONObject;
 @OptIn(markerClass = UnstableApi.class)
 @CapacitorPlugin(name = "QuranAudio")
 public class QuranAudioPlugin extends Plugin {
-
-    private static final String ARTWORK = "asset:///public/icons/icon-512.png";
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService downloads = Executors.newSingleThreadExecutor();
@@ -190,30 +185,14 @@ public class QuranAudioPlugin extends Plugin {
 
     private MediaItem mediaItem(JSONObject item) throws JSONException {
         String url = item.getString("url");
-        File saved = RecitationDownloads.existing(getContext(), url);
-        Uri uri = saved != null ? Uri.fromFile(saved) : Uri.parse(url);
-        MediaMetadata metadata = new MediaMetadata.Builder()
-            .setTitle(item.optString("title", "القرآن الكريم"))
-            .setArtist(item.optString("artist", ""))
-            .setAlbumTitle(item.optString("album", "القرآن الكريم · أثر"))
-            .setArtworkUri(Uri.parse(ARTWORK))
-            .build();
-        return new MediaItem.Builder().setMediaId(item.optString("id", url)).setUri(uri).setMediaMetadata(metadata).build();
+        return ListenWidget.track(getContext(), item.optString("id", url), url, item.optString("title", "القرآن الكريم"),
+            item.optString("artist", ""), item.optString("album", "القرآن الكريم · أثر"));
     }
 
     /** A Quran radio station: streamed live, never from a saved file. */
     private MediaItem radioItem(JSONObject item) throws JSONException {
         String url = item.getString("url");
-        MediaMetadata metadata = new MediaMetadata.Builder()
-            .setTitle(item.optString("title", "إذاعة القرآن الكريم"))
-            .setArtist(item.optString("artist", ""))
-            .setAlbumTitle("إذاعة القرآن الكريم · أثر")
-            .setArtworkUri(Uri.parse(ARTWORK))
-            .setMediaType(MediaMetadata.MEDIA_TYPE_RADIO_STATION)
-            .setIsPlayable(true)
-            .setIsBrowsable(false)
-            .build();
-        return new MediaItem.Builder().setMediaId(item.optString("id", url)).setUri(Uri.parse(url)).setMediaMetadata(metadata).build();
+        return ListenWidget.station(item.optString("id", url), url, item.optString("title", "إذاعة القرآن الكريم"), item.optString("artist", ""));
     }
 
     private static float clampRate(@Nullable Float rate) {
@@ -260,26 +239,58 @@ public class QuranAudioPlugin extends Plugin {
         withController(call, Player::seekToPreviousMediaItem);
     }
 
-    /** Where the player is: the listening section's progress bar polls this while it is open. */
+    /**
+     * Where the player is: the listening section's progress bar polls this while
+     * it is open, and the app asks it on coming back, to follow a recitation the
+     * «السماع» widget started (it connects to the player again for that).
+     */
     @PluginMethod
     public void position(PluginCall call) {
         main.post(() -> {
-            JSObject data = new JSObject();
             MediaController current = controller;
-            if (current == null || !current.isConnected() || current.getMediaItemCount() == 0) {
-                data.put("index", -1);
-                data.put("positionMs", 0);
-                data.put("durationMs", 0);
-                data.put("playing", false);
-            } else {
-                long duration = current.getDuration();
-                data.put("index", current.getCurrentMediaItemIndex());
-                data.put("positionMs", Math.max(0L, current.getCurrentPosition()));
-                data.put("durationMs", duration == androidx.media3.common.C.TIME_UNSET ? 0 : Math.max(0L, duration));
-                data.put("playing", current.isPlaying());
+            if (current != null && current.isConnected()) {
+                call.resolve(positionOf(current));
+                return;
             }
-            call.resolve(data);
+            Context context = getContext();
+            SessionToken token = new SessionToken(context, new ComponentName(context, RecitationService.class));
+            ListenableFuture<MediaController> future = new MediaController.Builder(context, token).buildAsync();
+            controllerFuture = future;
+            future.addListener(() -> {
+                try {
+                    MediaController connected = future.get();
+                    if (controller == null || !controller.isConnected()) {
+                        connected.addListener(listener);
+                        controller = connected;
+                    } else if (controller != connected) {
+                        connected.release();
+                    }
+                    call.resolve(positionOf(controller));
+                } catch (Exception e) {
+                    call.resolve(positionOf(null));
+                }
+            }, ContextCompat.getMainExecutor(context));
         });
+    }
+
+    private static JSObject positionOf(@Nullable MediaController current) {
+        JSObject data = new JSObject();
+        if (current == null || !current.isConnected() || current.getMediaItemCount() == 0) {
+            data.put("index", -1);
+            data.put("id", "");
+            data.put("positionMs", 0);
+            data.put("durationMs", 0);
+            data.put("playing", false);
+        } else {
+            long duration = current.getDuration();
+            MediaItem item = current.getCurrentMediaItem();
+            data.put("index", current.getCurrentMediaItemIndex());
+            data.put("id", item == null ? "" : item.mediaId);
+            data.put("positionMs", Math.max(0L, current.getCurrentPosition()));
+            data.put("durationMs", duration == androidx.media3.common.C.TIME_UNSET ? 0 : Math.max(0L, duration));
+            data.put("playing", current.isPlaying());
+        }
+        return data;
     }
 
     @PluginMethod

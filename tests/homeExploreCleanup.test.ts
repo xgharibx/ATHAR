@@ -28,9 +28,9 @@ describe("«اكتشف» in «أفق»", () => {
     expect(explore).toContain("FEATURED_ADHKAR");
   });
 
-  it("shows the leaderboard near the top, and on «اليوم»", () => {
+  it("shows the leaderboard near the top, and quietly on «اليوم» (a trophy in the top bar)", () => {
     expect(explore.indexOf('navigate("/leaderboard")')).toBeLessThan(explore.indexOf("UFUQ_EXPLORE_GROUPS.map"));
-    expect(read("src/components/ufuq/UfuqHome.tsx")).toContain('navigate("/leaderboard")');
+    expect(read("src/components/ufuq/UfuqShell.tsx")).toContain('<NavLink to="/leaderboard" className="u-icon-btn" aria-label="المتصدرون">');
   });
 });
 
