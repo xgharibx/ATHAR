@@ -1,12 +1,12 @@
 /**
  * رفيق أثر — the Athar AI companion.
  *
- * Powered by MiniMax M3.1 Flash exclusively. The app has a single AI surface that every
+ * Powered by OpenAI GPT-6 Luna, chosen on the server. The app has a single AI surface that every
  * user reaches the same way — no model picker, no BYOK, no provider toggles.
  *
  * Data handling:
  *  - No user API keys are accepted or stored.
- *  - Prompts go through our Supabase Edge Function proxy to MiniMax; requests
+ *  - Prompts go through our Supabase Edge Function proxy to OpenAI; requests
  *    include at most 16 recent messages and a 48,000-character history cap.
  *    Progress, profile, inferred mood, and question memory are opt-in.
  *  - Conversation history + memory are stored on the user's device (IndexedDB
@@ -45,7 +45,8 @@ import { forHijri } from "@/lib/hijri";
 
 /* ─── Locked model + transport ───────────────────────────────────────────── */
 
-const MODEL = "MiniMax-M3.1-Flash";
+// Informational: the server chooses the model itself and ignores this field.
+const MODEL = "gpt-6-luna";
 
 /* Default proxy endpoint — the canonical Supabase Edge Function URL for
    this project. We hardcode it as a fallback so deployed builds that
@@ -108,7 +109,7 @@ export const IS_PROD_BUILD = (import.meta as unknown as { env?: { PROD?: boolean
 
 /* ─── Public types ───────────────────────────────────────────────────────── */
 
-export type CompanionProvider = "minimax";
+export type CompanionProvider = "openai";
 export type CompanionMessage = { role: "user" | "assistant"; content: string };
 
 const MAX_OUTBOUND_MESSAGES = 16;

@@ -7,7 +7,7 @@ import * as React from "react";
 import { prefetchWhenIdle } from "@/lib/prefetch";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Pause, Play, Radio, Search, Settings2, X } from "lucide-react";
+import { ChevronRight, Pause, Play, Radio, Search, Settings2, Trophy, X } from "lucide-react";
 import { vibrate } from "@/lib/haptics";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { UpdatePill } from "@/components/layout/UpdatePill";
@@ -137,6 +137,12 @@ function UfuqTopBar({ onSearch }: { onSearch: () => void }) {
         </div>
         <div className="u-topbar-end">
           <UpdatePill />
+          {/* «المتصدرون», quietly: a trophy on «اليوم», as games sit in a phone's own apps. */}
+          {location.pathname === "/" ? (
+            <NavLink to="/leaderboard" className="u-icon-btn" aria-label="المتصدرون">
+              <Trophy size={19} aria-hidden="true" />
+            </NavLink>
+          ) : null}
           <button type="button" className="u-icon-btn" aria-label="بحث" onClick={onSearch}>
             <Search size={19} aria-hidden="true" />
           </button>

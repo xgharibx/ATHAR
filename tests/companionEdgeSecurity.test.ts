@@ -22,6 +22,8 @@ type Options = {
   searchFailure?: boolean;
   upstreamStatus?: number;
   sseAnswer?: string;
+  /** Answer through OpenAI (OPENAI_API_KEY set): output items of a Responses reply. */
+  openai?: { output?: unknown[]; searchOutput?: unknown[]; stream?: string };
 };
 
 function edge(options: Options = {}) {
@@ -50,7 +52,7 @@ function edge(options: Options = {}) {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
   }).outputText;
   // Supporting modules are loaded into the same context, in dependency order.
-  const moduleJs = ["text", "quran", "ayah", "hadith", "sources", "evidence", "guard", "prompt", "stream", "cors"] /* dependency order */.map((name) => {
+  const moduleJs = ["text", "quran", "ayah", "hadith", "sources", "openai", "evidence", "guard", "prompt", "stream", "cors"] /* dependency order */.map((name) => {
     const moduleSource = fs.readFileSync(path.resolve(`supabase/functions/companion/${name}.ts`), "utf8")
       .replace(/^import .*;\r?\n/gm, "")
       .replace(/^export /gm, "");
@@ -80,6 +82,21 @@ function edge(options: Options = {}) {
       if (String(url).includes("dorar.net")) {
         calls.push({ type: "dorar", detail: { url: decodeURIComponent(String(url)) } });
         return new Response(JSON.stringify({ ahadith: { result: options.dorarHtml ?? "" } }), { status: 200 });
+      }
+      if (String(url).startsWith("https://api.openai.com/")) {
+        const body = String(init.body);
+        const kind = body.includes('"find_evidence"') ? "plan" : "upstream";
+        calls.push({ type: kind, detail: { ...init, url: String(url) } });
+        const reply = (output: unknown[]) => new Response(JSON.stringify({ id: "resp", status: "completed", output, usage: { input_tokens: 3, output_tokens: 4 } }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+        if (kind === "plan") return reply([]);
+        if (body.includes('"web_search"')) return reply(options.openai?.searchOutput ?? []);
+        if (body.includes('"stream":true') && options.openai?.stream !== undefined) {
+          return new Response(options.openai.stream, { status: 200, headers: { "Content-Type": "text/event-stream" } });
+        }
+        return reply(options.openai?.output ?? []);
       }
       if (String(init.body).includes('"find_evidence"')) {
         calls.push({ type: "plan", detail: init });
@@ -133,6 +150,7 @@ function edge(options: Options = {}) {
       env: {
         get: (name: string) => ({
           MINIMAX_API_KEY: "synthetic-provider-key",
+          ...(options.openai ? { OPENAI_API_KEY: "synthetic-openai-key" } : {}),
           SUPABASE_URL: "https://synthetic.supabase.co",
           SUPABASE_ANON_KEY: "synthetic-publishable-key",
           SUPABASE_SERVICE_ROLE_KEY: "synthetic-service-key",
@@ -770,5 +788,80 @@ describe("Companion Edge Function access controls", () => {
         expect(app.calls).toEqual([]);
       }
     });
+  });
+});
+
+describe("Companion on OpenAI (GPT-6 Luna)", () => {
+  const message = (text: string, annotations: unknown[] = []) => ({ type: "message", content: [{ type: "output_text", text, annotations }] });
+  const openAiBodies = (app: ReturnType<typeof edge>) => app.calls
+    .filter((call) => call.type === "upstream")
+    .map((call) => ({ url: (call.detail as { url?: string }).url, init: call.detail as RequestInit, body: JSON.parse(String((call.detail as RequestInit).body)) as Record<string, unknown> }));
+
+  it("answers through the Responses API with the server's key, model and reasoning depth", async () => {
+    const app = edge({ openai: { output: [message("الصدقة تطفئ غضب الرب، وهي من أفضل القربات.")] } });
+    const response = await app.sendRaw(JSON.stringify({ model: "MiniMax-M3", max_tokens: 512, system: "synthetic system prompt", messages: [{ role: "user", content: "ما فضل الصدقة؟" }] }), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    const [answer] = openAiBodies(app);
+    expect(answer?.url).toBe("https://api.openai.com/v1/responses");
+    expect(new Headers(answer?.init.headers).get("Authorization")).toBe("Bearer synthetic-openai-key");
+    expect(answer?.body).toMatchObject({ model: "gpt-6-luna", store: false, reasoning: { effort: "low" }, max_output_tokens: 4096 });
+    expect(String(answer?.body.instructions)).toContain("synthetic system prompt");
+    const json = await response.json() as { content: Array<{ type: string; text?: string }> };
+    expect(json.content.find((block) => block.type === "text")?.text).toContain("الصدقة");
+  });
+
+  it("streams the reply in the events the app reads", async () => {
+    const ev = (data: Record<string, unknown>) => `event: ${data.type}\ndata: ${JSON.stringify(data)}\n\n`;
+    const stream = ev({ type: "response.created" })
+      + ev({ type: "response.output_text.delta", item_id: "m1", content_index: 0, delta: "الصدقة تطفئ " })
+      + ev({ type: "response.output_text.delta", item_id: "m1", content_index: 0, delta: "غضب الرب، وهي من أفضل القربات." })
+      + ev({ type: "response.output_text.done", item_id: "m1", content_index: 0 })
+      + ev({ type: "response.completed", response: { status: "completed", usage: { output_tokens: 9 } } });
+    const app = edge({ openai: { stream } });
+    const response = await app.sendRaw(JSON.stringify({ max_tokens: 512, stream: true, system: "synthetic system prompt", messages: [{ role: "user", content: "ما فضل الصدقة؟" }] }), "Bearer synthetic-user-token");
+    const text = await response.text();
+    for (const type of ["message_start", "content_block_start", "content_block_delta", "content_block_stop", "message_delta", "message_stop"]) {
+      expect(text).toContain(`event: ${type}`);
+    }
+    const reply = text.split("\n\n").map((event) => event.split("\n").find((line) => line.startsWith("data:")))
+      .filter((line): line is string => Boolean(line)).map((line) => JSON.parse(line.slice(5)) as { type: string; delta?: { text?: string } })
+      .filter((event) => event.type === "content_block_delta").map((event) => event.delta?.text ?? "").join("");
+    expect(reply).toContain("الصدقة تطفئ غضب الرب");
+  });
+
+  it("searches only the trusted sites, and never trusts the search model's own sentences as quotable", async () => {
+    const said = "قال أهل العلم: يكره إفراد الجمعة بالصيام تطوعًا.";
+    const searchOutput = [
+      { type: "web_search_call", status: "completed" },
+      message(`${said} ([islamweb](https://www.islamweb.net/ar/fatwa/1?utm_source=openai)) وقيل غير ذلك. ([x](https://attacker.invalid/a))`, [
+        { type: "url_citation", url: "https://www.islamweb.net/ar/fatwa/1?utm_source=openai", title: "Trusted", start_index: said.length + 1, end_index: said.length + 59 },
+        { type: "url_citation", url: "https://attacker.invalid/a", title: "Untrusted", start_index: said.length + 72, end_index: said.length + 100 },
+      ]),
+    ];
+    const app = edge({ openai: { searchOutput, output: [message("يكره إفراد يوم الجمعة بالصيام تطوعًا إلا مع يوم قبله أو بعده.")] } });
+    const response = await app.sendRaw(JSON.stringify({ ...{
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content: "synthetic question that is long enough to search" }],
+      tools: [{ type: "web_search_20250305", name: "web_search", allowed_domains: ["attacker.invalid"] }],
+    } }), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    const [search, answer] = openAiBodies(app);
+    const tool = (search?.body.tools as Array<{ type: string; filters?: { allowed_domains?: string[] } }>)[0];
+    expect(tool?.type).toBe("web_search");
+    expect(tool?.filters?.allowed_domains).toContain("islamweb.net");
+    expect(tool?.filters?.allowed_domains).not.toContain("attacker.invalid");
+    expect(search?.body.tool_choice).toBe("required");
+    const instructions = String(answer?.body.instructions);
+    expect(instructions).toContain("https://www.islamweb.net/ar/fatwa/1");
+    expect(instructions).toContain("يكره إفراد الجمعة بالصيام");
+    expect(instructions).not.toContain("attacker.invalid");
+  });
+
+  it("falls back to MiniMax while no OpenAI key is set", async () => {
+    const app = edge();
+    await app.send("Bearer synthetic-user-token");
+    expect(app.calls.some((call) => String((call.detail as { url?: string })?.url ?? "").includes("openai"))).toBe(false);
   });
 });

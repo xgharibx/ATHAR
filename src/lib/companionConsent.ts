@@ -1,9 +1,10 @@
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
-// v2 is intentionally separate from the legacy device-wide grant. That old
-// value cannot be attributed to a particular account, so reusing it could let
-// one account inherit another person's approval on a shared device.
-const CONSENT_KEY = "athar_companion_minimax_consent_v2";
+// A grant names the service it was given for: the move from MiniMax to OpenAI
+// asks everyone again (the MiniMax grants, v1 device-wide and v2 per account,
+// no longer count). Grants are per account, so on a shared device one account
+// never inherits another person's approval.
+const CONSENT_KEY = "athar_companion_openai_consent_v1";
 
 export function hasCompanionAiConsent(): boolean {
   try {

@@ -20,7 +20,8 @@ Names only. Values live in the service that uses them and are never committed.
 
 | Secret | Where | Used for | Rotate |
 |---|---|---|---|
-| `MINIMAX_API_KEY` | Supabase function secrets | Assistant model calls | Yearly, and at once if exposed |
+| `OPENAI_API_KEY` | Supabase function secrets | Assistant model calls (GPT-6 Luna) | Yearly, and at once if exposed |
+| `MINIMAX_API_KEY` | Supabase function secrets | Fallback model, used only while `OPENAI_API_KEY` is unset | Yearly, or remove once no longer needed |
 | `LEADERBOARD_ADMIN_TOKEN` | Supabase function secrets | Leaderboard moderation | Yearly, and whenever someone with access leaves |
 | `QF_CLIENT_ID`, `QF_CLIENT_SECRET` | Supabase function secrets | Quran Foundation translations | As the provider requires |
 | Supabase service-role and secret keys | Supabase | Server access to the database | At once if exposed |
@@ -79,4 +80,4 @@ Names only. Values live in the service that uses them and are never committed.
 
 1. Capture the question and the answer.
 2. If the wording of a verse or hadith was wrong, treat it as a defect in the verification guard and add a failing test.
-3. If the cost ceiling or a provider failure is involved, the assistant can be stopped at once by removing `MINIMAX_API_KEY`; the rest of the app is unaffected.
+3. If the cost ceiling or a provider failure is involved, the assistant can be stopped at once by removing `OPENAI_API_KEY` and `MINIMAX_API_KEY`; the rest of the app is unaffected.

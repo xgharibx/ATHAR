@@ -345,6 +345,18 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_q2_hifz_info" />
         </receiver>
+        <!-- «السماع» widget (4×2, interactive: play, pause and skip) -->
+        <receiver
+            android:name=".NoorListenWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_listen_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_listen_info" />
+        </receiver>
         <!-- Qadaa Board Widget (4×3, interactive) -->
         <receiver
             android:name=".NoorQadaaBoardWidgetProvider"

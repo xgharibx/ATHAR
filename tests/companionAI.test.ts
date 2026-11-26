@@ -52,7 +52,7 @@ describe("Companion AI — readiness", () => {
   });
 
   it("exposes the locked model name", () => {
-    expect(COMPANION_MODEL).toBe("MiniMax-M3.1-Flash");
+    expect(COMPANION_MODEL).toBe("gpt-6-luna");
   });
 });
 

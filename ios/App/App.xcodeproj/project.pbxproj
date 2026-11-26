@@ -40,6 +40,7 @@
 		96D08E045BF778DEA8707BAB /* StoreReviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38645E93D64FA1A0A51C79E1 /* StoreReviewPlugin.swift */; };
 		A1CBE00D3AC331902703D6FB /* PrayerTopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE9B2E3EFAB7652D523EDC2 /* PrayerTopUp.swift */; };
 		A444128C4A5B6C186E9A6F89 /* AtharTasbeehWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10D03353703029A438FEE40 /* AtharTasbeehWidget.swift */; };
+		C7A1E2B3D4F5061728394A5B /* AtharListenWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A1E2B3D4F5061728394A5C /* AtharListenWidget.swift */; };
 		A62F5D8330BB8E6F49B43C6A /* WidgetRefreshPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */; };
 		A6FAA9B3C0FFE763C7AA776D /* AppShortcuts.strings in Resources */ = {isa = PBXBuildFile; fileRef = B860B345560F1E6A23920DF9 /* AppShortcuts.strings */; };
 		A7D84291C0A24D96A7A11001 /* AuthBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D84291C0A24D96A7A12001 /* AuthBridgePlugin.swift */; };
@@ -130,6 +131,7 @@
 		B041649460E0E938DE20DFE6 /* SystemSettingsPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemSettingsPlugin.swift; sourceTree = "<group>"; };
 		DE71C52871A61DA0BBA13DE7 /* NativeUIPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeUIPlugin.swift; sourceTree = "<group>"; };
 		B10D03353703029A438FEE40 /* AtharTasbeehWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharTasbeehWidget.swift; sourceTree = "<group>"; };
+		C7A1E2B3D4F5061728394A5C /* AtharListenWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtharListenWidget.swift; sourceTree = "<group>"; };
 		C2F93A04E4D4E982A503D758 /* WidgetRefreshPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetRefreshPlugin.swift; sourceTree = "<group>"; };
 		D3646930F2BA6A8C2EFE8343 /* OpenAtharScreenIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OpenAtharScreenIntent.swift; sourceTree = "<group>"; };
 		D7104E0C1268ABBB2F0C6B8D /* AdhanAlarmPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdhanAlarmPlugin.swift; sourceTree = "<group>"; };
@@ -261,6 +263,7 @@
 				ACF0538B9505F0274F3CE067 /* AtharDailyWidgets.swift */,
 				0179CF4362FFF4CD1EA8A4DA /* AsmaAlHusna.swift */,
 				B10D03353703029A438FEE40 /* AtharTasbeehWidget.swift */,
+				C7A1E2B3D4F5061728394A5C /* AtharListenWidget.swift */,
 				8CFE3AE8D41290C1677A7A7F /* AtharControls.swift */,
 				AC4FFEF27FFB5830C345962B /* AtharMoreWidgets.swift */,
 			);
@@ -442,6 +445,7 @@
 				8D9A09D5738883D857334540 /* AtharDailyWidgets.swift in Sources */,
 				92E1E605EDF9949C6B741DCE /* AsmaAlHusna.swift in Sources */,
 				A444128C4A5B6C186E9A6F89 /* AtharTasbeehWidget.swift in Sources */,
+				C7A1E2B3D4F5061728394A5B /* AtharListenWidget.swift in Sources */,
 				59C2BF6AFBC722E3C1354DF5 /* OpenAtharScreenIntent.swift in Sources */,
 				AAD527A3FFE642A19917078B /* AtharControls.swift in Sources */,
 				110A2AC5BBFFC355DF4204CE /* AtharMoreWidgets.swift in Sources */,
@@ -609,14 +613,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 104;
+				CURRENT_PROJECT_VERSION = 105;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.91;
+				MARKETING_VERSION = 1.2.92;
 				OTHER_SWIFT_FLAGS = "$(inherited) -DDEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.athar.adhkar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -633,14 +637,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 104;
+				CURRENT_PROJECT_VERSION = 105;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.91;
+				MARKETING_VERSION = 1.2.92;
 				PRODUCT_BUNDLE_IDENTIFIER = com.athar.adhkar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
@@ -656,7 +660,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = AtharWidgets/AtharWidgets.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 104;
+				CURRENT_PROJECT_VERSION = 105;
 				INFOPLIST_FILE = AtharWidgets/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -664,7 +668,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.91;
+				MARKETING_VERSION = 1.2.92;
 				PRODUCT_BUNDLE_IDENTIFIER = com.athar.adhkar.AtharWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -681,7 +685,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = AtharWidgets/AtharWidgets.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 104;
+				CURRENT_PROJECT_VERSION = 105;
 				INFOPLIST_FILE = AtharWidgets/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -689,7 +693,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.91;
+				MARKETING_VERSION = 1.2.92;
 				PRODUCT_BUNDLE_IDENTIFIER = com.athar.adhkar.AtharWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;

@@ -2,6 +2,9 @@ import AVFoundation
 import Capacitor
 import MediaPlayer
 import UIKit
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 /**
  * The Mushaf's native recitation player.
@@ -31,6 +34,13 @@ import UIKit
  * Events: "itemChange" { index, id }, "stateChange" { state }
  * (playing | paused | buffering | stopped), "ended", "error" { message, index }.
  * Verses saved offline play from the file; the rest stream.
+ *
+ * «السماع» widgets (AtharListenWidget.swift, the Control Center switch): each
+ * change writes AtharListen.Snapshot to the App Group, and the widgets'
+ * buttons come back through AtharListen.handler. The last run of tracks is
+ * kept, with where it stopped, so a widget can pick it up again after the app
+ * was closed; the web app follows it when it comes back (position() carries
+ * the playing track's id for that).
  */
 @objc(QuranAudioPlugin)
 public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
@@ -56,7 +66,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "removeDownloads", returnType: CAPPluginReturnPromise),
     ]
 
-    private struct Verse {
+    private struct Verse: Codable {
         let id: String
         let url: URL
         let title: String
@@ -64,7 +74,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let album: String?
     }
 
-    private enum Repeat: String {
+    private enum Repeat: String, Codable {
         case none, one, all
     }
 
@@ -98,6 +108,14 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         let center = NotificationCenter.default
         center.addObserver(self, selector: #selector(handleInterruption(_:)), name: AVAudioSession.interruptionNotification, object: nil)
         center.addObserver(self, selector: #selector(handleFailure(_:)), name: AVPlayerItem.failedToPlayToEndTimeNotification, object: nil)
+        DispatchQueue.main.async {
+            AtharListen.handler = { [weak self] action in self?.widgetCommand(action) }
+            if let pending = AtharListen.pending {
+                AtharListen.pending = nil
+                // Only a tap from the last few seconds: an old one would surprise.
+                if Date().timeIntervalSince(pending.at) < 15 { self.widgetCommand(pending.action) }
+            }
+        }
     }
 
     deinit {
@@ -155,6 +173,8 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         observeStatus(of: item)
         notifyListeners("itemChange", data: ["index": index, "id": verses[index].id])
         updateNowPlaying()
+        saveQueue()
+        publishWidget()
     }
 
     private func observeStatus(of item: AVPlayerItem) {
@@ -168,6 +188,8 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
                     ])
                 } else if item.status == .readyToPlay {
                     self.updateNowPlaying()
+                    // The track's length is known now: the widget's bar can run.
+                    self.publishWidget()
                 }
             }
         }
@@ -188,9 +210,15 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         guard state != lastState else { return }
         lastState = state
         notifyListeners("stateChange", data: ["state": state])
+        if state != "buffering" {
+            if state == "paused" { saveQueue() }
+            publishWidget()
+        }
     }
 
     private func finish(event: String?) {
+        // Kept to resume from a widget; a recitation that ran to its end starts afresh.
+        if event == "ended" { forgetQueue() } else { saveQueue() }
         active = false
         player.pause()
         player.removeAllItems()
@@ -201,6 +229,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         if let event { notifyListeners(event, data: [:]) }
         emitState()
+        publishWidget()
     }
 
     // MARK: Lock screen
@@ -248,7 +277,10 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         commands.changePlaybackPositionCommand.isEnabled = !live
         let scrub = commands.changePlaybackPositionCommand.addTarget { [weak self] event in
             guard let self, let event = event as? MPChangePlaybackPositionCommandEvent else { return .commandFailed }
-            self.player.seek(to: CMTime(seconds: event.positionTime, preferredTimescale: 1000)) { _ in self.updateNowPlaying() }
+            self.player.seek(to: CMTime(seconds: event.positionTime, preferredTimescale: 1000)) { _ in
+                self.updateNowPlaying()
+                self.publishWidget()
+            }
             return .success
         }
         remoteTargets.append((commands.changePlaybackPositionCommand, scrub))
@@ -326,28 +358,32 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
 
         DispatchQueue.main.async {
             do {
-                let session = AVAudioSession.sharedInstance()
-                try session.setCategory(.playback, mode: .spokenAudio)
-                try session.setActive(true)
+                try self.start(parsed, at: start, rate: requestedRate, volume: volume, repeatMode: repeatMode, live: live, positionMs: startPositionMs)
+                call.resolve()
             } catch {
                 call.reject("The audio session could not start", nil, error)
-                return
             }
-            self.verses = parsed
-            self.repeatMode = repeatMode
-            self.live = live
-            self.rate = max(0.5, min(2, requestedRate.isFinite ? requestedRate : 1))
-            self.player.defaultRate = self.rate
-            self.player.volume = max(0, min(1, volume.isFinite ? volume : 1))
-            self.active = true
-            self.addRemoteCommands()
-            self.loadQueue(at: start)
-            if startPositionMs > 0 {
-                self.player.seek(to: CMTime(seconds: startPositionMs / 1000, preferredTimescale: 1000))
-            }
-            self.player.playImmediately(atRate: self.rate)
-            call.resolve()
         }
+    }
+
+    private func start(_ list: [Verse], at start: Int, rate requestedRate: Float, volume: Float, repeatMode: Repeat, live: Bool, positionMs startPositionMs: Double) throws {
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(.playback, mode: .spokenAudio)
+        try session.setActive(true)
+        verses = list
+        self.repeatMode = repeatMode
+        self.live = live
+        rate = max(0.5, min(2, requestedRate.isFinite ? requestedRate : 1))
+        player.defaultRate = rate
+        player.volume = max(0, min(1, volume.isFinite ? volume : 1))
+        active = true
+        addRemoteCommands()
+        loadQueue(at: start)
+        if startPositionMs > 0 {
+            player.seek(to: CMTime(seconds: startPositionMs / 1000, preferredTimescale: 1000))
+        }
+        player.playImmediately(atRate: rate)
+        saveQueue()
     }
 
     /// Where the player is: the listening section's progress bar polls this while it is open.
@@ -361,6 +397,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             let duration = item.duration.seconds
             call.resolve([
                 "index": self.currentIndex,
+                "id": self.verses.indices.contains(self.currentIndex) ? self.verses[self.currentIndex].id : "",
                 "positionMs": elapsed.isFinite ? Int(elapsed * 1000) : 0,
                 "durationMs": duration.isFinite ? Int(duration * 1000) : 0,
                 "playing": self.player.timeControlStatus == .playing,
@@ -382,6 +419,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             }
             self.player.seek(to: CMTime(seconds: positionMs / 1000, preferredTimescale: 1000)) { _ in
                 self.updateNowPlaying()
+                self.publishWidget()
             }
             call.resolve()
         }
@@ -434,6 +472,7 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
             self.player.defaultRate = self.rate
             if self.player.timeControlStatus != .paused { self.player.rate = self.rate }
             self.updateNowPlaying()
+            self.publishWidget()
             call.resolve()
         }
     }
@@ -443,6 +482,151 @@ public class QuranAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         DispatchQueue.main.async {
             self.player.volume = max(0, min(1, volume.isFinite ? volume : 1))
             call.resolve()
+        }
+    }
+
+    // MARK: «السماع» widgets
+
+    /// The run of tracks last played, and where it stopped (app only, not the App Group).
+    private struct SavedQueue: Codable {
+        let verses: [Verse]
+        let index: Int
+        let positionMs: Double
+        let live: Bool
+        let repeatMode: Repeat
+        let rate: Float
+    }
+
+    private static let savedQueueKey = "athar.listen.lastQueue.v1"
+
+    private func currentPositionMs() -> Double {
+        guard !live, let item = player.currentItem else { return 0 }
+        let elapsed = item.currentTime().seconds
+        return elapsed.isFinite ? max(0, elapsed * 1000) : 0
+    }
+
+    private func saveQueue() {
+        guard active, !verses.isEmpty, verses.indices.contains(currentIndex) else { return }
+        // A long list of verses is cut to the part ahead, so the store stays small.
+        let from = verses.count > 400 ? currentIndex : 0
+        let list = Array(verses[from..<min(verses.count, from + 400)])
+        let saved = SavedQueue(verses: list, index: currentIndex - from, positionMs: currentPositionMs(), live: live, repeatMode: repeatMode, rate: rate)
+        if let data = try? JSONEncoder().encode(saved) {
+            UserDefaults.standard.set(data, forKey: Self.savedQueueKey)
+        }
+    }
+
+    private func forgetQueue() {
+        UserDefaults.standard.removeObject(forKey: Self.savedQueueKey)
+    }
+
+    private func savedQueue() -> SavedQueue? {
+        guard let data = UserDefaults.standard.data(forKey: Self.savedQueueKey),
+              let saved = try? JSONDecoder().decode(SavedQueue.self, from: data),
+              saved.verses.indices.contains(saved.index) else { return nil }
+        return saved
+    }
+
+    /// Writes what the widgets show and asks them to draw it.
+    private func publishWidget() {
+        var snapshot: AtharListen.Snapshot
+        if active, verses.indices.contains(currentIndex) {
+            let verse = verses[currentIndex]
+            let duration = player.currentItem?.duration.seconds ?? 0
+            snapshot = AtharListen.Snapshot(
+                state: player.timeControlStatus == .paused ? "paused" : "playing",
+                title: verse.title,
+                artist: verse.artist,
+                album: verse.album,
+                live: live,
+                positionMs: currentPositionMs(),
+                durationMs: !live && duration.isFinite ? max(0, duration * 1000) : 0,
+                at: Date().timeIntervalSince1970,
+                rate: Double(rate),
+                hasNext: live || repeatMode == .all || currentIndex + 1 < verses.count,
+                hasPrevious: live || repeatMode == .all || currentIndex > 0
+            )
+        } else if let saved = savedQueue() {
+            let verse = saved.verses[saved.index]
+            let old = AtharListen.load()
+            let sameTrack = old?.title == verse.title && old?.artist == verse.artist
+            snapshot = AtharListen.Snapshot(
+                state: "paused",
+                title: verse.title,
+                artist: verse.artist,
+                album: verse.album,
+                live: saved.live,
+                positionMs: saved.positionMs,
+                durationMs: sameTrack ? (old?.durationMs ?? 0) : 0,
+                at: Date().timeIntervalSince1970,
+                rate: Double(saved.rate),
+                hasNext: saved.live || saved.index + 1 < saved.verses.count,
+                hasPrevious: saved.live || saved.index > 0
+            )
+        } else {
+            let old = AtharListen.load()
+            snapshot = AtharListen.Snapshot(
+                state: "idle", title: old?.title ?? "", artist: old?.artist ?? "", album: nil, live: false,
+                positionMs: 0, durationMs: 0, at: Date().timeIntervalSince1970, rate: 1, hasNext: false, hasPrevious: false
+            )
+        }
+        AtharListen.save(snapshot)
+        #if canImport(WidgetKit)
+        WidgetCenter.shared.reloadTimelines(ofKind: AtharListen.widgetKind)
+        if #available(iOS 18.0, *) {
+            ControlCenter.shared.reloadControls(ofKind: AtharListen.controlKind)
+        }
+        #endif
+    }
+
+    /// A widget, the Lock Screen or Control Center asked for `action`.
+    private func widgetCommand(_ action: String) {
+        if active {
+            switch action {
+            case "pause":
+                player.pause()
+            case "play":
+                try? AVAudioSession.sharedInstance().setActive(true)
+                player.playImmediately(atRate: rate)
+            case "next":
+                skip(by: 1)
+            case "previous":
+                skip(by: -1)
+            default:
+                if player.timeControlStatus == .paused {
+                    try? AVAudioSession.sharedInstance().setActive(true)
+                    player.playImmediately(atRate: rate)
+                } else {
+                    player.pause()
+                }
+            }
+            return
+        }
+        guard action != "pause" else { return }
+        restoreSaved(action: action)
+    }
+
+    /// Plays the last run of tracks again from where it stopped.
+    @discardableResult
+    private func restoreSaved(action: String = "play") -> Bool {
+        guard let saved = savedQueue() else { return false }
+        var index = saved.index
+        var position = saved.positionMs
+        if action == "next" || action == "previous" {
+            let step = action == "next" ? 1 : -1
+            let target = saved.live || saved.repeatMode == .all
+                ? (index + step + saved.verses.count) % saved.verses.count
+                : index + step
+            if saved.verses.indices.contains(target) {
+                index = target
+                position = 0
+            }
+        }
+        do {
+            try start(saved.verses, at: index, rate: saved.rate, volume: player.volume, repeatMode: saved.repeatMode, live: saved.live, positionMs: position)
+            return true
+        } catch {
+            return false
         }
     }
 

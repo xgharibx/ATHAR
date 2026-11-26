@@ -26,13 +26,14 @@ afterEach(() => {
 });
 
 describe("Ask Athar AI sharing consent dialog", () => {
-  it("names MiniMax and the message context before offering approval", () => {
+  it("names OpenAI and the message context before offering approval", () => {
     const onApprove = vi.fn();
     const onCancel = vi.fn();
     render(<CompanionAiConsentDialog open onApprove={onApprove} onCancel={onCancel} />);
 
     const dialog = document.body.querySelector('[role="dialog"]');
-    expect(dialog?.textContent).toContain("MiniMax");
+    expect(dialog?.textContent).toContain("OpenAI");
+    expect(dialog?.textContent).toContain("لا تُستخدم في تدريب نماذجها");
     expect(dialog?.textContent).toContain("سياق المحادثة والصفحة");
     expect(dialog?.textContent).toContain("حتى تسحب الإذن من الإعدادات");
     const descriptionIds = (dialog?.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);

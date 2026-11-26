@@ -34,6 +34,9 @@ The screens of the Quran section and «السماع» show no source lines; ever
 | Expected pronunciation of every word for the tajweed check (with the tafkhim / tarqiq of its ر, ل and ا) | `public/data/quran2/tajweed/*.json.gz` | Computed with quran-transcript 0.6.4's phonetizer (`tools/quran2/tajweed/pieces.py`) from its Uthmani text | MIT (quran-transcript); the Quran text itself is reproduced exactly | Confirmed |
 | Tajweed rule engine | `src/quran2/tajweed/imam.ts` | Port of `imam.py` from HisnLabs Tajweed v2 | Apache-2.0: notice kept in the source and credited in the app | Confirmed |
 | Madina page border and vine ornaments | `public/data/quran2/ornament/` | Drawn for Athar | Owned by Athar | Confirmed |
+| Printed-page layout bundled for «مصحف المدينة» (the line of each word on the 15-line Madani page) | `public/data/quran2/madina-layout.json.gz` | Line numbers from Quran.com API v4 (`word_fields=line_number`), stored with the app so the page opens offline; the words themselves are Tanzil's | Provider's terms | To confirm (as the fetched layout below) |
+| «السماع» catalogue (reciters, recitations, surah lists; no audio) | `public/data/listen/catalog.json` | mp3quran.net API, QuranicAudio, Internet Archive (archive.org) | Providers' terms; the audio is streamed from them, not bundled | To confirm |
+| Interface and reading fonts (IBM Plex Sans Arabic, Amiri, Amiri Quran, Cairo, Tajawal, Scheherazade New, Noto Naskh Arabic, Reem Kufi) | Bundled from npm `@fontsource*` | SIL Open Font License 1.1 | Confirmed |
 | Logo, app icon, splash artwork | `public/logo.svg`, `public/icons/`, native projects | Created for Athar | Owned by Athar | To confirm: if a designer made them, hold a written assignment of rights |
 
 ## Fetched while the app runs
@@ -42,7 +45,6 @@ Nothing in this table is redistributed by Athar; the app requests it from the pr
 
 | Content | Provider | Terms to respect | Status |
 |---|---|---|---|
-| Web fonts (Amiri, Amiri Quran, Cairo, Tajawal, Noto Naskh Arabic, Scheherazade New) | Google Fonts | SIL Open Font License 1.1 | Confirmed |
 | Recitation audio | EveryAyah | Provider's terms | To confirm |
 | Word-by-word data and translations | Quran.com / Quran Foundation | Developer terms, including limits on caching | To confirm against the current terms |
 | Tafsir editions | `spa5k/tafsir_api` through jsDelivr | That project's licence and the publishers' terms | To confirm |
@@ -58,14 +60,14 @@ Nothing in this table is redistributed by Athar; the app requests it from the pr
 | The tafkhim / tarqiq head of the same model | `public/data/quran2/tajweed/tafkheem.onnxpatch` (8.6 KB), its weights read from `model.safetensors` at the same revision (`tools/quran2/tajweed/tafkheem_patch.py`) and appended to the model on the device | Apache-2.0 (as the model) | Confirmed |
 | The tajweed model (HisnLabs Tajweed v2, int8 ONNX) | Hugging Face `Hisnlabs/tajweed-v2` at revision b3b0503d, downloaded once and checked against its SHA-256 | Apache-2.0 (base encoder tarteel-ai/whisper-base-ar-quran, Apache-2.0; teacher labels obadx/muaalem-model-v3_2, MIT) | Confirmed; credited where the engine is offered |
 | ONNX Runtime Web's WebAssembly (1.31.1) | jsDelivr (npm `onnxruntime-web`), downloaded once and checked against its SHA-256 | MIT | Confirmed |
-| Reem Kufi (display font of «القرآن الكريم») | Google Fonts / Fontsource, bundled | SIL Open Font License 1.1 | Confirmed |
 | Tafsirs given to «اسأل عن الآية» (the AI answers from them) | Quran.com API v4, fetched by the Athar server for the asked ayah | Provider's and publishers' terms | To confirm |
 | Prayer times | AlAdhan | Provider's terms | To confirm |
 | Nearby mosques | OpenStreetMap through Overpass | ODbL: credit "© OpenStreetMap contributors" where the data is shown | Confirmed; credit is shown on the mosques screen |
 | Hadith lookups for the assistant | Dorar (dorar.net) | Dorar's terms of use | To confirm |
 | Assistant web sources | The sites in `supabase/functions/companion/sources.ts` | Short excerpts with a link to the source page | Confirmed practice; excerpts are limited in length and always linked |
-| Video and radio | YouTube, RadioJar | Played through the providers' own players and streams | Confirmed practice |
-| Language model | MiniMax | MiniMax platform terms | Confirmed; described in the privacy policy |
+| «السماع» recitations, night prayers of the two Harams, tawasheeh | mp3quran.net, QuranicAudio, Internet Archive (archive.org), streamed from their sources (and saved on the device when the user downloads them) | Providers' terms | To confirm |
+| Video and radio | YouTube, Qurango, RadioJar | Played through the providers' own players and streams | Confirmed practice |
+| Language model | OpenAI (GPT-6 Luna) | OpenAI API terms and usage policies | Confirmed; described in the privacy policy |
 
 ## Open items
 

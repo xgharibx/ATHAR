@@ -170,8 +170,8 @@ AI replies are available to guests as well as signed-in users. The Edge Function
 verifies signed-in sessions, applies tighter per-IP throttling to guest traffic,
 and reserves requests against a shared daily spend ceiling. Signed-in requests
 also have a 30-request daily and 5-per-minute per-account limit. Quota tables
-store counters only, never prompt or response text. On iOS, a brief one-time
-consent dialog must appear before the first message is sent to MiniMax, with a
+store counters only, never prompt or response text. A brief one-time consent
+dialog must appear before the first message is sent to OpenAI, with a
 withdrawal control in Settings; a privacy-policy link alone does not capture
 explicit permission before that transfer.
 
@@ -182,8 +182,12 @@ Before deploying:
    order, if the project's migration ledger does not already include them. Then
    verify `companion_usage_counters` has RLS enabled
    and no `anon` or `authenticated` table grants.
-2. Set `MINIMAX_API_KEY` as an Edge Function secret only. Never use a `VITE_`
-   variable for the provider key.
+2. Set `OPENAI_API_KEY` as an Edge Function secret only (Supabase dashboard →
+   Edge Functions → Secrets, or `supabase secrets set OPENAI_API_KEY=…`). Never
+   use a `VITE_` variable for the provider key. The assistant answers with
+   GPT-6 Luna (`gpt-6-luna`); the optional `COMPANION_MODEL` secret can name
+   `gpt-6-sol` instead. Without `OPENAI_API_KEY` the function falls back to
+   MiniMax (`MINIMAX_API_KEY`), so removing the OpenAI secret is the rollback.
 3. Deploy with `supabase functions deploy companion`, or let the
    `Deploy AI server` workflow do it on every change merged to `main`: save a
    Supabase access token as the repository secret `SUPABASE_ACCESS_TOKEN`
@@ -193,10 +197,10 @@ Before deploying:
    per-minute and per-day limits, and oversized request rejection against
    staging.
 
-If every question fails with «خدمة «اسأل أثر» متوقفة مؤقتًا», MiniMax refused
-the server's key (expired, revoked or out of credit). Check the key and its
-balance in the MiniMax console, then replace it with
-`supabase secrets set MINIMAX_API_KEY=…`; no app update or redeploy is needed.
+If every question fails with «خدمة «اسأل أثر» متوقفة مؤقتًا», OpenAI refused
+the server's key (expired, revoked or out of credit). Check the key, its
+project and its balance in the OpenAI dashboard, then replace it with
+`supabase secrets set OPENAI_API_KEY=…`; no app update or redeploy is needed.
 
 The production project already has the Companion quota and shared budget
 migrations and deployed function updates. Use the project migration ledger and
@@ -212,7 +216,8 @@ Once accounts ship you are collecting personal data, so:
 - Publish a user-facing privacy policy before store release. Companion sends
   recent conversation history and, when the user has enabled the relevant
   context options, selected progress/profile context through Supabase to
-  MiniMax. Verify current MiniMax retention and data-use terms before release.
+  OpenAI. Verify OpenAI's current API data-use and retention terms before release
+  (not used for training by default; abuse-monitoring logs up to 30 days).
   Location coordinates are also sent to Aladhan when online prayer-time
   calculation is used.
 

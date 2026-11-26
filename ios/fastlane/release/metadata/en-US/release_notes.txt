@@ -1,6 +1,8 @@
-• A faster start with the original animated intro, stars visible from launch, and smoother movement between sections.
-• Quran memorization mode is back, with improvements to reading, tafsir, and offline use.
-• Prayer time and Qibla improvements.
-• New adhan and reminder sounds, with an audible first reminder and later reminders kept silent.
-• Improvements to adhkar, tasbih, saved progress, Ask Athar, privacy, sync, and leaderboard data handling.
-• General stability, performance, and usability improvements.
+What's new in Athar 🌿
+
+• The Quran, rebuilt: the Madina mushaf page as printed (works offline), tajweed colours, word-synced recitation, tafsirs side by side, memorisation with smart review, and recitation practice with an on-device tajweed engine that follows you word by word.
+• Listening: the whole Quran by the great reciters, the golden recordings, the night prayers of the two Harams, tawasheeh and the Quran radio, with background playback and downloads.
+• New Listening widget for the Home Screen, Lock Screen and Control Center: what is playing, a bar that follows the recitation, and play, pause and skip without opening the app.
+• The optional «Ufuq» design, the new classic home, and a calmer home screen.
+• Hadith, Miracles, Seerah, duas, Asma al-Husna, tracking and the leaderboard, all improved.
+• Sign in with Apple, and many performance and stability improvements.
