@@ -10,6 +10,7 @@ import { HADITH_BOOKS_STATIC, type HadithBookMeta, type HadithItem, type HadithP
 import { parseHadithIndex, parseHadithPack } from "@/data/hadithSchemas";
 import { publicDataUrl } from "@/data/publicAssetUrl";
 import { withChapters } from "@/data/hadithChapters";
+import { normalizeHadithPack } from "@/data/hadithNumbers";
 
 /** Approximate uncompressed file size in MB for each book (Phase 9 - progress UI) */
 export const HADITH_PACK_SIZES_MB: Record<string, number> = {
@@ -23,6 +24,18 @@ export const HADITH_PACK_SIZES_MB: Record<string, number> = {
   nawawi: 0.3,
   qudsi: 0.2,
 };
+
+const FORTIES = new Set(["nawawi", "qudsi"]);
+
+/**
+ * Copies cached before the bundle was tidied still hold the empty
+ * placeholders, and the forties have no titles: fetch those again when
+ * online (normalizeHadithPack still cleans them when offline).
+ */
+function isCurrentBundle(pack: HadithPack): boolean {
+  if (FORTIES.has(pack.key) && !pack.hadiths[0]?.ti) return false;
+  return pack.hadiths.every((h) => h.t.trim());
+}
 
 function isKnownOffline(): boolean {
   return typeof navigator !== "undefined" && navigator.onLine === false;
@@ -39,9 +52,12 @@ export async function loadHadithIndex(): Promise<HadithBookMeta[]> {
   }
 }
 
-/** Load a full hadith pack for a given book key, with its chapters. Tries IDB first, then fetch. */
+/**
+ * Load a full hadith pack for a given book key, cleaned (see
+ * normalizeHadithPack) and with its chapters. Tries IDB first, then fetch.
+ */
 export async function loadHadithPack(bookKey: string): Promise<HadithPack> {
-  return withChapters(await loadRawHadithPack(bookKey));
+  return withChapters(normalizeHadithPack(await loadRawHadithPack(bookKey)));
 }
 
 async function loadRawHadithPack(bookKey: string): Promise<HadithPack> {
@@ -55,7 +71,7 @@ async function loadRawHadithPack(bookKey: string): Promise<HadithPack> {
       // Ignore corrupt or mismatched cache rows; never feed them to the reader.
     }
   }
-  if (cached && cachedEntry?.isFresh) return cached;
+  if (cached && cachedEntry?.isFresh && isCurrentBundle(cached)) return cached;
   if (cached && isKnownOffline()) return cached;
 
   try {
@@ -85,7 +101,7 @@ export async function loadHadithPackWithProgress(
   setIsFromCache: (v: boolean) => void,
 ): Promise<HadithPack | null> {
   const pack = await loadRawHadithPackWithProgress(bookKey, onProgress, setIsFromCache);
-  return pack ? withChapters(pack) : pack;
+  return pack ? withChapters(normalizeHadithPack(pack)) : pack;
 }
 
 async function loadRawHadithPackWithProgress(
@@ -103,7 +119,7 @@ async function loadRawHadithPackWithProgress(
       // Ignore corrupt or mismatched cache rows; never feed them to the reader.
     }
   }
-  if (cached && cachedEntry?.isFresh) {
+  if (cached && cachedEntry?.isFresh && isCurrentBundle(cached)) {
     setIsFromCache(true);
     onProgress(100);
     return cached;

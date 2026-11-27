@@ -15,6 +15,7 @@ import type { FlatDhikr } from "@/data/types";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { shareFileBlob } from "@/lib/shareTargets";
 import { cn } from "@/lib/utils";
+import { CuratedIcon } from "@/components/hadith/CuratedIcon";
 
 type Props = {
   open: boolean;
@@ -375,7 +376,7 @@ export function CommandPalette(props: Props) {
                   <Command.Separator className="h-px bg-(--card) my-2" />
                   <Command.Group heading="نتائج داخل المكتبة" className="px-2">
                     {libraryResults.map((entry) => (
-                      <Item key={entry.key} onSelect={() => go(`/library/${entry.collectionId}/${entry.id}`)} icon={<span className="text-base">{entry.collectionIcon}</span>}>
+                      <Item key={entry.key} onSelect={() => go(`/library/${entry.collectionId}/${entry.id}`)} icon={<CuratedIcon id={entry.collectionId} size={15} />}>
                         <span className="text-sm">{entry.collectionTitle} • {entry.title}</span>
                         <span className="text-[11px] opacity-60 block mt-1 line-clamp-2 arabic-text">
                           {entry.arabic.slice(0, 140)}

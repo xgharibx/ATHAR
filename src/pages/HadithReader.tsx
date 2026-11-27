@@ -25,6 +25,10 @@ import {
   Type,
   Minus,
   Plus,
+  ChevronDown,
+  MoreHorizontal,
+  ListTree,
+  type LucideIcon,
 } from "lucide-react";
 import { useHadithPrefs, withoutHarakat, TEXT_SCALE_MAX, TEXT_SCALE_MIN, type IsnadView } from "@/lib/hadithPrefs";
 import { Modal } from "@/components/ui/Modal";
@@ -39,10 +43,14 @@ import { TakhrijCard } from "@/components/hadith/TakhrijCard";
 import { SharhSection } from "@/components/hadith/SharhSection";
 import {
   HADITH_BOOKS_STATIC,
-  HADITH_GRADE_LABELS,
+  hadithGradeLabel,
   hadithRef,
   type HadithItem,
 } from "@/data/hadithTypes";
+import { hadithPlaceLabel } from "@/data/hadithNumbers";
+import { savedCardFor } from "@/lib/hadithCards";
+import { shortChapterTitle } from "@/data/hadithChapters";
+import { NARRATOR, countAr } from "@/lib/arabicCount";
 import { useShallow } from "zustand/react/shallow";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
@@ -57,11 +65,31 @@ import { writeClipboard } from "@/lib/nativeUI";
 
 
 /* ------------------------------------------------------------------ */
-/* Helpers                                                               */
-/* ------------------------------------------------------------------ */
 
-
-/* ------------------------------------------------------------------ */
+/** One labelled button in the reader's action bar. */
+function ActionButton({ icon: Icon, label, active, pressed, filled, onClick }: {
+  icon: LucideIcon;
+  label: string;
+  active?: boolean;
+  pressed?: boolean;
+  filled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={pressed}
+      className="flex min-w-0 flex-col items-center gap-1 rounded-2xl border px-1 py-2 text-[11px] font-semibold transition press-effect"
+      style={active
+        ? { borderColor: "color-mix(in srgb, var(--accent) 45%, transparent)", background: "color-mix(in srgb, var(--accent) 14%, transparent)", color: "var(--accent)" }
+        : { borderColor: "var(--stroke)", background: "var(--card)", color: "var(--muted)" }}
+    >
+      <Icon size={18} aria-hidden="true" className={active && filled ? "fill-current" : undefined} />
+      <span className="max-w-full truncate">{label}</span>
+    </button>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 
@@ -70,7 +98,8 @@ export function HadithReaderPage() {
   const navigate = useNavigate();
   useScrollRestoration();
 
-  const n = parseInt(hadithNumber ?? "1", 10);
+  // Some books number a few entries with a decimal (Bukhari 402.2).
+  const n = Number(hadithNumber ?? "1");
   const { data: pack, isLoading, isError, refetch } = useHadithPack(bookKey);
 
   const { hadithBookmarks, toggleHadithBookmark, setHadithProgress, hadithNotes, setHadithNote, addHadithMemoCard, hadithMemoCards } = useNoorStore(
@@ -90,8 +119,9 @@ export function HadithReaderPage() {
   const fontScale = useNoorStore((s) => s.prefs.fontScale);
   const lineHeight = useNoorStore((s) => s.prefs.lineHeight);
 
-  const { textScale, isnadView, harakat, setTextScale, setIsnadView, setHarakat, setLast } = useHadithPrefs();
+  const { textScale, isnadView, harakat, isnadOpen, setTextScale, setIsnadView, setHarakat, setLast, setIsnadOpen, rememberCard } = useHadithPrefs();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const show = (t: string) => (harakat ? t : withoutHarakat(t));
 
   const noteKey = `${bookKey}:${n}`;
@@ -143,12 +173,27 @@ export function HadithReaderPage() {
     };
   }, [pack, n]);
 
+  // Where this hadith stands in its chapter («٥ من ٥١ في كتاب الإيمان»).
+  const chapterPlace = useMemo(() => {
+    if (!pack || !hadith || pack.sections.length < 2) return null;
+    const inChapter = pack.hadiths.filter((h) => h.s === hadith.s);
+    return { pos: inChapter.findIndex((h) => h.n === hadith.n) + 1, count: inChapter.length };
+  }, [pack, hadith]);
+
   // Track reading progress
   useEffect(() => {
     if (!bookKey || !(n > 0)) return;
     setHadithProgress(bookKey, n);
-    setLast(bookKey, n);
-  }, [bookKey, n, setHadithProgress, setLast]);
+    setLast(bookKey, n, hadith?.r);
+  }, [bookKey, n, hadith?.r, setHadithProgress, setLast]);
+
+  // A hadith you marked, noted or memorise keeps its text with the mark, so
+  // «العلامات» and Favorites list it without loading the whole book.
+  const isNoted = !!existingNote;
+  useEffect(() => {
+    if (!hadith || !bookKey || !(isBookmarked || isNoted || isMemoCard)) return;
+    rememberCard(`${bookKey}:${hadith.n}`, savedCardFor(hadith));
+  }, [hadith, bookKey, isBookmarked, isNoted, isMemoCard, rememberCard]);
 
   // Arrow keys turn the page, the way an Arabic book turns: left is next.
   useEffect(() => {
@@ -188,7 +233,7 @@ export function HadithReaderPage() {
 
   const copyText = async () => {
     if (!hadith) return;
-    const text = `${cleanHadithText(hadith.t)}\n\n— ${hadithRef(meta?.title ?? "", hadith.a)}`;
+    const text = `${cleanHadithText(hadith.t)}\n\n— ${hadithRef(meta?.title ?? "", hadith)}`;
     try {
       const systemConfirmed = await writeClipboard(text);
       if (!systemConfirmed) toast.success("تم النسخ");
@@ -206,8 +251,8 @@ export function HadithReaderPage() {
       kind: "hadith",
       text: matn || hadith.t,
       heading: meta?.title ?? "",
-      reference: `الحديث ${arNum(hadith.a)}`,
-      grade: grade ? (HADITH_GRADE_LABELS[grade] ?? grade) : undefined,
+      reference: hadithPlaceLabel(hadith),
+      grade: grade ? hadithGradeLabel(grade) || undefined : undefined,
     };
   }, [hadith, meta?.title]);
   const shareText = async () => {
@@ -219,6 +264,9 @@ export function HadithReaderPage() {
     if (!hadith) return null;
     return splitHadithText(hadith.t);
   }, [hadith]);
+
+  // The two forties name only the companion before the hadith.
+  const introInline = bookKey === "nawawi" || bookKey === "qudsi";
 
   // Isnad as a chain of narrator links, for the tappable chain visual.
   const isnadChain = useMemo(() => parseIsnadChain(hadithSplit?.isnad ?? ""), [hadithSplit]);
@@ -263,39 +311,38 @@ export function HadithReaderPage() {
               <button type="button" onClick={() => navigate(`/hadith/${bookKey}`)} className="mt-0.5 flex max-w-full items-center gap-1.5 text-[12px] text-(--muted) text-right">
                 <BookOpenText size={13} aria-hidden="true" className="shrink-0" style={{ color: accentColor }} />
                 <span className="truncate">
-                  {sectionTitle ? `${sectionTitle}، ` : ""}الحديث {Number.isFinite(n) ? arNum(hadith?.a ?? n) : "—"}
+                  {sectionTitle ? `${sectionTitle}، ` : ""}{hadith ? hadithPlaceLabel(hadith) : `الحديث ${Number.isFinite(n) ? arNum(n) : "—"}`}
                 </span>
               </button>
             </div>
             {isLoading && <Loader2 size={16} aria-hidden="true" className="animate-spin text-(--muted) shrink-0" />}
           </div>
 
-          {/* Action buttons */}
-          <div className="relative mt-4 flex items-center gap-2 overflow-x-auto no-scrollbar pr-2">
-            <IconButton
-              aria-label={isMemoCard ? "في بطاقات الحفظ، افتحها" : "أضف إلى بطاقات الحفظ"}
-              aria-pressed={isMemoCard}
+          {/* Action bar: each button says what it does. */}
+          <div className="relative mt-4 grid grid-cols-5 gap-1.5 pr-2" role="toolbar" aria-label="أدوات الحديث">
+            <ActionButton
+              icon={BrainCircuit}
+              label={isMemoCard ? "في الحفظ" : "حفظ"}
+              active={isMemoCard}
               onClick={() => {
                 if (isMemoCard) {
                   navigate("/hadith/memo");
                   return;
                 }
                 addHadithMemoCard(memoCardKey);
-                toast.success("أُضيف إلى بطاقات الحفظ، وتبدأ مراجعته اليوم", { duration: 2200 });
+                toast.success("أُضيف إلى «حفظ الحديث»، وتبدأ مراجعته اليوم", { duration: 2200 });
               }}
-              className={cn(isMemoCard && "ring-1 ring-accent-40")}
-            >
-              <BrainCircuit size={18} aria-hidden="true" style={{ color: isMemoCard ? accentColor : "var(--muted)" }} />
-            </IconButton>
-            <IconButton aria-label={isBookmarked ? "إزالة من محفوظاتي" : "أضف إلى محفوظاتي"} aria-pressed={isBookmarked} onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}>
-              <Bookmark size={18} aria-hidden="true" className={isBookmarked ? "fill-current" : ""} style={{ color: isBookmarked ? accentColor : "var(--muted)" }} />
-            </IconButton>
-            <IconButton aria-label="نسخ" onClick={copyText}><Copy size={16} aria-hidden="true" className="text-(--muted)" /></IconButton>
-            <IconButton aria-label="مشاركة" onClick={shareText}><Share2 size={16} aria-hidden="true" className="text-(--muted)" /></IconButton>
-            <IconButton aria-label="إعدادات القراءة" onClick={() => setSettingsOpen(true)}><Type size={16} aria-hidden="true" className="text-(--muted)" /></IconButton>
-            <IconButton aria-label="ملاحظة" aria-pressed={showNoteEditor} onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}>
-              <StickyNote size={16} aria-hidden="true" className={existingNote ? "fill-current" : ""} style={{ color: existingNote ? accentColor : "var(--muted)" }} />
-            </IconButton>
+            />
+            <ActionButton icon={Bookmark} label="علامة" active={isBookmarked} pressed={isBookmarked} filled onClick={() => bookKey && toggleHadithBookmark(bookKey, n)} />
+            <ActionButton
+              icon={StickyNote}
+              label="ملاحظة"
+              active={!!existingNote || showNoteEditor}
+              pressed={showNoteEditor}
+              onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}
+            />
+            <ActionButton icon={Share2} label="مشاركة" onClick={shareText} />
+            <ActionButton icon={MoreHorizontal} label="المزيد" onClick={() => setMoreOpen(true)} />
           </div>
         </Card>
       </div>
@@ -344,47 +391,87 @@ export function HadithReaderPage() {
 
         {hadith && hadith.t.trim() && hadithSplit && (
           <>
-            {/* Reading order: الإسناد → المتن → الحكم والتخريج → الشرح.
-                Chain of narration, then the hadith itself (the hero), then
-                the ruling, then the scholarly explanation — all on one page,
-                nothing hidden behind a "read it elsewhere" link. */}
+            {/* Reading order: المتن → الإسناد (مطويّ) → الحكم والتخريج → الشرح.
+                The hadith itself comes first; the chain of narrators is one
+                tap away, then the ruling, then the explanation. */}
 
-            {/* 1) Isnad — chain of tappable narrator links */}
-            {hadithSplit.isnad && isnadView !== "hidden" && (
-              <Card className="relative overflow-hidden p-4">
-                <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-                <div className="absolute inset-y-0 right-0 w-1 opacity-70" style={{ background: accentColor }} />
-                <div className="relative pr-2">
-                  <p className="mb-3 text-[11px] font-semibold opacity-55 font-arabic">
-                    الإسناد {isnadView === "chain" && isnadChain.length > 0 && <span className="opacity-60">، اضغط على راوٍ لتعرفه</span>}
-                  </p>
-                  {isnadView === "chain" && isnadChain.length > 0 ? (
-                    <div className="flex flex-wrap items-center gap-2" dir="rtl">
-                      {isnadChain.map((link, i) => (
-                        <React.Fragment key={i}>
-                          <button type="button"
-                            onClick={() => openNarrator(link.name)}
-                            className="inline-flex items-center gap-1.5 rounded-2xl border px-3 py-1.5 text-xs font-arabic transition hover:brightness-110 active:scale-95"
-                            style={{
-                              borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)",
-                              background: narratorPopup?.name === link.name ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "var(--card)",
-                            }}
-                          >
-                            <User size={11} aria-hidden="true" style={{ color: accentColor }} />
-                            {show(link.name)}
-                          </button>
-                          {i < isnadChain.length - 1 && (
-                            <ChevronLeft size={13} aria-hidden="true" className="opacity-30 shrink-0" />
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </div>
+            {/* 1) المتن — the hadith itself, first */}
+            <Card className="relative overflow-hidden p-5 md:p-6" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+              <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
+              <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
+              <div className="relative pr-2">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  {hadith.ti ? (
+                    <h2 className="text-[15px] font-bold font-arabic leading-snug" style={{ color: accentColor }}>{hadith.ti}</h2>
                   ) : (
-                    <p className="text-sm font-arabic text-(--fg) opacity-65 leading-loose">
-                      {show(hadithSplit.isnad)}
-                    </p>
+                    <p className="text-[11px] font-semibold opacity-55 font-arabic">المتن</p>
                   )}
+                  <span className="h-2 w-16 shrink-0 rounded-full" style={{ background: accentColor }} />
                 </div>
+                {/* The forties open with the companion only («عن أبي هريرة… قال:»):
+                    a short line kept in view, not a folded chain. */}
+                {introInline && hadithSplit.isnad && (
+                  <p dir="rtl" className="mb-3 text-[13px] leading-7 font-arabic text-(--fg) opacity-70 whitespace-pre-line">{show(hadithSplit.isnad)}</p>
+                )}
+                <p dir="rtl" className="arabic-text font-bold text-(--fg) whitespace-pre-line"
+                  style={{ fontSize: `${(fontScale * 1.32 * textScale).toFixed(3)}rem`, lineHeight: Math.max(lineHeight, 2) }}>
+                  {show(hadithSplit.matn)}
+                </p>
+                {meta?.title && (
+                  <p className="mt-4 text-xs opacity-55 leading-6">{hadithRef(meta.title, hadith)}</p>
+                )}
+              </div>
+            </Card>
+
+            {/* 2) الإسناد — folded under the matn; open it to see the chain */}
+            {hadithSplit.isnad && !introInline && isnadView !== "hidden" && (
+              <Card className="relative overflow-hidden p-0">
+                <div className="absolute inset-y-0 right-0 w-1 opacity-70" style={{ background: accentColor }} />
+                <button
+                  type="button"
+                  onClick={() => setIsnadOpen(!isnadOpen)}
+                  aria-expanded={isnadOpen}
+                  aria-controls="hadith-isnad"
+                  className="relative flex w-full items-center justify-between gap-3 py-3 pl-4 pr-6 text-right"
+                >
+                  <span className="text-[12.5px] font-semibold font-arabic text-(--fg) opacity-75">
+                    الإسناد{isnadChain.length > 1 ? ` (${countAr(isnadChain.length, NARRATOR)})` : ""}
+                  </span>
+                  <ChevronDown size={16} aria-hidden="true" className="shrink-0 text-(--muted) transition-transform" style={{ transform: isnadOpen ? "rotate(180deg)" : "none" }} />
+                </button>
+                {isnadOpen && (
+                  <div id="hadith-isnad" className="relative pb-4 pl-4 pr-6">
+                    {isnadView === "chain" && isnadChain.length > 0 && (
+                      <p className="mb-3 text-[11px] opacity-55 font-arabic">اضغط على راوٍ لتعرفه</p>
+                    )}
+                    {isnadView === "chain" && isnadChain.length > 0 ? (
+                      <div className="flex flex-wrap items-center gap-2" dir="rtl">
+                        {isnadChain.map((link, i) => (
+                          <React.Fragment key={i}>
+                            <button type="button"
+                              onClick={() => openNarrator(link.name)}
+                              className="inline-flex items-center gap-1.5 rounded-2xl border px-3 py-1.5 text-xs font-arabic transition hover:brightness-110 active:scale-95"
+                              style={{
+                                borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)",
+                                background: narratorPopup?.name === link.name ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "var(--card)",
+                              }}
+                            >
+                              <User size={11} aria-hidden="true" style={{ color: accentColor }} />
+                              {show(link.name)}
+                            </button>
+                            {i < isnadChain.length - 1 && (
+                              <ChevronLeft size={13} aria-hidden="true" className="opacity-30 shrink-0" />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm font-arabic text-(--fg) opacity-65 leading-loose">
+                        {show(hadithSplit.isnad)}
+                      </p>
+                    )}
+                  </div>
+                )}
               </Card>
             )}
 
@@ -443,25 +530,6 @@ export function HadithReaderPage() {
                 </div>
               </Card>
             )}
-
-            {/* 2) المتن — the hadith itself (the hero) */}
-            <Card className="relative overflow-hidden p-5 md:p-6" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-              <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-              <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
-              <div className="relative pr-2">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <p className="text-[11px] font-semibold opacity-55 font-arabic">المتن</p>
-                  <span className="h-2 w-16 rounded-full" style={{ background: accentColor }} />
-                </div>
-                <p dir="rtl" className="arabic-text font-bold text-(--fg)"
-                  style={{ fontSize: `${(fontScale * 1.32 * textScale).toFixed(3)}rem`, lineHeight: Math.max(lineHeight, 2) }}>
-                  {show(hadithSplit.matn)}
-                </p>
-                {meta?.title && (
-                  <p className="mt-4 text-xs opacity-55 leading-6">{hadithRef(meta.title, hadith.a)}</p>
-                )}
-              </div>
-            </Card>
 
             {/* 3) الحكم والتخريج — who narrated it, who graded it, and the ruling */}
             <TakhrijCard
@@ -541,8 +609,17 @@ export function HadithReaderPage() {
                 <ChevronRight size={16} aria-hidden="true" />
                 السابق
               </button>
-              <div className="min-w-16 text-[11px] text-(--muted) text-center leading-4" aria-live="polite" aria-atomic="true">
-                {position && pack ? <>{arNum(position)}<br />من {arNum(pack.hadiths.length)}</> : arNum(n)}
+              <div className="min-w-16 max-w-28 text-[11px] text-(--muted) text-center leading-4" aria-live="polite" aria-atomic="true">
+                {chapterPlace && sectionTitle ? (
+                  <>
+                    {arNum(chapterPlace.pos)} من {arNum(chapterPlace.count)}
+                    <span className="block truncate opacity-80">{shortChapterTitle(sectionTitle)}</span>
+                  </>
+                ) : position && pack ? (
+                  <>{arNum(position)}<br />من {arNum(pack.hadiths.length)}</>
+                ) : (
+                  arNum(n)
+                )}
               </div>
               <button type="button"
                 disabled={!nextN}
@@ -558,6 +635,26 @@ export function HadithReaderPage() {
           </Card>
         )}
       </main>
+      <Modal open={moreOpen} onClose={() => setMoreOpen(false)} ariaLabel="المزيد">
+        <div dir="rtl" className="p-4 stack-y-1">
+          <h2 className="px-2 pb-2 text-base font-bold">{hadith ? hadithRef(meta?.title ?? "", hadith) : "المزيد"}</h2>
+          {([
+            [Copy, "نسخ النص", () => void copyText()],
+            [Type, "إعدادات القراءة", () => setSettingsOpen(true)],
+            [ListTree, "فهرس الكتاب", () => navigate(`/hadith/${bookKey}`)],
+          ] as const).map(([Icon, label, run]) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => { setMoreOpen(false); run(); }}
+              className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-right text-sm font-semibold transition hover:bg-(--card-2) press-effect"
+            >
+              <Icon size={18} aria-hidden="true" className="text-(--accent)" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </Modal>
       <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} ariaLabel="إعدادات القراءة">
         <div dir="rtl" className="p-5 stack-y-5">
           <h2 className="text-base font-bold flex items-center gap-2"><Type size={18} aria-hidden="true" className="text-(--accent)" /> إعدادات القراءة</h2>
@@ -598,8 +695,8 @@ export function HadithReaderPage() {
           open={posterOpen}
           onClose={() => setPosterOpen(false)}
           content={posterContent}
-          title={hadithRef(meta?.title ?? "حديث", hadith?.a ?? n)}
-          filename={`athar-hadith-${bookKey ?? ""}-${hadith?.a ?? n}.png`}
+          title={hadith ? hadithRef(meta?.title ?? "حديث", hadith) : meta?.title ?? "حديث"}
+          filename={`athar-hadith-${bookKey ?? ""}-${(hadith?.r ?? String(n)).replace(/\//g, "-")}.png`}
         />
       )}
     </div>

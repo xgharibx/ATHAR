@@ -1,3 +1,5 @@
+import { findArabicMatches } from "@/lib/arabicHighlight";
+
 /**
  * The single hadith isnad/matn splitter, shared by every hadith surface
  * (reader, memo cards, poster share) so they all split the same way.
@@ -21,9 +23,39 @@
  * Arabic digits.
  */
 export function cleanHadithText(text: string): string {
-  return text
+  return tidyHadithMarkup(text)
     .replace(/\s?\(\d{1,2}\)/g, "")
     .replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[Number(d)]!);
+}
+
+const LINE_BREAK = /<br\s*\/?>/i;
+const HARAKAT = /[\u0610-\u061A\u064B-\u065F\u0670]/g;
+/** A text that opens with the companion («عن أبي هريرة…»), not a chain («حدثنا…»). */
+const COMPANION_FIRST = /^[\s\u200f"]*عن\s/;
+
+/**
+ * The two forties came with web markup: a raw «<br>» before the
+ * attribution, and in the Nawawi forty the attribution again in brackets
+ * («[رَوَاهُ الْبُخَارِيُّ]، [وَمُسْلِمٌ]») even when the text already says it.
+ * Each «<br>» becomes a line break, the bracketed repeat is dropped when the
+ * text already names who narrated it and unbracketed otherwise. The bundled
+ * files are already clean; this also cleans copies cached by older versions.
+ */
+export function tidyHadithMarkup(text: string): string {
+  if (!text.includes("<")) return text;
+  const [head = "", ...tails] = text.split(LINE_BREAK);
+  const lines = [head.trim()];
+  for (const tail of tails) {
+    let line = tail.trim().replace(/^[.:،]\s*/, "");
+    if (!line) continue;
+    if (line.startsWith("[")) {
+      if (lines.join(" ").replace(HARAKAT, "").includes("رواه")) continue;
+      line = line.replace(/\]\s*،?\s*\[/g, " ").replace(/[[\]]/g, "").trim();
+    }
+    lines.push(line);
+  }
+  // Any other markup: drop the angle brackets themselves (no tag is ever kept).
+  return lines.join("\n").replace(/[<>]/g, "");
 }
 
 export function splitHadithText(raw: string): { isnad: string; matn: string } {
@@ -42,13 +74,30 @@ export function splitHadithText(raw: string): { isnad: string; matn: string } {
   ];
   let latest = -1;
   let latestMarkerLen = 0;
-  for (const m of markers) {
+  // A text that opens with the companion rather than a chain (only the two
+  // forties do: «عن أبي هريرة رضي الله عنه قال: …») names just the companion
+  // before the hadith, so the cut is the FIRST «قال:»; a later one falls
+  // inside the hadith (a question and its answer) and would fold most of it
+  // away as «الإسناد».
+  const companionOnly = COMPANION_FIRST.test(text.replace(HARAKAT, ""));
+  // «قال:» / «فقال:» / «يقول:» with or without harakat, the first one.
+  const firstSaid = companionOnly
+    ? ["قال:", "قال :", "يقول:", "يقول :"].flatMap((term) => findArabicMatches(text, term)).sort((x, y) => x[0] - y[0])[0]
+    : undefined;
+  for (const m of firstSaid ? [] : markers) {
     const idx = searchSpace.lastIndexOf(m);
     if (idx !== -1 && idx > latest) { latest = idx; latestMarkerLen = m.length; }
   }
 
+  // Or the end of a short first line («… عن النبي ﷺ قال⏎قال الله …»).
+  const firstBreak = companionOnly ? text.indexOf("\n") : -1;
+
   let cut: number;
-  if (latest > 0) {
+  if (firstBreak > 0 && firstBreak < 200 && (!firstSaid || firstBreak < firstSaid[0])) {
+    cut = firstBreak;
+  } else if (firstSaid) {
+    cut = firstSaid[1];
+  } else if (latest > 0) {
     // Keep the marker itself ("...يقول:") attached to isnad — it's the
     // narrator's own words introducing the quote, not part of it.
     cut = latest + latestMarkerLen;

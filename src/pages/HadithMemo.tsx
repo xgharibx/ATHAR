@@ -1,5 +1,5 @@
 /**
- * «احفظ الحديث»: flip cards with spaced repetition. Cards come from any book
+ * «حفظ الحديث»: flip cards with spaced repetition. Cards come from any book
  * (added from the reader) or from the two forties here; each rating shows
  * when the card will come back.
  * Route: /hadith/memo
@@ -11,6 +11,7 @@ import { useHadithPack, loadHadithPack } from "@/data/useHadithBook";
 import { HADITH_BOOKS_STATIC, MEMO_MASTERED_DAYS, hadithRef, nextMemoCard, type HadithItem, type HadithPack } from "@/data/hadithTypes";
 import { CARD, DAY, countAr, type CountForms } from "@/lib/arabicCount";
 import { cleanHadithText, splitHadithText } from "@/lib/hadithText";
+import { hadithNumberLabel } from "@/data/hadithNumbers";
 import { useShallow } from "zustand/react/shallow";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
@@ -241,7 +242,7 @@ export function HadithMemoPage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <BrainCircuit size={19} aria-hidden="true" style={{ color: accentColor }} />
-                <h1 className="text-lg font-bold">احفظ الحديث</h1>
+                <h1 className="text-lg font-bold">حفظ الحديث</h1>
               </div>
               <div className="text-xs opacity-60 mt-1 leading-5">تعود البطاقة إليك قبل أن تنساها، فيثبت الحديث بأقل تكرار.</div>
             </div>
@@ -380,7 +381,7 @@ export function HadithMemoPage() {
             front={
               <div dir="rtl">
                 <p className="text-[10px] text-(--muted) mb-2 font-arabic">
-                  {hadithRef(bookTitle(current.bookKey), current.item.a)}
+                  {hadithRef(bookTitle(current.bookKey), current.item)}
                 </p>
                 {isnad ? (
                   <p className="text-sm font-arabic text-(--fg) opacity-60 leading-loose">{isnad}</p>
@@ -453,7 +454,7 @@ export function HadithMemoPage() {
             </button>
             <div className="flex items-center gap-3">
               <span className="text-xs text-(--muted) font-arabic">
-                {arNum(current.item.a)}
+                {hadithNumberLabel(current.item)}
               </span>
               <button
                 type="button"
@@ -474,7 +475,7 @@ export function HadithMemoPage() {
               <button
                 type="button"
                 onClick={async () => {
-                  const text = `${cleanHadithText(current.item.t)}\n\n${hadithRef(bookTitle(current.bookKey), current.item.a)}`;
+                  const text = `${cleanHadithText(current.item.t)}\n\n${hadithRef(bookTitle(current.bookKey), current.item)}`;
                   try {
                     await shareOrCopy(text);
                   } catch {

@@ -20,11 +20,11 @@ import { shareOrCopy } from "@/lib/shareTargets";
 import { writeClipboard } from "@/lib/nativeUI";
 
 
+/** The grades the curated cards state; a card with no stated grade shows none. */
 const GRADE_LABELS: Record<string, string> = {
   agreed: "متفق عليه",
   sahih: "صحيح",
   hasan: "حسن",
-  curated: "تحريري",
 };
 
 export function LibraryItemPage() {
@@ -147,9 +147,9 @@ export function LibraryItemPage() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          <Badge>{GRADE_LABELS[entry.grade] ?? entry.grade}</Badge>
+          {GRADE_LABELS[entry.grade] && <Badge>{GRADE_LABELS[entry.grade]}</Badge>}
           {entry.narrator && <Badge>{entry.narrator}</Badge>}
-          {entry.source.title !== (GRADE_LABELS[entry.grade] ?? entry.grade) && <Badge>{entry.source.title}</Badge>}
+          {entry.source.title !== GRADE_LABELS[entry.grade] && <Badge>{entry.source.title}</Badge>}
         </div>
 
         <h1 className="text-lg md:text-xl font-bold mb-4 font-arabic" style={{ color: entry.collectionAccent }}>{entry.title}</h1>

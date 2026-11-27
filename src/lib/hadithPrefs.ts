@@ -8,7 +8,11 @@ import { persist } from "zustand/middleware";
 
 export type IsnadView = "chain" | "text" | "hidden";
 
-export type LastHadith = { bookKey: string; n: number; at: number };
+/** `r` is the printed-number ref (see hadithNumbers.ts), for showing the number people cite. */
+export type LastHadith = { bookKey: string; n: number; r?: string; at: number };
+
+/** What a saved hadith shows in lists without loading its whole book: its ref and the start of its matn. */
+export type SavedHadithCard = { r: string; x: string; ti?: string };
 
 type HadithPrefsState = {
   /** Multiplies the matn size: 0.8 … 1.6. */
@@ -19,10 +23,18 @@ type HadithPrefsState = {
   harakat: boolean;
   /** The last hadith opened in any book, for «أكمل القراءة». */
   last: LastHadith | null;
+  /** The printed-number ref you reached in each book, for «وصلت إلى». */
+  reached: Record<string, string>;
+  /** Text of the hadiths you marked, noted or memorise, keyed "book:n". */
+  cards: Record<string, SavedHadithCard>;
+  /** The chain of narrators is folded under the matn until you open it. */
+  isnadOpen: boolean;
   setTextScale: (v: number) => void;
   setIsnadView: (v: IsnadView) => void;
   setHarakat: (v: boolean) => void;
-  setLast: (bookKey: string, n: number) => void;
+  setLast: (bookKey: string, n: number, r?: string) => void;
+  rememberCard: (key: string, card: SavedHadithCard) => void;
+  setIsnadOpen: (v: boolean) => void;
 };
 
 export const TEXT_SCALE_MIN = 0.8;
@@ -35,11 +47,24 @@ export const useHadithPrefs = create<HadithPrefsState>()(
       isnadView: "chain",
       harakat: true,
       last: null,
+      reached: {},
+      cards: {},
+      isnadOpen: false,
       setTextScale: (v) => set({ textScale: Math.min(TEXT_SCALE_MAX, Math.max(TEXT_SCALE_MIN, Math.round(v * 20) / 20)) }),
       setIsnadView: (v) => set({ isnadView: v }),
       setHarakat: (v) => set({ harakat: v }),
-      setLast: (bookKey, n) =>
-        set((s) => (s.last?.bookKey === bookKey && s.last.n === n ? s : { last: { bookKey, n, at: Date.now() } })),
+      setLast: (bookKey, n, r) =>
+        set((s) =>
+          s.last?.bookKey === bookKey && s.last.n === n && s.last.r === r
+            ? s
+            : { last: { bookKey, n, r, at: Date.now() }, reached: r ? { ...s.reached, [bookKey]: r } : s.reached },
+        ),
+      rememberCard: (key, card) =>
+        set((s) => {
+          const old = s.cards[key];
+          return old && old.r === card.r && old.x === card.x && old.ti === card.ti ? s : { cards: { ...s.cards, [key]: card } };
+        }),
+      setIsnadOpen: (v) => set({ isnadOpen: v }),
     }),
     { name: "athar-hadith-prefs", version: 1 },
   ),

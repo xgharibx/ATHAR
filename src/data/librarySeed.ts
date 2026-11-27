@@ -123,19 +123,18 @@ const HADITH_CHAPTERS: Record<number, string> = {
   91: "worship", 92: "salah", 93: "heart", 94: "adab", 95: "heart", 96: "family", 97: "heart", 98: "adab", 99: "intentions", 100: "heart",
 };
 
+/**
+ * The grade the source line states: «متفق عليه», a Sahih, or a ruling
+ * written after a dash («الترمذي — حسن»). Anything else has no stated
+ * grade ("curated"), and no grade badge is shown for it.
+ */
 function gradeFromSource(source: string): LibraryGrade {
   if (source.includes("متفق")) return "agreed";
-  if (source.includes("مسلم") || source.includes("البخاري")) return "sahih";
-  if (source.includes("الترمذي")) return "hasan";
+  const ruling = source.split("—")[1] ?? "";
+  if (ruling.includes("صحيح")) return "sahih";
+  if (ruling.includes("حسن")) return "hasan";
+  if (/(^|[\s•])(مسلم|البخاري)$/.test(source.trim())) return "sahih";
   return "curated";
-}
-
-function benefitForHadith(id: number): string[] {
-  const tags = HADITH_TAGS[id] ?? ["الإيمان", "العمل"];
-  return [
-    `يربط هذا النص باب ${tags[0]} بالسلوك اليومي، فلا يبقى العلم معلومة بعيدة عن العمل.`,
-    tags[1] ? `يمكن جعله معياراً سريعاً لمحاسبة النفس في باب ${tags[1]}.` : "يصلح أن يكون تذكرة يومية قصيرة قبل العمل.",
-  ];
 }
 
 function toHadithEntry(hadithId: number, collectionId: string, entryIdPrefix: string): LibraryEntry {
@@ -156,8 +155,8 @@ function toHadithEntry(hadithId: number, collectionId: string, entryIdPrefix: st
     },
     grade: gradeFromSource(hadith.source),
     tags,
-    benefits: benefitForHadith(hadith.id),
-    explanation: "مختصر تربوي داخل التطبيق، مكتوب بصياغة خاصة لمساعدة القارئ على تحويل النص إلى عمل.",
+    benefits: [],
+    explanation: "",
     verificationQuery: hadith.arabic.slice(0, 70),
   };
 }

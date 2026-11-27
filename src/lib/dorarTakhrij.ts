@@ -37,6 +37,16 @@ export type DorarTakhrij = {
   others: DorarGrading[];
 };
 
+/**
+ * A verdict as it should read: Dorar wraps short ones in brackets
+ * («[صحيح]»), which is editorial markup, not part of the ruling.
+ */
+export function cleanVerdict(verdict: string): string {
+  const v = verdict.trim();
+  const wrapped = /^\[([^[\]]+)\]\.?$/.exec(v);
+  return (wrapped ? wrapped[1]! : v).trim();
+}
+
 /** Maps a dorar.net verdict string to a semantic color — shared by every UI that shows takhrij. */
 export function verdictColor(verdict: string): string {
   if (/موضوع|باطل|منكر|لا يصح|لا أصل/.test(verdict)) return "#ef4444";

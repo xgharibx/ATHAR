@@ -4,6 +4,18 @@ What changed in each version of Athar, newest first. Store notes for a version
 live in `ios/fastlane/metadata/*/release_notes.txt` (App Store) and
 `docs/PLAY_WHATS_NEW_<version>.txt` (Google Play, 500 characters at most).
 
+## 1.2.96 (build 109)
+
+### Hadith
+- **Cleaner books:** the 408 empty numbering placeholders are gone (203 in Muslim); the forties no longer show raw markup or the attribution twice; each of the 82 hadiths of the two forties has its title.
+- **Printed numbers:** hadiths are cited and found by the numbers people quote («صحيح مسلم ١١٤٤ (٢)»، «المقدمة ١»), in the lists, the reader, search, copy and share; «اذهب إلى رقم» uses them too.
+- **Reader:** the text comes first, the chain is folded as «الإسناد (٧ رواة)»; a labelled bar (حفظ · علامة · ملاحظة · مشاركة · المزيد); where you are in the chapter («٥ من ٥١»).
+- **Grades and rulings** all in Arabic (شاذ، منكر، مرسل…), without Dorar's brackets.
+- **Search** shows the words that matched, and «علي» finds «عَلَىَّ» (alef maqsura and ta marbuta either way).
+- **One list of what you kept** (marks, notes and curated favourites) in «العلامات» and in Favorites, with its text, without loading whole books.
+- **حديث اليوم:** one hadith a day on the home, «أفق», the hadith page and the widget; an optional reminder at Fajr with the hadith itself; a Lock Screen widget; «حديث اليوم في أثر» in Siri and iPhone search.
+- «اسأل أثر» hadith cards open the hadith in the app's own book. One «الحديث» entry in the Library; «الشروح» on the hadith page; curated cards state only real grades; source credits moved to the privacy page.
+
 ## 1.2.95 (build 108)
 
 - **Home (classic):** «زاد اليوم» in the look of «أفق» (the ayah in the mushaf's type, centred; Naskh texts; pill actions), and the card is as tall as the item shown: no more empty space under a short one.

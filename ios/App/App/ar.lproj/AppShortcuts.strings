@@ -10,5 +10,7 @@
 "Open the tasbeeh in ${applicationName}" = "افتح السبحة في ${applicationName}";
 "Morning adhkar in ${applicationName}" = "أذكار الصباح في ${applicationName}";
 "Evening adhkar in ${applicationName}" = "أذكار المساء في ${applicationName}";
+"Hadith of the day in ${applicationName}" = "حديث اليوم في ${applicationName}";
+"Today's hadith in ${applicationName}" = "حديث اليوم من ${applicationName}";
 "Find the Qibla in ${applicationName}" = "اتجاه القبلة في ${applicationName}";
 "Qibla in ${applicationName}" = "القبلة في ${applicationName}";

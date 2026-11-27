@@ -4,7 +4,8 @@ import Foundation
 /**
  * Siri, Shortcuts and Spotlight actions that open a part of Athar:
  * «سبّح في أثر», «أذكار الصباح في أثر», «اقرأ سورة الكهف في أثر»,
- * «تابع القرآن في أثر», «القبلة في أثر». Each opens the app on that screen.
+ * «تابع القرآن في أثر», «القبلة في أثر», «حديث اليوم في أثر». Each opens the
+ * app on that screen.
  *
  * The English phrases are below; the Arabic ones are in
  * ar.lproj/AppShortcuts.strings.
@@ -73,6 +74,19 @@ struct QiblaIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult {
         OpenInApp.route("/qibla")
+        return .result()
+    }
+}
+
+struct DailyHadithIntent: AppIntent {
+    static let title: LocalizedStringResource = "Hadith of the day"
+    static let description: IntentDescription? = IntentDescription("Opens today's hadith with its explanation.")
+    static let openAppWhenRun = true
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        // The app opens the day's hadith (the one on the home and the widget).
+        OpenInApp.route("/hadith/today")
         return .result()
     }
 }
@@ -182,6 +196,13 @@ struct AtharShortcuts: AppShortcutsProvider {
             intent: EveningAdhkarIntent(),
             phrases: [
                 "Evening adhkar in \(.applicationName)",
+            ]
+        )
+        AppShortcut(
+            intent: DailyHadithIntent(),
+            phrases: [
+                "Hadith of the day in \(.applicationName)",
+                "Today's hadith in \(.applicationName)",
             ]
         )
         AppShortcut(

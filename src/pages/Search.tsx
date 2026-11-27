@@ -20,7 +20,9 @@ import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { useNoorStore } from "@/store/noorStore";
 import { cn, contrastText } from "@/lib/utils";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
-import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview } from "@/data/hadithTypes";
+import { HADITH_BOOKS_STATIC, hadithPreview } from "@/data/hadithTypes";
+import { GradeChip } from "@/components/hadith/GradeChip";
+import { hadithNumberLabel } from "@/data/hadithNumbers";
 import { useHadithPack } from "@/data/useHadithBook";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
@@ -744,9 +746,7 @@ export function SearchPage() {
           <div className="stack-y-2" role="list" aria-label="نتائج الحديث">
             {hadithResults.map((h) => {
               const book = HADITH_BOOKS_STATIC.find((b) => b.key === hadithBookKey);
-              const gradeColor: Record<string, string> = { sahih: "#10b981", hasan: "#3b82f6", daif: "#ef4444", maudu: "#6b7280" };
               const g = h.g[0] ?? "";
-              const color = gradeColor[g] ?? "#6b7280";
               return (
                 <div key={`${hadithBookKey}-${h.n}`} role="listitem">
                 <button type="button"
@@ -756,14 +756,9 @@ export function SearchPage() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <span
-                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                        style={{ background: color + "22", color }}
-                      >
-                        {hadithGradeLabel(g)}
-                      </span>
+                      {g && <GradeChip grade={g} size="sm" />}
                       <span className="text-xs opacity-45 font-arabic shrink-0">{book?.title}</span>
-                      <span className="text-xs opacity-45">ح{arNum(h.a)}</span>
+                      <span className="text-xs opacity-45">ح{hadithNumberLabel(h)}</span>
                     </div>
                     <ArrowUpRight size={16} className="opacity-55 shrink-0" aria-hidden="true" />
                   </div>

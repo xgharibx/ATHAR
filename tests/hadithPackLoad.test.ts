@@ -24,6 +24,9 @@ const validPack = {
   hadiths: [{ n: 1, a: 1, s: 1, t: "حديث نبوي", g: [] }],
 };
 
+/** What the loader returns: the same pack, each entry with its printed-number ref (see hadithNumbers.ts). */
+const loaded = <T extends { hadiths: { a: number | string }[] }>(pack: T) => ({ ...pack, hadiths: pack.hadiths.map((h) => ({ ...h, r: String(h.a) })) });
+
 describe("Hadith pack loading errors", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -72,7 +75,7 @@ describe("Hadith pack loading errors", () => {
       body,
     }));
 
-    await expect(loadHadithPackWithProgress("nawawi", onProgress, setIsFromCache)).resolves.toEqual(pack);
+    await expect(loadHadithPackWithProgress("nawawi", onProgress, setIsFromCache)).resolves.toEqual(loaded(pack));
 
     expect(setIsFromCache).toHaveBeenCalledWith(false);
     expect(onProgress).toHaveBeenLastCalledWith(100);
@@ -98,7 +101,7 @@ describe("Hadith pack loading errors", () => {
       json: async () => ({ ...validPack, key: "bukhari" }),
     }));
 
-    await expect(loadHadithPack("nawawi")).resolves.toEqual(validPack);
+    await expect(loadHadithPack("nawawi")).resolves.toEqual(loaded(validPack));
     expect(idbSetHadithPack).not.toHaveBeenCalled();
   });
 
@@ -110,7 +113,7 @@ describe("Hadith pack loading errors", () => {
       json: async () => validPack,
     }));
 
-    await expect(loadHadithPack("nawawi")).resolves.toEqual(validPack);
+    await expect(loadHadithPack("nawawi")).resolves.toEqual(loaded(validPack));
     expect(idbSetHadithPack).toHaveBeenCalledWith(validPack);
   });
 

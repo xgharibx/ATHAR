@@ -21,7 +21,8 @@ interface HadithNoteRow     { key: string; text: string; updatedAt: number }
 interface HadithMemoCardRow { key: string; card: HadithMemoCard; updatedAt: number }
 
 // Phase 12: full-corpus search index (all 36k hadiths, not just curated ones)
-export type FullSearchIndexEntry = [bookKey: string, n: number, snippet: string, grade: string];
+/** One search row; `ref` is the printed-number ref when it is not simply `n` (see hadithNumbers.ts). */
+export type FullSearchIndexEntry = [bookKey: string, n: number, snippet: string, grade: string, ref?: string];
 interface SearchIndexRow { key: "full"; data: FullSearchIndexEntry[]; cachedAt: number }
 
 class HadithDexie extends Dexie {

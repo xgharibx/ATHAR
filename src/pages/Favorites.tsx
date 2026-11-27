@@ -11,10 +11,9 @@ import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
-import { contrastText } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
-import { useHadithPack } from "@/data/useHadithBook";
+import { SavedHadithList } from "@/components/hadith/SavedHadithList";
+import { HADITH, countAr } from "@/lib/arabicCount";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { DUAS_CATEGORIES } from "@/data/duas";
 import { PROPHET_STORIES } from "@/data/prophetStories";
@@ -61,7 +60,8 @@ export function FavoritesPage() {
   const quranHighlights = useNoorStore((s) => s.quranHighlights);
 
   const hadithBookmarks = useNoorStore((s) => s.hadithBookmarks);
-  const toggleHadithBookmark = useNoorStore((s) => s.toggleHadithBookmark);
+  const hadithNotes = useNoorStore((s) => s.hadithNotes);
+  const libraryFavorites = useNoorStore((s) => s.libraryFavorites);
 
   const duaFavorites = useNoorStore((s) => s.duaFavorites ?? NO_DUA_FAVORITES);
   const toggleDuaFavorite = useNoorStore((s) => s.toggleDuaFavorite);
@@ -81,19 +81,13 @@ export function FavoritesPage() {
     [companionBookmarkSet]
   );
 
-  // Group bookmarked hadiths by book
-  const hadithBmList = React.useMemo(() => {
-    const out: Array<{ bookKey: string; n: number }> = [];
-    for (const [k, v] of Object.entries(hadithBookmarks)) {
-      if (!v) continue;
-      const parts = k.split(":");
-      if (parts.length !== 2) continue;
-      const n = Number(parts[1]);
-      if (!Number.isFinite(n)) continue;
-      out.push({ bookKey: parts[0], n });
-    }
-    return out.sort((a, b) => a.bookKey.localeCompare(b.bookKey) || a.n - b.n);
-  }, [hadithBookmarks]);
+  // Kept hadiths: marked or noted in the books, and curated favourites (one list, see SavedHadithList).
+  const hadithSavedCount = React.useMemo(() => {
+    const keys = new Set<string>();
+    for (const [k, v] of Object.entries(hadithBookmarks)) if (v) keys.add(k);
+    for (const [k, v] of Object.entries(hadithNotes)) if (v) keys.add(k);
+    return keys.size + Object.values(libraryFavorites).filter(Boolean).length;
+  }, [hadithBookmarks, hadithNotes, libraryFavorites]);
 
   // Dua favorites flat list
   const duaFavItems = React.useMemo(() => {
@@ -101,21 +95,7 @@ export function FavoritesPage() {
     return allDuas.filter((d) => duaFavorites.includes(d.id));
   }, [duaFavorites]);
 
-  // Get unique bookKeys needed, and load those packs (only when hadith tab active)
-  const bookKeysNeeded = React.useMemo(() => {
-    if (activeTab !== "hadith") return [];
-    return [...new Set(hadithBmList.map((h) => h.bookKey))];
-  }, [activeTab, hadithBmList]);
 
-  // We'll use a simple component to avoid conditional hook calls
-  const [selectedBmBookKey, setSelectedBmBookKey] = React.useState<string | undefined>(undefined);
-  React.useEffect(() => {
-    if (bookKeysNeeded.length > 0 && !selectedBmBookKey) setSelectedBmBookKey(bookKeysNeeded[0]);
-    else if (bookKeysNeeded.length > 0 && !bookKeysNeeded.includes(selectedBmBookKey!)) setSelectedBmBookKey(bookKeysNeeded[0]);
-    else if (bookKeysNeeded.length === 0) setSelectedBmBookKey(undefined);
-  }, [bookKeysNeeded, selectedBmBookKey]);
-
-  const { data: bmPack } = useHadithPack(activeTab === "hadith" ? selectedBmBookKey : undefined);
 
   const [confirmDeleteKey, setConfirmDeleteKey] = React.useState<string | null>(null);
   const [copiedKey, setCopiedKey] = React.useState<string | null>(null);
@@ -259,7 +239,7 @@ export function FavoritesPage() {
               </>
             )}
             <div className="text-xs opacity-70 pr-1">
-              {activeTab === "adhkar" ? `${arNum(items.length)} ذكر` : activeTab === "quran" ? `${arNum(quranBmList.length)} علامة` : activeTab === "hadith" ? `${arNum(hadithBmList.length)} حديث` : activeTab === "duas" ? `${arNum(duaFavItems.length)} دعاء` : activeTab === "stories" ? `${arNum(storyFavItems.length)} قصة` : `${arNum(companionFavItems.length)} صحابي`}
+              {activeTab === "adhkar" ? `${arNum(items.length)} ذكر` : activeTab === "quran" ? `${arNum(quranBmList.length)} علامة` : activeTab === "hadith" ? countAr(hadithSavedCount, HADITH) : activeTab === "duas" ? `${arNum(duaFavItems.length)} دعاء` : activeTab === "stories" ? `${arNum(storyFavItems.length)} قصة` : `${arNum(companionFavItems.length)} صحابي`}
             </div>
           </div>
         </div>
@@ -324,7 +304,7 @@ export function FavoritesPage() {
             ].join(" ")}
           >
             <ScrollText size={14} aria-hidden="true" />
-            الأحاديث {hadithBmList.length > 0 && <span className="text-[11px] opacity-60">({arNum(hadithBmList.length)})</span>}
+            الأحاديث {hadithSavedCount > 0 && <span className="text-[11px] opacity-60">({arNum(hadithSavedCount)})</span>}
           </button>
           <button type="button"
             id="fav-tab-duas"
@@ -542,94 +522,20 @@ export function FavoritesPage() {
         </Card>
       )}
 
-      {/* ── Hadith bookmarks tab ── */}
+      {/* ── Hadith tab: the same list as «الأحاديث ← العلامات» ── */}
       {activeTab === "hadith" && (
         <Card className="p-5" role="tabpanel" id="fav-panel-hadith" aria-labelledby="fav-tab-hadith" tabIndex={0}>
-          {hadithBmList.length === 0 ? (
-            <EmptyState
-              variant="favorites"
-              title="لا توجد أحاديث محفوظة"
-              description="اضغط على زر الحفظ داخل أي حديث لتجده هنا"
-              action={
-                <button type="button"
-                  onClick={() => navigate("/hadith")}
-                  className="text-sm text-(--accent) opacity-80 hover:opacity-100 transition underline underline-offset-2"
-                >
-                  استعرض الأحاديث ◄
-                </button>
-              }
-            />
-          ) : (
-            <div>
-              {/* Book tabs when multiple books bookmarked */}
-              {bookKeysNeeded.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar mb-3">
-                  {bookKeysNeeded.map((bk) => {
-                    const book = HADITH_BOOKS_STATIC.find((b) => b.key === bk);
-                    const count = hadithBmList.filter((h) => h.bookKey === bk).length;
-                    return (
-                      <button type="button"
-                        key={bk}
-                        onClick={() => setSelectedBmBookKey(bk)}
-                        aria-pressed={selectedBmBookKey === bk}
-                        className={[
-                          "shrink-0 text-xs px-3 py-1.5 rounded-full border transition font-arabic whitespace-nowrap min-h-[32px]",
-                          selectedBmBookKey === bk
-                            ? "border-transparent"
-                            : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
-                        ].join(" ")}
-                        style={selectedBmBookKey === bk ? { background: book?.color ?? "var(--accent)", color: contrastText(book?.color ?? "#ffd780") } : {}}
-                      >
-                        {book?.title ?? bk} ({arNum(count)})
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              <div className="stack-y-2" role="list" aria-label="الأحاديث المحفوظة">
-                {hadithBmList
-                  .filter((h) => h.bookKey === selectedBmBookKey)
-                  .map((h) => {
-                    const book = HADITH_BOOKS_STATIC.find((b) => b.key === h.bookKey);
-                    const hadith = bmPack?.hadiths.find((bh) => bh.n === h.n);
-                    return (
-                      <div
-                        key={`${h.bookKey}:${h.n}`}
-                        role="listitem"
-                        className="glass rounded-3xl p-4 border border-(--stroke) flex items-start gap-3"
-                      >
-                        <button type="button"
-                          className="flex-1 text-right min-w-0"
-                          onClick={() => navigate(`/hadith/${h.bookKey}/${h.n}`)}
-                          dir="rtl"
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span
-                              className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                              style={{ background: (book?.color ?? "var(--accent)") + "22", color: book?.color ?? "var(--accent)" }}
-                            >
-                              {book?.title}
-                            </span>
-                            <span className="text-xs opacity-45">ح{h.n}</span>
-                            <ArrowUpRight size={14} className="opacity-55 shrink-0 mr-auto" aria-hidden="true" />
-                          </div>
-                          <div className="arabic-text text-sm opacity-80 leading-7">
-                            {hadith ? hadith.t.slice(0, 200) + (hadith.t.length > 200 ? "…" : "") : "جاري التحميل…"}
-                          </div>
-                        </button>
-                        <Button
-                          variant="outline"
-                          onClick={() => toggleHadithBookmark(h.bookKey, h.n)}
-                          aria-label="إزالة الحفظ"
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
+          <SavedHadithList
+            removable
+            emptyAction={
+              <button type="button"
+                onClick={() => navigate("/hadith")}
+                className="text-sm text-(--accent) opacity-80 hover:opacity-100 transition underline underline-offset-2"
+              >
+                استعرض الأحاديث ◄
+              </button>
+            }
+          />
         </Card>
       )}
       {/* ── Duas favorites tab ── */}

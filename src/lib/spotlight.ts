@@ -1,7 +1,7 @@
 /**
  * Athar in iPhone search (SpotlightPlugin): the 114 surahs, the adhkar
- * sections and the main screens. Typing «الكهف», «أذكار النوم» or «القبلة» in
- * Spotlight opens Athar right there. Indexed once per list version, after
+ * sections and the main screens. Typing «الكهف», «أذكار النوم», «القبلة» or
+ * «حديث اليوم» in Spotlight opens Athar right there. Indexed once per list version, after
  * start-up, on iPhone only.
  */
 import { Capacitor, registerPlugin } from "@capacitor/core";
@@ -21,6 +21,8 @@ export const SPOTLIGHT_SECTIONS: SpotlightItem[] = [
   { route: "/sebha", title: "السبحة", subtitle: "أثر", keywords: ["تسبيح", "مسبحة", "tasbeeh"] },
   { route: "/quran/page", title: "المصحف", subtitle: "تابع القراءة في أثر", keywords: ["قرآن", "مصحف", "quran"] },
   { route: "/quran/tasmee", title: "التسميع", subtitle: "سمِّع من حفظك في أثر", keywords: ["حفظ", "تسميع", "memorize"] },
+  { route: "/hadith/today", title: "حديث اليوم", subtitle: "مع شرحه في أثر", keywords: ["حديث", "حديث اليوم", "hadith of the day"] },
+  { route: "/hadith", title: "الأحاديث", subtitle: "الصحيحان والسنن والموطأ والأربعون في أثر", keywords: ["حديث", "البخاري", "مسلم", "الأربعون النووية", "hadith"] },
   { route: "/asma", title: "أسماء الله الحسنى", subtitle: "أثر", keywords: ["أسماء الله", "asma"] },
   { route: "/duas", title: "الأدعية", subtitle: "أثر", keywords: ["دعاء", "أدعية", "dua"] },
   { route: "/mosques", title: "المساجد القريبة", subtitle: "أثر", keywords: ["مسجد", "mosque"] },
@@ -63,7 +65,7 @@ export function buildSpotlightItems(
 }
 
 /** Bump when the list's shape changes, so phones index it again. */
-const LIST_VERSION = 1;
+const LIST_VERSION = 2;
 
 export async function indexAppForSpotlight(): Promise<void> {
   if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== "ios") return;

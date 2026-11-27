@@ -13,11 +13,13 @@ export function stripDiacritics(input: string) {
 }
 
 /**
- * Strip diacritics AND normalize alef variants to plain alef for Arabic search.
+ * Strip diacritics AND normalize alef variants to plain alef, alef maqsura to ya
+ * and ta marbuta to ha, for Arabic search.
  * Use this for both query and source text to enable diacritic/alef-insensitive matching.
  */
 export function normalizeArabicSearch(input: string) {
-  return stripDiacritics(input).replace(ALEF_VARIANTS, "\u0627");
+  // Alef maqsura and ta marbuta are written either way («على»/«علي»، «صلاة»/«صلاه»).
+  return stripDiacritics(input).replace(ALEF_VARIANTS, "\u0627").replace(/\u0649/g, "\u064A").replace(/\u0629/g, "\u0647");
 }
 
 /** Convert western digits to Arabic-Indic (e.g. 5 → ٥) */

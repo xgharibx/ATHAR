@@ -13,7 +13,7 @@ import type { Section } from "@/data/types";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { arNum } from "@/lib/formatNumber";
 import { shareText } from "@/lib/shareTargets";
-import { fetchDailyHadith, type SharhHadith } from "@/lib/hadithSharhAPI";
+import { useDailyHadith } from "@/lib/useDailyHadith";
 
 type Kind = "ayah" | "hadith" | "sunnah";
 
@@ -29,27 +29,13 @@ function dailyIndex(key: string, length: number, seed = 7): number {
   return length ? hash % length : 0;
 }
 
-function useDailyHadith(dateKey: string) {
-  const [state, setState] = React.useState<{ key: string; hadith: SharhHadith | null; done: boolean }>({ key: "", hadith: null, done: false });
-  React.useEffect(() => {
-    let alive = true;
-    fetchDailyHadith(dateKey)
-      .then((h) => alive && setState({ key: dateKey, hadith: h, done: true }))
-      .catch(() => alive && setState({ key: dateKey, hadith: null, done: true }));
-    return () => {
-      alive = false;
-    };
-  }, [dateKey]);
-  return state.key === dateKey ? state : { key: dateKey, hadith: null, done: false };
-}
-
 export function UfuqDaily({ sections }: { sections: Section[] }) {
   const navigate = useNavigate();
   const today = useTodayKey();
   const [kind, setKind] = React.useState<Kind>("ayah");
   const [explain, setExplain] = React.useState(false);
   const verse = DAILY_VERSES[dailyIndex(today, DAILY_VERSES.length)];
-  const hadith = useDailyHadith(today);
+  const hadith = useDailyHadith(today, { syncWidget: true });
   const sunnahPool = React.useMemo(
     () => sections.filter((s) => s.id === "sunan" || s.id.startsWith("sunan_")).flatMap((s) => s.content),
     [sections],
