@@ -20,6 +20,7 @@ import { HADITH_PLANS, planDef, planPerDay, planToday } from "@/lib/hadithPlans"
 import { planReminderBody } from "@/lib/hadithPlanReminder";
 import { HADITH_GRADERS as APP_GRADERS } from "@/data/hadithTypes";
 import { androidAssetLinks, appleAssociation } from "../tools/scripts/app-links.mjs";
+import { explanationRecord } from "../tools/scripts/sharh-links.mjs";
 import {
   HADITH_GRADERS,
   buildHadithBlock,
@@ -115,6 +116,13 @@ describe("E1: explanations", () => {
       expect(id, `nawawi:${n}`).toBeTruthy();
       expect(bundled[id!], `nawawi:${n} bundled`).toBeTruthy();
     }
+  });
+
+  it("bundles only well-formed explanation records, plain text, known fields", () => {
+    const record = explanationRecord({ id: 7, hadeeth: "نص <b>", explanation: "شرح", extra: "x", hints: ["فائدة", 1], words_meanings: [{ word: "كلمة", meaning: "معنى" }, {}] }, "7");
+    expect(record).toEqual({ id: "7", title: "", hadeeth: "نص b", attribution: "", grade: "", explanation: "شرح", hints: ["فائدة"], words_meanings: [{ word: "كلمة", meaning: "معنى" }] });
+    expect(explanationRecord({ id: 8, hadeeth: "x", explanation: "y" }, "7")).toBeNull();
+    expect(explanationRecord({ id: 7, hadeeth: "x" }, "7")).toBeNull();
   });
 
   it("links several thousand hadiths, each to a known record, without the rejected matches", () => {
@@ -244,6 +252,7 @@ describe("J1: «اسأل عن الحديث» on the server", () => {
     expect(readHadithAskRequest({ book: "bukhari", n: 0 })).toBeNull();
     expect(readHadithAskRequest({ book: "bukhari", n: 1.5 })).toBeNull();
     expect(readHadithAskRequest({ book: "__proto__", n: 1 })).toBeNull();
+    expect(readHadithAskRequest({ book: "constructor", n: 1 })).toBeNull();
   });
 
   it("names the same scholars as the app", () => {

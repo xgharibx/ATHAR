@@ -24,6 +24,35 @@ const BUNDLE_BOOKS = new Set(["nawawi", "qudsi"]);
 /** Checked by hand and wrong: never linked. */
 const NOT_THESE = new Set(["qudsi:8", "qudsi:9"]);
 
+const text = (value, max) => (typeof value === "string" ? value.replace(/[<>]/g, "").slice(0, max) : "");
+
+/**
+ * Only the fields the app shows, each checked and bounded (plain text, no
+ * markup), so nothing else the API returns ends up in the shipped file. The
+ * app validates the same shape again when it reads it (parseSharhHadith).
+ */
+export function explanationRecord(h, id) {
+  if (!h || typeof h !== "object" || String(h.id) !== String(id) || !/^\d{1,7}$/.test(String(id))) return null;
+  const record = {
+    id: String(id),
+    title: text(h.title, 400),
+    hadeeth: text(h.hadeeth, 8000),
+    attribution: text(h.attribution, 400),
+    grade: text(h.grade, 200),
+    explanation: text(h.explanation, 20000),
+  };
+  if (!record.hadeeth || !record.explanation) return null;
+  const hints = Array.isArray(h.hints) ? h.hints.map((x) => text(x, 1000)).filter(Boolean).slice(0, 40) : [];
+  const words = Array.isArray(h.words_meanings)
+    ? h.words_meanings
+      .map((w) => ({ word: text(w?.word, 100), meaning: text(w?.meaning, 600) }))
+      .filter((w) => w.word && w.meaning)
+      .slice(0, 60)
+    : [];
+  const reference = text(h.reference, 4000);
+  return { ...record, ...(hints.length ? { hints } : {}), ...(words.length ? { words_meanings: words } : {}), ...(reference ? { reference } : {}) };
+}
+
 async function getJson(path) {
   for (let attempt = 0; attempt < 4; attempt++) {
     try {
@@ -128,18 +157,12 @@ async function main() {
   let bundled = 0;
   for (const [k, id] of Object.entries(links)) {
     if (!BUNDLE_BOOKS.has(k.split(":")[0]) || bundle[id]) continue;
-    const h = await getJson(`/hadeeths/one/?language=ar&id=${encodeURIComponent(id)}`);
-    bundle[id] = {
-      id: String(h.id),
-      title: h.title,
-      hadeeth: h.hadeeth,
-      attribution: h.attribution,
-      grade: h.grade,
-      explanation: h.explanation,
-      ...(Array.isArray(h.hints) ? { hints: h.hints } : {}),
-      ...(Array.isArray(h.words_meanings) ? { words_meanings: h.words_meanings } : {}),
-      ...(h.reference ? { reference: h.reference } : {}),
-    };
+    const record = explanationRecord(await getJson(`/hadeeths/one/?language=ar&id=${encodeURIComponent(id)}`), id);
+    if (!record) {
+      console.warn(`skipped ${id}: not a well-formed explanation`);
+      continue;
+    }
+    bundle[id] = record;
     bundled++;
   }
   writeFileSync(bundlePath, JSON.stringify(bundle), "utf8");

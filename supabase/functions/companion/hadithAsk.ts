@@ -47,9 +47,11 @@ const MAX_EXPLANATION_CHARS = 9_000;
 export function readHadithAskRequest(value: unknown): HadithAskRequest | null {
   if (!value || typeof value !== "object") return null;
   const { book, n } = value as { book?: unknown; n?: unknown };
-  if (typeof book !== "string" || !Object.hasOwn(HADITH_ASK_BOOKS, book)) return null;
-  if (typeof n !== "number" || !Number.isInteger(n) || n < 1 || n > 100_000) return null;
-  return { book, n };
+  // The key is taken from the server's own list (never the caller's string), and the
+  // number rebuilt from digits, so a request can only name one of the published files.
+  const known = Object.keys(HADITH_ASK_BOOKS).find((key) => key === book);
+  if (!known || typeof n !== "number" || !Number.isInteger(n) || n < 1 || n > 100_000) return null;
+  return { book: known, n: Number.parseInt(String(n), 10) };
 }
 
 export type HadithSources = {
