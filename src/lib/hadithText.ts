@@ -54,7 +54,8 @@ export function tidyHadithMarkup(text: string): string {
     }
     lines.push(line);
   }
-  return lines.join("\n").replace(/<[^>]*>/g, "");
+  // Any other markup: drop the angle brackets themselves (no tag is ever kept).
+  return lines.join("\n").replace(/[<>]/g, "");
 }
 
 export function splitHadithText(raw: string): { isnad: string; matn: string } {

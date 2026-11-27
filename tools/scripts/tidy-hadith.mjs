@@ -132,7 +132,8 @@ export function tidyMarkup(text) {
     }
     lines.push(line);
   }
-  return lines.join("\n").replace(/<[^>]*>/g, "");
+  // Any other markup: drop the angle brackets themselves (no tag is ever kept).
+  return lines.join("\n").replace(/[<>]/g, "");
 }
 
 /**
@@ -212,7 +213,7 @@ function main() {
     .filter(([key, n]) => refByEntry.has(`${key}:${n}`))
     .map(([key, n, snippet, grade]) => {
       const ref = refByEntry.get(`${key}:${n}`);
-      const text = tidyMarkup(snippet).replace(/<[^>]*$/, "");
+      const text = tidyMarkup(snippet).replace(/[<>]/g, "");
       return ref ? [key, n, text, grade, ref] : [key, n, text, grade];
     });
   writeFileSync(searchPath, JSON.stringify(search), "utf8");
