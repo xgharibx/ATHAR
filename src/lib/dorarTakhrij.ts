@@ -49,7 +49,7 @@ export function cleanVerdict(verdict: string): string {
 
 /** Maps a dorar.net verdict string to a semantic color — shared by every UI that shows takhrij. */
 export function verdictColor(verdict: string): string {
-  if (/موضوع|باطل|منكر|لا يصح|لا أصل/.test(verdict)) return "#ef4444";
+  if (/موضوع|باطل|منكر|شاذ|لا يصح|لا أصل/.test(verdict)) return "#ef4444";
   if (/ضعيف/.test(verdict)) return "#f97316";
   if (/حسن/.test(verdict)) return "#f59e0b";
   if (/صحيح|ثابت|مشهور/.test(verdict)) return "#10b981";

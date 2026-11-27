@@ -9,12 +9,14 @@ import { Card } from "@/components/ui/Card";
 import { cleanVerdict, verdictColor, type DorarTakhrij } from "@/lib/dorarTakhrij";
 import { GradeChip } from "@/components/hadith/GradeChip";
 import { arNum, westernToArabicDigits as arDigits } from "@/lib/formatNumber";
+import { HADITH_GRADERS } from "@/data/hadithTypes";
 
 
 export function TakhrijCard({
   takhrij,
   loading,
   grades,
+  rulings,
   sharhId,
   onOpenSharh,
   accentColor = "var(--accent)",
@@ -23,6 +25,8 @@ export function TakhrijCard({
   loading: boolean;
   /** The book's own bundled grade tags (صحيح/حسن/…), shown as quick badges. */
   grades?: string[];
+  /** The book's rulings with the scholar who gave each («الألباني: صحيح»), offline. */
+  rulings?: [number, string][];
   sharhId?: string | null;
   onOpenSharh?: (sharhId: string) => void;
   accentColor?: string;
@@ -47,6 +51,20 @@ export function TakhrijCard({
           )}
         </div>
 
+        {rulings && rulings.length > 0 && (
+          <div className="mb-3 rounded-2xl p-3" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}>
+            <p className="mb-2 text-[11px] font-semibold opacity-60">أحكام العلماء على هذا الحديث</p>
+            <dl className="stack-y-1.5">
+              {rulings.map(([who, ruling]) => (
+                <div key={`${who}:${ruling}`} className="flex items-baseline justify-between gap-3 text-xs leading-6">
+                  <dt className="opacity-70 shrink-0">{HADITH_GRADERS[who] ?? ""}</dt>
+                  <dd className="m-0 font-bold text-left" style={{ color: verdictColor(ruling) }}>{ruling}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
+
         {loading && !takhrij && (
           <div className="flex items-center gap-2 py-3 text-xs opacity-55">
             <Loader2 size={14} aria-hidden="true" className="animate-spin" />
@@ -54,7 +72,7 @@ export function TakhrijCard({
           </div>
         )}
 
-        {!loading && (!takhrij || (!takhrij.exact && takhrij.others.length === 0)) && (
+        {!loading && !rulings?.length && (!takhrij || (!takhrij.exact && takhrij.others.length === 0)) && (
           <p className="text-xs opacity-55 py-2">
             لم نجد تخريجًا مطابقًا بثقة لهذا النص بعينه.
           </p>

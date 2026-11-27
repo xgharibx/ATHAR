@@ -4,6 +4,13 @@ What changed in each version of Athar, newest first. Store notes for a version
 live in `ios/fastlane/metadata/*/release_notes.txt` (App Store) and
 `docs/PLAY_WHATS_NEW_<version>.txt` (Google Play, 500 characters at most).
 
+## 1.2.97 (build 110)
+
+### Hadith (bundle v2)
+- **Search reads every word:** the whole text of all 36,064 hadiths is searchable offline (before, only the first ~250 characters, mostly the chain). Exact phrases first, then hadiths holding every word; the true number of results, per book, with a filter by book and «عرض المزيد».
+- **Rulings with their scholars:** «الألباني: شاذ · زبير علي زئي: إسناده صحيح» on 21,000 hadiths of Abu Dawud, al-Tirmidhi, al-Nasa'i, Ibn Majah and the Muwatta, in Arabic, offline.
+- «اسأل أثر» reads the same full texts for its offline references. The old 18 MB opening-words index is gone (the new texts add 3 MB net).
+
 ## 1.2.96 (build 109)
 
 ### Hadith

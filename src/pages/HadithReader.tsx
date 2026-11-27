@@ -536,6 +536,7 @@ export function HadithReaderPage() {
               takhrij={takhrij}
               loading={takhrijLoading}
               grades={hadith.g}
+              rulings={hadith.gr}
               accentColor={accentColor}
             />
 

@@ -20,10 +20,11 @@ interface HadithProgressRow { bookKey: string; n: number } // last-read hadith n
 interface HadithNoteRow     { key: string; text: string; updatedAt: number }
 interface HadithMemoCardRow { key: string; card: HadithMemoCard; updatedAt: number }
 
-// Phase 12: full-corpus search index (all 36k hadiths, not just curated ones)
-/** One search row; `ref` is the printed-number ref when it is not simply `n` (see hadithNumbers.ts). */
-export type FullSearchIndexEntry = [bookKey: string, n: number, snippet: string, grade: string, ref?: string];
-interface SearchIndexRow { key: "full"; data: FullSearchIndexEntry[]; cachedAt: number }
+// Full-text search: each book's whole text without harakat (see fullHadithSearch.ts).
+/** One hadith in a book's search text; `ref` is its printed-number ref when it is not simply `n`. */
+export type HadithTextRow = [n: number, text: string, grade: string, ref?: string];
+/** Rows are keyed "text:{book}". (The table once held the old 260-character index as "full".) */
+interface SearchIndexRow { key: string; data: HadithTextRow[]; cachedAt: number }
 
 class HadithDexie extends Dexie {
   packs!: Table<HadithPackCache, string>;
@@ -251,10 +252,10 @@ export async function idbReplaceHadithState(data: {
   }
 }
 
-// Full-corpus search index cache (kept 30 days, same as book packs)
-export async function idbGetSearchIndexEntry(): Promise<HadithCacheEntry<FullSearchIndexEntry[]> | null> {
+// Each book's search text (kept 30 days, same as book packs).
+export async function idbGetHadithTextEntry(bookKey: string): Promise<HadithCacheEntry<HadithTextRow[]> | null> {
   try {
-    const row = await getDB().searchIndex.get("full");
+    const row = await getDB().searchIndex.get(`text:${bookKey}`);
     if (!row) return null;
     return { data: row.data, isFresh: Date.now() - row.cachedAt <= MAX_AGE_MS };
   } catch {
@@ -262,16 +263,14 @@ export async function idbGetSearchIndexEntry(): Promise<HadithCacheEntry<FullSea
   }
 }
 
-export async function idbGetSearchIndex(): Promise<FullSearchIndexEntry[] | null> {
-  const entry = await idbGetSearchIndexEntry();
-  return entry?.isFresh ? entry.data : null;
-}
-
-export async function idbSetSearchIndex(data: FullSearchIndexEntry[]): Promise<void> {
+export async function idbSetHadithText(bookKey: string, data: HadithTextRow[]): Promise<void> {
   try {
-    await getDB().searchIndex.put({ key: "full", data, cachedAt: Date.now() });
+    const db = getDB();
+    await db.searchIndex.put({ key: `text:${bookKey}`, data, cachedAt: Date.now() });
+    // The old 18 MB opening-words index is no longer read.
+    await db.searchIndex.delete("full");
   } catch {
-    // non-fatal — index stays in memory for this session only
+    // non-fatal — the text stays in memory for this session only
   }
 }
 

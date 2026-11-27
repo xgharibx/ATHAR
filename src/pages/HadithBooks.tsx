@@ -18,7 +18,10 @@ import { useTodayKey } from "@/hooks/useTodayKey";
 import { highlightWindow } from "@/lib/arabicHighlight";
 import { loadChapterCounts } from "@/data/hadithChapters";
 import { BENEFIT, BOOK, BOOKMARK, CARD, HADITH, RESULT, countAr } from "@/lib/arabicCount";
-import { searchFullHadithCorpus, prewarmFullHadithSearch, type FullHadithSearchResult } from "@/lib/fullHadithSearch";
+import { SEARCH_BOOKS, isFullHadithSearchReady, prewarmFullHadithSearch, searchHadithText, type HadithSearchOutcome } from "@/lib/fullHadithSearch";
+
+/** Results shown at a time. */
+const PAGE = 40;
 import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
 import type { FlatLibraryEntry, LibraryCollection } from "@/data/libraryTypes";
 import { useNoorStore } from "@/store/noorStore";
@@ -406,10 +409,15 @@ function CuratedTab() {
 function SearchTab({ books }: { books: HadithBookMeta[] }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<FullHadithSearchResult[]>([]);
+  const [outcome, setOutcome] = useState<HadithSearchOutcome | null>(null);
+  const [bookFilter, setBookFilter] = useState<string | null>(null);
+  const [limit, setLimit] = useState(PAGE);
   const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const runRef = useRef(0);
+  // Per-book counts come from the search over every book (no filter).
+  const [allCounts, setAllCounts] = useState<Record<string, number>>({});
   const bookMeta = useCallback((key: string) => books.find((b) => b.key === key), [books]);
 
   useEffect(() => {
@@ -419,37 +427,63 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
     };
   }, []);
 
-  const runSearch = useCallback(async (q: string) => {
-    if (!q.trim() || q.trim().length < 2) {
-      setResults([]);
-      setSearched(false);
+  const runSearch = useCallback(async (q: string, filter: string | null, max: number) => {
+    const run = ++runRef.current;
+    if (q.trim().length < 2) {
+      setOutcome(null);
+      setLoading(false);
       return;
     }
     setLoading(true);
-    setSearched(true);
-    const hits = await searchFullHadithCorpus(q, 50);
-    setResults(hits);
+    const ready = isFullHadithSearchReady();
+    const found = await searchHadithText(q, {
+      limit: max,
+      books: filter ? [filter] : undefined,
+      onProgress: ready ? undefined : (done, total) => run === runRef.current && setProgress({ done, total }),
+    });
+    if (run !== runRef.current) return;
+    setProgress(null);
+    setOutcome(found);
+    if (!filter) setAllCounts(found.byBook);
     setLoading(false);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     setQuery(v);
+    setBookFilter(null);
+    setLimit(PAGE);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => runSearch(v), 500);
+    debounceRef.current = setTimeout(() => void runSearch(v, null, PAGE), 400);
   };
 
+  const pickBook = (key: string | null) => {
+    setBookFilter(key);
+    setLimit(PAGE);
+    void runSearch(query, key, PAGE);
+  };
+
+  const showMore = () => {
+    const next = limit + PAGE;
+    setLimit(next);
+    void runSearch(query, bookFilter, next);
+  };
+
+  const countedBooks = Object.entries(allCounts).sort((x, y) => SEARCH_BOOKS.indexOf(x[0] as never) - SEARCH_BOOKS.indexOf(y[0] as never));
+  const allTotal = countedBooks.reduce((sum, [, n]) => sum + n, 0);
+  const results = outcome?.results ?? [];
+  const searched = outcome !== null;
 
   return (
     <div dir="rtl" className="px-4 pt-4">
       {/* Search input */}
-      <div className="relative mb-5" role="search" aria-label="بحث في الأحاديث">
+      <div className="relative mb-4" role="search" aria-label="بحث في الأحاديث">
         <Search size={16} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-(--muted) pointer-events-none" />
         <input
           type="search"
           value={query}
           onChange={handleChange}
-          placeholder="ابحث في الأحاديث…"
+          placeholder="ابحث في نص الأحاديث…"
           dir="rtl"
           aria-label="البحث في كتب الحديث"
           spellCheck={false}
@@ -459,9 +493,18 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
         />
       </div>
 
-      {/* States */}
-      {loading && (
-        <div className="flex flex-col items-center py-12 gap-3 text-(--muted)" role="status">
+      {/* The first search loads each book's text once; after that it is offline. */}
+      {loading && progress && (
+        <div className="mb-4 rounded-2xl border border-(--stroke) bg-(--card) p-3.5" role="status" aria-live="polite">
+          <p className="text-[12px] font-arabic text-(--fg)">نجهّز البحث في نص كل الأحاديث، مرة واحدة فقط…</p>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-(--stroke)" aria-hidden="true">
+            <div className="h-full rounded-full bg-(--accent) transition-all" style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }} />
+          </div>
+          <p className="mt-1.5 text-[11px] text-(--muted)">{arNum(progress.done)} من {countAr(progress.total, BOOK)}</p>
+        </div>
+      )}
+      {loading && !progress && (
+        <div className="flex flex-col items-center py-10 gap-3 text-(--muted)" role="status">
           <div className="w-6 h-6 border-2 border-(--accent) border-t-transparent rounded-full animate-spin" aria-hidden="true" />
           <p className="text-sm font-arabic">جارٍ البحث…</p>
         </div>
@@ -471,23 +514,36 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
         <div className="flex flex-col items-center py-12 gap-3">
           <Search size={36} aria-hidden="true" className="text-(--muted) opacity-30" />
           <p className="text-sm text-(--muted) font-arabic">لا توجد نتائج</p>
+          {outcome?.missing.length ? <p className="text-xs text-(--muted) text-center">بعض الكتب لم تُحمَّل بعد، اتصل بالإنترنت مرة ليكتمل البحث.</p> : null}
         </div>
       )}
 
       {!loading && !searched && (
         <div className="flex flex-col items-center py-12 gap-3">
           <Search size={36} aria-hidden="true" className="text-(--muted) opacity-20" />
-          <p className="text-sm text-(--muted) font-arabic text-center">ابحث بكلمة من الحديث في الكتب كلها</p>
+          <p className="text-sm text-(--muted) font-arabic text-center">ابحث بكلمة أو جملة من أي موضع في الحديث، في الكتب كلها</p>
           <p className="text-xs text-(--muted) font-arabic opacity-70 text-center">لا يهم التشكيل ولا الهمزات</p>
         </div>
       )}
 
       {/* Results */}
-      {!loading && results.length > 0 && (
+      {!loading && results.length > 0 && outcome && (
         <div className="stack-y-3 pb-6">
           <p className="text-xs text-(--muted) font-arabic" aria-live="polite" aria-atomic="true">
-            {results.length >= 50 ? `أكثر من ${arNum(50)} نتيجة` : countAr(results.length, RESULT)}
+            {countAr(outcome.total, RESULT)}
+            {!bookFilter && countedBooks.length > 1 ? ` في ${countAr(countedBooks.length, BOOK)}` : ""}
           </p>
+          {countedBooks.length > 1 && (
+            <div className="-mx-1 flex gap-2 overflow-x-auto no-scrollbar px-1 pb-1" role="radiogroup" aria-label="تصفية بالكتاب">
+              {([[null, "الكل", allTotal], ...countedBooks.map(([key, n]) => [key, bookMeta(key)?.title ?? key, n])] as [string | null, string, number][]).map(([key, label, n]) => (
+                <button key={key ?? "all"} type="button" role="radio" aria-checked={bookFilter === key} onClick={() => pickBook(key)}
+                  className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs", bookFilter === key ? "bg-(--accent) text-(--on-accent) border-transparent font-bold" : "bg-(--card) border-(--stroke)")}
+                >
+                  {label} <span className="opacity-60 tabular-nums">{arNum(n)}</span>
+                </button>
+              ))}
+            </div>
+          )}
           {results.map((r) => {
             const meta = bookMeta(r.bookKey);
             const open = () => navigate(`/hadith/${r.bookKey}/${r.n}`);
@@ -510,7 +566,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
                     {r.grade && <GradeChip grade={r.grade} size="sm" />}
                   </div>
                   {/* The words that matched, in their place in the text. */}
-                  <p className="text-[12.5px] font-arabic text-(--fg) leading-relaxed line-clamp-3">
+                  <p className="text-[13px] font-arabic text-(--fg) leading-relaxed line-clamp-3">
                     {highlightWindow(r.snippet, query).map((part, i) =>
                       part.hit ? (
                         <mark key={i} className="rounded px-0.5 font-bold text-(--fg)" style={{ background: "color-mix(in srgb, var(--accent) 28%, transparent)" }}>{part.text}</mark>
@@ -523,6 +579,13 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
               </button>
             );
           })}
+          {results.length < (bookFilter ? outcome.byBook[bookFilter] ?? 0 : outcome.total) && (
+            <button type="button" onClick={showMore}
+              className="w-full rounded-2xl border border-(--stroke) bg-(--card) py-3 text-sm font-semibold press-effect"
+            >
+              عرض المزيد
+            </button>
+          )}
         </div>
       )}
     </div>

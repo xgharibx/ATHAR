@@ -40,13 +40,25 @@ export function findArabicMatches(text: string, query: string): [number, number]
   return out;
 }
 
+/** The phrase where it occurs; otherwise each of its words, in order, without overlaps. */
+function findPhraseOrWords(text: string, query: string): [number, number][] {
+  const phrase = findArabicMatches(text, query);
+  if (phrase.length) return phrase;
+  const words = query.trim().split(/\s+/).filter((word) => word.length >= 2);
+  if (words.length < 2) return [];
+  const all = words.flatMap((word) => findArabicMatches(text, word)).sort((x, y) => x[0] - y[0]);
+  const out: [number, number][] = [];
+  for (const m of all) if (!out.length || m[0] >= out[out.length - 1]![1]) out.push(m);
+  return out;
+}
+
 /**
  * A short window of the text around the first match (whole words, with «…»
  * where it was cut), split into plain and matched parts. Without a match,
  * the start of the text.
  */
 export function highlightWindow(text: string, query: string, size = 170): HighlightPart[] {
-  const matches = findArabicMatches(text, query);
+  const matches = findPhraseOrWords(text, query);
   let start = 0;
   if (matches.length && matches[0]![0] > size * 0.35) {
     start = matches[0]![0] - Math.round(size * 0.3);
