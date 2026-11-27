@@ -85,14 +85,22 @@ public class NoorQ2HifzWidgetProvider extends AtharWidgetProvider {
                 // The app revises at most twenty far pages a day.
                 far = Math.min(far, 20);
                 int total = fresh + near + far;
+                // The hadith side of «مراجعة اليوم»: cards due by today (yyyy-MM-dd).
+                int hadith = 0;
+                String today = todayKey();
+                JSONArray hadithDues = payload.optJSONArray("hadithDues");
+                for (int i = 0; hadithDues != null && i < hadithDues.length(); i++) {
+                    if (hadithDues.optString(i, "9999").compareTo(today) <= 0) hadith++;
+                }
+                String withHadith = hadith > 0 ? "، ومعها " + arabicDigits(hadith) + (hadith == 1 ? " بطاقة حديث" : " بطاقات حديث") : "";
 
                 progress = Math.min(1f, memorised / (float) TOTAL_PAGES);
                 if (total == 0) {
                     views.setTextViewText(R.id.q2hifz_ayahs_read, "✓");
-                    views.setTextViewText(R.id.q2hifz_goal_label, "لا مراجعة اليوم");
+                    views.setTextViewText(R.id.q2hifz_goal_label, "لا مراجعة اليوم" + withHadith);
                 } else {
                     views.setTextViewText(R.id.q2hifz_ayahs_read, arabicDigits(total) + (total == 1 ? " صفحة" : " صفحات"));
-                    views.setTextViewText(R.id.q2hifz_goal_label, "في جلسة اليوم");
+                    views.setTextViewText(R.id.q2hifz_goal_label, "في جلسة اليوم" + withHadith);
                     sessionRoute = "/quran/hifz/session";
                 }
                 views.setTextViewText(R.id.q2hifz_surah_name, arabicDigits(memorised) + " صفحة محفوظة");

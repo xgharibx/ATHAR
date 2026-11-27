@@ -130,3 +130,45 @@ export const useHadithPrefs = create<HadithPrefsState>()(
 export function withoutHarakat(text: string): string {
   return text.replace(/[\u064B-\u0652\u0670\u0640]/g, "").replace(/[\u06D6-\u06ED]/g, "");
 }
+
+/** What a backup keeps of these: your folders, which hadiths are in them, your reading plan and the saved rows' text. */
+export type HadithPrefsBackup = {
+  v: 1;
+  folders: string[];
+  inFolders: Record<string, string[]>;
+  plan: HadithPlanState | null;
+  cards: Record<string, SavedHadithCard>;
+};
+
+export function exportHadithPrefs(): HadithPrefsBackup {
+  const s = useHadithPrefs.getState();
+  return { v: 1, folders: s.folders, inFolders: s.inFolders, plan: s.plan, cards: s.cards };
+}
+
+const PLAN_IDS = ["nawawi", "qudsi", "bukhari-year", "muslim-year"];
+const isStr = (x: unknown): x is string => typeof x === "string";
+
+/** Restores a backup's folders, plan and saved text, checking each piece; anything malformed is left out. */
+export function adoptHadithPrefs(raw: unknown): void {
+  if (!raw || typeof raw !== "object" || (raw as { v?: unknown }).v !== 1) return;
+  const b = raw as Partial<HadithPrefsBackup>;
+  const folders = Array.isArray(b.folders) ? [...new Set(b.folders.filter(isStr).map((f) => f.trim().slice(0, FOLDER_NAME_MAX)).filter(Boolean))] : [];
+  const inFolders: Record<string, string[]> = {};
+  if (b.inFolders && typeof b.inFolders === "object") {
+    for (const [key, names] of Object.entries(b.inFolders)) {
+      const kept = Array.isArray(names) ? names.filter((n): n is string => isStr(n) && folders.includes(n)) : [];
+      if (kept.length) inFolders[key] = kept;
+    }
+  }
+  const p = b.plan as Partial<HadithPlanState> | null | undefined;
+  const plan = p && isStr(p.id) && PLAN_IDS.includes(p.id) && isStr(p.start) && /^\d{4}-\d{2}-\d{2}$/.test(p.start) && typeof p.read === "number" && p.read >= 0
+    ? { id: p.id as HadithPlanId, start: p.start, read: Math.floor(p.read), reminder: isStr(p.reminder) && /^\d{2}:\d{2}$/.test(p.reminder) ? p.reminder : null }
+    : null;
+  const cards: Record<string, SavedHadithCard> = {};
+  if (b.cards && typeof b.cards === "object") {
+    for (const [key, c] of Object.entries(b.cards)) {
+      if (c && isStr(c.r) && isStr(c.x)) cards[key] = { r: c.r, x: c.x.slice(0, 400), ...(isStr(c.ti) ? { ti: c.ti } : {}) };
+    }
+  }
+  useHadithPrefs.setState((s) => ({ folders, inFolders, plan, cards: { ...s.cards, ...cards } }));
+}

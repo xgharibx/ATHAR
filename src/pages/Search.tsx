@@ -1,7 +1,8 @@
 import * as React from "react";
 import Fuse from "fuse.js";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ArrowUpRight, X, BookOpen, LibraryBig, ScrollText, Copy } from "lucide-react";
+import { Search, ArrowUpRight, X, BookOpen, LibraryBig, ScrollText, Copy, Mic, Square } from "lucide-react";
+import { useVoiceQuery } from "@/hooks/useVoiceQuery";
 import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
@@ -66,6 +67,7 @@ export function SearchPage() {
     }
   });
   useScrollRestoration();
+  const voice = useVoiceQuery(setQ);
   const [searchTab, setSearchTab] = React.useState<"adhkar" | "quran" | "library" | "hadith">("adhkar");
   const [recentSearches, setRecentSearches] = React.useState<string[]>(() => loadRecent());
   const [sectionFilter, setSectionFilter] = React.useState<string | null>(null);
@@ -236,7 +238,13 @@ export function SearchPage() {
               <X size={16} aria-hidden="true" />
             </IconButton>
           ) : null}
+          {voice.canListen && (
+            <IconButton aria-label={voice.listening ? "أوقف الاستماع" : "ابحث بصوتك"} aria-pressed={voice.listening} onClick={() => void voice.toggle()}>
+              {voice.listening ? <Square size={15} aria-hidden="true" /> : <Mic size={16} aria-hidden="true" />}
+            </IconButton>
+          )}
         </div>
+        {voice.listening && <p className="mt-2 text-xs text-(--accent)" role="status">أصغي… قل ما تبحث عنه</p>}
         <div className="mt-2 text-xs opacity-65 leading-5">
           نصائح: ابحث بكلمة عربية أو اسم قسم. أمثلة: <span className="opacity-80">الله</span> —{" "}
           <span className="opacity-80">المساء</span> — <span className="opacity-80">النية</span>

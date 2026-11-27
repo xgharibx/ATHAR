@@ -17,7 +17,9 @@ export function syncQuran2Native(ask = false): Promise<boolean> {
   const s = useQ2Store.getState();
   const now = Date.now();
   const payload = buildHifzWidgetPayload({ hifz: s.hifz, prefs: s.prefs, learnedLog: s.learnedLog, now });
-  void syncHifzWidget(payload);
+  // The hadith cards' due days, so the widget counts them with the pages (at most 500).
+  const hadithDues = Object.values(useNoorStore.getState().hadithMemoCards).map((c) => c.due).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().slice(0, 500);
+  void syncHifzWidget({ ...payload, hadithDues });
   const { enabled, time } = s.prefs.hifzReminder;
   // The reminder says how many pages wait in the session of the day it rings.
   const today = nextFireIsToday(time, now);

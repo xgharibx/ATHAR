@@ -69,7 +69,7 @@ export function HadithPlanCard() {
       return;
     }
     setPlanReminder(DEFAULT_REMINDER);
-    toast.success("يصلك تذكير الخطة كل يوم الساعة ٨ مساءً");
+    toast.success("يصلك تذكير الخطة كل يوم الساعة ٨ مساءً، وتغيّره من هنا");
   };
 
   return (
@@ -96,6 +96,14 @@ export function HadithPlanCard() {
           <X size={15} aria-hidden="true" />
         </button>
       </div>
+      {native && plan.reminder && (
+        <label className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-(--stroke) px-3 py-2 text-xs">
+          <span className="text-(--muted)">وقت التذكير كل يوم</span>
+          <input type="time" value={plan.reminder} aria-label="وقت تذكير الخطة"
+            onChange={(e) => { if (/^\d{2}:\d{2}$/.test(e.target.value)) setPlanReminder(e.target.value); }}
+            className="rounded-lg bg-transparent font-semibold outline-none" dir="ltr" />
+        </label>
+      )}
       {today ? (
         <>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-(--stroke)" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.min(plan.read, total)} aria-label="التقدم في الخطة">

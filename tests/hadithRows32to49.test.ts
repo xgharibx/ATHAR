@@ -11,7 +11,7 @@ import { splitHadithText } from "@/lib/hadithText";
 import { foldHadithSearch, gradeGroup } from "@/lib/fullHadithSearch";
 import { markWordMeanings } from "@/lib/hadithWords";
 import { savedHadithsText, type SavedHadith } from "@/lib/useSavedHadiths";
-import { useHadithPrefs } from "@/lib/hadithPrefs";
+import { adoptHadithPrefs, exportHadithPrefs, useHadithPrefs } from "@/lib/hadithPrefs";
 import { hadithDueOn, localDayKey } from "@/lib/reviewToday";
 import { reminderBody } from "@/quran2/native/reminder";
 import { hadithShareUrl } from "@/data/hadithNumbers";
@@ -188,6 +188,18 @@ describe("F3: folders and export", () => {
     s.toggleInFolder("bukhari:2", "الصلاة");
     s.removeFolder("الصلاة");
     expect(useHadithPrefs.getState()).toMatchObject({ folders: [], inFolders: {} });
+  });
+
+  it("backs up and restores folders, the reading plan and saved text, dropping what is malformed", () => {
+    useHadithPrefs.setState({ folders: ["النية"], inFolders: { "bukhari:1": ["النية"] }, plan: { id: "qudsi", start: "2026-11-01", read: 5, reminder: "21:15" } });
+    const backup = JSON.parse(JSON.stringify(exportHadithPrefs()));
+    useHadithPrefs.setState({ folders: [], inFolders: {}, plan: null });
+    adoptHadithPrefs(backup);
+    expect(useHadithPrefs.getState()).toMatchObject({ folders: ["النية"], inFolders: { "bukhari:1": ["النية"] }, plan: { id: "qudsi", read: 5, reminder: "21:15" } });
+    adoptHadithPrefs({ v: 1, folders: ["أ", 3], inFolders: { "x:1": ["ب", "أ"] }, plan: { id: "evil", start: "x", read: -1 }, cards: { "x:1": { r: 1 } } });
+    expect(useHadithPrefs.getState()).toMatchObject({ folders: ["أ"], inFolders: { "x:1": ["أ"] }, plan: null });
+    adoptHadithPrefs({ v: 2 });
+    expect(useHadithPrefs.getState().folders).toEqual(["أ"]);
   });
 
   it("exports what you saved, with notes and folders", () => {

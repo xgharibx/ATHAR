@@ -8,7 +8,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Mic, Search, SlidersHorizontal, Square } from "lucide-react";
-import toast from "react-hot-toast";
 import type { HadithBookMeta } from "@/data/hadithTypes";
 import { hadithPlaceLabel } from "@/data/hadithNumbers";
 import {
@@ -20,7 +19,7 @@ import {
   type HadithSearchOutcome,
 } from "@/lib/fullHadithSearch";
 import { highlightWindow } from "@/lib/arabicHighlight";
-import { speechAvailable, startSpeechStream } from "@/lib/voiceTasbeeh";
+import { useVoiceQuery } from "@/hooks/useVoiceQuery";
 import { BOOK, RESULT, countAr } from "@/lib/arabicCount";
 import { arNum } from "@/lib/formatNumber";
 import { cn } from "@/lib/utils";
@@ -28,8 +27,6 @@ import { GradeChip } from "@/components/hadith/GradeChip";
 
 /** Results shown at a time. */
 const PAGE = 40;
-/** Stop listening after this long without a new word. */
-const QUIET_MS = 3000;
 
 const GRADES: [GradeGroup | null, string][] = [[null, "كل الدرجات"], ["sahih", "صحيح"], ["hasan", "حسن"], ["daif", "ضعيف وما دونه"]];
 
@@ -96,53 +93,7 @@ export function HadithSearchPanel({ books, query: outerQuery }: { books: HadithB
   };
 
   // ── Voice search: say some words of the hadith ──
-  const [canListen, setCanListen] = React.useState(false);
-  const [listening, setListening] = React.useState(false);
-  const stopRef = React.useRef<(() => void) | null>(null);
-  const quietRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  React.useEffect(() => {
-    let alive = true;
-    void speechAvailable().then((ok) => alive && setCanListen(ok)).catch(() => undefined);
-    return () => {
-      alive = false;
-      clearTimeout(quietRef.current);
-      stopRef.current?.();
-    };
-  }, []);
-  const stopListening = React.useCallback(() => {
-    clearTimeout(quietRef.current);
-    stopRef.current?.();
-    stopRef.current = null;
-    setListening(false);
-  }, []);
-  const listen = async () => {
-    if (listening) {
-      stopListening();
-      return;
-    }
-    const segments = new Map<string, string>();
-    try {
-      stopRef.current = await startSpeechStream({
-        hints: [],
-        onTranscript: (e) => {
-          segments.set(e.segment, e.text);
-          const heard = [...segments.values()].join(" ").trim();
-          setOwnQuery(heard);
-          clearTimeout(quietRef.current);
-          quietRef.current = setTimeout(stopListening, QUIET_MS);
-        },
-        onState: (state) => {
-          if (state === "denied") toast.error("اسمح باستخدام الميكروفون لتبحث بصوتك");
-          if (state === "denied" || state === "error" || state === "unavailable" || state === "stopped") setListening(false);
-        },
-      });
-      setListening(true);
-      quietRef.current = setTimeout(stopListening, QUIET_MS * 3);
-    } catch {
-      setListening(false);
-      toast.error("لا يمكن الاستماع على هذا الجهاز");
-    }
-  };
+  const { canListen, listening, toggle: listen } = useVoiceQuery(setOwnQuery);
 
   const countedBooks = Object.entries(allCounts).sort((x, y) => SEARCH_BOOKS.indexOf(x[0] as never) - SEARCH_BOOKS.indexOf(y[0] as never));
   const allTotal = countedBooks.reduce((sum, [, n]) => sum + n, 0);

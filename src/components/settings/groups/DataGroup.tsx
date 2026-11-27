@@ -4,6 +4,8 @@ import { Download, Upload, Trash2, BookMarked, BookOpen } from "lucide-react";
 import { useNoorStore, type ExportBlobV1 } from "@/store/noorStore";
 import { shareFileBlob } from "@/lib/shareTargets";
 import { SettingsRow, SettingsSection } from "@/components/settings/SettingsUI";
+import { HadithOfflineCard } from "@/components/hadith/HadithOfflineCard";
+import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 
 type ClearChoice = "adhkar" | "quran" | "all";
 
@@ -110,6 +112,14 @@ export function DataGroup() {
               }}
             />
           </label>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection title="كتب الحديث على جهازك">
+        <div id="setting-hadith-offline" className="settings-row">
+          <div className="settings-row-body pt-3">
+            <HadithOfflineCard books={HADITH_BOOKS_STATIC} />
+          </div>
         </div>
       </SettingsSection>
 

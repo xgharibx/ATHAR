@@ -16,6 +16,7 @@
  * hundreds of kilobytes, and this app already had to move hadith state out of
  * localStorage once to escape the 5 MB quota.
  */
+import { useHadithPrefs } from "@/lib/hadithPrefs";
 import Dexie, { type Table } from "dexie";
 import { useNoorStore } from "@/store/noorStore";
 import { accountScopedDatabaseName, getAccountStorageOwner, normalizeAccountStorageOwner } from "@/lib/accountStorageScope";
@@ -1122,6 +1123,12 @@ export function startCloudSync(): void {
     schedulePush();
   });
   stopFns.push(unsubStore);
+  // Hadith folders and the reading plan live in their own store; they sync with the rest.
+  const unsubHadith = useHadithPrefs.subscribe((state, prev) => {
+    if (applyingRemote) return;
+    if (state.folders !== prev.folders || state.inFolders !== prev.inFolders || state.plan !== prev.plan) schedulePush();
+  });
+  stopFns.push(unsubHadith);
 
   const onOnline = () => void syncNow();
   window.addEventListener("online", onOnline);

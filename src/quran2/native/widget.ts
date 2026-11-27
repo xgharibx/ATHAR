@@ -24,6 +24,8 @@ export type HifzWidgetPayload = {
   nearLater: number;
   /** When each older page is due (ms), for the widget to count on its own day. */
   dues: number[];
+  /** When each hadith card is due (YYYY-MM-DD): the hadith side of «مراجعة اليوم». */
+  hadithDues?: string[];
   updatedAt: string;
 };
 

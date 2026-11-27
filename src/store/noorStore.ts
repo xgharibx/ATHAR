@@ -21,6 +21,7 @@ import {
 } from "@/lib/hadithIDB";
 import { adoptDataPacks, exportDataPacks, type NoorPack } from "@/data/packs";
 import { adoptQuran2, exportQuran2 } from "@/quran2/store";
+import { adoptHadithPrefs, exportHadithPrefs } from "@/lib/hadithPrefs";
 import { saveCustomReminders } from "@/lib/reminderStorage";
 import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
 import { nextMemoCard, type HadithMemoCard } from "@/data/hadithTypes";
@@ -379,6 +380,8 @@ export type ExportBlobV1 = {
   dataPacks?: NoorPack[];
   /** «القرآن الكريم»: memorisation, where you stopped and the section's settings. */
   quran2?: unknown;
+  /** Hadith folders, reading plan and saved rows' text (lib/hadithPrefs.ts). */
+  hadithPrefs?: unknown;
   customReminders?: CustomReminder[];
   customReminderTemplatesSeen?: Record<string, boolean>;
   onboardingDone?: boolean;
@@ -2238,6 +2241,7 @@ export const useNoorStore = create<NoorState>()(
           customPacks: s.customPacks,
           dataPacks: exportDataPacks(),
           quran2: exportQuran2(),
+          hadithPrefs: exportHadithPrefs(),
           customReminders: s.customReminders,
           hadithBookmarks: s.hadithBookmarks,
           hadithProgress: s.hadithProgress,
@@ -2342,6 +2346,7 @@ export const useNoorStore = create<NoorState>()(
           weeklyReportSentISO: blob.weeklyReportSentISO ?? null,
         });
         if (blob.quran2) adoptQuran2(blob.quran2);
+        if (blob.hadithPrefs) adoptHadithPrefs(blob.hadithPrefs);
         if (blob.dataPacks && adoptDataPacks(blob.dataPacks)) {
           window.dispatchEvent(new CustomEvent("athar-data-packs-changed"));
         }
