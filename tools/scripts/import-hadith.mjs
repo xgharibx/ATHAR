@@ -11,7 +11,7 @@
  * Then run tools/scripts/tidy-hadith.mjs (empties, markup, titles, search index).
  */
 
-import { writeFileSync, mkdirSync, existsSync, readFileSync } from "fs";
+import { writeFileSync, mkdirSync, readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -264,10 +264,9 @@ async function main() {
 
   // Merge with existing index.json (supports partial re-imports)
   const indexPath = join(PUBLIC_DIR, "index.json");
+  // Read it directly (no exists-then-read check, which could race); missing means empty.
   let existing = [];
-  if (existsSync(indexPath)) {
-    try { existing = JSON.parse(readFileSync(indexPath, "utf8")); } catch { /* ignore */ }
-  }
+  try { existing = JSON.parse(readFileSync(indexPath, "utf8")); } catch { /* none yet */ }
   const importedKeys = new Set(imported.map((b) => b.key));
   const merged = [...existing.filter((b) => !importedKeys.has(b.key)), ...imported]
     .sort((a, b) => a.order - b.order);
