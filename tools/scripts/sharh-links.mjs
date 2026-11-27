@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Links hadiths in the nine books to their explanation in the Encyclopedia
- * of Translated Prophetic Hadiths (hadeethenc.com), by text, and bundles the
- * explanations of the two forties so they read offline. Safe to run again:
+ * of Translated Prophetic Hadiths (hadeethenc.com), by text, and lists the
+ * forties' explanations still to bundle (bundle-sharh.mjs). Safe to run again:
  * existing links are kept, new ones are added.
  *
  *   node tools/scripts/sharh-links.mjs
@@ -23,35 +23,6 @@ const BOOKS = ["bukhari", "muslim", "abudawud", "tirmidhi", "nasai", "ibnmajah",
 const BUNDLE_BOOKS = new Set(["nawawi", "qudsi"]);
 /** Checked by hand and wrong: never linked. */
 const NOT_THESE = new Set(["qudsi:8", "qudsi:9"]);
-
-const text = (value, max) => (typeof value === "string" ? value.replace(/[<>]/g, "").slice(0, max) : "");
-
-/**
- * Only the fields the app shows, each checked and bounded (plain text, no
- * markup), so nothing else the API returns ends up in the shipped file. The
- * app validates the same shape again when it reads it (parseSharhHadith).
- */
-export function explanationRecord(h, id) {
-  if (!h || typeof h !== "object" || String(h.id) !== String(id) || !/^\d{1,7}$/.test(String(id))) return null;
-  const record = {
-    id: String(id),
-    title: text(h.title, 400),
-    hadeeth: text(h.hadeeth, 8000),
-    attribution: text(h.attribution, 400),
-    grade: text(h.grade, 200),
-    explanation: text(h.explanation, 20000),
-  };
-  if (!record.hadeeth || !record.explanation) return null;
-  const hints = Array.isArray(h.hints) ? h.hints.map((x) => text(x, 1000)).filter(Boolean).slice(0, 40) : [];
-  const words = Array.isArray(h.words_meanings)
-    ? h.words_meanings
-      .map((w) => ({ word: text(w?.word, 100), meaning: text(w?.meaning, 600) }))
-      .filter((w) => w.word && w.meaning)
-      .slice(0, 60)
-    : [];
-  const reference = text(h.reference, 4000);
-  return { ...record, ...(hints.length ? { hints } : {}), ...(words.length ? { words_meanings: words } : {}), ...(reference ? { reference } : {}) };
-}
 
 async function getJson(path) {
   for (let attempt = 0; attempt < 4; attempt++) {
@@ -151,22 +122,16 @@ async function main() {
   writeFileSync(linksPath, JSON.stringify(links), "utf8");
   console.log(`links: ${before} → ${Object.keys(links).length}`);
 
-  // The forties' explanations, bundled so they open offline.
-  const bundlePath = join(PUBLIC, "sharh-bundled.json");
-  const bundle = JSON.parse(readFileSync(bundlePath, "utf8"));
-  let bundled = 0;
-  for (const [k, id] of Object.entries(links)) {
-    if (!BUNDLE_BOOKS.has(k.split(":")[0]) || bundle[id]) continue;
-    const record = explanationRecord(await getJson(`/hadeeths/one/?language=ar&id=${encodeURIComponent(id)}`), id);
-    if (!record) {
-      console.warn(`skipped ${id}: not a well-formed explanation`);
-      continue;
-    }
-    bundle[id] = record;
-    bundled++;
-  }
-  writeFileSync(bundlePath, JSON.stringify(bundle), "utf8");
-  console.log(`bundled explanations: +${bundled} (${Object.keys(bundle).length})`);
+  // The forties' explanations are bundled so they open offline. The script
+  // never writes downloaded records into the app itself: it lists the ones
+  // still missing, and bundle-sharh.mjs adds them from local copies.
+  const bundle = JSON.parse(readFileSync(join(PUBLIC, "sharh-bundled.json"), "utf8"));
+  const missing = [...new Set(Object.entries(links)
+    .filter(([k, id]) => BUNDLE_BOOKS.has(k.split(":")[0]) && !bundle[id])
+    .map(([, id]) => id))];
+  console.log(missing.length
+    ? `explanations to bundle (${missing.length}): ${missing.join(" ")}\n  save each as <dir>/<id>.json, then: node tools/scripts/bundle-sharh.mjs <dir>`
+    : "every linked explanation of the forties is bundled");
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

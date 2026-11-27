@@ -20,7 +20,7 @@ import { HADITH_PLANS, planDef, planPerDay, planToday } from "@/lib/hadithPlans"
 import { planReminderBody } from "@/lib/hadithPlanReminder";
 import { HADITH_GRADERS as APP_GRADERS } from "@/data/hadithTypes";
 import { androidAssetLinks, appleAssociation } from "../tools/scripts/app-links.mjs";
-import { explanationRecord } from "../tools/scripts/sharh-links.mjs";
+import { explanationRecord } from "../tools/scripts/bundle-sharh.mjs";
 import {
   HADITH_GRADERS,
   buildHadithBlock,
