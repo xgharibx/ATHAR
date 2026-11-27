@@ -32,8 +32,17 @@ function cleanToken(token: string): string {
   return token.replace(FOREIGN_LETTERS, "");
 }
 
-/** Clean a complete piece of text. */
-export function sanitizeCompanionText(text: string): string {
+/** Whether a message is written mostly in letters other than Arabic (then the reply may be too). */
+export function writtenInAnotherScript(text: string | undefined): boolean {
+  const prose = (text ?? "").replace(/https?:\/\/\S+/g, " ");
+  const foreign = (prose.match(new RegExp(FOREIGN_LETTERS.source, "g")) ?? []).join("").length;
+  const arabic = (prose.match(/[\u0621-\u064A]/g) ?? []).length;
+  return foreign >= 4 && foreign > arabic;
+}
+
+/** Clean a complete piece of text. A reply in the user's own other language is kept as written. */
+export function sanitizeCompanionText(text: string, keepForeign = false): string {
+  if (keepForeign) return text;
   const parts = text.split(/(\s+)/);
   const out: string[] = [];
   for (let index = 0; index < parts.length; index += 1) {
@@ -63,7 +72,7 @@ export type CompanionStreamSanitizer = {
   flush(): string;
 };
 
-export function createCompanionStreamSanitizer(): CompanionStreamSanitizer {
+export function createCompanionStreamSanitizer(keepForeign = false): CompanionStreamSanitizer {
   let raw = "";
   let emitted = "";
 
@@ -74,7 +83,7 @@ export function createCompanionStreamSanitizer(): CompanionStreamSanitizer {
       const boundary = raw.search(/\S+$/);
       if (boundary >= 0) ready = raw.slice(0, boundary);
     }
-    const cleaned = sanitizeCompanionText(ready);
+    const cleaned = sanitizeCompanionText(ready, keepForeign);
     if (!cleaned.startsWith(emitted)) {
       // Cannot happen for append-only input; never rewrite what was shown.
       return "";

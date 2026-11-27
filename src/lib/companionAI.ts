@@ -35,7 +35,7 @@ import {
   buildCompanionProfileContext,
   loadProfile,
 } from "@/lib/companionProfile";
-import { createCompanionStreamSanitizer } from "@/lib/companionSanitize";
+import { createCompanionStreamSanitizer, writtenInAnotherScript } from "@/lib/companionSanitize";
 import {
   detectMood,
   retrieveUserRemindersAsPassages,
@@ -950,7 +950,8 @@ export async function streamCompanionReply(
     ].filter(Boolean).join("\n\n");
 
     let full = "";
-    const sanitizer = createCompanionStreamSanitizer();
+    // Asked in another language: the reply in that language is kept as written.
+    const sanitizer = createCompanionStreamSanitizer(writtenInAnotherScript(lastUser?.content));
     const emit = (clean: string) => {
       if (!clean) return;
       full += clean;
@@ -1094,7 +1095,7 @@ export async function askAboutAyah(
   try {
     const client = await createClient();
     let full = "";
-    const sanitizer = createCompanionStreamSanitizer();
+    const sanitizer = createCompanionStreamSanitizer(writtenInAnotherScript(question));
     const emit = (clean: string) => {
       if (!clean) return;
       full += clean;

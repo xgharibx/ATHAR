@@ -452,6 +452,22 @@ function MobileSidebarContent(props: { onNavigate?: () => void }) {
  * Settings. The classic frame is unchanged.
  */
 export function AppShell() {
+  // The floating buttons step aside while the page scrolls, so they never sit
+  // over what is being read; they come back as soon as it stops.
+  React.useEffect(() => {
+    let timer = 0;
+    const onScroll = () => {
+      document.body.classList.add("is-scrolling");
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => document.body.classList.remove("is-scrolling"), 450);
+    };
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => {
+      document.removeEventListener("scroll", onScroll, { capture: true });
+      window.clearTimeout(timer);
+      document.body.classList.remove("is-scrolling");
+    };
+  }, []);
   usePrefetchSearch();
   const ufuq = useNoorStore((s) => s.prefs.designMode === "ufuq");
   return ufuq ? <UfuqShell /> : <ClassicAppShell />;

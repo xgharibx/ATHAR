@@ -73,7 +73,9 @@ export function FloatingMedia({ drawerOpen }: { drawerOpen?: boolean }) {
   }, [drawerOpen]);
 
   if (drawerOpen) return null;
-  const onQuran = location.pathname.startsWith("/quran") || location.pathname.startsWith("/mushaf");
+  // The Quran's home has «السماع» in its own top bar.
+  const quranHome = location.pathname.replace(/\/+$/, "") === "/quran";
+  const onQuran = (location.pathname.startsWith("/quran") && !quranHome) || location.pathname.startsWith("/mushaf");
   // A recitation playing has its own bar (the mini player); the button then steps aside.
   const listening = listen.status !== "idle" && Boolean(listen.current);
   if (!radio.playing && (!onQuran || listening)) return null;

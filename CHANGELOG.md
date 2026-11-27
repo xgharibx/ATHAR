@@ -4,6 +4,17 @@ What changed in each version of Athar, newest first. Store notes for a version
 live in `ios/fastlane/metadata/*/release_notes.txt` (App Store) and
 `docs/PLAY_WHATS_NEW_<version>.txt` (Google Play, 500 characters at most).
 
+## 1.2.95 (build 108)
+
+- **Home (classic):** «زاد اليوم» in the look of «أفق» (the ayah in the mushaf's type, centred; Naskh texts; pill actions), and the card is as tall as the item shown: no more empty space under a short one.
+- **Floating buttons:** they step aside while the page scrolls, and the quick tasbeeh button no longer sits over the Quran's pages beside «السماع».
+- **«اسأل أثر»:** a question asked in another language is answered in it (verses and hadith still only from their verified Arabic blocks); Arabic replies are cleaned as before.
+
+## 1.2.93 – 1.2.94
+
+- «اسأل أثر»: fuller, clearer answers; consent text shortened; the assistant answers only through OpenAI, the service the consent names.
+- Polished home, Quran index and Madina page; new store screenshots and notes (Arabic store listing on iOS).
+
 ## 1.2.92 (build 105)
 
 ### The Quran

@@ -186,8 +186,9 @@ Before deploying:
    Edge Functions → Secrets, or `supabase secrets set OPENAI_API_KEY=…`). Never
    use a `VITE_` variable for the provider key. The assistant answers with
    GPT-6 Luna (`gpt-6-luna`); the optional `COMPANION_MODEL` secret can name
-   `gpt-6-sol` instead. Without `OPENAI_API_KEY` the function falls back to
-   MiniMax (`MINIMAX_API_KEY`), so removing the OpenAI secret is the rollback.
+   `gpt-6-sol` instead. Without `OPENAI_API_KEY` the assistant answers «service
+   unavailable»: consent names OpenAI, so no question is ever sent to another
+   provider. Removing the secret stops the assistant at once.
 3. Deploy with `supabase functions deploy companion`, or let the
    `Deploy AI server` workflow do it on every change merged to `main`: save a
    Supabase access token as the repository secret `SUPABASE_ACCESS_TOKEN`

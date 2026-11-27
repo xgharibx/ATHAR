@@ -4341,6 +4341,27 @@ body:has([role="dialog"][data-state="open"]) .fab {
     transform: scale(0.92);
   }
 
+  /* Out of the way while the page scrolls (AppShell sets the class). */
+  .fab {
+    transition:
+      transform 220ms ease,
+      opacity 220ms ease,
+      box-shadow 200ms ease;
+  }
+  body.is-scrolling .fab {
+    opacity: 0;
+    transform: translateY(14px) scale(0.85);
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fab {
+      transition: opacity 120ms linear;
+    }
+    body.is-scrolling .fab {
+      transform: none;
+    }
+  }
+
   /* -------------------------------------------------------
    Performance: content-visibility for offscreen cards
    ------------------------------------------------------- */

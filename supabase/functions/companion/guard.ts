@@ -34,7 +34,23 @@ export type GuardContext = {
    * authentic), but is never presented as a verified hadith block.
    */
   userTexts?: string[];
+  /**
+   * The user wrote in another language (mostly non-Arabic letters): the reply
+   * may answer in it. Verses and hadith still come only from their verified
+   * Arabic blocks.
+   */
+  foreignReplyAllowed?: boolean;
 };
+
+const FOREIGN_LETTER = /[A-Za-z\u00C0-\u024F\u0400-\u04FF\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uAC00-\uD7AF]/g;
+
+/** Whether a message is written mostly in letters other than Arabic. */
+export function writtenInAnotherScript(text: string | undefined): boolean {
+  const prose = (text ?? "").replace(/https?:\/\/\S+/g, " ");
+  const foreign = (prose.match(FOREIGN_LETTER) ?? []).length;
+  const arabic = (prose.match(/[\u0621-\u064A]/g) ?? []).length;
+  return foreign >= 4 && foreign > arabic;
+}
 
 export const REMOVED_HADITH_NOTE = "(حُذف نصٌّ منسوب إلى السنة لم يُوثَّق)";
 export const REMOVED_VERSE_NOTE = "(حُذف نصٌّ لم يطابق المصحف)";
@@ -64,6 +80,8 @@ const EVIDENCE_ID = /(^|[ \t]+|[([،:])[[(]?[Hh]\d{1,2}[\])]?(?=$|[\s.,،؛:)\]]
 type OpenBlock = { kind: "verse" | "hadith"; reference: string; lines: string[] };
 
 export class ReplyGuard {
+  /** Words in other scripts are the reply itself, not stray tokens. */
+  readonly keepForeign: boolean;
   private pending = "";
   private block: OpenBlock | null = null;
   /** Text of the current prose line already released, for attribution context. */
@@ -83,6 +101,7 @@ export class ReplyGuard {
 
   constructor(private readonly context: GuardContext) {
     this.allowedSourceUrls = new Set(context.sourceUrls ?? []);
+    this.keepForeign = context.foreignReplyAllowed === true;
     this.userSkeletons = (context.userTexts ?? []).map((text) => skeleton(text)).filter((text) => text.length > 0);
     this.hadithSkeletons = context.hadith.map((item) => skeleton(item.text));
     this.trustedSkeletons = context.trustedTexts.map((text) => skeleton(text)).filter((text) => text.length > 0);
@@ -150,7 +169,7 @@ export class ReplyGuard {
     const ready = text.slice(0, cut);
     this.pending = text.slice(cut);
     this.lineContext = (this.lineContext + ready).slice(-200);
-    return this.filterSentences(cleanMarkers(ready));
+    return this.filterSentences(cleanMarkers(ready, this.keepForeign));
   }
 
   /**
@@ -204,7 +223,7 @@ export class ReplyGuard {
       const presentedAsText = LITURGICAL_OPENING.test(inner.trim()) || arabicWordCount(inner) >= LONG_QUOTE_WORDS;
       return PROPHETIC_ATTRIBUTION.test(around) || presentedAsText ? REMOVED_HADITH_NOTE : match;
     });
-    return cleanMarkers(text);
+    return cleanMarkers(text, this.keepForeign);
   }
 
   private checkedVerseQuote(inner: string): string {
@@ -324,7 +343,7 @@ function isStructuralToken(token: string): boolean {
  * scripts, which this model sometimes emits mid-sentence. Block markers,
  * in-app routes and source links are left intact.
  */
-function cleanMarkers(text: string): string {
+function cleanMarkers(text: string, keepForeign = false): string {
   const withoutLabels = text.replace(EVIDENCE_ID, (_match, before: string) => (/^[ \t]*$/.test(before) ? "" : before));
   return withoutLabels
     .split(/(\s+)/)
@@ -333,6 +352,7 @@ function cleanMarkers(text: string): string {
       // In a markdown link, clean the visible label but never the address.
       const link = part.indexOf("](");
       if (link >= 0 && part.includes("://")) return part.slice(0, link).replace(FOREIGN_LETTERS, "") + part.slice(link);
+      if (keepForeign) return part;
       return isStructuralToken(part) ? part : part.replace(FOREIGN_LETTERS, GARBLED);
     })
     .join("");
@@ -440,7 +460,7 @@ const PLAN_LINE = /^[ \t*]*(?:ال)?فقرة[ \t]*(?:[٠-٩0-9]+|الأولى|ا
 const PROSE_TIP = /^[ \t*]*(?:نصيحة(?:\s+عملية)?|النصيحة)[ \t*]*:/;
 const EMOJI = /[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu;
 
-function tidyProse(checked: string): { text: string; damage: number; removed: number } {
+function tidyProse(checked: string, keepForeign = false): { text: string; damage: number; removed: number } {
   let damage = 0;
   let removed = 0;
   const out: string[] = [];
@@ -509,7 +529,9 @@ function tidyProse(checked: string): { text: string; damage: number; removed: nu
         kept.push(clause);
       }
       let rebuilt = kept.join("").replace(/[ \t]{2,}/g, " ").trimEnd();
-      if (kept.length === 0 || plain(rebuilt).replace(/[^\u0621-\u064A]/g, "").length < 8) continue;
+      // Too little left to say anything (letters of the reply's own language).
+      const letters = keepForeign ? plain(rebuilt).replace(/[^\p{L}]/gu, "").length : plain(rebuilt).replace(/[^\u0621-\u064A]/g, "").length;
+      if (kept.length === 0 || letters < 8) continue;
       if (cut || /[،؛]$/.test(rebuilt)) rebuilt = rebuilt.replace(/[،؛:]+$/, "") + ".";
       sentences.push(rebuilt);
     }
@@ -584,7 +606,7 @@ export function finalizeReplyDetailed(text: string, guard: ReplyGuard): FinalRep
   // A closing marker glued to the next paragraph is a marker followed by a paragraph.
   const separated = text.replace(/^([ \t]*:{3,})(?=[^\s:a-zA-Z(])/gm, "$1\n");
   const checked = guard.push(selectCleanAttempt(separated)) + guard.flush();
-  const tidy = tidyProse(checked);
+  const tidy = tidyProse(checked, guard.keepForeign);
   let result = normalizeSourceLinks(tidy.text, guard.allowedSourceUrls)
     // A "sources" line whose links were all removed has nothing left to say.
     .replace(/^[ \t*]*المصادر[ \t*]*:[ \t*،,]*$/gm, "")
@@ -608,8 +630,10 @@ export const UNAVAILABLE_REPLY = "تعذَّر إعداد جوابٍ موثوق�
  * Whether a raw reply is worth cleaning: it must be written in Arabic. A reply
  * that drifted into another language would be reduced to fragments.
  */
-export function isUsableReply(text: string): boolean {
+export function isUsableReply(text: string, foreignReplyAllowed = false): boolean {
   if (!text.trim()) return true; // nothing to show, for example a reply that is only a tool call
+  // A reply in the user's own language: any real words will do.
+  if (foreignReplyAllowed) return (text.match(/[\p{L}]/gu) ?? []).length >= 4;
   const prose = text.replace(/https?:\/\/\S+/g, " ").replace(/^[ \t]*:{2,}.*$/gm, " ");
   const arabic = (prose.match(/[\u0621-\u064A]/g) ?? []).length;
   const foreign = (prose.match(/[A-Za-z\u00C0-\u024F\u0400-\u04FF\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uAC00-\uD7AF]/g) ?? []).length;
