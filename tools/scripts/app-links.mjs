@@ -4,7 +4,10 @@
  *   <out>/.well-known/apple-app-site-association  (iOS universal links)
  *   <out>/.well-known/assetlinks.json             (Android app links)
  *
- *   APPLE_TEAM_ID=AB12CD34EF ANDROID_CERT_SHA256=AA:BB:… node tools/scripts/app-links.mjs dist
+ *   node tools/scripts/app-links.mjs dist <apple team id> <android fingerprints>
+ *
+ * Both are public identifiers (they are in every signed copy of the app),
+ * given as arguments; either may be empty.
  *
  * Only hadith pages are claimed (/hadith/…); everything else stays a web page.
  * A file whose value is missing or malformed is skipped, not guessed.
@@ -43,12 +46,12 @@ function main() {
   const out = process.argv[2] ?? "dist";
   const dir = join(out, ".well-known");
   mkdirSync(dir, { recursive: true });
-  const apple = appleAssociation(process.env.APPLE_TEAM_ID);
+  const apple = appleAssociation(process.argv[3] ?? "");
   if (apple) writeFileSync(join(dir, "apple-app-site-association"), JSON.stringify(apple));
-  const android = androidAssetLinks(process.env.ANDROID_CERT_SHA256);
+  const android = androidAssetLinks(process.argv[4] ?? "");
   if (android) writeFileSync(join(dir, "assetlinks.json"), JSON.stringify(android));
-  console.log(`apple-app-site-association: ${apple ? "written" : "skipped (APPLE_TEAM_ID not set)"}`);
-  console.log(`assetlinks.json: ${android ? "written" : "skipped (ANDROID_CERT_SHA256 not set)"}`);
+  console.log(`apple-app-site-association: ${apple ? "written" : "skipped (no team id)"}`);
+  console.log(`assetlinks.json: ${android ? "written" : "skipped (no fingerprint)"}`);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) main();

@@ -65,7 +65,7 @@ jobs:
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           ANDROID_CERT_SHA256: ${{ secrets.ANDROID_CERT_SHA256 || vars.ANDROID_CERT_SHA256 }}
-        run: node tools/scripts/app-links.mjs dist
+        run: node tools/scripts/app-links.mjs dist "$APPLE_TEAM_ID" "$ANDROID_CERT_SHA256"
 
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6

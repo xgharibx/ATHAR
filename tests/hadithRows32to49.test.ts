@@ -229,7 +229,7 @@ describe("L3: shared links open the hadith in the app", () => {
     expect(entitlements).toContain("applinks:www.athark.org");
     expect(readFileSync("ios/App/App/AppDelegate.swift", "utf8")).toContain("sharedLinkRoute(from: url)");
     expect(readFileSync("android/app/src/main/java/com/athar/adhkar/AtharActivity.java", "utf8")).toContain("readSharedLink(intent)");
-    expect(readFileSync(".github/workflows/deploy-pages.yml", "utf8")).toContain("tools/scripts/app-links.mjs dist");
+    expect(readFileSync(".github/workflows/deploy-pages.yml", "utf8")).toContain("tools/scripts/app-links.mjs dist \"$APPLE_TEAM_ID\"");
   });
 });
 
