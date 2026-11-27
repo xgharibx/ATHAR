@@ -46,7 +46,22 @@ export interface HadithItem {
   r?: string;
   /** A short title, for the two forties. */
   ti?: string;
+  /** Rulings with the scholar who gave them: [HADITH_GRADERS index, Arabic ruling]. */
+  gr?: [number, string][];
 }
+
+/** The scholars whose rulings the books carry, in the order the data numbers them. */
+export const HADITH_GRADERS = [
+  "الألباني",
+  "زبير علي زئي",
+  "شعيب الأرناؤوط",
+  "عبد الفتاح أبو غدة",
+  "محمد محيي الدين عبد الحميد",
+  "محمد فؤاد عبد الباقي",
+  "أحمد محمد شاكر",
+  "بشار عواد معروف",
+  "سليم الهلالي",
+] as const;
 
 /** Full book pack as loaded from public/data/hadith/{key}.json */
 export interface HadithPack {

@@ -13,7 +13,8 @@ const read = (path: string) => fs.readFileSync(path, "utf8");
 const BOOKS = ["bukhari", "muslim", "abudawud", "tirmidhi", "nasai", "ibnmajah", "malik", "nawawi", "qudsi"];
 const pack = (key: string) => JSON.parse(read(`public/data/hadith/${key}.json`)) as HadithPack;
 const index = JSON.parse(read("public/data/hadith/index.json")) as { key: string; count: number; description: string }[];
-const search = JSON.parse(read("public/data/hadith/search-index.json")) as [string, number, string, string, string?][];
+/** Every book's search text: rows [n, text without harakat, grade, ref?]. */
+const text = (key: string) => (JSON.parse(read(`public/data/hadith/text/${key}.json`)) as { key: string; rows: [number, string, string, string?][] }).rows;
 
 describe("The hadith bundle", () => {
   it("has no empty numbering placeholders, and its counts agree everywhere", () => {
@@ -24,7 +25,8 @@ describe("The hadith bundle", () => {
       expect(index.find((b) => b.key === key)?.count, key).toBe(p.count);
       expect(HADITH_BOOKS_STATIC.find((b) => b.key === key)?.count, key).toBe(p.count);
     }
-    expect(search.length).toBe(BOOKS.reduce((sum, key) => sum + pack(key).count, 0));
+    for (const key of BOOKS) expect(text(key).length, key).toBe(pack(key).count);
+    expect(fs.existsSync("public/data/hadith/search-index.json")).toBe(false);
   });
 
   it("carries no web markup, and the forties are titled", () => {
@@ -47,13 +49,16 @@ describe("The hadith bundle", () => {
 });
 
 describe("Printed hadith numbers", () => {
-  it("are the same in the app and in the search index, for every entry", () => {
+  it("are the same in the app and in the search text, for every entry", () => {
     for (const key of BOOKS) {
       const p = pack(key);
       const refs = hadithRefs(p.hadiths);
-      const rows = search.filter((r) => r[0] === key);
+      const rows = text(key);
       expect(rows.length).toBe(refs.length);
-      rows.forEach((row, i) => expect(row[4] ?? String(row[1]), `${key}:${row[1]}`).toBe(refs[i]));
+      rows.forEach((row, i) => {
+        expect(row[0], `${key}:${row[0]}`).toBe(p.hadiths[i]!.n);
+        expect(row[3] ?? String(row[0]), `${key}:${row[0]}`).toBe(refs[i]);
+      });
     }
   });
 
@@ -166,3 +171,46 @@ describe("Search spelling", () => {
     expect(findArabicMatches("مَنْ كَذَبَ عَلَىَّ مُتَعَمِّدًا", "كذب علي متعمدا")).toHaveLength(1);
   });
 });
+
+describe("Bundle v2", () => {
+  it("holds the whole text of every hadith, folded the way search reads it", async () => {
+    const { foldHadithSearch } = await import("@/lib/fullHadithSearch");
+    for (const key of BOOKS) {
+      const p = pack(key);
+      const rows = text(key);
+      for (const i of [0, Math.floor(rows.length / 2), rows.length - 1]) expect(rows[i]![1]).toBe(foldHadithSearch(p.hadiths[i]!.t));
+    }
+    // A phrase deep inside a hadith, far past its first 260 characters.
+    const bukhari1 = text("bukhari")[0]![1];
+    expect(bukhari1.indexOf(foldHadithSearch("فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ"))).toBeGreaterThan(260);
+  });
+
+  it("names the scholar of each ruling, in Arabic", async () => {
+    const { HADITH_GRADERS } = await import("@/data/hadithTypes");
+    for (const key of ["abudawud", "tirmidhi", "nasai", "ibnmajah", "malik"]) {
+      const p = pack(key);
+      const graded = p.hadiths.filter((h) => h.gr?.length).length;
+      expect(graded / p.hadiths.length, key).toBeGreaterThan(0.98);
+      for (const h of p.hadiths) for (const [who, ruling] of h.gr ?? []) {
+        expect(HADITH_GRADERS[who], `${key}:${h.n}`).toBeTruthy();
+        expect(/[A-Za-z]/.test(ruling), `${key}:${h.n} ${ruling}`).toBe(false);
+      }
+    }
+    const abudawud5 = pack("abudawud").hadiths.find((h) => h.n === 5)!;
+    expect(abudawud5.gr).toEqual([[0, "شاذ"], [4, "شاذ"], [1, "إسناده صحيح"]]);
+  });
+
+  it("puts every ruling form into Arabic", async () => {
+    // @ts-expect-error — a plain ES module script, no types.
+    const { arabicRuling } = await import("../tools/scripts/hadith-bundle-v2.mjs");
+    expect(arabicRuling("Isnaad Sahih")).toBe("إسناده صحيح");
+    expect(arabicRuling("Sahih Isnaad")).toBe("صحيح الإسناد");
+    expect(arabicRuling("Very Daif")).toBe("ضعيف جدًّا");
+    expect(arabicRuling("Hasan Lighairihi")).toBe("حسن لغيره");
+    expect(arabicRuling("Sahih - Agreed Upon")).toBe("صحيح، متفق عليه");
+    expect(arabicRuling("Sahih Bukhari (1023) Sahih Muslim (894)")).toBe("رواه البخاري (١٠٢٣) ومسلم (٨٩٤)");
+    expect(arabicRuling("-")).toBe("");
+    expect(arabicRuling("Some Unknown Word")).toBeNull();
+  });
+});
+

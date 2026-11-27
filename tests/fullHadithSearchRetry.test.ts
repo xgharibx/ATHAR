@@ -1,35 +1,35 @@
 // @vitest-environment jsdom
 import "fake-indexeddb/auto";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { idbSetSearchIndex } from "@/lib/hadithIDB";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  vi.resetModules();
 });
 
-describe("full Hadith search retries an unavailable index", () => {
+describe("full Hadith search retries a book it could not download", () => {
   it("does not pin an empty result after a failed download", async () => {
-    const clock = vi.spyOn(Date, "now").mockReturnValue(Date.UTC(2026, 0, 1));
-    await idbSetSearchIndex([]);
-    clock.mockReturnValue(Date.UTC(2026, 0, 1) + 31 * DAY_MS);
-    vi.stubGlobal("fetch", vi.fn()
-      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => [["nawawi", 1, "اتق الله حيثما كنت", "حسن"]],
-      }));
+    let failed = false;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("text/nawawi.json") && !failed) {
+        failed = true;
+        throw new TypeError("Failed to fetch");
+      }
+      if (url.includes("text/nawawi.json")) {
+        return { ok: true, json: async () => ({ key: "nawawi", v: 2, rows: [[18, "اتق الله حيثما كنت", "hasan"]] }) };
+      }
+      return { ok: false, status: 404, json: async () => ({}) };
+    }));
 
-    const { searchFullHadithCorpus } = await import("@/lib/fullHadithSearch");
+    const { searchHadithText } = await import("@/lib/fullHadithSearch");
 
-    await expect(searchFullHadithCorpus("اتق")).resolves.toEqual([]);
-    await expect(searchFullHadithCorpus("اتق")).resolves.toEqual([{
-      bookKey: "nawawi",
-      n: 1,
-      snippet: "اتق الله حيثما كنت",
-      grade: "حسن",
-    }]);
+    const first = await searchHadithText("اتق", { books: ["nawawi"] });
+    expect(first.results).toEqual([]);
+    expect(first.missing).toEqual(["nawawi"]);
+    const second = await searchHadithText("اتق", { books: ["nawawi"] });
+    expect(second.results).toEqual([{ bookKey: "nawawi", n: 18, snippet: "اتق الله حيثما كنت", grade: "hasan", exact: true }]);
+    expect(second.total).toBe(1);
   });
 });

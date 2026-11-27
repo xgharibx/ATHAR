@@ -12,10 +12,10 @@
  *   Same rule as tidyHadithMarkup() in src/lib/hadithText.ts.
  * - Gives each of the two forties' hadiths its title («ti»).
  * - Updates the counts and the Muwatta's description in index.json.
- * - Rebuilds search-index.json without the empty entries, adding each
- *   entry's printed-number ref when it is not simply its «n». Same rule as
- *   hadithRefs() in src/data/hadithNumbers.ts (tests/hadithBundle.test.ts
- *   checks the two agree on every entry).
+ * - refsOf() gives each entry's printed-number ref, the same rule as
+ *   hadithRefs() in src/data/hadithNumbers.ts; hadith-bundle-v2.mjs writes
+ *   it into the search text (tests/hadithBundle.test.ts checks the two
+ *   agree on every entry).
  */
 import { readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
@@ -179,7 +179,6 @@ export function refsOf(hadiths) {
 
 function main() {
   const counts = {};
-  const index = [];
   for (const key of BOOKS) {
     const path = join(DIR, `${key}.json`);
     const pack = JSON.parse(readFileSync(path, "utf8"));
@@ -194,8 +193,6 @@ function main() {
     pack.count = pack.hadiths.length;
     counts[key] = pack.count;
     writeFileSync(path, JSON.stringify(pack), "utf8");
-    const refs = refsOf(pack.hadiths);
-    pack.hadiths.forEach((h, i) => index.push([key, h.n, refs[i], String(h.n) === refs[i] ? null : refs[i]]));
     console.log(`${key}: ${before} → ${pack.count}`);
   }
 
@@ -207,17 +204,7 @@ function main() {
   }));
   writeFileSync(indexPath, JSON.stringify(books, null, 2), "utf8");
 
-  const searchPath = join(DIR, "search-index.json");
-  const refByEntry = new Map(index.map(([key, n, , ref]) => [`${key}:${n}`, ref]));
-  const search = JSON.parse(readFileSync(searchPath, "utf8"))
-    .filter(([key, n]) => refByEntry.has(`${key}:${n}`))
-    .map(([key, n, snippet, grade]) => {
-      const ref = refByEntry.get(`${key}:${n}`);
-      const text = tidyMarkup(snippet).replace(/[<>]/g, "");
-      return ref ? [key, n, text, grade, ref] : [key, n, text, grade];
-    });
-  writeFileSync(searchPath, JSON.stringify(search), "utf8");
-  console.log(`index.json and search-index.json: ${search.length} entries`);
+  console.log("index.json updated; run hadith-bundle-v2.mjs next for rulings and search text");
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) main();

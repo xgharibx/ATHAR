@@ -25,8 +25,11 @@ function sourceResponse(path: string) {
       },
     }) };
   }
-  if (path.includes("search-index.json")) {
-    return { ok: true, json: async () => [["nawawi", "1", "retryspecialtoken appears only in the search index and survives long enough for validation", "حسن"]] };
+  if (path.includes("/data/hadith/text/bukhari.json")) {
+    return { ok: true, json: async () => ({ key: "bukhari", v: 2, rows: [[1, "retryspecialtoken appears only in the search text and survives long enough for validation", "sahih"]] }) };
+  }
+  if (path.includes("/data/hadith/text/muslim.json")) {
+    return { ok: true, json: async () => ({ key: "muslim", v: 2, rows: [] }) };
   }
   if (path.includes("tafseer-muyassar.json")) {
     return { ok: true, json: async () => ({
@@ -131,7 +134,7 @@ describe("Companion knowledge index cache", () => {
     vi.spyOn(Date, "now").mockReturnValue(cachedAt + 31 * DAY_MS);
     idbGetExtras.mockResolvedValue({ cachedAt, data: oldIndex, buildVersion: 1 });
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
-      if (String(input).includes("search-index.json")) throw new TypeError("Failed to fetch");
+      if (String(input).includes("/data/hadith/text/")) throw new TypeError("Failed to fetch");
       return sourceResponse(String(input));
     }));
     const { retrievePassagesAsync } = await loadKnowledgeModule();
@@ -145,7 +148,7 @@ describe("Companion knowledge index cache", () => {
     let failSearchIndex = true;
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const path = String(input);
-      if (path.includes("search-index.json") && failSearchIndex) {
+      if (path.includes("/data/hadith/text/") && failSearchIndex) {
         failSearchIndex = false;
         throw new TypeError("Failed to fetch");
       }
@@ -157,9 +160,9 @@ describe("Companion knowledge index cache", () => {
     expect(idbSetExtras).not.toHaveBeenCalled();
 
     const passages = await retrievePassagesAsync("retryspecialtoken", 3);
-    expect(passages).toContainEqual(expect.objectContaining({ source: "searchidx:nawawi:1:0" }));
+    expect(passages).toContainEqual(expect.objectContaining({ source: "searchidx:bukhari:1:0" }));
     await vi.waitFor(() => expect(idbSetExtras).toHaveBeenCalledTimes(1));
-    expect(idbSetExtras.mock.calls[0]?.[1]).toMatchObject({ buildVersion: 2 });
+    expect(idbSetExtras.mock.calls[0]?.[1]).toMatchObject({ buildVersion: 3 });
     expect(idbSetExtras.mock.calls[0]?.[1].data).toEqual(expect.arrayContaining([
       expect.objectContaining({ source: expect.stringMatching(/^sharh:/) }),
       expect.objectContaining({ source: expect.stringMatching(/^searchidx:/) }),

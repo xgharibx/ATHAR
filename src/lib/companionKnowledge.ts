@@ -2,7 +2,7 @@
  * Athar knowledge layer — retrieval + verification.
  *
  * Retrieval: a tiny in-memory inverted index over the bundled Islamic library
- * (sharh-bundled.json, the search-index.json, and the Quran). Built lazily on
+ * (sharh-bundled.json, the hadith search text, and the Quran). Built lazily on
  * first access and kept in module memory (rebuilt on app start). The index is
  * plain JS — no embeddings, no network — so it's instant, private, and free.
  *
@@ -24,7 +24,7 @@ type Passage = { source: string; sourceLabel: string; text: string };
 
 const INDEX_IDB_KEY = "noor_companion_knowledge_index_v1";
 const INDEX_IDB_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-const INDEX_BUILD_VERSION = 2;
+const INDEX_BUILD_VERSION = 3;
 
 let INDEX: Passage[] | null = null;
 let INDEX_PROMISE: Promise<Passage[]> | null = null;
@@ -87,18 +87,24 @@ async function buildSharhIndex(): Promise<Passage[]> {
 }
 
 async function buildSearchIndex(): Promise<Passage[]> {
-  const raw = await fetchJSON<Array<[string, string, string, string]>>(
-    "/data/hadith/search-index.json",
-  );
-  const out = raw
-    .filter((row) => row && row[2] && row[2].length > 30)
-    .slice(0, 8000)
-    .map((row, i) => ({
-      source: `searchidx:${row[0]}:${row[1]}:${i}`,
-      sourceLabel: `${row[0]} — حديث رقم ${row[1]}`,
-      text: row[2],
-    }));
-  if (out.length === 0) throw new Error("Hadith search index source was empty.");
+  // The two Sahihs' whole texts (without harakat), the same files the hadith
+  // search reads; each passage keeps a generous opening of its hadith.
+  const out: Passage[] = [];
+  for (const key of ["bukhari", "muslim"]) {
+    const raw = await fetchJSON<{ key?: string; rows?: Array<[number, string, string, string?]> }>(
+      `/data/hadith/text/${key}.json`,
+    );
+    for (const row of raw.rows ?? []) {
+      if (out.length >= 8000) break;
+      if (!row?.[1] || row[1].length <= 30) continue;
+      out.push({
+        source: `searchidx:${key}:${row[0]}:${out.length}`,
+        sourceLabel: `${key} — حديث رقم ${row[0]}`,
+        text: row[1].slice(0, 700),
+      });
+    }
+  }
+  if (out.length === 0) throw new Error("Hadith search text was empty.");
   return out;
 }
 
