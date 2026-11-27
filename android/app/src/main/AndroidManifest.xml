@@ -42,6 +42,17 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="app.athar" android:host="open" />
             </intent-filter>
+            <!-- Shared hadith links (www.athark.org/hadith/…) open here when the
+                 app is installed; verified by /.well-known/assetlinks.json. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="www.athark.org" />
+                <data android:host="athark.org" />
+                <data android:pathPrefix="/hadith/" />
+            </intent-filter>
 
         </activity>
 

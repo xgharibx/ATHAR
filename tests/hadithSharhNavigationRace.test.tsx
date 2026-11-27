@@ -8,6 +8,8 @@ const api = vi.hoisted(() => ({
   fetchSharhChildren: vi.fn(),
   fetchSharhList: vi.fn(),
   fetchSharhHadith: vi.fn(),
+  // The page's search over the explanations bundled with the app.
+  loadBundledSharhList: vi.fn(async () => []),
 }));
 
 vi.mock("react-router-dom", () => ({

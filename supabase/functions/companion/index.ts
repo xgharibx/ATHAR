@@ -18,6 +18,7 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 import { buildAyahBlock, gatherTafsirs, readAyahRequest } from "./ayah.ts";
+import { buildHadithBlock, gatherHadithSources, hadithTrustedTexts, readHadithAskRequest } from "./hadithAsk.ts";
 import { companionCorsHeaders } from "./cors.ts";
 import { EVIDENCE_STEP_SYSTEM, EVIDENCE_TOOL, buildEvidenceBlock, gatherHadith, gatherVerses, loadQuran, readEvidencePlan } from "./evidence.ts";
 import { type GuardContext, ReplyGuard, UNAVAILABLE_REPLY, finalizeReplyDetailed, isUsableReply, writtenInAnotherScript } from "./guard.ts";
@@ -298,7 +299,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   }
   const raw = boundedBody.text;
 
-  let body: { model?: unknown; max_tokens?: unknown; stream?: boolean; system?: unknown; messages?: unknown; tools?: unknown; athar_ayah?: unknown };
+  let body: { model?: unknown; max_tokens?: unknown; stream?: boolean; system?: unknown; messages?: unknown; tools?: unknown; athar_ayah?: unknown; athar_hadith?: unknown };
   try {
     body = JSON.parse(raw);
   } catch {
@@ -320,6 +321,11 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   // refused rather than answered as an ordinary question.
   const ayahRequest = body.athar_ayah === undefined ? null : readAyahRequest(body.athar_ayah);
   if (body.athar_ayah !== undefined && !ayahRequest) return jsonError(req, "invalid ayah", 400);
+  // «اسأل عن الحديث»: answered only from that hadith, its rulings and its
+  // explanation, which the server reads itself (see hadithAsk.ts).
+  const hadithRequest = body.athar_hadith === undefined ? null : readHadithAskRequest(body.athar_hadith);
+  if (body.athar_hadith !== undefined && !hadithRequest) return jsonError(req, "invalid hadith", 400);
+  if (ayahRequest && hadithRequest) return jsonError(req, "one source at a time", 400);
 
   const boundedMessages = boundCompanionMessages(body.messages);
   if (!boundedMessages.ok) {
@@ -371,7 +377,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     // The base instructions are the server's. Of what a client sends after
     // its own base instructions, the description of the moment is kept.
     // A question about an ayah is answered from the server's tafsir block alone.
-    const clientBlocks: Array<{ type: string; text: string }> = ayahRequest ? [] : (Array.isArray(body.system) ? body.system : [body.system])
+    const clientBlocks: Array<{ type: string; text: string }> = ayahRequest || hadithRequest ? [] : (Array.isArray(body.system) ? body.system : [body.system])
       .map((block) => (typeof block === "string" ? block : String((block as { text?: unknown } | null)?.text ?? "")))
       .filter((text) => text && !text.trimStart().startsWith(CLIENT_BASE_PROMPT_OPENING))
       .map((text) => focusClientContext(text).slice(0, MAX_CLIENT_CONTEXT_CHARS))
@@ -509,6 +515,29 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     serverBlocks: string[];
     /** A question about an ayah: how many of its tafsirs were found. */
     tafsirs?: number;
+    /** A question about a hadith: whether its text and its explanation were found. */
+    hadithBound?: { text: boolean; explanation: boolean };
+  };
+  const gatherForHadith = async (request: NonNullable<typeof hadithRequest>, onStage: (stage: Stage) => void): Promise<Gathered> => {
+    onStage("gathering");
+    const [quran, sources] = await Promise.all([
+      loadQuran(denoRuntime.env.get("QURAN_DATA_URL")),
+      gatherHadithSources(request, { dataUrl: denoRuntime.env.get("HADITH_DATA_URL") }),
+    ]);
+    return {
+      plan: NO_PLAN,
+      guardContext: {
+        quran,
+        hadith: [],
+        // Only this hadith and its explanation may be quoted (and the Quran, checked by the guard).
+        trustedTexts: hadithTrustedTexts(sources),
+        sourceUrls: [],
+        userTexts: boundedMessages.messages.filter((message) => message.role === "user").slice(-2).map((message) => message.content),
+        foreignReplyAllowed,
+      },
+      serverBlocks: [buildHadithBlock(request, sources)],
+      hadithBound: { text: !!sources, explanation: !!sources?.explanation },
+    };
   };
   const gatherForAyah = async (request: NonNullable<typeof ayahRequest>, onStage: (stage: Stage) => void): Promise<Gathered> => {
     onStage("gathering");
@@ -534,6 +563,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   };
   const gather = async (onStage: (stage: Stage) => void): Promise<Gathered> => {
     if (ayahRequest) return gatherForAyah(ayahRequest, onStage);
+    if (hadithRequest) return gatherForHadith(hadithRequest, onStage);
     if (substantive) onStage("gathering");
     if (searchEarly && substantive) onStage("searching");
     const earlySearch = searchTrustedSources(searchEarly).catch(() => []);
@@ -651,6 +681,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
           // The app shows an answer about an ayah only after this confirmation
           // that it was bound to the ayah's tafsirs (an older server would not send it).
           if (result.gathered.tafsirs !== undefined) send(sseEvent("athar_ayah", { tafsirs: result.gathered.tafsirs }));
+          if (result.gathered.hadithBound !== undefined) send(sseEvent("athar_hadith", result.gathered.hadithBound));
           const reader = guardSseStream(result.upstream.body!, makeFinalize(result.gathered), () => onStage("verifying")).getReader();
           for (;;) {
             const { done, value } = await reader.read();

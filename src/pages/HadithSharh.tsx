@@ -8,7 +8,7 @@
  */
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight, BookOpenText, ChevronLeft, Share2, Sparkles, WifiOff } from "lucide-react";
+import { ArrowRight, BookOpenText, ChevronLeft, Search, Share2, Sparkles, WifiOff } from "lucide-react";
 
 
 import {
@@ -16,6 +16,7 @@ import {
   fetchSharhHadith,
   fetchSharhList,
   fetchSharhRoots,
+  loadBundledSharhList,
   type SharhCategory,
   type SharhHadith,
   type SharhListItem,
@@ -25,6 +26,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { westernToArabicDigits } from "@/lib/formatNumber";
 import { HADITH, countAr } from "@/lib/arabicCount";
 import { shareOrCopy } from "@/lib/shareTargets";
+import { foldHadithSearch } from "@/lib/fullHadithSearch";
 
 
 type View =
@@ -52,6 +54,24 @@ export function HadithSharhPage() {
   const [hasMore, setHasMore] = React.useState(false);
   const [hadith, setHadith] = React.useState<SharhHadith | null>(null);
   const viewRequestId = React.useRef(0);
+
+  // The explanations that ship with the app: searchable, and shown first offline.
+  const [bundled, setBundled] = React.useState<Array<{ id: string; title: string; text: string; folded: string }>>([]);
+  const [q, setQ] = React.useState("");
+  React.useEffect(() => {
+    let alive = true;
+    void loadBundledSharhList().then((list) => {
+      if (alive) setBundled(list.map((x) => ({ ...x, folded: foldHadithSearch(`${x.title} ${x.text}`) })));
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const term = foldHadithSearch(q);
+  const bundledShown = React.useMemo(() => {
+    if (term.length >= 2) return bundled.filter((x) => x.folded.includes(term)).slice(0, 60);
+    return offline && roots.length === 0 ? bundled.slice(0, 60) : [];
+  }, [bundled, term, offline, roots.length]);
 
   const run = React.useCallback(async (task: () => Promise<void>, isCurrent: () => boolean = () => true) => {
     setLoading(true);
@@ -145,7 +165,7 @@ export function HadithSharhPage() {
     <div className="mx-auto w-full max-w-3xl px-4 pb-28 pt-4" dir="rtl">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button type="button" onClick={back} aria-label="رجوع"
+        <button type="button" onClick={back} aria-label="رجوع" data-page-back=""
           className="rounded-xl border border-(--stroke) bg-(--card) p-2.5 hover:bg-(--card-2) transition">
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -168,8 +188,34 @@ export function HadithSharhPage() {
         <div className="py-16 text-center text-sm opacity-60">جارٍ التحميل…</div>
       ) : null}
 
-      {/* Roots */}
+      {/* Search in the explanations kept on this device (works offline). */}
       {view.kind === "roots" ? (
+        <div className="mt-5 stack-y-2">
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" aria-hidden="true" />
+            <input type="search" value={q} onChange={(e) => setQ(e.target.value)} dir="rtl"
+              placeholder={bundled.length ? `ابحث في ${countAr(bundled.length, HADITH)} بشرحها على جهازك…` : "ابحث في الشروح…"}
+              aria-label="ابحث في الشروح المحفوظة"
+              className="w-full rounded-2xl border border-(--stroke) bg-(--card) py-3 pr-9 pl-3 text-sm outline-hidden focus:border-accent-45" />
+          </div>
+          {bundledShown.length > 0 && (
+            <div className="grid gap-2" role="list" aria-label="شروح محفوظة على جهازك">
+              {term.length < 2 && <p className="text-xs font-semibold text-(--muted)">شروح محفوظة على جهازك</p>}
+              {bundledShown.map((x) => (
+                <button type="button" key={x.id} role="listitem"
+                  onClick={() => setView({ kind: "hadith", id: x.id })}
+                  className="rounded-2xl border border-(--stroke) bg-(--card) px-4 py-3 text-start transition hover:bg-(--card-2)">
+                  <div className="text-sm font-semibold leading-7 line-clamp-2">{x.title || x.text}</div>
+                </button>
+              ))}
+            </div>
+          )}
+          {term.length >= 2 && bundledShown.length === 0 && <p className="py-4 text-center text-xs text-(--muted)">لا نتائج في الشروح المحفوظة.</p>}
+        </div>
+      ) : null}
+
+      {/* Roots */}
+      {view.kind === "roots" && term.length < 2 ? (
         <div className="mt-5 grid gap-2">
           {roots.map((c) => (
             <button type="button" key={c.id}

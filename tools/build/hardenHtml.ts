@@ -33,7 +33,8 @@ function sha256(source: string): string {
 /** Bodies of inline scripts the browser will execute, in document order. */
 export function inlineExecutableScripts(html: string): string[] {
   const bodies: string[] = [];
-  const pattern = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  // «</script >» and «</SCRIPT foo>» close a script too.
+  const pattern = /<script\b([^>]*)>([\s\S]*?)<\/script[^>]*>/gi;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(html)) !== null) {
     const attributes = match[1] ?? "";
@@ -82,11 +83,21 @@ export function buildContentSecurityPolicy(scriptHashes: string[]): string {
   return directives.map(([name, values]) => `${name} ${values.join(" ")}`).join("; ");
 }
 
+/** The page without its scripts, removed until none is left (so a split «<script» cannot survive). */
+function withoutScripts(html: string): string {
+  let text = html;
+  for (let previous = ""; previous !== text;) {
+    previous = text;
+    text = text.replace(/<script\b[\s\S]*?<\/script[^>]*>/gi, "");
+  }
+  return text;
+}
+
 export function hardenHtml(html: string): string {
   if (!/<meta\s+charset=/i.test(html)) {
     throw new Error("hardenHtml: expected a <meta charset> tag to anchor the security tags");
   }
-  if (/\son[a-z]+\s*=\s*["']/i.test(html.replace(/<script\b[\s\S]*?<\/script>/gi, ""))) {
+  if (/\son[a-z]+\s*=\s*["']/i.test(withoutScripts(html))) {
     throw new Error("hardenHtml: inline event handlers are blocked by the content security policy");
   }
 

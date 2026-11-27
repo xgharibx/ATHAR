@@ -23,7 +23,9 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { refsOf } from "./tidy-hadith.mjs";
 
-const DIR = join(dirname(fileURLToPath(import.meta.url)), "../../public/data/hadith");
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
+const DIR = join(ROOT, "data/hadith");
+const PUBLIC = join(ROOT, "public/data/hadith");
 const SRC = process.env.HADITH_SRC || "";
 const CDN = "https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions";
 const BOOKS = ["bukhari", "muslim", "abudawud", "tirmidhi", "nasai", "ibnmajah", "malik", "nawawi", "qudsi"];
@@ -107,7 +109,7 @@ async function source(key) {
 }
 
 async function main() {
-  mkdirSync(join(DIR, "text"), { recursive: true });
+  mkdirSync(join(PUBLIC, "text"), { recursive: true });
   for (const key of BOOKS) {
     const path = join(DIR, `${key}.json`);
     const pack = JSON.parse(readFileSync(path, "utf8"));
@@ -135,7 +137,7 @@ async function main() {
       if (refs[i] !== String(h.n)) row.push(refs[i]);
       return row;
     });
-    writeFileSync(join(DIR, "text", `${key}.json`), JSON.stringify({ key, v: 2, rows }), "utf8");
+    writeFileSync(join(PUBLIC, "text", `${key}.json`), JSON.stringify({ key, v: 2, rows }), "utf8");
     console.log(`${key}: ${graded} of ${pack.hadiths.length} with named rulings`);
   }
 }

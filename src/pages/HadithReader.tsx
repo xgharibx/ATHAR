@@ -28,12 +28,13 @@ import {
   ChevronDown,
   MoreHorizontal,
   ListTree,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import { useHadithPrefs, withoutHarakat, TEXT_SCALE_MAX, TEXT_SCALE_MIN, type IsnadView } from "@/lib/hadithPrefs";
 import { Modal } from "@/components/ui/Modal";
 import { Switch } from "@/components/ui/Switch";
-import { useHadithPack, getHadithByNumber } from "@/data/useHadithBook";
+import { chapterOfHadith, useHadithChapter, useHadithToc } from "@/data/useHadithBook";
 import { getSharhIdFor } from "@/lib/hadithSharhLinks";
 import { parseIsnadChain } from "@/lib/isnadParser";
 import { lookupNarratorBio, type NarratorBio } from "@/lib/narratorLookup";
@@ -41,13 +42,17 @@ import { useTakhrij } from "@/lib/useTakhrij";
 import { cleanHadithText, splitHadithText } from "@/lib/hadithText";
 import { TakhrijCard } from "@/components/hadith/TakhrijCard";
 import { SharhSection } from "@/components/hadith/SharhSection";
+import { HadithAskPanel } from "@/components/hadith/HadithAskPanel";
+import { useQuery } from "@tanstack/react-query";
+import { fetchSharhHadith } from "@/lib/hadithSharhAPI";
+import { markWordMeanings } from "@/lib/hadithWords";
 import {
   HADITH_BOOKS_STATIC,
   hadithGradeLabel,
   hadithRef,
   type HadithItem,
 } from "@/data/hadithTypes";
-import { hadithPlaceLabel } from "@/data/hadithNumbers";
+import { hadithPlaceLabel, hadithShareUrl } from "@/data/hadithNumbers";
 import { savedCardFor } from "@/lib/hadithCards";
 import { shortChapterTitle } from "@/data/hadithChapters";
 import { NARRATOR, countAr } from "@/lib/arabicCount";
@@ -100,7 +105,17 @@ export function HadithReaderPage() {
 
   // Some books number a few entries with a decimal (Bukhari 402.2).
   const n = Number(hadithNumber ?? "1");
-  const { data: pack, isLoading, isError, refetch } = useHadithPack(bookKey);
+  // Only the book's table of contents and this hadith's chapter are loaded.
+  const tocQuery = useHadithToc(bookKey);
+  const toc = tocQuery.data;
+  const chapterId = toc ? chapterOfHadith(toc, n) : undefined;
+  const chapterQuery = useHadithChapter(bookKey, chapterId);
+  const isLoading = tocQuery.isLoading || (chapterId != null && chapterQuery.isLoading);
+  const isError = tocQuery.isError || chapterQuery.isError;
+  const refetch = () => {
+    void tocQuery.refetch();
+    void chapterQuery.refetch();
+  };
 
   const { hadithBookmarks, toggleHadithBookmark, setHadithProgress, hadithNotes, setHadithNote, addHadithMemoCard, hadithMemoCards } = useNoorStore(
     useShallow((s) => ({
@@ -148,22 +163,21 @@ export function HadithReaderPage() {
   }, [bookKey, n]);
 
   const hadith = useMemo<HadithItem | undefined>(() => {
-    if (!pack) return undefined;
-    return getHadithByNumber(pack, n);
-  }, [pack, n]);
+    return chapterQuery.data?.find((h) => h.n === n);
+  }, [chapterQuery.data, n]);
 
   const bookmarkKey = `${bookKey}:${n}`;
   const isBookmarked = !!hadithBookmarks[bookmarkKey];
   const memoCardKey = `${bookKey}:${n}`;
   const isMemoCard = !!hadithMemoCards[memoCardKey];
 
-  const meta = pack ?? HADITH_BOOKS_STATIC.find((b) => b.key === bookKey);
+  const meta = toc ?? HADITH_BOOKS_STATIC.find((b) => b.key === bookKey);
   const accentColor = "var(--accent)";
 
   // Find prev / next hadith numbers
   const { prevN, nextN, position } = useMemo(() => {
-    if (!pack) return { prevN: null, nextN: null, position: 0 };
-    const hadiths = pack.hadiths;
+    if (!toc) return { prevN: null, nextN: null, position: 0 };
+    const hadiths = toc.rows.map(([rowN]) => ({ n: rowN }));
     const idx = hadiths.findIndex((h) => h.n === n);
     if (idx < 0) return { prevN: null, nextN: null, position: 0 };
     return {
@@ -171,14 +185,14 @@ export function HadithReaderPage() {
       nextN: idx < hadiths.length - 1 ? hadiths[idx + 1].n : null,
       position: idx + 1,
     };
-  }, [pack, n]);
+  }, [toc, n]);
 
   // Where this hadith stands in its chapter («٥ من ٥١ في كتاب الإيمان»).
   const chapterPlace = useMemo(() => {
-    if (!pack || !hadith || pack.sections.length < 2) return null;
-    const inChapter = pack.hadiths.filter((h) => h.s === hadith.s);
-    return { pos: inChapter.findIndex((h) => h.n === hadith.n) + 1, count: inChapter.length };
-  }, [pack, hadith]);
+    if (!toc || !hadith || toc.sections.length < 2) return null;
+    const inChapter = toc.rows.filter((row) => row[1] === hadith.s);
+    return { pos: inChapter.findIndex((row) => row[0] === hadith.n) + 1, count: inChapter.length };
+  }, [toc, hadith]);
 
   // Track reading progress
   useEffect(() => {
@@ -186,6 +200,11 @@ export function HadithReaderPage() {
     setHadithProgress(bookKey, n);
     setLast(bookKey, n, hadith?.r);
   }, [bookKey, n, hadith?.r, setHadithProgress, setLast]);
+  // A reading plan in this book moves on as you read in order.
+  const advancePlan = useHadithPrefs((s) => s.advancePlan);
+  useEffect(() => {
+    if (bookKey && position > 0) advancePlan(bookKey, position - 1);
+  }, [bookKey, position, advancePlan]);
 
   // A hadith you marked, noted or memorise keeps its text with the mark, so
   // «العلامات» and Favorites list it without loading the whole book.
@@ -227,13 +246,13 @@ export function HadithReaderPage() {
 
   // Section name
   const sectionTitle = useMemo(() => {
-    if (!pack || !hadith) return null;
-    return pack.sections.find((s) => s.id === hadith.s)?.title ?? null;
-  }, [pack, hadith]);
+    if (!toc || !hadith) return null;
+    return toc.sections.find((s) => s.id === hadith.s)?.title ?? null;
+  }, [toc, hadith]);
 
   const copyText = async () => {
     if (!hadith) return;
-    const text = `${cleanHadithText(hadith.t)}\n\n— ${hadithRef(meta?.title ?? "", hadith)}`;
+    const text = `${cleanHadithText(hadith.t)}\n\n— ${hadithRef(meta?.title ?? "", hadith)}\n${hadithShareUrl(bookKey ?? "", hadith.n)}`;
     try {
       const systemConfirmed = await writeClipboard(text);
       if (!systemConfirmed) toast.success("تم النسخ");
@@ -243,6 +262,17 @@ export function HadithReaderPage() {
   };
 
   const [posterOpen, setPosterOpen] = useState(false);
+  const [askOpen, setAskOpen] = useState(false);
+  // Difficult words with their meanings from the linked explanation: tap one in the matn.
+  const { data: sharhData } = useQuery({
+    queryKey: ["sharh-hadith", sharhId],
+    queryFn: () => fetchSharhHadith(sharhId!),
+    enabled: !!sharhId,
+    staleTime: Infinity,
+    retry: false,
+  });
+  // Which word's meaning is open, for which hadith (another hadith opens none).
+  const [openWordAt, setOpenWordAt] = useState<{ key: string; i: number } | null>(null);
   const posterContent = useMemo<PosterContent | null>(() => {
     if (!hadith) return null;
     const { matn } = splitHadithText(hadith.t);
@@ -264,6 +294,13 @@ export function HadithReaderPage() {
     if (!hadith) return null;
     return splitHadithText(hadith.t);
   }, [hadith]);
+  const matnParts = useMemo(
+    () => markWordMeanings(hadithSplit?.matn ?? "", sharhData?.words_meanings ?? []),
+    [hadithSplit, sharhData],
+  );
+  const wordKey = `${bookKey}:${n}`;
+  const openWord = openWordAt?.key === wordKey ? openWordAt.i : null;
+  const setOpenWord = (i: number | null) => setOpenWordAt(i == null ? null : { key: wordKey, i });
 
   // The two forties name only the companion before the hadith.
   const introInline = bookKey === "nawawi" || bookKey === "qudsi";
@@ -288,19 +325,19 @@ export function HadithReaderPage() {
 
   return (
     <div dir="rtl" className="relative min-h-screen-safe overflow-hidden page-enter pb-floating-nav">
-      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" data-hadith-stars="" aria-hidden />
       {/* Header */}
       <div
         className="sticky top-0 z-20 px-3 pt-2 pb-3"
       >
         <Card className="relative overflow-hidden p-4">
-          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           <div className="absolute inset-y-0 right-0 w-1.5" style={{ background: accentColor }} />
           <div className="relative flex items-start gap-3 pr-2">
             <button type="button"
               onClick={() => navigate(-1)}
               className="h-11 w-11 rounded-2xl border border-(--stroke) bg-(--card) grid place-items-center transition hover:bg-(--card-2) shrink-0"
               aria-label="رجوع"
+              data-page-back=""
             >
               <ArrowRight size={19} aria-hidden="true" className="text-(--fg)" />
             </button>
@@ -397,7 +434,6 @@ export function HadithReaderPage() {
 
             {/* 1) المتن — the hadith itself, first */}
             <Card className="relative overflow-hidden p-5 md:p-6" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-              <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
               <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
               <div className="relative pr-2">
                 <div className="mb-4 flex items-center justify-between gap-3">
@@ -415,8 +451,22 @@ export function HadithReaderPage() {
                 )}
                 <p dir="rtl" className="arabic-text font-bold text-(--fg) whitespace-pre-line"
                   style={{ fontSize: `${(fontScale * 1.32 * textScale).toFixed(3)}rem`, lineHeight: Math.max(lineHeight, 2) }}>
-                  {show(hadithSplit.matn)}
+                  {matnParts.map((part, i) => part.meaning ? (
+                    <button key={i} type="button" onClick={() => setOpenWord(openWord === i ? null : i)}
+                      aria-expanded={openWord === i} aria-label={`معنى «${part.word}»`}
+                      className="inline font-[inherit] underline decoration-dotted decoration-2 underline-offset-[0.35em]"
+                      style={{ textDecorationColor: accentColor }}>
+                      {show(part.text)}
+                    </button>
+                  ) : <React.Fragment key={i}>{show(part.text)}</React.Fragment>)}
                 </p>
+                {openWord != null && matnParts[openWord]?.meaning && (
+                  <div role="status" className="mt-3 rounded-2xl px-4 py-3 text-[13.5px] leading-7"
+                    style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                    <span className="font-bold" style={{ color: accentColor }}>{show(matnParts[openWord]!.word ?? "")}: </span>
+                    {matnParts[openWord]!.meaning}
+                  </div>
+                )}
                 {meta?.title && (
                   <p className="mt-4 text-xs opacity-55 leading-6">{hadithRef(meta.title, hadith)}</p>
                 )}
@@ -541,7 +591,7 @@ export function HadithReaderPage() {
             />
 
             {/* 4) الشرح الميسّر — the scholarly explanation, inline */}
-            <SharhSection sharhId={sharhId} matn={hadithSplit.matn} accentColor={accentColor} />
+            <SharhSection sharhId={sharhId} matn={hadithSplit.matn} accentColor={accentColor} onAsk={() => setAskOpen(true)} />
           </>
         )}
 
@@ -616,8 +666,8 @@ export function HadithReaderPage() {
                     {arNum(chapterPlace.pos)} من {arNum(chapterPlace.count)}
                     <span className="block truncate opacity-80">{shortChapterTitle(sectionTitle)}</span>
                   </>
-                ) : position && pack ? (
-                  <>{arNum(position)}<br />من {arNum(pack.hadiths.length)}</>
+                ) : position && toc ? (
+                  <>{arNum(position)}<br />من {arNum(toc.rows.length)}</>
                 ) : (
                   arNum(n)
                 )}
@@ -640,6 +690,7 @@ export function HadithReaderPage() {
         <div dir="rtl" className="p-4 stack-y-1">
           <h2 className="px-2 pb-2 text-base font-bold">{hadith ? hadithRef(meta?.title ?? "", hadith) : "المزيد"}</h2>
           {([
+            [Sparkles, "اسأل عن الحديث", () => setAskOpen(true)],
             [Copy, "نسخ النص", () => void copyText()],
             [Type, "إعدادات القراءة", () => setSettingsOpen(true)],
             [ListTree, "فهرس الكتاب", () => navigate(`/hadith/${bookKey}`)],
@@ -655,6 +706,9 @@ export function HadithReaderPage() {
             </button>
           ))}
         </div>
+      </Modal>
+      <Modal open={askOpen} onClose={() => setAskOpen(false)} ariaLabel="اسأل عن الحديث">
+        <div className="p-5">{askOpen && bookKey && hadith ? <HadithAskPanel bookKey={bookKey} n={hadith.n} /> : null}</div>
       </Modal>
       <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} ariaLabel="إعدادات القراءة">
         <div dir="rtl" className="p-5 stack-y-5">
@@ -698,6 +752,7 @@ export function HadithReaderPage() {
           content={posterContent}
           title={hadith ? hadithRef(meta?.title ?? "حديث", hadith) : meta?.title ?? "حديث"}
           filename={`athar-hadith-${bookKey ?? ""}-${(hadith?.r ?? String(n)).replace(/\//g, "-")}.png`}
+          shareText={hadith && bookKey ? `${hadithRef(meta?.title ?? "حديث", hadith)}\n${hadithShareUrl(bookKey, hadith.n)}` : undefined}
         />
       )}
     </div>

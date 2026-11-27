@@ -2,7 +2,13 @@
 /**
  * «القرآن ٢»: fetch the Quran text and metadata from the Tanzil Project.
  *
- *   node tools/scripts/quran2/fetch-tanzil.mjs
+ *   curl -o <dir>/quran-uthmani.txt "<TEXT_URL below>"
+ *   curl -o <dir>/quran-data.js "<META_URL below>"
+ *   node tools/scripts/quran2/fetch-tanzil.mjs <dir>
+ *
+ * The script reads the two downloaded files (it fetches nothing itself, so
+ * nothing from the network is written unchecked) and writes only after the
+ * checks below pass.
  *
  * Writes, under public/data/quran2/:
  *   tanzil-uthmani.txt  the Uthmani text 1.1 exactly as Tanzil serves it, with its
@@ -15,7 +21,7 @@
  * surahs agreeing with the metadata, 604 pages, 30 juz and 15 sajdas. If Tanzil
  * publishes a correction, review it, then update TEXT_SHA256 on purpose.
  */
-import { writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import vm from "node:vm";
 import path from "node:path";
@@ -27,10 +33,15 @@ const META_URL = "https://tanzil.net/res/text/metadata/quran-data.js";
 /** The Tanzil Uthmani 1.1 text as verified and bundled (tests/quran2Data.test.ts checks the same file). */
 const TEXT_SHA256 = "7f30c647331a61100ebf24a80507dc0fcdd9f2df97f1312b5b2dfcb982a7f326";
 
-async function get(url) {
-  const res = await fetch(url, { headers: { "User-Agent": "athar-build" } });
-  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
-  return res.text();
+const SRC = process.argv[2];
+if (!SRC) {
+  console.error(`usage: node tools/scripts/quran2/fetch-tanzil.mjs <dir>\n  with <dir>/quran-uthmani.txt from ${TEXT_URL}\n  and <dir>/quran-data.js from ${META_URL}`);
+  process.exit(1);
+}
+
+/** One of the downloaded Tanzil files. */
+function local(name) {
+  return readFileSync(path.join(SRC, name), "utf8");
 }
 
 function fail(message) {
@@ -38,14 +49,14 @@ function fail(message) {
   process.exit(1);
 }
 
-const text = await get(TEXT_URL);
+const text = local("quran-uthmani.txt");
 const textSha = createHash("sha256").update(text).digest("hex");
 if (textSha !== TEXT_SHA256) fail(`the text is not the verified Uthmani 1.1 (sha256 ${textSha}); review the change before updating TEXT_SHA256`);
 const lines = text.split("\n").filter((l) => /^\d+\|\d+\|/.test(l));
 if (lines.length !== 6236) fail(`expected 6236 ayahs, got ${lines.length}`);
 if (!text.includes("Tanzil Quran Text (Uthmani, Version 1.1)")) fail("the copyright block is missing or the version changed");
 
-const metaSource = await get(META_URL);
+const metaSource = local("quran-data.js");
 const sandbox = { QuranData: {} };
 vm.runInNewContext(metaSource.replace(/^var QuranData = \{\};/m, ""), sandbox, { timeout: 1000 });
 const Q = sandbox.QuranData;

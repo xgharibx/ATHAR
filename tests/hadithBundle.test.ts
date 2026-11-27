@@ -11,7 +11,8 @@ import { SPOTLIGHT_SECTIONS } from "@/lib/spotlight";
 
 const read = (path: string) => fs.readFileSync(path, "utf8");
 const BOOKS = ["bukhari", "muslim", "abudawud", "tirmidhi", "nasai", "ibnmajah", "malik", "nawawi", "qudsi"];
-const pack = (key: string) => JSON.parse(read(`public/data/hadith/${key}.json`)) as HadithPack;
+/** The source books (data/hadith); the app loads them in parts (books/). */
+const pack = (key: string) => JSON.parse(read(`data/hadith/${key}.json`)) as HadithPack;
 const index = JSON.parse(read("public/data/hadith/index.json")) as { key: string; count: number; description: string }[];
 /** Every book's search text: rows [n, text without harakat, grade, ref?]. */
 const text = (key: string) => (JSON.parse(read(`public/data/hadith/text/${key}.json`)) as { key: string; rows: [number, string, string, string?][] }).rows;

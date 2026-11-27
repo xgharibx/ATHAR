@@ -7,14 +7,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, BrainCircuit, Check, CheckCircle, ChevronLeft, ChevronRight, Copy, Plus, Share2 } from "lucide-react";
-import { useHadithPack, loadHadithPack } from "@/data/useHadithBook";
-import { HADITH_BOOKS_STATIC, MEMO_MASTERED_DAYS, hadithRef, nextMemoCard, type HadithItem, type HadithPack } from "@/data/hadithTypes";
+import { useHadithPack, loadHadithsByKey } from "@/data/useHadithBook";
+import { HADITH_BOOKS_STATIC, MEMO_MASTERED_DAYS, hadithRef, nextMemoCard, type HadithItem } from "@/data/hadithTypes";
 import { CARD, DAY, countAr, type CountForms } from "@/lib/arabicCount";
 import { cleanHadithText, splitHadithText } from "@/lib/hadithText";
 import { hadithNumberLabel } from "@/data/hadithNumbers";
 import { useShallow } from "zustand/react/shallow";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
+import { ReviewTodayCard } from "@/components/ReviewTodayCard";
 import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
@@ -96,7 +97,6 @@ function FlipCard({
             borderColor: "color-mix(in srgb, var(--accent) 32%, transparent)",
           }}
         >
-          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           {front}
         </div>
         {/* Back */}
@@ -110,7 +110,6 @@ function FlipCard({
             borderColor: "color-mix(in srgb, var(--accent) 36%, transparent)",
           }}
         >
-          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           {back}
         </div>
       </div>
@@ -141,49 +140,32 @@ export function HadithMemoPage() {
 
   const today = todayISO();
 
-  // Which books have memo cards (keys are "bookKey:n"). Cards can be added
-  // from any book's reader, so we resolve each card's text by loading the
-  // packs those cards actually belong to — not just Nawawi.
-  const neededBooks = useMemo(() => {
-    const set = new Set<string>();
-    for (const key of Object.keys(hadithMemoCards)) {
-      const book = key.split(":")[0];
-      if (book) set.add(book);
-    }
-    return [...set];
-  }, [hadithMemoCards]);
-
-  const [packs, setPacks] = useState<Record<string, HadithPack>>({});
+  // Cards can be added from any book's reader: each card's text comes from
+  // its own chapter file, never a whole book.
+  const cardKeys = useMemo(() => Object.keys(hadithMemoCards).sort().join("|"), [hadithMemoCards]);
+  const [cardItems, setCardItems] = useState<Record<string, HadithItem>>({});
   useEffect(() => {
     let alive = true;
-    const missing = neededBooks.filter((b) => !packs[b]);
-    if (missing.length === 0) return;
-    Promise.all(missing.map((b) => loadHadithPack(b).then((p) => [b, p] as const))).then((pairs) => {
-      if (!alive) return;
-      setPacks((prev) => {
-        const next = { ...prev };
-        for (const [b, p] of pairs) if (p) next[b] = p;
-        return next;
-      });
+    const keys = cardKeys ? cardKeys.split("|") : [];
+    const missing = keys.filter((k) => !cardItems[k]);
+    if (!missing.length) return;
+    void loadHadithsByKey(missing).then((found) => {
+      if (alive && Object.keys(found).length) setCardItems((prev) => ({ ...prev, ...found }));
     });
     return () => { alive = false; };
-  }, [neededBooks, packs]);
+  }, [cardKeys, cardItems]);
 
-  const bookTitle = (key: string) =>
-    packs[key]?.title ?? HADITH_BOOKS_STATIC.find((b) => b.key === key)?.title ?? key;
+  const bookTitle = (key: string) => HADITH_BOOKS_STATIC.find((b) => b.key === key)?.title ?? key;
 
   // Every added card across every book, resolved to its hadith text.
   const allCards = useMemo<DeckCard[]>(() => {
     const out: DeckCard[] = [];
     for (const key of Object.keys(hadithMemoCards)) {
-      const [book, nStr] = key.split(":");
-      const pack = packs[book];
-      if (!pack) continue;
-      const item = pack.hadiths.find((h) => h.n === Number(nStr));
-      if (item) out.push({ bookKey: book, item });
+      const item = cardItems[key];
+      if (item) out.push({ bookKey: key.split(":")[0]!, item });
     }
     return out;
-  }, [hadithMemoCards, packs]);
+  }, [hadithMemoCards, cardItems]);
 
   // Cards due for review today (across all books).
   const dueCards = useMemo<DeckCard[]>(
@@ -232,13 +214,12 @@ export function HadithMemoPage() {
 
   return (
     <div dir="rtl" className="relative min-h-screen-safe overflow-hidden pb-24 page-enter">
-      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" data-hadith-stars="" aria-hidden />
       {/* Header Card */}
       <div className="relative z-10 px-4 pt-4">
         <Card className="relative overflow-hidden p-5">
-          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           <div className="flex items-center gap-3">
-            <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
+            <IconButton data-page-back="" aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <BrainCircuit size={19} aria-hidden="true" style={{ color: accentColor }} />
@@ -248,6 +229,10 @@ export function HadithMemoPage() {
             </div>
           </div>
         </Card>
+      </div>
+
+      <div className="relative z-10 px-4 pt-4">
+        <ReviewTodayCard />
       </div>
 
       {/* Stats row */}
@@ -262,7 +247,6 @@ export function HadithMemoPage() {
             key={label}
             className="relative overflow-hidden rounded-3xl py-3 text-center glass"
           >
-            <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
             <p className="text-xl font-bold font-arabic" style={{ color: accentColor }}>{arNum(val)}</p>
             <p className="text-[10px] text-(--muted)">{label}</p>
           </div>

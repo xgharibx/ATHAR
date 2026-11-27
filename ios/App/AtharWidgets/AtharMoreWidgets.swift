@@ -333,6 +333,8 @@ private struct HifzPayload: Decodable {
     let near: Int?
     let nearLater: Int?
     let dues: [Double]?
+    /// Each hadith card's due day (yyyy-MM-dd): the hadith side of «مراجعة اليوم».
+    let hadithDues: [String]?
 }
 
 private struct HifzToday {
@@ -340,6 +342,8 @@ private struct HifzToday {
     let fresh: Int
     let near: Int
     let far: Int
+    /// Hadith cards due by this day.
+    let hadith: Int
     var total: Int { fresh + near + far }
     var percent: Int { min(100, Int((Double(memorised) / 604.0 * 100).rounded())) }
 
@@ -359,6 +363,8 @@ private struct HifzToday {
         let limit = endOfDay.timeIntervalSince1970 * 1000
         // The app revises at most twenty far pages a day.
         far = min(20, (payload?.dues ?? []).filter { $0 <= limit }.count)
+        let todayKey = formatter.string(from: date)
+        hadith = (payload?.hadithDues ?? []).filter { $0 <= todayKey }.count
     }
 }
 
@@ -391,6 +397,10 @@ private struct HifzWidgetView: View {
                             .font(.title3.weight(.bold)).foregroundColor(.white)
                         Text("جديد \(arabicDigits(today.fresh))، قريب \(arabicDigits(today.near))، بعيد \(arabicDigits(today.far))")
                             .font(.footnote).foregroundColor(.white.opacity(0.8))
+                    }
+                    if today.hadith > 0 {
+                        Text("ومعها \(arabicDigits(today.hadith)) \(today.hadith == 1 ? "بطاقة حديث" : "بطاقات حديث")")
+                            .font(.footnote).foregroundColor(moreMint)
                     }
                     if today.memorised > 0 {
                         ProgressView(value: Double(today.percent), total: 100).tint(moreMint)

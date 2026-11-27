@@ -30,11 +30,14 @@ export function nextFireIsToday(hhmm: string, now: number): boolean {
   return d.getHours() * 60 + d.getMinutes() < t.hour * 60 + t.minute;
 }
 
-export function reminderBody(due: number): string {
-  if (due <= 0) return "ابدأ درسك الجديد، أو راجع ما حفظت ولو صفحة.";
-  if (due === 1) return "صفحة واحدة تنتظرك في جلسة اليوم.";
-  if (due === 2) return "صفحتان تنتظرانك في جلسة اليوم.";
-  return `${arCount(due, "صفحة", "صفحتان", "صفحات", "صفحة")} تنتظرك في جلسة اليوم.`;
+export function reminderBody(due: number, hadithDue = 0): string {
+  const quran = due <= 0 ? "ابدأ درسك الجديد، أو راجع ما حفظت ولو صفحة."
+    : due === 1 ? "صفحة واحدة تنتظرك في جلسة اليوم."
+      : due === 2 ? "صفحتان تنتظرانك في جلسة اليوم."
+        : `${arCount(due, "صفحة", "صفحتان", "صفحات", "صفحة")} تنتظرك في جلسة اليوم.`;
+  if (hadithDue <= 0) return quran;
+  const cards = hadithDue === 1 ? "بطاقة حديث واحدة" : hadithDue === 2 ? "بطاقتا حديث" : `${arCount(hadithDue, "بطاقة", "بطاقتان", "بطاقات", "بطاقة")} حديث`;
+  return `${quran} ومعها ${cards} للمراجعة.`;
 }
 
 let lastPlan = "";
@@ -43,11 +46,11 @@ let lastPlan = "";
  * Schedule (or cancel) the reminder. Asks for permission only when turning it
  * on; resolves to false when the phone refuses.
  */
-export async function syncHifzReminder(options: { enabled: boolean; time: string; due: number; ask?: boolean }): Promise<boolean> {
+export async function syncHifzReminder(options: { enabled: boolean; time: string; due: number; hadithDue?: number; ask?: boolean }): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return false;
   // A tap opens the app only for the account that set the reminder.
   const owner = getAccountStorageOwner();
-  const plan = JSON.stringify({ e: options.enabled, t: options.time, d: Math.min(options.due, 99), owner });
+  const plan = JSON.stringify({ e: options.enabled, t: options.time, d: Math.min(options.due, 99), h: Math.min(options.hadithDue ?? 0, 99), owner });
   if (plan === lastPlan && !options.ask) return true;
   try {
     const { LocalNotifications } = await import("@capacitor/local-notifications");
@@ -74,7 +77,7 @@ export async function syncHifzReminder(options: { enabled: boolean; time: string
         {
           id: HIFZ_REMINDER_ID,
           title: "ورد الحفظ",
-          body: reminderBody(options.due),
+          body: reminderBody(options.due, options.hadithDue ?? 0),
           ...(Capacitor.getPlatform() === "android" ? { channelId: CHANNEL_ID } : {}),
           smallIcon: "ic_stat_athar_notification",
           iconColor: "#2F4F37",

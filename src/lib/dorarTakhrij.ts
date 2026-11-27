@@ -105,8 +105,14 @@ function maintainCache(): void {
   }).catch(() => {});
 }
 
+/** Tags removed until none is left, and any stray angle bracket dropped: plain text only. */
 function stripTags(html: string): string {
-  return html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  let text = html;
+  for (let previous = ""; previous !== text;) {
+    previous = text;
+    text = text.replace(/<[^<>]*>/g, "");
+  }
+  return text.replace(/[<>]/g, "").replace(/\s+/g, " ").trim();
 }
 
 /** Parse dorar_api.json's HTML-in-JSON "result" blob into structured entries. */

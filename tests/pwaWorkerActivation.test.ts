@@ -17,7 +17,7 @@ vi.mock("workbox-cacheable-response", () => ({ CacheableResponsePlugin: class {}
 afterEach(() => { vi.unstubAllGlobals(); vi.resetModules(); });
 
 describe("PWA worker activation policy", () => {
-  it("stays waiting until an explicit SKIP_WAITING message and ignores unrelated messages", async () => {
+  it("stays waiting until an explicit SKIP_WAITING message from its own pages and ignores the rest", async () => {
     const worker = Object.assign(new EventTarget(), {
       skipWaiting: vi.fn().mockResolvedValue(undefined),
       location: new URL("https://www.athark.org/sw.js"),
@@ -29,11 +29,13 @@ describe("PWA worker activation policy", () => {
     expect(worker.skipWaiting).not.toHaveBeenCalled();
 
     const lifetime: Promise<unknown>[] = [];
-    const message = (data: unknown) => worker.dispatchEvent(Object.assign(new MessageEvent("message", { data }), {
+    const message = (data: unknown, origin = "https://www.athark.org") => worker.dispatchEvent(Object.assign(new MessageEvent("message", { data, origin }), {
       waitUntil: (promise: Promise<unknown>) => { lifetime.push(promise); },
     }));
     message(null);
     message({ type: "SOME_OTHER_MESSAGE" });
+    // Only the app's own pages are listened to.
+    message({ type: "SKIP_WAITING" }, "https://evil.example");
     expect(worker.skipWaiting).not.toHaveBeenCalled();
     message({ type: "SKIP_WAITING" });
     expect(worker.skipWaiting).toHaveBeenCalledOnce();

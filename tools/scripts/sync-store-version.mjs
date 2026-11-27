@@ -101,7 +101,8 @@ async function main() {
     return;
   }
 
-  pkg.released = { ...(pkg.released ?? {}), android: found };
+  // Written from its numbers only, never the listing's own text.
+  pkg.released = { ...(pkg.released ?? {}), android: parts(found).join(".") };
   fs.writeFileSync(PKG, `${JSON.stringify(pkg, null, 2)}\n`, "utf-8");
   console.log("package.json updated");
 }

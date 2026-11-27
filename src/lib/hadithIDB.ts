@@ -252,6 +252,37 @@ export async function idbReplaceHadithState(data: {
   }
 }
 
+/** Forget a kept book: the whole book and any of its chapters kept on their own. */
+export async function idbDeleteHadithBook(bookKey: string): Promise<void> {
+  try {
+    const db = getDB();
+    const keys = (await db.packs.toCollection().primaryKeys()) as string[];
+    await db.packs.bulkDelete(keys.filter((k) => k === bookKey || k.startsWith(`ch:${bookKey}:`)));
+  } catch {
+    // non-fatal
+  }
+}
+
+// A book's table of contents and its chapters, in the packs table under
+// "toc:{book}" and "ch:{book}:{chapter}" (kept 30 days, same as whole books).
+export async function idbGetHadithPart<T>(partKey: string): Promise<HadithCacheEntry<T> | null> {
+  try {
+    const row = await getDB().packs.get(partKey);
+    if (!row) return null;
+    return { data: row.data as unknown as T, isFresh: Date.now() - row.cachedAt <= MAX_AGE_MS };
+  } catch {
+    return null;
+  }
+}
+
+export async function idbSetHadithPart(partKey: string, data: unknown): Promise<void> {
+  try {
+    await getDB().packs.put({ key: partKey, data: data as HadithPack, cachedAt: Date.now() });
+  } catch {
+    // non-fatal — the part stays in memory for this session only
+  }
+}
+
 // Each book's search text (kept 30 days, same as book packs).
 export async function idbGetHadithTextEntry(bookKey: string): Promise<HadithCacheEntry<HadithTextRow[]> | null> {
   try {

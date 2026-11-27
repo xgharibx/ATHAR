@@ -9,6 +9,7 @@
  * text against the actual book matn, unambiguous hits only. See
  * public/data/hadith/library-links.json for the generated mapping.
  */
+import { useQuery } from "@tanstack/react-query";
 import { publicDataUrl } from "@/data/publicAssetUrl";
 
 export type LibraryHadithLink = { bookKey: string; n: number };
@@ -45,4 +46,24 @@ export async function getLibraryHadithLinks(entryId: string): Promise<LibraryHad
   const links = await loadLinks();
   const hits = links[match[1]] ?? [];
   return [...hits].sort((a, b) => BOOK_PRIORITY.indexOf(a.bookKey) - BOOK_PRIORITY.indexOf(b.bookKey));
+}
+
+/** The book record a curated entry points to (most authoritative first), from a loaded map. */
+export function libraryLinkFor(map: Record<string, LibraryHadithLink[]> | undefined, entryId: string): LibraryHadithLink | null {
+  const match = /_(\d+)$/.exec(entryId);
+  const hits = match && map ? map[match[1]!] : undefined;
+  if (!hits?.length) return null;
+  return [...hits].sort((a, b) => BOOK_PRIORITY.indexOf(a.bookKey) - BOOK_PRIORITY.indexOf(b.bookKey))[0]!;
+}
+
+/** Hook: every curated entry's book records (7 KB, loaded once). */
+export function useLibraryHadithLinkMap() {
+  return useQuery({ queryKey: ["library-hadith-links"], queryFn: loadLinks, staleTime: Infinity });
+}
+
+/** The grade a book record carries; the two Sahihs leave it empty because every hadith in them is sahih. */
+export function bookHadithGrade(bookKey: string, grade: string | readonly string[] | undefined): string {
+  const g = (Array.isArray(grade) ? grade[0] ?? "" : (grade as string | undefined) ?? "").trim();
+  if (g && g !== "-") return g;
+  return bookKey === "bukhari" || bookKey === "muslim" ? "sahih" : "";
 }

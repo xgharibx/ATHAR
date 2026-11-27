@@ -36,6 +36,12 @@ export async function hasLocalDataToImport(): Promise<boolean> {
       if (filled(q.hifz) || q.lastRead || filled(q.marks) || filled(q.readLog)) return true;
       continue;
     }
+    // Hadith folders, reading plan and saved rows' text: data only when there is some.
+    if (key === "hadithPrefs") {
+      const h = value as { folders?: unknown[]; plan?: unknown; cards?: object };
+      if ((h.folders?.length ?? 0) > 0 || h.plan || Object.keys(h.cards ?? {}).length > 0) return true;
+      continue;
+    }
     if (Array.isArray(value) && value.length > 0) return true;
     if (typeof value === "object" && Object.keys(value as object).length > 0) return true;
     if (typeof value === "number" && value !== 0) return true;

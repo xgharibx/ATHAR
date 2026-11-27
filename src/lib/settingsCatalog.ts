@@ -106,6 +106,7 @@ export const SETTINGS_ITEMS: readonly SettingsItem[] = [
 
   // البيانات
   { id: "backup", group: "data", title: "النسخ الاحتياطي", keywords: ["نسخة", "حفظ", "استعادة", "استيراد", "تصدير", "backup", "restore"] },
+  { id: "hadith-offline", group: "data", title: "كتب الحديث على جهازك", keywords: ["تحميل", "تنزيل", "دون اتصال", "الحديث", "الكتب", "offline", "download"] },
   { id: "clear", group: "data", title: "مسح البيانات", keywords: ["مسح", "حذف", "إعادة تعيين", "reset", "delete", "clear"] },
 
   // عن أثر

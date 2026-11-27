@@ -108,14 +108,44 @@ export function isFullHadithSearchReady(): boolean {
   return SEARCH_BOOKS.every((key) => loaded.has(key));
 }
 
-export async function searchHadithText(
-  query: string,
-  options: { limit?: number; books?: readonly string[]; onProgress?: (done: number, total: number) => void } = {},
-): Promise<HadithSearchOutcome> {
+/** «صحيح»، «حسن»، or «ضعيف وما دونه». The two Sahihs count as sahih throughout. */
+export type GradeGroup = "sahih" | "hasan" | "daif";
+
+export function gradeGroup(bookKey: string, grade: string): GradeGroup | null {
+  // «-» is the source's «no grade given», not a weak one.
+  if (!grade || grade === "-") return bookKey === "bukhari" || bookKey === "muslim" ? "sahih" : null;
+  if (grade === "sahih") return "sahih";
+  if (grade === "hasan") return "hasan";
+  return "daif";
+}
+
+const PROPHET = "صلي الله عليه وسلم";
+
+/** The chain part of a hadith's text: up to the first mention of the Prophet ﷺ, or its first 45%. */
+function chainPart(text: string): string {
+  const at = text.indexOf(PROPHET);
+  return at > 0 ? text.slice(0, at) : text.slice(0, Math.round(text.length * 0.45));
+}
+
+export type HadithSearchOptions = {
+  limit?: number;
+  books?: readonly string[];
+  /** Only hadiths of this grade group. */
+  grade?: GradeGroup | null;
+  /** Only the exact phrase, not the words apart. */
+  exactOnly?: boolean;
+  /** A narrator who must appear in the chain («أبو هريرة»). */
+  narrator?: string;
+  onProgress?: (done: number, total: number) => void;
+};
+
+export async function searchHadithText(query: string, options: HadithSearchOptions = {}): Promise<HadithSearchOutcome> {
   const limit = options.limit ?? 50;
   const phrase = foldHadithSearch(query);
+  const narrator = foldHadithSearch(options.narrator ?? "");
   const outcome: HadithSearchOutcome = { results: [], total: 0, byBook: {}, missing: [] };
-  if (phrase.length < 2) return outcome;
+  // A narrator alone is a search too: every hadith he narrated.
+  if (phrase.length < 2 && narrator.length < 2) return outcome;
   const words = phrase.split(" ").filter(Boolean);
   const keys = options.books?.length ? SEARCH_BOOKS.filter((key) => options.books!.includes(key)) : [...SEARCH_BOOKS];
   const exact: FullHadithSearchResult[] = [];
@@ -130,8 +160,10 @@ export async function searchHadithText(
     }
     for (const row of rows) {
       const text = row[1];
-      const isExact = text.includes(phrase);
-      if (!isExact && (words.length < 2 || !words.every((word) => text.includes(word)))) continue;
+      const isExact = phrase.length >= 2 ? text.includes(phrase) : true;
+      if (!isExact && (options.exactOnly || words.length < 2 || !words.every((word) => text.includes(word)))) continue;
+      if (options.grade && gradeGroup(key, row[2]) !== options.grade) continue;
+      if (narrator.length >= 2 && !chainPart(text).includes(narrator)) continue;
       outcome.total++;
       outcome.byBook[key] = (outcome.byBook[key] ?? 0) + 1;
       const bucket = isExact ? exact : loose;

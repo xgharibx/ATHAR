@@ -43,8 +43,31 @@ function findAll(obj, key, out = []) {
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms + Math.random() * 300)); }
 
+/** The host of a URL, or "" when it is not one. */
+function hostOf(url) {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+const AVATAR_HOSTS = new Set(["yt3.googleusercontent.com", "yt3.ggpht.com"]);
+
+/** Only a YouTube channel page is fetched, rebuilt from its path (never another host from the data file). */
+function channelPageUrl(channel) {
+  const given = channel.youtubeUrl ? new URL(channel.youtubeUrl, "https://www.youtube.com") : null;
+  const path = given && ["www.youtube.com", "youtube.com", "m.youtube.com"].includes(given.hostname) ? given.pathname : `/${String(channel.handle ?? "")}`;
+  if (!/^\/[@\w./%-]+$/.test(path)) return null;
+  return `https://www.youtube.com${path}`;
+}
+
 async function fetchAvatar(channel) {
-  const url = channel.youtubeUrl || `https://www.youtube.com/${channel.handle}`;
+  const url = channelPageUrl(channel);
+  if (!url) {
+    console.warn(`  ⚠ ${channel.displayName}: not a YouTube channel address, skipped`);
+    return null;
+  }
   console.log(`  ↳ ${channel.displayName}: ${url}`);
 
   try {
@@ -85,7 +108,7 @@ async function fetchAvatar(channel) {
 
         // Any thumbnail with yt3.googleusercontent.com domain (channel avatars)
         const allThumbs = findAll(data, "thumbnails").flat();
-        const avatarThumb = allThumbs.find(t => t?.url?.includes("yt3.googleusercontent.com") || t?.url?.includes("yt3.ggpht.com"));
+        const avatarThumb = allThumbs.find(t => typeof t?.url === "string" && AVATAR_HOSTS.has(hostOf(t.url)));
         if (avatarThumb) {
           const hq = avatarThumb.url.replace(/=s\d+-c/, "=s240-c").replace(/=s\d+/, "=s240");
           console.log(`    ✓ Found avatar (generic): ${hq.slice(0, 80)}...`);

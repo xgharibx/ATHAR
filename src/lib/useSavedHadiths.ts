@@ -107,3 +107,18 @@ export function useSavedHadiths() {
   };
   return { items, loading, remove };
 }
+
+/** Your saved hadiths, notes and folders as plain text, for «تصدير ملاحظاتي». */
+export function savedHadithsText(items: SavedHadith[], inFolders: Record<string, string[]>): string {
+  const blocks = items.map((x) => {
+    const lines: string[] = [];
+    lines.push(x.kind === "book" ? `${x.title}، ${x.place}` : x.title);
+    if (x.heading) lines.push(x.heading);
+    if (x.text) lines.push(x.text);
+    if (x.kind === "book" && x.note) lines.push(`ملاحظتي: ${x.note}`);
+    const folders = inFolders[x.key];
+    if (folders?.length) lines.push(`المجموعات: ${folders.join("، ")}`);
+    return lines.join("\n");
+  });
+  return [`أحاديثي المحفوظة من أثر (${items.length})`, ...blocks].join("\n\n— — —\n\n");
+}

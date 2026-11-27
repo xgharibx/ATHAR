@@ -42,8 +42,22 @@ function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ─── RSS feed parser ─────────────────────────────────────────────────────────
 
+/** A YouTube channel id («UC…») or playlist browse id, checked before it goes into a request. */
+function youtubeId(value) {
+  const id = String(value ?? "");
+  if (!/^(?:VL)?[A-Za-z0-9_-]{10,64}$/.test(id)) throw new Error(`not a YouTube id: ${id.slice(0, 40)}`);
+  return id;
+}
+
+const XML_ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" };
+
+/** XML entities decoded in one pass, so «&amp;lt;» stays «&lt;». */
+function unescapeXml(text) {
+  return text.replace(/&(amp|lt|gt|quot|#39);/g, (_m, name) => XML_ENTITIES[name]);
+}
+
 async function fetchRSS(channelId) {
-  const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+  const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(youtubeId(channelId))}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`RSS ${channelId}: HTTP ${res.status}`);
   const xml = await res.text();
@@ -55,7 +69,7 @@ async function fetchRSS(channelId) {
     const title   = (block.match(/<title>(.*?)<\/title>/) || [])[1] || "";
     const published = (block.match(/<published>(.*?)<\/published>/) || [])[1] || "";
     // Unescape XML entities
-    const cleanTitle = title.replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+    const cleanTitle = unescapeXml(title);
     return { videoId, title: cleanTitle, publishedAt: published.slice(0,10) };
   }).filter(e => e.videoId);
 }
@@ -72,7 +86,7 @@ const INNERTUBE_CONTEXT = {
 };
 
 async function innertubeBrowse(browseId, params) {
-  const body = { context: INNERTUBE_CONTEXT, browseId };
+  const body = { context: INNERTUBE_CONTEXT, browseId: youtubeId(browseId) };
   if (params) body.params = params;
   const res = await fetch("https://www.youtube.com/youtubei/v1/browse?prettyPrint=false", {
     method: "POST",

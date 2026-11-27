@@ -21,7 +21,10 @@ import { readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
-const DIR = join(dirname(fileURLToPath(import.meta.url)), "../../public/data/hadith");
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
+/** The books (source of truth, not shipped as is) and the shipped index. */
+const DIR = join(ROOT, "data/hadith");
+const PUBLIC = join(ROOT, "public/data/hadith");
 const BOOKS = ["bukhari", "muslim", "abudawud", "tirmidhi", "nasai", "ibnmajah", "malik", "nawawi", "qudsi"];
 
 export const MUWATTA_DESCRIPTION = "أقدم ما وصلنا من كتب السنة المصنَّفة، للإمام مالك بن أنس";
@@ -196,7 +199,7 @@ function main() {
     console.log(`${key}: ${before} → ${pack.count}`);
   }
 
-  const indexPath = join(DIR, "index.json");
+  const indexPath = join(PUBLIC, "index.json");
   const books = JSON.parse(readFileSync(indexPath, "utf8")).map((b) => ({
     ...b,
     count: counts[b.key] ?? b.count,
@@ -204,7 +207,7 @@ function main() {
   }));
   writeFileSync(indexPath, JSON.stringify(books, null, 2), "utf8");
 
-  console.log("index.json updated; run hadith-bundle-v2.mjs next for rulings and search text");
+  console.log("index.json updated; run hadith-bundle-v2.mjs and hadith-books.mjs next");
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) main();
