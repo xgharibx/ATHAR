@@ -199,9 +199,11 @@ public class ReleaseScreenshotCaptureTest {
             InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
                 WindowInsetsController controller = activity.getWindow().getInsetsController();
                 assertTrue(controller != null);
+                controller.setSystemBarsBehavior(
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
                 controller.hide(WindowInsets.Type.systemBars());
             });
-            SystemClock.sleep(1500);
+            SystemClock.sleep(2000);
             AtomicReference<Boolean> barsVisible = new AtomicReference<>(true);
             InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
                 barsVisible.set(activity.getWindow().getDecorView().getRootWindowInsets()

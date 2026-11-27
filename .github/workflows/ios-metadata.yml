@@ -4,6 +4,12 @@ name: iOS store listing
 # Run it after the app record exists in App Store Connect. Does not upload a build and
 # does not submit for review. Needs the same App Store Connect API key secrets as iOS Build.
 on:
+  push:
+    branches: [main]
+    paths:
+      - "ios/fastlane/release/**"
+      - "ios/fastlane/Fastfile"
+      - ".github/workflows/ios-metadata.yml"
   workflow_dispatch:
 
 permissions:

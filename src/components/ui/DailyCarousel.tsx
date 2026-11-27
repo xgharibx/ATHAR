@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import { arNum } from "@/lib/formatNumber";
 import { shareText } from "@/lib/shareTargets";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import "@/styles/dailyCarousel.css";
 
 
 function dateIndex(dateKey: string, length: number, offset = 0): number {
@@ -343,6 +344,16 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     setActiveIdx((prev) => (prev - 1 + SLIDE_COUNT) % SLIDE_COUNT);
   }, []);
 
+  const onTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const direction = event.key === "ArrowLeft" ? 1 : event.key === "ArrowRight" ? -1 : 0;
+    if (!direction) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const next = (index + direction + SLIDE_COUNT) % SLIDE_COUNT;
+    goTo(next);
+    window.requestAnimationFrame(() => document.getElementById(`daily-carousel-tab-${next}`)?.focus());
+  };
+
   // Auto-advance every 4 seconds
   React.useEffect(() => {
     const media = window.matchMedia?.("(prefers-reduced-motion: reduce)");
@@ -455,6 +466,26 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
             {autoRotate ? <Pause size={14} aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
           </button>
         </div>
+      </div>
+
+      <div className="daily-carousel-tabs" role="tablist" aria-orientation="horizontal" aria-label="زاد اليوم" dir="rtl">
+        {SLIDE_LABELS.map((label, i) => (
+          <button
+            key={label}
+            id={`daily-carousel-tab-${i}`}
+            type="button"
+            role="tab"
+            aria-controls={`carousel-slide-${i}`}
+            aria-selected={activeIdx === i}
+            aria-label={label}
+            tabIndex={activeIdx === i ? 0 : -1}
+            onClick={() => goTo(i)}
+            onKeyDown={(event) => onTabKeyDown(event, i)}
+            className={`daily-carousel-tab${activeIdx === i ? " is-on" : ""}`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Slides — transform-based so each slide is always 100% of the card */}
@@ -853,26 +884,6 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
         </div>
       </div>
 
-      {/* Dot indicators */}
-      <div className="flex items-center justify-center gap-2 pb-3" role="tablist" aria-orientation="horizontal" aria-label="تنقل بين الشرائح">
-        {Array.from({ length: SLIDE_COUNT }, (_, i) => i).map((i) => (
-          <button type="button"
-            key={i}
-            role="tab"
-            aria-controls={`carousel-slide-${i}`}
-            aria-selected={activeIdx === i}
-            aria-label={SLIDE_LABELS[i]}
-            onClick={() => goTo(i)}
-            className="rounded-full transition-all"
-            style={{
-              width: activeIdx === i ? "20px" : "6px",
-              height: "6px",
-              background: "var(--accent)",
-              opacity: activeIdx === i ? 1 : 0.3,
-            }}
-          />
-        ))}
-      </div>
     </Card>
     </>
   );

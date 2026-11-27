@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 const quranJson = fs.readFileSync(path.resolve("public/data/quran.json"), "utf8");
 
 type Options = {
+  enforceProviderConsent?: boolean;
   userId?: string | null;
   userLookupError?: boolean;
   quotaAllowed?: boolean | null;
@@ -47,7 +48,12 @@ function edge(options: Options = {}) {
     },
   };
   const sourcePath = path.resolve("supabase/functions/companion/index.ts");
-  const source = fs.readFileSync(sourcePath, "utf8").replace(/^import .*;\r?\n/gm, "");
+  let source = fs.readFileSync(sourcePath, "utf8").replace(/^import .*;\r?\n/gm, "");
+  // Most legacy fixtures exercise the MiniMax-shaped transport. Bypass only
+  // the consent gate in those fixtures; test the real gate separately below.
+  if (!options.enforceProviderConsent && !options.openai) {
+    source = source.replace('if (PROVIDER !== "openai") return jsonError(req, "AI service unavailable", 503);', "");
+  }
   const js = ts.transpileModule(source, {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
   }).outputText;
@@ -183,6 +189,12 @@ function edge(options: Options = {}) {
 }
 
 describe("Companion Edge Function access controls", () => {
+  it("refuses to send messages to MiniMax without provider-specific consent", async () => {
+    const app = edge({ enforceProviderConsent: true });
+    const response = await app.send("Bearer synthetic-publishable-key");
+    expect(response.status).toBe(503);
+    expect(app.calls).toEqual([]);
+  });
   it("allows the authenticated SDK headers through browser preflight", async () => {
     const app = edge();
     const sdkRequestHeaders = [
