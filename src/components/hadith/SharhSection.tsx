@@ -7,7 +7,7 @@
  */
 import * as React from "react";
 import { westernToArabicDigits } from "@/lib/formatNumber";
-import { BookOpenText, Loader2, Sparkles, WifiOff, ExternalLink, ChevronDown } from "lucide-react";
+import { BookOpenText, Loader2, Sparkles, WifiOff, ChevronDown, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/Card";
 import { fetchSharhHadith, type SharhHadith } from "@/lib/hadithSharhAPI";
@@ -52,7 +52,7 @@ export function SharhSection({
             الشرح
           </p>
           <p className="text-[12px] opacity-55 leading-6">
-            لا يتوفّر شرح مفصّل لهذا الحديث بعد في الموسوعة الميسّرة. الحكم والتخريج أعلاه متاحان.
+            لا يتوفّر شرح مفصّل لهذا الحديث بعد، والحكم والتخريج أعلاه.
           </p>
         </div>
       </Card>
@@ -80,7 +80,7 @@ export function SharhSection({
         {loading && (
           <div className="flex items-center gap-2 py-3 text-xs opacity-55">
             <Loader2 size={14} aria-hidden="true" className="animate-spin" />
-            جارٍ تحميل الشرح من الموسوعة الحديثية…
+            جارٍ تحميل الشرح…
           </div>
         )}
 
@@ -152,12 +152,11 @@ export function SharhSection({
                 onClick={() => navigate(`/library/sharh?h=${sharhId}`)}
                 className="flex items-center gap-1.5 text-[11px] opacity-55 transition hover:opacity-90"
               >
-                افتح في الموسوعة
-                <ExternalLink size={11} aria-hidden="true" />
+                الشرح كاملًا
+                <ChevronLeft size={11} aria-hidden="true" />
               </button>
             </div>
 
-            <p className="text-[10.5px] opacity-50">الشرح من موسوعة الأحاديث النبوية، بمراجعة علمية.</p>
           </div>
         )}
       </div>

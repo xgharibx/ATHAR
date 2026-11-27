@@ -21,6 +21,9 @@ export const MINUTE: CountForms = { one: "دقيقة واحدة", two: "دقيق
 export const HADITH: CountForms = { one: "حديث واحد", two: "حديثان", few: "أحاديث", many: "حديثًا", hundred: "حديث" };
 export const BOOK: CountForms = { one: "كتاب واحد", two: "كتابان", few: "كتب", many: "كتابًا", hundred: "كتاب" };
 export const CARD: CountForms = { one: "بطاقة واحدة", two: "بطاقتان", few: "بطاقات", many: "بطاقة" };
+export const BENEFIT: CountForms = { one: "فائدة واحدة", two: "فائدتان", few: "فوائد", many: "فائدة" };
+export const BOOKMARK: CountForms = { one: "علامة واحدة", two: "علامتان", few: "علامات", many: "علامة" };
+export const NARRATOR: CountForms = { one: "راوٍ واحد", two: "راويان", few: "رواة", many: "راويًا" };
 export const RESULT: CountForms = { one: "نتيجة واحدة", two: "نتيجتان", few: "نتائج", many: "نتيجة" };
 
 export function countAr(n: number, forms: CountForms): string {

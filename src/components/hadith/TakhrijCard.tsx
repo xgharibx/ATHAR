@@ -6,7 +6,7 @@
 import * as React from "react";
 import { ScrollText, Loader2, Info, ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/Card";
-import { verdictColor, type DorarTakhrij } from "@/lib/dorarTakhrij";
+import { cleanVerdict, verdictColor, type DorarTakhrij } from "@/lib/dorarTakhrij";
 import { GradeChip } from "@/components/hadith/GradeChip";
 import { arNum, westernToArabicDigits as arDigits } from "@/lib/formatNumber";
 
@@ -50,13 +50,13 @@ export function TakhrijCard({
         {loading && !takhrij && (
           <div className="flex items-center gap-2 py-3 text-xs opacity-55">
             <Loader2 size={14} aria-hidden="true" className="animate-spin" />
-            نبحث عن تخريجه في الدرر السنية…
+            نبحث عن تخريجه…
           </div>
         )}
 
         {!loading && (!takhrij || (!takhrij.exact && takhrij.others.length === 0)) && (
           <p className="text-xs opacity-55 py-2">
-            لم يُعثر على تخريج مطابق بثقة في الدرر السنية لهذا النص بعينه.
+            لم نجد تخريجًا مطابقًا بثقة لهذا النص بعينه.
           </p>
         )}
 
@@ -67,7 +67,7 @@ export function TakhrijCard({
                 className="text-sm font-bold px-3 py-1 rounded-full"
                 style={{ background: verdictColor(takhrij.exact.verdict) + "22", color: verdictColor(takhrij.exact.verdict) }}
               >
-                {takhrij.exact.verdict || "—"}
+                {cleanVerdict(takhrij.exact.verdict) || "—"}
               </span>
               <span className="text-xs opacity-60">قاله {takhrij.exact.muhaddith || "المحدث"}</span>
             </div>
@@ -103,7 +103,7 @@ export function TakhrijCard({
                   <div key={i} className="rounded-2xl p-3 text-xs" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}>
                     <div className="flex items-center gap-2 flex-wrap mb-1.5">
                       <span className="font-bold px-2 py-0.5 rounded-full text-[11px]" style={{ background: verdictColor(o.verdict) + "22", color: verdictColor(o.verdict) }}>
-                        {o.verdict || "—"}
+                        {cleanVerdict(o.verdict) || "—"}
                       </span>
                       <span className="opacity-60">قاله {o.muhaddith || "المحدث"}</span>
                     </div>
@@ -135,7 +135,6 @@ export function TakhrijCard({
             )}
           </div>
         )}
-        <p className="text-[10.5px] opacity-50 mt-2">التخريج من الموسوعة الحديثية في الدرر السنية.</p>
       </div>
     </Card>
   );

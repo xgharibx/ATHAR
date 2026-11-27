@@ -7,7 +7,7 @@
     "order": 1,
     "grade": "sahih",
     "description": "أصح كتاب في السنة النبوية، جمع الإمام محمد بن إسماعيل البخاري",
-    "count": 7589,
+    "count": 7580,
     "sectionCount": 0
   },
   {
@@ -18,7 +18,7 @@
     "order": 2,
     "grade": "sahih",
     "description": "ثاني أصح كتاب في السنة النبوية، جمع الإمام مسلم بن الحجاج",
-    "count": 7563,
+    "count": 7360,
     "sectionCount": 0
   },
   {
@@ -29,7 +29,7 @@
     "order": 3,
     "grade": "mixed",
     "description": "من أمهات كتب السنة، للإمام أبي داود السجستاني",
-    "count": 5274,
+    "count": 5272,
     "sectionCount": 0
   },
   {
@@ -40,7 +40,7 @@
     "order": 4,
     "grade": "mixed",
     "description": "للإمام محمد بن عيسى الترمذي، مع بيان درجة كل حديث",
-    "count": 3998,
+    "count": 3924,
     "sectionCount": 0
   },
   {
@@ -51,7 +51,7 @@
     "order": 5,
     "grade": "mixed",
     "description": "للإمام أحمد بن شعيب النسائي، من الكتب الستة المعتمدة",
-    "count": 5765,
+    "count": 5679,
     "sectionCount": 0
   },
   {
@@ -62,7 +62,7 @@
     "order": 6,
     "grade": "mixed",
     "description": "للإمام محمد بن يزيد القزويني ابن ماجه، تمام الكتب الستة",
-    "count": 4343,
+    "count": 4338,
     "sectionCount": 0
   },
   {
@@ -72,8 +72,8 @@
     "color": "#06b6d4",
     "order": 7,
     "grade": "sahih",
-    "description": "للإمام مالك بن أنس، أقدم كتاب في السنة النبوية الموثّق",
-    "count": 1858,
+    "description": "أقدم ما وصلنا من كتب السنة المصنَّفة، للإمام مالك بن أنس",
+    "count": 1829,
     "sectionCount": 0
   },
   {

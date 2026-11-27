@@ -182,26 +182,46 @@ private struct SunnahWidgetView: View {
     var body: some View {
         let payload = morePayload("noor_widget_sunnah_v1", as: SunnahPayload.self)
         let id = payload?.id?.filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" } ?? ""
-        let route = id.isEmpty ? "/library/hadith" : "/library/sharh?h=\(id)"
-        MoreCard {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("حديث اليوم").font(.caption.weight(.semibold)).foregroundColor(moreGold)
-                if let payload, !payload.hadeeth.isEmpty {
-                    Text(payload.hadeeth)
-                        .font(.system(size: family == .systemLarge ? 18 : 15))
-                        .foregroundColor(.white)
-                        .lineLimit(family == .systemLarge ? 12 : family == .systemMedium ? 4 : 5)
-                        .minimumScaleFactor(0.8)
-                    Spacer(minLength: 0)
-                    Text([payload.attribution, payload.grade].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
-                        .font(.caption2).foregroundColor(.white.opacity(0.65))
-                        .lineLimit(1)
-                } else {
-                    Text("افتح أثر ليظهر حديث اليوم هنا").font(.subheadline).foregroundColor(.white.opacity(0.8))
+        let route = id.isEmpty ? "/hadith" : "/library/sharh?h=\(id)"
+        switch family {
+        case .accessoryRectangular:
+            // Lock Screen: the day's hadith in two lines.
+            VStack(alignment: .leading, spacing: 1) {
+                Text("حديث اليوم").font(.caption2.weight(.semibold)).widgetAccentable()
+                Text(payload?.hadeeth.isEmpty == false ? payload!.hadeeth : "افتح أثر ليظهر حديث اليوم")
+                    .font(.caption)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .environment(\.layoutDirection, .rightToLeft)
+            .atharAccessoryBackground()
+            .widgetURL(moreURL(route))
+        case .accessoryInline:
+            Text(payload?.hadeeth.isEmpty == false ? "حديث اليوم: \(payload!.hadeeth)" : "حديث اليوم")
+                .atharAccessoryBackground()
+                .widgetURL(moreURL(route))
+        default:
+            MoreCard {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("حديث اليوم").font(.caption.weight(.semibold)).foregroundColor(moreGold)
+                    if let payload, !payload.hadeeth.isEmpty {
+                        Text(payload.hadeeth)
+                            .font(.system(size: family == .systemLarge ? 18 : 15))
+                            .foregroundColor(.white)
+                            .lineLimit(family == .systemLarge ? 12 : family == .systemMedium ? 4 : 5)
+                            .minimumScaleFactor(0.8)
+                        Spacer(minLength: 0)
+                        Text([payload.attribution, payload.grade].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
+                            .font(.caption2).foregroundColor(.white.opacity(0.65))
+                            .lineLimit(1)
+                    } else {
+                        Text("افتح أثر ليظهر حديث اليوم هنا").font(.subheadline).foregroundColor(.white.opacity(0.8))
+                    }
                 }
             }
+            .widgetURL(moreURL(route))
         }
-        .widgetURL(moreURL(route))
     }
 }
 
@@ -211,8 +231,8 @@ struct AtharSunnahWidget: Widget {
             SunnahWidgetView(entry: entry)
         }
         .configurationDisplayName("حديث اليوم")
-        .description("حديث صحيح كل يوم مع مصدره ودرجته")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .description("حديث اليوم نفسه الذي في التطبيق، مع مصدره ودرجته، وعلى شاشة القفل")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular, .accessoryInline])
     }
 }
 

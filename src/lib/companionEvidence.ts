@@ -68,6 +68,30 @@ export function parseHadithBlock(body: string): HadithParts {
   return parts;
 }
 
+const BOOK_KEYS: [RegExp, string][] = [
+  [/البخاري/, "bukhari"],
+  [/مسلم/, "muslim"],
+  [/أب(?:و|ي)\s*داود/, "abudawud"],
+  [/الترمذي/, "tirmidhi"],
+  [/النسائي/, "nasai"],
+  [/ابن\s*ماجه?/, "ibnmajah"],
+  [/موطأ|مالك/, "malik"],
+  [/الأربعين?\s+النووية/, "nawawi"],
+];
+
+/**
+ * Where a cited hadith opens in the app: «صحيح مسلم (١١٤٤)» →
+ * «/hadith/muslim?ref=1144», the book opened at that printed number.
+ * Null for books the app does not carry, or without a number.
+ */
+export function hadithAppLink(parts: Pick<HadithParts, "source" | "number">): string | null {
+  if (!parts.source || !parts.number) return null;
+  const key = BOOK_KEYS.find(([re]) => re.test(parts.source!))?.[1];
+  const digits = parts.number.replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+  const n = /^\d+/.exec(digits)?.[0];
+  return key && n && Number(n) > 0 ? `/hadith/${key}?ref=${n}` : null;
+}
+
 export function parseVerseBlock(body: string): VerseParts {
   const match = /^([\s\S]*﴾)\s*—\s*سورة\s+([^:]+?)\s*:\s*([٠-٩0-9\-–]+)\s*$/.exec(body.trim());
   if (!match) return { text: body.trim() };

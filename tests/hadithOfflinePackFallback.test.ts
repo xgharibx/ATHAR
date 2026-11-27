@@ -19,6 +19,9 @@ const stalePack: HadithPack = {
   hadiths: [{ n: 1, a: 1, s: 1, t: "حديث محفوظ دون اتصال", g: ["sahih"] }],
 };
 
+/** What the loader returns: the same pack, each entry with its printed-number ref (see hadithNumbers.ts). */
+const loaded = (pack: HadithPack) => ({ ...pack, hadiths: pack.hadiths.map((h) => ({ ...h, r: String(h.a) })) });
+
 beforeEach(async () => {
   await idbClearHadithPacks();
 });
@@ -37,7 +40,7 @@ describe("expired Hadith book cache fallback", () => {
 
     const { loadHadithPack } = await import("@/data/useHadithBook");
 
-    await expect(loadHadithPack("nawawi")).resolves.toEqual(stalePack);
+    await expect(loadHadithPack("nawawi")).resolves.toEqual(loaded(stalePack));
     await expect(idbGetHadithPackEntry("nawawi")).resolves.toEqual({
       data: stalePack,
       isFresh: false,
@@ -56,7 +59,7 @@ describe("expired Hadith book cache fallback", () => {
 
     const { loadHadithPack } = await import("@/data/useHadithBook");
 
-    await expect(loadHadithPack("nawawi")).resolves.toEqual(refreshedPack);
+    await expect(loadHadithPack("nawawi")).resolves.toEqual(loaded(refreshedPack));
     await vi.waitFor(async () => expect(await idbGetHadithPackEntry("nawawi")).toMatchObject({
       data: refreshedPack,
       isFresh: true,

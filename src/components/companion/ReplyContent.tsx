@@ -21,7 +21,7 @@ import { BookOpen, BookText, ExternalLink, Info, Lightbulb, Link2, MessageCircle
 import { ROUTE_LABELS } from "@/lib/companionAI";
 import { splitIntoSegments } from "@/lib/companionBlocks";
 import { isTrustedSourceUrl } from "@/lib/companionSources";
-import { extractSources, isAcceptedGrade, parseHadithBlock, parseVerseBlock, type SourceLink } from "@/lib/companionEvidence";
+import { extractSources, hadithAppLink, isAcceptedGrade, parseHadithBlock, parseVerseBlock, type SourceLink } from "@/lib/companionEvidence";
 import { CARD_GAP, CARD_TEXT_LEAD, VERSE_PACE, countWords, planReveal } from "@/lib/companionReveal";
 import { getInternalAppRoute } from "@/lib/internalAppRoute";
 import type { CalloutKind } from "@/lib/companionMarkdown";
@@ -157,6 +157,7 @@ function HadithCard({ body, size, reveal }: { body: string; size: Size; reveal?:
   const grader = parts.grader && !(parts.source ?? "").includes(parts.grader) ? parts.grader : undefined;
   const r = cardReveal(reveal);
   const words = countWords(parts.text);
+  const link = hadithAppLink(parts);
   return (
     <figure className={["relative my-2.5 overflow-hidden rounded-2xl border", r.card.className ?? ""].join(" ")} style={{ ...cardStyle(KIND.hadith.hue), ...r.card.style }}>
       <CardLabel kind="hadith" end={parts.grade ? <span {...r.after(words)}><GradeChip grade={parts.grade} grader={grader} /></span> : null} />
@@ -164,8 +165,15 @@ function HadithCard({ body, size, reveal }: { body: string; size: Size; reveal?:
         <Written text={parts.text} reveal={r.text} />
       </blockquote>
       {footer.length > 0 ? (
-        <figcaption className={["mx-3.5 mb-2.5 mt-1.5 border-t pt-1.5 text-[11.5px] leading-5 text-(--muted)", r.after(words).className ?? ""].join(" ")} style={{ borderColor: "color-mix(in srgb, var(--card-hue) 25%, transparent)", ...r.after(words).style }}>
-          {footer.join(" · ")}
+        <figcaption className={["mx-3.5 mb-2.5 mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t pt-1.5 text-[11.5px] leading-5 text-(--muted)", r.after(words).className ?? ""].join(" ")} style={{ borderColor: "color-mix(in srgb, var(--card-hue) 25%, transparent)", ...r.after(words).style }}>
+          <span>{footer.join(" · ")}</span>
+          {/* The same hadith in the app's own book, at its printed number. */}
+          {link ? (
+            <Link to={link} className="mr-auto inline-flex items-center gap-1 font-semibold" style={labelStyle}>
+              <BookOpen size={12} aria-hidden="true" />
+              افتحه في الكتاب
+            </Link>
+          ) : null}
         </figcaption>
       ) : <div className="h-2.5" />}
     </figure>

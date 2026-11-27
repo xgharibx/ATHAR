@@ -1289,7 +1289,7 @@
      tofu/placeholder glyph (the Quranic fonts were never built with digit
      coverage — they only need script letters, diacritics, and marks). */
     --font-arabic:
-      'Noto Naskh Arabic', 'Noto Sans Arabic', ui-sans-serif, system-ui,
+      'Athar Number Marks', 'Noto Naskh Arabic', 'Noto Sans Arabic', ui-sans-serif, system-ui,
       -apple-system, 'Segoe UI', Roboto, sans-serif;
 
     --bg: #07080b;
@@ -2415,6 +2415,7 @@
   body {
     margin: 0;
     font-family:
+      'Athar Number Marks',
       'Noto Naskh Arabic',
       'Noto Sans Arabic',
       ui-sans-serif,

@@ -53,7 +53,7 @@ export function RemindersGroup() {
     setReminders({ enabled: next });
     void refreshPermission();
     if (!native) return;
-    if (!next && !reminders.prayerAlertsEnabled) {
+    if (!next && !reminders.prayerAlertsEnabled && !reminders.dailyHadithNotif) {
       await cancelAllReminders();
     }
     toast.success(next ? "تم تفعيل التذكيرات اليومية" : "تم إيقاف التذكيرات اليومية");
@@ -138,10 +138,9 @@ export function RemindersGroup() {
         })}
         <ToggleRow
           id="hadith"
-          title="حديث الفجر اليومي"
-          hint="حديث نبوي عند أذان الفجر كل يوم"
+          title="حديث اليوم عند الفجر"
+          hint="حديث اليوم نفسه الذي في الصفحة الرئيسية، يفتح شرحه"
           checked={reminders.dailyHadithNotif ?? false}
-          disabled={!on}
           onChange={(next) => setReminders({ dailyHadithNotif: next })}
         />
       </SettingsSection>

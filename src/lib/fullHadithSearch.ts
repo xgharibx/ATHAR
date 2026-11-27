@@ -1,7 +1,7 @@
 /**
  * Full-corpus hadith search — the ONE search implementation every hadith
  * search surface in the app uses (Library, the /hadith book gallery),
- * searching across all 36,472 hadiths in the 9 bundled books, not just a
+ * searching across all 36,064 hadiths in the 9 bundled books, not just a
  * per-page subset. Loads a compact pre-built index (bookKey, n, snippet,
  * grade) lazily on first search, then caches it in IndexedDB so later
  * sessions don't re-download it — same lazy-then-offline pattern as the
@@ -16,6 +16,13 @@ export interface FullHadithSearchResult {
   n: number;
   snippet: string;
   grade: string;
+  /** Printed-number ref when it is not simply `n` («1144/2»). */
+  ref?: string;
+}
+
+/** Copies cached by versions before the printed numbers came have no refs: fetch again. */
+function isCurrentIndex(data: FullSearchIndexEntry[]): boolean {
+  return data.some((row) => row.length > 4);
 }
 
 let cache: FullSearchIndexEntry[] | null = null;
@@ -26,7 +33,7 @@ async function loadIndex(): Promise<FullSearchIndexEntry[]> {
   if (!loading) {
     loading = (async () => {
       const cached = await idbGetSearchIndexEntry();
-      if (cached?.isFresh) {
+      if (cached?.isFresh && isCurrentIndex(cached.data)) {
         cache = cached.data;
         return cached.data;
       }
@@ -68,9 +75,9 @@ export async function searchFullHadithCorpus(query: string, limit = 40): Promise
   if (term.length < 2) return [];
   const index = await loadIndex();
   const out: FullHadithSearchResult[] = [];
-  for (const [bookKey, n, snippet, grade] of index) {
+  for (const [bookKey, n, snippet, grade, ref] of index) {
     if (normalizeArabicSearch(snippet).includes(term)) {
-      out.push({ bookKey, n, snippet, grade });
+      out.push(ref ? { bookKey, n, snippet, grade, ref } : { bookKey, n, snippet, grade });
       if (out.length >= limit) break;
     }
   }

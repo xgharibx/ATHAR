@@ -845,11 +845,12 @@ export function buildDailyHadithNotificationsForDays(
   days: PrayerNotificationDay[],
   audio: NotificationAudioConfig,
   now = new Date(),
+  daily: Record<string, DailyHadithText> = {},
 ): LocalNotification[] {
   return days.slice(0, NEAR_TERM_DAYS).flatMap((day) => {
     const dayStart = parseDateKey(day.dateISO);
     if (!dayStart || getLocalDateKey(dayStart) !== day.dateISO) return [];
-    const notification = buildDailyHadithNotification(day, audio, now);
+    const notification = buildDailyHadithNotification(day, audio, now, daily[day.dateISO]);
     return notification ? [notification] : [];
   });
 }
@@ -904,25 +905,56 @@ function notificationRefs(ids: readonly number[]) {
   return ids.map((id) => ({ id }));
 }
 
-/** Phase 10 — Build a daily hadith notification scheduled at Fajr time */
+/** The day's hadith as the home and the hadith page show it, when it could be fetched. */
+export type DailyHadithText = { id: string; text: string };
+
+/** The daily hadith for each date, fetched ahead (a few seconds at most; none when offline). */
+async function dailyHadithTexts(dates: string[]): Promise<Record<string, DailyHadithText>> {
+  const out: Record<string, DailyHadithText> = {};
+  try {
+    const { fetchDailyHadith } = await import("@/lib/hadithSharhAPI");
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000));
+    const picks = await Promise.all(dates.map((date) => Promise.race([fetchDailyHadith(date).catch(() => null), timeout])));
+    picks.forEach((pick, i) => {
+      if (pick?.hadeeth) out[dates[i]!] = { id: pick.id, text: pick.hadeeth };
+    });
+  } catch {
+    // The general phrase is used instead.
+  }
+  return out;
+}
+
+function shortHadith(text: string, max = 150): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (flat.length <= max) return flat;
+  const cut = flat.lastIndexOf(" ", max);
+  return `${flat.slice(0, cut > max * 0.6 ? cut : max)}…`;
+}
+
+/**
+ * Phase 10 — the daily hadith at Fajr: the same hadith the home, «أفق» and
+ * the hadith page show that day, opening its explanation; a general phrase
+ * when it could not be fetched ahead of time.
+ */
 function buildDailyHadithNotification(
   day: PrayerNotificationDay,
   audio: NotificationAudioConfig,
   now: Date,
+  daily?: DailyHadithText,
 ): LocalNotification | null {
   const fajrAt = dateAtLocalTime(day.dateISO, day.timings.Fajr ?? "");
   if (!fajrAt || fajrAt.getTime() <= now.getTime() + 30_000) return null;
   return {
     id: notificationIdForDate(DAILY_HADITH_ID, day.dateISO),
     title: "حديث اليوم ﷺ",
-    ...styledBody("hadith", dailyPhrase(DAILY_HADITH_FAJR_PHRASES)),
+    ...styledBody("hadith", daily ? `«${shortHadith(daily.text)}»` : dailyPhrase(DAILY_HADITH_FAJR_PHRASES)),
     channelId: audio.channelId,
     ...notificationSound(audio.soundFile),
     smallIcon: REMINDER_NOTIFICATION_ICON,
     largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
     iconColor: REMINDER_ICON_COLOR,
     schedule: withAndroidDozeDelivery({ at: fajrAt }),
-    extra: { dateISO: day.dateISO, ...wallClockNotificationExtra(fajrAt) },
+    extra: { dateISO: day.dateISO, route: daily ? `/library/sharh?h=${daily.id}` : "/hadith", ...wallClockNotificationExtra(fajrAt) },
   };
 }
 
@@ -1245,10 +1277,10 @@ async function syncRemindersForOwner(
   const { LocalNotifications } = await import("@capacitor/local-notifications");
   if (getAccountStorageOwner() !== owner) return;
 
-  // Two independent switches: the daily reminders (adhkar, wird, khatma,
-  // tasbeeh, Fajr hadith) and the prayer alerts. Only when both are off does
-  // nothing stay queued.
-  if (!reminders.enabled && !reminders.prayerAlertsEnabled) {
+  // Three independent switches: the daily reminders (adhkar, wird, khatma,
+  // tasbeeh), the prayer alerts, and the optional Fajr hadith. Only when all
+  // are off does nothing stay queued.
+  if (!reminders.enabled && !reminders.prayerAlertsEnabled && !reminders.dailyHadithNotif) {
     await cancelAllReminders();
     return;
   }
@@ -1327,8 +1359,10 @@ async function syncRemindersForOwner(
     ));
   }
 
-  if (reminders.enabled && reminders.dailyHadithNotif && prayerTimings) {
-    notifications.push(...buildDailyHadithNotificationsForDays(scheduleDays, quiet));
+  if (reminders.dailyHadithNotif && prayerTimings) {
+    const daily = await dailyHadithTexts(scheduleDays.slice(0, NEAR_TERM_DAYS).map((day) => day.dateISO));
+    if (getAccountStorageOwner() !== owner) return;
+    notifications.push(...buildDailyHadithNotificationsForDays(scheduleDays, quiet, new Date(), daily));
   }
 
   if (!notifications.length) return;

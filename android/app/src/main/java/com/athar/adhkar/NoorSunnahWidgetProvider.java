@@ -108,7 +108,7 @@ public class NoorSunnahWidgetProvider extends AtharWidgetProvider {
             views.setTextViewText(R.id.noor_widget_phrase, spec.resolvePhrase());
             views.setTextViewText(R.id.noor_widget_action, "سنن اليوم");
             views.setViewVisibility(R.id.sunnah_attribution, android.view.View.GONE);
-            route = "/library/hadith";
+            route = "/hadith";
         }
 
         int theme = WidgetCanvas.widgetTheme(context, appWidgetId);

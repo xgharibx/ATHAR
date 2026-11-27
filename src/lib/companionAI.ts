@@ -518,7 +518,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   "/asma": "أسماء الله الحسنى",
   "/prayer-guide": "طريقة الصلاة",
   "/library": "المكتبة",
-  "/library/sharh": "الموسوعة الحديثية",
+  "/library/sharh": "شروح الأحاديث",
   "/companion": "اسأل أثر",
 };
 

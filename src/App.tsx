@@ -98,6 +98,7 @@ const HadithBooksPage = React.lazy(() => import("@/pages/HadithBooks").then((m) 
 const HadithBookViewPage = React.lazy(() => import("@/pages/HadithBookView").then((m) => ({ default: m.HadithBookViewPage })));
 const HadithReaderPage = React.lazy(() => import("@/pages/HadithReader").then((m) => ({ default: m.HadithReaderPage })));
 const HadithMemoPage = React.lazy(() => import("@/pages/HadithMemo").then((m) => ({ default: m.HadithMemoPage })));
+const HadithTodayPage = React.lazy(() => import("@/pages/HadithToday").then((m) => ({ default: m.HadithTodayPage })));
 const CompanionsPage = React.lazy(() => import("@/pages/Companions"));
 const SeerahPage = React.lazy(() => import("@/pages/SeerahTimeline"));
 const QadaaPage = React.lazy(() => import("@/pages/Qadaa").then((m) => ({ default: m.QadaaPage })));
@@ -712,6 +713,7 @@ function AppContent() {
           <Route path="hadith" element={<Outlet />}>
             <Route index element={<S><HadithBooksPage /></S>} />
             <Route path="memo" element={<S><HadithMemoPage /></S>} />
+            <Route path="today" element={<S><HadithTodayPage /></S>} />
             <Route path=":bookKey" element={<S><HadithBookViewPage /></S>} />
             <Route path=":bookKey/:hadithNumber" element={<S><HadithReaderPage /></S>} />
           </Route>

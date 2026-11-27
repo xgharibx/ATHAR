@@ -7,6 +7,9 @@ import { hadithGradeColor, hadithGradeLabel } from "@/data/hadithTypes";
 import { cn } from "@/lib/utils";
 
 export function GradeChip({ grade, size = "md" }: { grade: string; size?: "sm" | "md" }) {
+  const label = hadithGradeLabel(grade);
+  // The source writes «-» where no grade was given: show nothing then.
+  if (!label) return null;
   const color = hadithGradeColor(grade);
   return (
     <span
@@ -16,7 +19,7 @@ export function GradeChip({ grade, size = "md" }: { grade: string; size?: "sm" |
       )}
       style={{ background: color + "22", color }}
     >
-      {hadithGradeLabel(grade)}
+      {label}
     </span>
   );
 }

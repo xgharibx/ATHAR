@@ -152,7 +152,7 @@ export function HadithSharhPage() {
         <div className="min-w-0">
           <h1 className="text-lg font-bold">شروح الأحاديث</h1>
           <p className="truncate text-xs text-(--muted-2)">
-            شرح ميسّر مُراجَع لكل حديث، من موسوعة الأحاديث النبوية
+            شرح ميسّر مُراجَع لكل حديث
           </p>
         </div>
       </div>
@@ -160,7 +160,7 @@ export function HadithSharhPage() {
       {offline ? (
         <div className="mt-5 flex items-center gap-3 rounded-2xl border border-(--stroke) bg-(--card) p-4 text-sm text-(--muted)">
           <WifiOff className="h-4 w-4 shrink-0" aria-hidden="true" />
-          تعذّر الاتصال بالموسوعة — ما فتحته سابقًا متاح دون اتصال، وأعد المحاولة لاحقًا.
+          تعذّر الاتصال. ما فتحته سابقًا متاح دون إنترنت، وأعد المحاولة لاحقًا.
         </div>
       ) : null}
 
@@ -304,13 +304,6 @@ export function HadithSharhPage() {
             </div>
           ) : null}
 
-          <p className="text-center text-[10.5px] text-(--muted-2)">
-            من{" "}
-            <a href="https://hadeethenc.com/ar/home" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
-              موسوعة الأحاديث النبوية
-            </a>
-            ، بمراجعة علمية
-          </p>
         </article>
       ) : null}
     </div>

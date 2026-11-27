@@ -5,13 +5,14 @@
  * Route: /hadith/:bookKey
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { ArrowRight, Bookmark, BookOpenText, Copy, Hash, ListTree, Loader2, StickyNote, WifiOff } from "lucide-react";
+import { ArrowRight, Bookmark, BookOpenText, Hash, ListTree, Loader2, StickyNote, WifiOff } from "lucide-react";
 import { useHadithPackProgress, HADITH_PACK_SIZES_MB } from "@/data/useHadithBook";
 import { HADITH_BOOKS_STATIC, hadithPreview, type HadithItem } from "@/data/hadithTypes";
 import { stripDiacritics } from "@/lib/arabic";
-import { cleanHadithText, splitHadithText } from "@/lib/hadithText";
+import { splitHadithText } from "@/lib/hadithText";
+import { findByPrintedNumber, hadithNumberLabel, hadithPlaceLabel } from "@/data/hadithNumbers";
 import { useNoorStore } from "@/store/noorStore";
 import { Modal } from "@/components/ui/Modal";
 import { shortChapterTitle } from "@/data/hadithChapters";
@@ -21,7 +22,6 @@ import { GradeChip } from "@/components/hadith/GradeChip";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { arNum } from "@/lib/formatNumber";
-import { writeClipboard } from "@/lib/nativeUI";
 
 
 /* ------------------------------------------------------------------ */
@@ -73,7 +73,7 @@ function HadithRow({ item, bookKey }: { item: HadithItem; bookKey: string }) {
         dir="rtl"
         role="button"
         tabIndex={0}
-        aria-label={`الحديث ${arNum(item.a)}`}
+        aria-label={item.ti ? `${hadithPlaceLabel(item)}: ${item.ti}` : hadithPlaceLabel(item)}
         onClick={open}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && open()}
         className="group relative w-full overflow-hidden rounded-3xl border border-(--stroke) p-4 text-right transition cursor-pointer glass-strong glass-hover press-effect"
@@ -82,37 +82,19 @@ function HadithRow({ item, bookKey }: { item: HadithItem; bookKey: string }) {
         <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: "var(--accent)" }} />
         <div className="relative pr-2">
           <div className="mb-2 flex items-center gap-2">
-            <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-[11px] font-bold tabular-nums" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: "var(--accent)" }}>
-              {arNum(item.a)}
+            <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-[11px] font-bold tabular-nums whitespace-nowrap" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: "var(--accent)" }}>
+              {hadithNumberLabel(item)}
             </span>
             {item.g[0] && <GradeChip grade={item.g[0]} size="sm" />}
-            <span className="mr-auto flex items-center gap-1.5">
-              {hasNote && <StickyNote size={14} aria-label="عليه ملاحظتك" className="text-(--accent)" />}
-              {isBookmarked && <Bookmark size={14} aria-label="محفوظ" className="fill-current text-(--accent)" />}
-              <button
-                type="button"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  try {
-                    const systemConfirmed = await writeClipboard(cleanHadithText(item.t));
-                    if (!systemConfirmed) toast.success("تم النسخ");
-                  } catch {
-                    toast.error("تعذر النسخ");
-                  }
-                }}
-                className="rounded-lg border border-(--stroke) bg-(--card) p-1.5 opacity-55 transition-opacity hover:opacity-90 press-effect"
-                style={{ color: "var(--fg)" }}
-                aria-label="نسخ الحديث"
-              >
-                <Copy size={13} aria-hidden="true" />
-              </button>
-            </span>
+            {(hasNote || isBookmarked) && (
+              <span className="mr-auto flex items-center gap-1.5">
+                {hasNote && <StickyNote size={14} aria-label="عليه ملاحظتك" className="text-(--accent)" />}
+                {isBookmarked && <Bookmark size={14} aria-label="عليه علامة" className="fill-current text-(--accent)" />}
+              </span>
+            )}
           </div>
-          {item.t.trim() ? (
-            <p className="arabic-text text-base leading-8 font-semibold text-(--fg) line-clamp-3">{rowPreview(item.t)}</p>
-          ) : (
-            <p className="text-sm text-(--muted)">نص هذا الحديث غير متوفر في هذه النسخة.</p>
-          )}
+          {item.ti && <p className="mb-1 text-[15px] font-bold font-arabic text-(--accent) leading-snug">{item.ti}</p>}
+          <p className="arabic-text text-base leading-8 font-semibold text-(--fg) line-clamp-3">{rowPreview(item.t)}</p>
         </div>
       </div>
     </div>
@@ -134,7 +116,7 @@ function BookIndex({
 }: {
   open: boolean;
   onClose: () => void;
-  chapters: { id: number; title: string; index: number; count: number; first: number }[];
+  chapters: { id: number; title: string; index: number; count: number; first: string }[];
   activeId: number | null;
   onPick: (id: number) => void;
   onJump: (n: number) => boolean;
@@ -198,7 +180,7 @@ function BookIndex({
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[14px] font-semibold text-(--fg) leading-snug">{shortChapterTitle(c.title)}</span>
-                <span className="block text-[11px] text-(--muted)">{countAr(c.count, HADITH)}، من الحديث {arNum(c.first)}</span>
+                <span className="block text-[11px] text-(--muted)">{countAr(c.count, HADITH)}، من {c.first}</span>
               </span>
             </button>
           ))}
@@ -237,7 +219,7 @@ export function HadithBookViewPage() {
     const rows: ListRow[] = [];
     const chapterOfRow: (number | null)[] = [];
     const headerIndex = new Map<number, number>();
-    const chapters: { id: number; title: string; index: number; count: number; first: number }[] = [];
+    const chapters: { id: number; title: string; index: number; count: number; first: string }[] = [];
     if (!pack) return { rows, chapters, headerIndex, chapterOfRow };
     const byId = new Map(pack.sections.map((s) => [s.id, s]));
     const counts = new Map<number, number>();
@@ -250,7 +232,7 @@ export function HadithBookViewPage() {
         const section = byId.get(item.s);
         if (section?.title) {
           const index = chapters.length + 1;
-          chapters.push({ id: item.s, title: section.title, index, count: counts.get(item.s) ?? 0, first: item.a as number });
+          chapters.push({ id: item.s, title: section.title, index, count: counts.get(item.s) ?? 0, first: hadithPlaceLabel(item) });
           headerIndex.set(item.s, rows.length);
           rows.push({ type: "header", sectionId: item.s, title: section.title, index, count: counts.get(item.s) ?? 0 });
           chapterOfRow.push(item.s);
@@ -270,6 +252,20 @@ export function HadithBookViewPage() {
     const idx = rows.findIndex((r) => r.type === "hadith" && r.item.n === lastN);
     return idx >= 0 ? idx : null;
   }, [lastN, rows]);
+  const lastRow = lastIndex === null ? null : rows[lastIndex];
+  const lastItem = lastRow?.type === "hadith" ? lastRow.item : null;
+
+  // «/hadith/muslim?ref=1144» (links from «اسأل أثر» and elsewhere) opens the
+  // hadith printed under that number.
+  const [params] = useSearchParams();
+  const refParam = params.get("ref");
+  useEffect(() => {
+    if (!pack || !refParam) return;
+    const n = Number(refParam.replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d))));
+    const hit = Number.isFinite(n) && n > 0 ? findByPrintedNumber(pack, n) : undefined;
+    if (hit) navigate(`/hadith/${bookKey}/${hit.n}`, { replace: true });
+    else toast.error("لا يوجد حديث بهذا الرقم في هذا الكتاب");
+  }, [pack, refParam, bookKey, navigate]);
 
   const scrollToRow = useCallback((index: number) => {
     virtuoso.current?.scrollToIndex({ index, align: "start", offset: -(topBar + 64) });
@@ -322,7 +318,7 @@ export function HadithBookViewPage() {
               className="relative mt-3 w-full rounded-2xl border px-4 py-2.5 text-sm font-semibold font-arabic press-effect"
               style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)", color: "var(--accent)", borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)" }}
             >
-              أكمل من الحديث {arNum(lastN!)}
+              أكمل من {lastItem ? hadithPlaceLabel(lastItem) : `الحديث ${arNum(lastN!)}`}
             </button>
           )}
         </Card>
@@ -413,7 +409,7 @@ export function HadithBookViewPage() {
           if (i != null) setTimeout(() => scrollToRow(i), 60);
         }}
         onJump={(n) => {
-          const hit = pack?.hadiths.find((h) => h.n === n || Number(h.a) === n);
+          const hit = pack ? findByPrintedNumber(pack, n) : undefined;
           if (!hit) return false;
           navigate(`/hadith/${bookKey}/${hit.n}`);
           return true;

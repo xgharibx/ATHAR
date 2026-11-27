@@ -1,5 +1,5 @@
-import { arNum } from "@/lib/formatNumber";
 import { cleanHadithText } from "@/lib/hadithText";
+import { hadithPlaceLabel } from "@/data/hadithNumbers";
 
 /**
  * Hadith Types — Phase 2 + 11A
@@ -41,7 +41,11 @@ export interface HadithItem {
   a: number | string; // arabicnumber (display number; some editions use sub-number strings)
   s: number;    // section id
   t: string;    // full Arabic text (isnad + matn)
-  g: string[];  // grade strings (sahih | hasan | daif | maudu | raw)
+  g: string[];  // grade codes (sahih | hasan | daif | mawdu | shadh | munkar …)
+  /** Printed-number ref, added on load: "1144", "1144/2", or "i1" (Muslim's introduction). */
+  r?: string;
+  /** A short title, for the two forties. */
+  ti?: string;
 }
 
 /** Full book pack as loaded from public/data/hadith/{key}.json */
@@ -71,12 +75,21 @@ export interface HadithBookMeta {
   sectionCount: number;
 }
 
-/** Computed grade label for display */
+/** Every grade code in the books, in Arabic. */
 export const HADITH_GRADE_LABELS: Record<string, string> = {
   sahih: "صحيح",
   hasan: "حسن",
   daif: "ضعيف",
+  mawdu: "موضوع",
   maudu: "موضوع",
+  shadh: "شاذ",
+  munkar: "منكر",
+  batil: "باطل",
+  "isnaad malool": "إسناده معلول",
+  mauquf: "موقوف",
+  "mauquf munkar": "موقوف منكر",
+  maqtu: "مقطوع",
+  mursal: "مرسل",
 };
 
 /** One color mapping for hadith grade chips — shared by every surface that shows one. */
@@ -84,15 +97,27 @@ export const HADITH_GRADE_COLORS: Record<string, string> = {
   sahih: "#10b981",
   hasan: "#f59e0b",
   daif: "#ef4444",
+  mawdu: "#6b7280",
   maudu: "#6b7280",
+  shadh: "#e11d48",
+  munkar: "#e11d48",
+  batil: "#6b7280",
+  "isnaad malool": "#ef4444",
+  mauquf: "#0ea5e9",
+  "mauquf munkar": "#e11d48",
+  maqtu: "#0ea5e9",
+  mursal: "#a855f7",
 };
 
+/** Arabic label for a grade code; "" for the source's «-» (no grade given). */
 export function hadithGradeLabel(g: string): string {
-  return HADITH_GRADE_LABELS[g] ?? g;
+  const code = g.trim().toLowerCase();
+  if (!code || code === "-") return "";
+  return HADITH_GRADE_LABELS[code] ?? g;
 }
 
 export function hadithGradeColor(g: string): string {
-  return HADITH_GRADE_COLORS[g] ?? "#6b7280";
+  return HADITH_GRADE_COLORS[g.trim().toLowerCase()] ?? "#6b7280";
 }
 
 /**
@@ -117,9 +142,9 @@ export function hadithPreview(raw: string, maxLen = 140): string {
   return slice.length > maxLen ? slice.slice(0, maxLen) + "…" : slice;
 }
 
-/** Hadith reference as it is cited: «صحيح البخاري، الحديث ١». */
-export function hadithRef(bookTitle: string, hadithNumber: number | string): string {
-  return `${bookTitle}، الحديث ${arNum(hadithNumber)}`;
+/** Hadith reference as it is cited: «صحيح مسلم، الحديث ١١٤٤ (٢)». */
+export function hadithRef(bookTitle: string, item: Pick<HadithItem, "a" | "r">): string {
+  return `${bookTitle}، ${hadithPlaceLabel(item)}`;
 }
 
 /** All supported books with static metadata (used before index.json loads) */
@@ -132,7 +157,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 1,
     grade: "sahih",
     description: "أصح كتاب في السنة النبوية، جمع الإمام محمد بن إسماعيل البخاري",
-    count: 7589,
+    count: 7580,
     sectionCount: 97,
   },
   {
@@ -143,7 +168,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 2,
     grade: "sahih",
     description: "ثاني أصح كتاب في السنة النبوية، جمع الإمام مسلم بن الحجاج",
-    count: 7563,
+    count: 7360,
     sectionCount: 56,
   },
   {
@@ -154,7 +179,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 3,
     grade: "mixed",
     description: "من أمهات كتب السنة، للإمام أبي داود السجستاني",
-    count: 5274,
+    count: 5272,
     sectionCount: 43,
   },
   {
@@ -165,7 +190,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 4,
     grade: "mixed",
     description: "للإمام محمد بن عيسى الترمذي، مع بيان درجة كل حديث",
-    count: 3998,
+    count: 3924,
     sectionCount: 49,
   },
   {
@@ -176,7 +201,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 5,
     grade: "mixed",
     description: "للإمام أحمد بن شعيب النسائي، من الكتب الستة المعتمدة",
-    count: 5765,
+    count: 5679,
     sectionCount: 51,
   },
   {
@@ -187,7 +212,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 6,
     grade: "mixed",
     description: "للإمام محمد بن يزيد القزويني ابن ماجه، تمام الكتب الستة",
-    count: 4343,
+    count: 4338,
     sectionCount: 37,
   },
   {
@@ -197,8 +222,8 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     color: "#06b6d4",
     order: 7,
     grade: "sahih",
-    description: "للإمام مالك بن أنس، أقدم كتاب في السنة النبوية الموثّق",
-    count: 1858,
+    description: "أقدم ما وصلنا من كتب السنة المصنَّفة، للإمام مالك بن أنس",
+    count: 1829,
     sectionCount: 61,
   },
   {

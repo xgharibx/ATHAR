@@ -7,6 +7,8 @@
  * Usage:
  *   node tools/scripts/import-hadith.mjs           — import all 9 books
  *   node tools/scripts/import-hadith.mjs bukhari   — import one book
+ *
+ * Then run tools/scripts/tidy-hadith.mjs (empties, markup, titles, search index).
  */
 
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "fs";
@@ -89,7 +91,7 @@ const BOOKS = [
     color: "#06b6d4",
     order: 7,
     grade: "sahih",
-    description: "للإمام مالك بن أنس، أقدم كتاب في السنة النبوية الموثّق",
+    description: "أقدم ما وصلنا من كتب السنة المصنَّفة، للإمام مالك بن أنس",
   },
   {
     key: "nawawi",
