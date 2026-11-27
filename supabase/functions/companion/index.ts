@@ -20,7 +20,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 import { buildAyahBlock, gatherTafsirs, readAyahRequest } from "./ayah.ts";
 import { companionCorsHeaders } from "./cors.ts";
 import { EVIDENCE_STEP_SYSTEM, EVIDENCE_TOOL, buildEvidenceBlock, gatherHadith, gatherVerses, loadQuran, readEvidencePlan } from "./evidence.ts";
-import { type GuardContext, ReplyGuard, UNAVAILABLE_REPLY, finalizeReplyDetailed, isUsableReply } from "./guard.ts";
+import { type GuardContext, ReplyGuard, UNAVAILABLE_REPLY, finalizeReplyDetailed, isUsableReply, writtenInAnotherScript } from "./guard.ts";
 import { CLIENT_BASE_PROMPT_OPENING, CLIENT_CONTEXT_HEADING, CREATE_REMINDER_TOOL, SERVER_SYSTEM_PROMPT, focusClientContext } from "./prompt.ts";
 import { type MessagesRequest, OPENAI_DEFAULT_MODEL, OPENAI_MODELS, callOpenAi } from "./openai.ts";
 import { OPENAI_SEARCH_STEP_SYSTEM, SEARCH_STEP_SYSTEM, buildTrustedResultsBlock, selectTrustedResults } from "./sources.ts";
@@ -88,6 +88,8 @@ const EVIDENCE_CONTEXT_CHARS = 600;
 const RETRY_TIMEOUT_MS = 40_000;
 // Dropped clauses and sentences beyond which a reply is worth writing again.
 const RETRY_DAMAGE_THRESHOLD = 3;
+// For a question asked in another language: the same, in that language.
+const RETRY_INSTRUCTION_OTHER_LANGUAGE = "Final reminder: write only the final answer, with no outline or notes, in the language of the user's question, in short complete sentences. Do not narrate any saying or deed of the Prophet ﷺ in your own words; evidence appears only in its block.";
 const RETRY_INSTRUCTION = "تنبيه أخير: اكتب الجواب النهائي وحده، بلا مخطط ولا ملاحظات، بالعربية الفصحى، بحروف عربية فقط، في جمل قصيرة تامة المعنى. لا تكتب بأي لغة أخرى ولا بحروف لاتينية، ولا تروِ عن النبي ﷺ قولًا أو فعلًا بعبارتك؛ الدليل يظهر في كتلته فقط.";
 const MAX_BODY_BYTES = 256 * 1024;
 const UPSTREAM_TIMEOUT_MS = 60_000;
@@ -449,6 +451,8 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
       : fetch(MINIMAX_UPSTREAM, { method: "POST", headers: upstreamHeaders, body: JSON.stringify(requestBody), signal });
 
   const question = boundedMessages.messages[boundedMessages.messages.length - 1]?.content.trim() ?? "";
+  // Asked in another language: the answer may be in it too.
+  const foreignReplyAllowed = writtenInAnotherScript(question);
   const substantive = question.length >= SEARCH_MIN_QUESTION_CHARS;
 
   // Evidence step: ask which hadith and verses bear on the question, then
@@ -522,6 +526,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
         trustedTexts: tafsirs.map((t) => t.text),
         sourceUrls: [],
         userTexts: boundedMessages.messages.filter((message) => message.role === "user").slice(-2).map((message) => message.content),
+        foreignReplyAllowed,
       },
       serverBlocks: [buildAyahBlock(request, verse?.text ?? "", tafsirs)],
       tafsirs: tafsirs.length,
@@ -553,6 +558,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
         trustedTexts: [systemText, ...(PROVIDER === "openai" ? [] : webResults.map((result) => result.excerpt))],
         sourceUrls: webResults.map((result) => result.url),
         userTexts: boundedMessages.messages.filter((message) => message.role === "user").slice(-2).map((message) => message.content),
+        foreignReplyAllowed,
       },
       serverBlocks: [
         webResults.length > 0 ? buildTrustedResultsBlock(webResults) : "",
@@ -567,12 +573,12 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   // usable the reader gets a plain message instead of fragments.
   const makeFinalize = ({ guardContext, serverBlocks }: Gathered) => async (rawText: string): Promise<string> => {
     if (!rawText.trim()) return "";
-    const first = isUsableReply(rawText) ? finalizeReplyDetailed(rawText, new ReplyGuard(guardContext)) : null;
+    const first = isUsableReply(rawText, foreignReplyAllowed) ? finalizeReplyDetailed(rawText, new ReplyGuard(guardContext)) : null;
     if (first && first.text && first.damage < RETRY_DAMAGE_THRESHOLD) return first.text;
     let second: { text: string; damage: number } | null = null;
     try {
       const retry = await callModel(
-        { ...buildUpstreamBody([...serverBlocks, RETRY_INSTRUCTION], true), stream: false, tools: undefined },
+        { ...buildUpstreamBody([...serverBlocks, foreignReplyAllowed ? RETRY_INSTRUCTION_OTHER_LANGUAGE : RETRY_INSTRUCTION], true), stream: false, tools: undefined },
         AbortSignal.timeout(RETRY_TIMEOUT_MS),
       );
       if (retry.ok) {
@@ -580,7 +586,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
         const text = Array.isArray(content)
           ? content.map((block) => ((block as { type?: unknown })?.type === "text" ? String((block as { text?: unknown }).text ?? "") : "")).filter((part) => part.trim()).join("\n\u3000\n")
           : "";
-        if (text.trim() && isUsableReply(text)) second = finalizeReplyDetailed(text, new ReplyGuard(guardContext));
+        if (text.trim() && isUsableReply(text, foreignReplyAllowed)) second = finalizeReplyDetailed(text, new ReplyGuard(guardContext));
       } else {
         await retry.body?.cancel().catch(() => undefined);
       }

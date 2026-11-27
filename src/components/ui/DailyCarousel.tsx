@@ -146,6 +146,18 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   React.useLayoutEffect(() => {
     slidesRef.current.forEach((slide, index) => setSlideInert(slide, index));
   });
+  // The card is as tall as the slide on screen: a short slide leaves no empty space.
+  const [slideHeight, setSlideHeight] = React.useState<number | null>(null);
+  React.useLayoutEffect(() => {
+    const slide = slidesRef.current[activeIdx];
+    if (!slide) return;
+    const measure = () => setSlideHeight(slide.offsetHeight);
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(slide);
+    return () => observer.disconnect();
+  }, [activeIdx]);
   // null = show daily item; number = user-shuffled index (resets on new
   // dateKey). Seeded from localStorage so a shuffle survives closing and
   // reopening the app instead of silently reverting to the day's pick.
@@ -416,7 +428,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   return (
     <>
     <style>{`@keyframes spin-once { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-    <Card className="p-0 overflow-hidden" role="region" aria-label="محتوى يومي" aria-roledescription="عرض دوار" tabIndex={0}
+    <Card className="daily-card p-0 overflow-hidden" role="region" aria-label="محتوى يومي" aria-roledescription="عرض دوار" tabIndex={0}
       onPointerDownCapture={(event) => {
         const target = event.target;
         if (event.button === 0 && target instanceof Element && target.closest("[data-rotation-toggle]")) {
@@ -490,7 +502,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
 
       {/* Slides — transform-based so each slide is always 100% of the card */}
       <div
-        style={{ overflow: "hidden", width: "100%" }}
+        style={{ overflow: "hidden", width: "100%", height: slideHeight ?? undefined, transition: prefersReducedMotion ? undefined : "height 0.3s ease" }}
         aria-live={autoRotate && !pointerInside ? "off" : "polite"}
         aria-atomic="true"
         onTouchStart={handleTouchStart}
@@ -500,6 +512,8 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           data-carousel-track
           style={{
             display: "flex",
+            // Each slide keeps its own height; the window above follows the one on screen.
+            alignItems: "flex-start",
             direction: "ltr",
             width: "100%",
             transform: `translateX(-${activeIdx * 100}%)`,
@@ -507,16 +521,16 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           }}
         >
           {/* Slide 1: آية اليوم */}
-          <div id="carousel-slide-0" ref={(slide) => { slidesRef.current[0] = slide; }} role="group" aria-roledescription="شريحة" aria-label="آية اليوم" aria-hidden={activeIdx !== 0} style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-0" data-daily-slide ref={(slide) => { slidesRef.current[0] = slide; }} role="group" aria-roledescription="شريحة" aria-label="آية اليوم" aria-hidden={activeIdx !== 0} className="daily-slide" style={{ flex: "0 0 100%", width: "100%" }}>
             {verse ? (
               <>
                 <div
-                  className="text-base leading-10 text-right arabic-text font-medium max-h-44 overflow-y-auto pr-1"
+                  className="daily-verse"
                   style={{ color: "var(--fg)" }}
                 >
                   {verse.arabic}
                 </div>
-                <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">
+                <div className="daily-actions">
                   <div className="flex items-center gap-1.5">
                     <Button
                       className="press-effect text-xs h-7 px-3"
@@ -561,7 +575,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                         color: "var(--accent)",
                       }}
                     >
-                      {verse.surahName} ﴿{verse.ayahIndex}﴾
+                      {`${verse.surahName}، الآية ${arNum(verse.ayahIndex)}`}
                     </span>
                   </div>
                 </div>
@@ -573,11 +587,11 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
 
           {/* Slide 2: حديث اليوم — text, grade, attribution, and explanation
               all come from the same hadeethenc.com record; no AI involved. */}
-          <div id="carousel-slide-1" ref={(slide) => { slidesRef.current[1] = slide; }} role="group" aria-roledescription="شريحة" aria-label="حديث اليوم" aria-hidden={activeIdx !== 1} style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-1" data-daily-slide ref={(slide) => { slidesRef.current[1] = slide; }} role="group" aria-roledescription="شريحة" aria-label="حديث اليوم" aria-hidden={activeIdx !== 1} className="daily-slide" style={{ flex: "0 0 100%", width: "100%" }}>
             {hadith ? (
               <>
                 <div
-                  className="text-base leading-9 text-right mb-2 font-medium arabic-text max-h-44 overflow-y-auto pr-1"
+                  className="daily-text"
                   style={{ color: "var(--fg)" }}
                 >
                   {hadith.hadeeth}
@@ -672,14 +686,14 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 3: تدبر اليوم */}
-          <div id="carousel-slide-2" ref={(slide) => { slidesRef.current[2] = slide; }} role="group" aria-roledescription="شريحة" aria-label="تدبر اليوم" aria-hidden={activeIdx !== 2} style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-2" data-daily-slide ref={(slide) => { slidesRef.current[2] = slide; }} role="group" aria-roledescription="شريحة" aria-label="تدبر اليوم" aria-hidden={activeIdx !== 2} className="daily-slide" style={{ flex: "0 0 100%", width: "100%" }}>
             <div
-              className="text-base leading-9 text-right font-medium arabic-text max-h-44 overflow-y-auto pr-1"
+              className="daily-text"
               style={{ color: "var(--fg)" }}
             >
               {wisdom.text}
             </div>
-            <div className="pt-2 flex items-center justify-between">
+            <div className="daily-actions">
               <div className="flex items-center gap-1">
                 <button type="button"
                   onClick={() => copyShare(`${wisdom.text}\n— ${wisdom.source}`)}
@@ -706,7 +720,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
               slides (a single word + meaning), but the carousel track sizes
               every slide to the tallest one, so center it instead of leaving
               it top-aligned with a large dead gap underneath. */}
-          <div id="carousel-slide-3" ref={(slide) => { slidesRef.current[3] = slide; }} role="group" aria-roledescription="شريحة" aria-label="كلمة اليوم" aria-hidden={activeIdx !== 3} className="flex flex-col justify-center" style={{ flex: "0 0 100%", width: "100%", minHeight: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-3" data-daily-slide ref={(slide) => { slidesRef.current[3] = slide; }} role="group" aria-roledescription="شريحة" aria-label="كلمة اليوم" aria-hidden={activeIdx !== 3} className="daily-slide flex flex-col justify-center" style={{ flex: "0 0 100%", width: "100%" }}>
             {vocabWord ? (
               <>
                 <button
@@ -763,7 +777,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     ) : null}
                   </div>
                 )}
-                <div className="pt-2 flex justify-start">
+                <div className="daily-actions">
                   <button type="button"
                     onClick={() => handleShuffle(3)}
                     className="p-1.5 rounded-lg transition press-effect"
@@ -781,13 +795,13 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 5: دعاء اليوم — one of the verified duas in the dua sections */}
-          <div id="carousel-slide-4" ref={(slide) => { slidesRef.current[4] = slide; }} role="group" aria-roledescription="شريحة" aria-label="دعاء اليوم" aria-hidden={activeIdx !== 4} style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-4" data-daily-slide ref={(slide) => { slidesRef.current[4] = slide; }} role="group" aria-roledescription="شريحة" aria-label="دعاء اليوم" aria-hidden={activeIdx !== 4} className="daily-slide" style={{ flex: "0 0 100%", width: "100%" }}>
             {dua ? (
               <>
-                <div className="text-base leading-9 text-right font-medium arabic-text max-h-44 overflow-y-auto pr-1" style={{ color: "var(--fg)" }}>
+                <div className="daily-text" style={{ color: "var(--fg)" }}>
                   {dua.text}
                 </div>
-                <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">
+                <div className="daily-actions">
                   <div className="flex items-center gap-1.5">
                     <button type="button"
                       onClick={() => handleShuffle(4)}
@@ -833,10 +847,10 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 6: سنة اليوم — a sunnah with the hadith it comes from */}
-          <div id="carousel-slide-5" ref={(slide) => { slidesRef.current[5] = slide; }} role="group" aria-roledescription="شريحة" aria-label="سنة اليوم" aria-hidden={activeIdx !== 5} style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-5" data-daily-slide ref={(slide) => { slidesRef.current[5] = slide; }} role="group" aria-roledescription="شريحة" aria-label="سنة اليوم" aria-hidden={activeIdx !== 5} className="daily-slide" style={{ flex: "0 0 100%", width: "100%" }}>
             {sunnah ? (
               <>
-                <div className="text-base leading-9 text-right font-semibold max-h-44 overflow-y-auto pr-1" style={{ color: "var(--fg)" }}>
+                <div className="daily-text" style={{ color: "var(--fg)" }}>
                   {sunnah.text}
                 </div>
                 {sunnah.benefit || sunnah.source_label ? (
@@ -845,7 +859,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     {sunnah.source_label ? <p className="mt-1 text-xs opacity-80">{sunnah.source_label}</p> : null}
                   </div>
                 ) : null}
-                <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">
+                <div className="daily-actions">
                   <div className="flex items-center gap-1.5">
                     <button type="button"
                       onClick={() => handleShuffle(5)}

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, Moon, Search, Sparkles, Sun } from "lucide-react";
+import { ArrowRight, Headphones, Moon, Search, Sparkles, Sun } from "lucide-react";
 import { useNoorStore } from "@/store/noorStore";
 import "./quran2.css";
 import { useQuranLook, type QuranLook } from "./look";
@@ -64,6 +64,12 @@ function QuranHead() {
       ) : null}
       {title ? <h1 className="q2-head-title">{title}</h1> : <span className="q2-head-title" aria-hidden="true" />}
       <div className="q2-head-tools">
+        {/* «السماع» sits here on the section's home, not floating over its page. */}
+        {home ? (
+          <NavLink to="/listen" className="q2-icon-btn q2-press" aria-label="السماع">
+            <Headphones size={19} aria-hidden="true" />
+          </NavLink>
+        ) : null}
         {path !== "/quran/search" ? (
           <NavLink to="/quran/search" className="q2-icon-btn q2-press" aria-label="البحث في القرآن">
             <Search size={19} aria-hidden="true" />

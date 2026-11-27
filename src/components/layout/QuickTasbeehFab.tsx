@@ -82,6 +82,8 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
 
   // Hide when drawer is open — all hooks already called above
   if (drawerOpen) return null;
+  // The Quran's pages have «السماع» in that corner's place; two buttons there covered the page.
+  if (!open && (location.pathname.startsWith("/quran") || location.pathname.startsWith("/mushaf"))) return null;
 
   const count = quickTasbeeh[selected] ?? 0;
   const pct = Math.min(count / target, 1);
