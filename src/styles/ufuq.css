@@ -1619,3 +1619,13 @@ html[data-ufuq-palette="night"] .u-garden-grade {
   height: 34vh;
   min-height: 180px;
 }
+
+/* One top bar: in «أفق» the top bar has its own back button, so a page's
+   own back button (marked data-page-back) and the classic star backdrop
+   step aside (the hadith pages and the curated cards). */
+:root[data-design="ufuq"] [data-page-back] {
+  display: none;
+}
+:root[data-design="ufuq"] [data-hadith-stars] {
+  display: none;
+}

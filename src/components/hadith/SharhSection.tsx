@@ -16,10 +16,13 @@ export function SharhSection({
   sharhId,
   matn,
   accentColor = "var(--accent)",
+  onAsk,
 }: {
   sharhId: string | null;
   matn?: string;
   accentColor?: string;
+  /** Opens «اسأل عن الحديث» (answered from this explanation and the rulings). */
+  onAsk?: () => void;
 }) {
   const navigate = useNavigate();
   const [data, setData] = React.useState<SharhHadith | null>(null);
@@ -44,7 +47,6 @@ export function SharhSection({
   if (!sharhId) {
     return (
       <Card className="relative overflow-hidden p-4">
-        <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
         <div className="absolute inset-y-0 right-0 w-1 opacity-70" style={{ background: accentColor }} />
         <div className="relative pr-2">
           <p className="mb-2 text-[11px] font-semibold opacity-55 font-arabic flex items-center gap-1.5">
@@ -61,7 +63,6 @@ export function SharhSection({
 
   return (
     <Card className="relative overflow-hidden p-4">
-      <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
       <div className="absolute inset-y-0 right-0 w-1 opacity-70" style={{ background: accentColor }} />
       <div className="relative pr-2">
         <button
@@ -147,6 +148,15 @@ export function SharhSection({
                 <Sparkles size={13} aria-hidden="true" />
                 تدبّر بالذكاء
               </button>
+              {onAsk && (
+                <button type="button" onClick={onAsk}
+                  className="flex items-center gap-1.5 text-xs font-semibold transition hover:opacity-80"
+                  style={{ color: accentColor }}
+                >
+                  <Sparkles size={13} aria-hidden="true" />
+                  اسأل عن الحديث
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => navigate(`/library/sharh?h=${sharhId}`)}

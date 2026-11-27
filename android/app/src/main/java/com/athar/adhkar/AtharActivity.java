@@ -262,11 +262,25 @@ public class AtharActivity extends BridgeActivity {
 
     private String readRoute(Intent intent) {
         if (intent == null) return null;
+        String linked = readSharedLink(intent);
+        if (linked != null) return linked;
         String route = intent.getStringExtra(AtharWidgetProvider.EXTRA_ROUTE);
         // Only accept simple absolute in-app paths (defense in depth — the
         // extra is only ever set by our own widgets).
         if (route != null && route.matches("/[a-zA-Z0-9/_-]*")) return WidgetRoutes.resolve(this, route);
         return null;
+    }
+
+    /** A shared hadith link (https://www.athark.org/hadith/bukhari/1) as its in-app path, or null. */
+    static String readSharedLink(Intent intent) {
+        android.net.Uri uri = intent.getData();
+        if (uri == null || !Intent.ACTION_VIEW.equals(intent.getAction())) return null;
+        String host = uri.getHost();
+        String path = uri.getPath();
+        if (!"https".equals(uri.getScheme()) || uri.getPort() != -1 || uri.getUserInfo() != null) return null;
+        if (!"www.athark.org".equals(host) && !"athark.org".equals(host)) return null;
+        if (path == null || !path.matches("/hadith(/[a-z]+(/[0-9]+)?)?/?")) return null;
+        return path.endsWith("/") && path.length() > 1 ? path.substring(0, path.length() - 1) : path;
     }
 
     /** Capture and deliver a widget route immediately when a warm intent arrives. */

@@ -16,7 +16,8 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const OUT_DIR = join(__dirname, "../../public/data/hadith");
+const OUT_DIR = join(__dirname, "../../data/hadith");
+const PUBLIC_DIR = join(__dirname, "../../public/data/hadith");
 
 const CDN = "https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions";
 const FALLBACK = "https://raw.githubusercontent.com/fawazahmed0/hadith-api/1/editions";
@@ -138,7 +139,7 @@ async function fetchJSON(edition) {
 /** Arabic chapter titles from public/data/hadith/sections.json, by section id. */
 function readArabicChapterTitles(key) {
   try {
-    const table = JSON.parse(readFileSync(join(OUT_DIR, "sections.json"), "utf8"));
+    const table = JSON.parse(readFileSync(join(PUBLIC_DIR, "sections.json"), "utf8"));
     return new Map((table[key] ?? []).map((c) => [c.id, c.t]));
   } catch {
     return new Map();
@@ -262,7 +263,7 @@ async function main() {
   }
 
   // Merge with existing index.json (supports partial re-imports)
-  const indexPath = join(OUT_DIR, "index.json");
+  const indexPath = join(PUBLIC_DIR, "index.json");
   let existing = [];
   if (existsSync(indexPath)) {
     try { existing = JSON.parse(readFileSync(indexPath, "utf8")); } catch { /* ignore */ }

@@ -1,4 +1,5 @@
 import { findArabicMatches } from "@/lib/arabicHighlight";
+import { chainEnd } from "@/lib/isnadParser";
 
 /**
  * The single hadith isnad/matn splitter, shared by every hadith surface
@@ -104,14 +105,25 @@ export function splitHadithText(raw: string): { isnad: string; matn: string } {
   } else if (firstQuote > 8) {
     cut = firstQuote;
   } else {
-    return { isnad: "", matn: text };
+    // No «قال:» and no quotation mark: walk the chain link by link.
+    const end = chainEnd(text);
+    if (!end) return { isnad: "", matn: text };
+    cut = end;
+    // «عن ابن عباس قال كان …»: the companion stays with the chain.
+    const head = text.slice(cut, cut + 90);
+    if (/^[\s،,]*عن\s/.test(head.replace(HARAKAT, ""))) {
+      const said = ["قال", "قالت", "أنه", "أنها", "أن"]
+        .flatMap((verb) => findArabicMatches(head, ` ${verb} `))
+        .sort((x, y) => x[0] - y[0])[0];
+      if (said) cut += said[1] - 1;
+    }
   }
 
   const isnad = text.slice(0, cut).trim();
   // Strip a leading/trailing literal quote mark (with its RLM wrapper and
   // any trailing full stop) — it's source punctuation, not content.
   const QUOTE_EDGE = /^[‏\s]*"[‏\s]*|[‏\s]*"[‏\s]*\.?[‏\s]*$/g;
-  const matn = text.slice(cut).trim().replace(QUOTE_EDGE, "").trim();
+  const matn = text.slice(cut).trim().replace(/^[\s،,:.\u200f]+/u, "").replace(QUOTE_EDGE, "").trim();
   return { isnad, matn };
 }
 

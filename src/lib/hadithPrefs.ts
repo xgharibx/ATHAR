@@ -5,6 +5,8 @@
  */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { planDef, type HadithPlanId, type HadithPlanState } from "@/lib/hadithPlans";
+import { localDayKey } from "@/lib/reviewToday";
 
 export type IsnadView = "chain" | "text" | "hidden";
 
@@ -29,13 +31,29 @@ type HadithPrefsState = {
   cards: Record<string, SavedHadithCard>;
   /** The chain of narrators is folded under the matn until you open it. */
   isnadOpen: boolean;
+  /** Your folders («مجموعاتي») for saved hadiths, in the order you made them. */
+  folders: string[];
+  /** The folders each saved hadith is in, keyed like `cards` (or a curated entry's key). */
+  inFolders: Record<string, string[]>;
+  /** Your reading plan, if you started one. */
+  plan: HadithPlanState | null;
   setTextScale: (v: number) => void;
   setIsnadView: (v: IsnadView) => void;
   setHarakat: (v: boolean) => void;
   setLast: (bookKey: string, n: number, r?: string) => void;
   rememberCard: (key: string, card: SavedHadithCard) => void;
   setIsnadOpen: (v: boolean) => void;
+  addFolder: (name: string) => void;
+  removeFolder: (name: string) => void;
+  toggleInFolder: (key: string, name: string) => void;
+  startPlan: (id: HadithPlanId) => void;
+  stopPlan: () => void;
+  /** You read the hadith at this position (from 0) of `book`: a plan in that book moves on to after it. */
+  advancePlan: (book: string, position: number) => void;
+  setPlanReminder: (time: string | null) => void;
 };
+
+export const FOLDER_NAME_MAX = 30;
 
 export const TEXT_SCALE_MIN = 0.8;
 export const TEXT_SCALE_MAX = 1.6;
@@ -50,6 +68,9 @@ export const useHadithPrefs = create<HadithPrefsState>()(
       reached: {},
       cards: {},
       isnadOpen: false,
+      folders: [],
+      inFolders: {},
+      plan: null,
       setTextScale: (v) => set({ textScale: Math.min(TEXT_SCALE_MAX, Math.max(TEXT_SCALE_MIN, Math.round(v * 20) / 20)) }),
       setIsnadView: (v) => set({ isnadView: v }),
       setHarakat: (v) => set({ harakat: v }),
@@ -65,6 +86,41 @@ export const useHadithPrefs = create<HadithPrefsState>()(
           return old && old.r === card.r && old.x === card.x && old.ti === card.ti ? s : { cards: { ...s.cards, [key]: card } };
         }),
       setIsnadOpen: (v) => set({ isnadOpen: v }),
+      addFolder: (raw) =>
+        set((s) => {
+          const name = raw.trim().slice(0, FOLDER_NAME_MAX);
+          return !name || s.folders.includes(name) ? s : { folders: [...s.folders, name] };
+        }),
+      removeFolder: (name) =>
+        set((s) => ({
+          folders: s.folders.filter((f) => f !== name),
+          inFolders: Object.fromEntries(
+            Object.entries(s.inFolders)
+              .map(([k, names]) => [k, names.filter((f) => f !== name)] as const)
+              .filter(([, names]) => names.length),
+          ),
+        })),
+      startPlan: (id) => set({ plan: { id, start: localDayKey(), read: 0, reminder: null } }),
+      stopPlan: () => set({ plan: null }),
+      advancePlan: (book, position) =>
+        set((s) => {
+          const plan = s.plan;
+          if (!plan || position < 0) return s;
+          // Only reading on from where you are counts: the next one, or a little further.
+          if (planDef(plan.id).book !== book || position + 1 <= plan.read || position > plan.read + 60) return s;
+          return { plan: { ...plan, read: position + 1 } };
+        }),
+      setPlanReminder: (time) => set((s) => (s.plan ? { plan: { ...s.plan, reminder: time } } : s)),
+      toggleInFolder: (key, name) =>
+        set((s) => {
+          if (!s.folders.includes(name)) return s;
+          const now = s.inFolders[key] ?? [];
+          const next = now.includes(name) ? now.filter((f) => f !== name) : [...now, name];
+          const inFolders = { ...s.inFolders };
+          if (next.length) inFolders[key] = next;
+          else delete inFolders[key];
+          return { inFolders };
+        }),
     }),
     { name: "athar-hadith-prefs", version: 1 },
   ),

@@ -16,8 +16,18 @@ const stalePack: HadithPack = {
   description: "مختارات من الأحاديث النبوية",
   count: 1,
   sections: [{ id: 1, title: "Faith", first: 1, last: 1 }],
-  hadiths: [{ n: 1, a: 1, s: 1, t: "حديث محفوظ دون اتصال", g: ["sahih"] }],
+  hadiths: [{ n: 1, a: 1, s: 1, ti: "عنوان", t: "حديث محفوظ دون اتصال", g: ["sahih"] }],
 };
+/** The refreshed book as served in parts: its table of contents and its one chapter. */
+function servedAsParts(pack: HadithPack) {
+  const { hadiths, ...meta } = pack;
+  return vi.fn(async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.endsWith("books/nawawi.json")) return { ok: true, json: async () => ({ ...meta, rows: hadiths.map((h) => [h.n, h.s]) }) };
+    if (url.endsWith("books/nawawi/1.json")) return { ok: true, json: async () => ({ key: "nawawi", s: 1, hadiths }) };
+    return { ok: false, status: 404, json: async () => ({}) };
+  });
+}
 
 /** What the loader returns: the same pack, each entry with its printed-number ref (see hadithNumbers.ts). */
 const loaded = (pack: HadithPack) => ({ ...pack, hadiths: pack.hadiths.map((h) => ({ ...h, r: String(h.a) })) });
@@ -52,10 +62,7 @@ describe("expired Hadith book cache fallback", () => {
     const clock = vi.spyOn(Date, "now").mockReturnValue(cachedAt);
     await idbSetHadithPack(stalePack);
     clock.mockReturnValue(cachedAt + 31 * DAY_MS);
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => refreshedPack,
-    }));
+    vi.stubGlobal("fetch", servedAsParts(refreshedPack));
 
     const { loadHadithPack } = await import("@/data/useHadithBook");
 

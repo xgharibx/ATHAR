@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { useIslamicLibraryDB, dorarSearchUrl } from "@/data/useIslamicLibraryDB";
-import { getLibraryHadithLinks, type LibraryHadithLink } from "@/lib/libraryHadithLinks";
+import { bookHadithGrade, getLibraryHadithLinks, type LibraryHadithLink } from "@/lib/libraryHadithLinks";
+import { useBookHadith } from "@/data/useHadithBook";
+import { splitHadithText } from "@/lib/hadithText";
+import { hadithNumberLabel } from "@/data/hadithNumbers";
+import { GradeChip } from "@/components/hadith/GradeChip";
 import { getSharhIdFor } from "@/lib/hadithSharhLinks";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
@@ -63,6 +67,18 @@ export function LibraryItemPage() {
   const primaryLink = hadithLinks[0] ?? null;
   const { takhrij, loading: takhrijLoading } = useTakhrij(primaryLink?.bookKey, primaryLink?.n, entry?.arabic);
 
+  // One text, one grade: a curated card that points into a book shows that
+  // book's own wording and grade, not a second copy with its own grade.
+  const { hadith: bookHadith } = useBookHadith(primaryLink?.bookKey, primaryLink?.n);
+  const bookText = React.useMemo(() => {
+    if (!bookHadith) return null;
+    const { matn } = splitHadithText(bookHadith.t);
+    return matn || splitHadithText(bookHadith.t).isnad;
+  }, [bookHadith]);
+  const bookTitle = primaryLink ? HADITH_BOOKS_STATIC.find((b) => b.key === primaryLink.bookKey)?.title ?? primaryLink.bookKey : "";
+  const bookCite = bookHadith && primaryLink ? `${bookTitle}، ح${hadithNumberLabel(bookHadith)}` : "";
+  const shownText = bookText ?? entry?.arabic ?? "";
+
   const [sharhId, setSharhId] = React.useState<string | null>(null);
   React.useEffect(() => {
     let alive = true;
@@ -102,7 +118,7 @@ export function LibraryItemPage() {
 
   const onCopy = async () => {
     try {
-      await writeClipboard(`${entry.arabic}\n\n${entry.source.title}${entry.narrator ? ` — ${entry.narrator}` : ""}`);
+      await writeClipboard(`${shownText}\n\n${bookCite || entry.source.title}${entry.narrator ? ` — ${entry.narrator}` : ""}`);
       setCopied(true);
       toast.success("تم النسخ");
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
@@ -113,7 +129,7 @@ export function LibraryItemPage() {
   };
 
   const onShare = async () => {
-    const text = `${entry.arabic}\n\n${entry.source.title}`;
+    const text = `${shownText}\n\n${bookCite || entry.source.title}`;
     try {
       await shareOrCopy(text, { title: entry.title });
       toast.success("جاهز للمشاركة");
@@ -128,7 +144,7 @@ export function LibraryItemPage() {
         <div className="absolute inset-x-0 top-0 h-1" style={{ background: entry.collectionAccent }} />
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2 min-w-0">
-            <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
+            <IconButton data-page-back="" aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <BookOpenText size={18} aria-hidden="true" style={{ color: entry.collectionAccent }} />
@@ -147,14 +163,24 @@ export function LibraryItemPage() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {GRADE_LABELS[entry.grade] && <Badge>{GRADE_LABELS[entry.grade]}</Badge>}
-          {entry.narrator && <Badge>{entry.narrator}</Badge>}
-          {entry.source.title !== GRADE_LABELS[entry.grade] && <Badge>{entry.source.title}</Badge>}
+          {bookHadith && primaryLink ? (
+            <>
+              <GradeChip grade={bookHadithGrade(primaryLink.bookKey, bookHadith.g)} />
+              {entry.narrator && <Badge>{entry.narrator}</Badge>}
+              <Badge>{bookCite}</Badge>
+            </>
+          ) : (
+            <>
+              {GRADE_LABELS[entry.grade] && <Badge>{GRADE_LABELS[entry.grade]}</Badge>}
+              {entry.narrator && <Badge>{entry.narrator}</Badge>}
+              {entry.source.title !== GRADE_LABELS[entry.grade] && <Badge>{entry.source.title}</Badge>}
+            </>
+          )}
         </div>
 
         <h1 className="text-lg md:text-xl font-bold mb-4 font-arabic" style={{ color: entry.collectionAccent }}>{entry.title}</h1>
-        <div className="arabic-text text-xl md:text-2xl leading-[2.4] font-medium text-right select-text">
-          {entry.arabic}
+        <div className="arabic-text text-xl md:text-2xl leading-[2.4] font-medium text-right select-text whitespace-pre-line">
+          {shownText}
         </div>
 
         {hadithLinks.length > 0 && (
@@ -165,10 +191,9 @@ export function LibraryItemPage() {
           >
             <ScrollText size={20} aria-hidden="true" style={{ color: "var(--accent)" }} className="shrink-0" />
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold" style={{ color: "var(--accent)" }}>افتح القراءة الكاملة بالإسناد</div>
+              <div className="text-sm font-semibold" style={{ color: "var(--accent)" }}>اقرأه في الكتاب بإسناده</div>
               <div className="text-[11px] opacity-60 mt-0.5">
-                {HADITH_BOOKS_STATIC.find((b) => b.key === hadithLinks[0]!.bookKey)?.title ?? hadithLinks[0]!.bookKey}
-                {"، ح"}{arNum(hadithLinks[0]!.n)}
+                {bookCite || `${bookTitle}، ح${arNum(hadithLinks[0]!.n)}`}
                 {hadithLinks.length > 1 ? ` (+${arNum((hadithLinks.length - 1))} مصادر أخرى)` : ""}
               </div>
             </div>

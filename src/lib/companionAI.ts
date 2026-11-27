@@ -1091,6 +1091,47 @@ export async function askAboutAyah(
   cb: Pick<StreamCallbacks, "onText" | "onError" | "onStage"> & { onDone?: (fullText: string) => void },
   abortSignal?: AbortSignal,
 ): Promise<void> {
+  return askBoundQuestion({
+    field: "athar_ayah",
+    ref,
+    system: "أنت «أثر»، تجيب عن سؤال في آية من تفاسيرها.",
+    unavailable: "سؤال الآية من تفاسيرها لم يُفعَّل بعد على الخادم. جرّبه بعد التحديث القادم.",
+    detail: "ayah-mode-unavailable",
+  }, question, cb, abortSignal);
+}
+
+/**
+ * «اسأل عن الحديث»: a question about one hadith of the app's books, answered
+ * by the server from that hadith, its scholars' rulings and its explanation
+ * only (supabase/functions/companion/hadithAsk.ts).
+ */
+export async function askAboutHadith(
+  ref: { book: string; n: number },
+  question: string,
+  cb: Pick<StreamCallbacks, "onText" | "onError" | "onStage"> & { onDone?: (fullText: string) => void },
+  abortSignal?: AbortSignal,
+): Promise<void> {
+  return askBoundQuestion({
+    field: "athar_hadith",
+    ref,
+    system: "أنت «أثر»، تجيب عن سؤال في حديث من نصه وشرحه وأحكام العلماء عليه.",
+    unavailable: "سؤال الحديث من شرحه لم يُفعَّل بعد على الخادم. جرّبه بعد التحديث القادم.",
+    detail: "hadith-mode-unavailable",
+  }, question, cb, abortSignal);
+}
+
+/**
+ * A question bound to server-side sources (an ayah's tafsirs, a hadith's
+ * explanation). The server confirms the binding with an event named like the
+ * request field before any text; text without it is from a server that cannot
+ * bind yet, and is not shown as a bound answer.
+ */
+async function askBoundQuestion(
+  mode: { field: "athar_ayah" | "athar_hadith"; ref: Record<string, unknown>; system: string; unavailable: string; detail: string },
+  question: string,
+  cb: Pick<StreamCallbacks, "onText" | "onError" | "onStage"> & { onDone?: (fullText: string) => void },
+  abortSignal?: AbortSignal,
+): Promise<void> {
   let onAbort: (() => void) | null = null;
   try {
     const client = await createClient();
@@ -1104,10 +1145,10 @@ export async function askAboutAyah(
     const stream = client.messages.stream({
       model: MODEL,
       max_tokens: 4096,
-      // The server replaces this with its own rules for a question about an ayah.
-      system: [{ type: "text", text: "أنت «أثر»، تجيب عن سؤال في آية من تفاسيرها." }],
+      // The server replaces this with its own rules for a bound question.
+      system: [{ type: "text", text: mode.system }],
       messages: [{ role: "user", content: question.slice(0, 1200) }],
-      athar_ayah: ref,
+      [mode.field]: mode.ref,
     } as unknown as Parameters<typeof client.messages.stream>[0]);
     onAbort = () => {
       try { stream.controller.abort(); } catch { /* ignore */ }
@@ -1116,20 +1157,17 @@ export async function askAboutAyah(
       if (abortSignal.aborted) onAbort();
       else abortSignal.addEventListener("abort", onAbort, { once: true });
     }
-    // The server confirms that the answer is bound to the ayah's tafsirs before
-    // any of it; text without that confirmation is from a server that cannot
-    // do so yet, and is not shown as an answer from the tafsirs.
     let bound = false;
     for await (const event of stream) {
       const own = event as unknown as { type?: string; stage?: unknown };
-      if (own.type === "athar_ayah") {
+      if (own.type === mode.field) {
         bound = true;
         continue;
       }
       if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
         if (!bound) {
           onAbort();
-          cb.onError?.({ kind: "other", message: "سؤال الآية من تفاسيرها لم يُفعَّل بعد على الخادم. جرّبه بعد التحديث القادم.", detail: "ayah-mode-unavailable" });
+          cb.onError?.({ kind: "other", message: mode.unavailable, detail: mode.detail });
           return;
         }
         emit(sanitizer.push(event.delta.text));

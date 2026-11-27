@@ -4,24 +4,23 @@
  * your notes, and one search across every book.
  * Route: /hadith (?tab=curated|saved|search)
  */
-import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Fuse from "fuse.js";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, ArrowUpRight, Search, Library, BookOpen, Bookmark, BrainCircuit, Copy, Check, Heart, History, Share2, Sparkles, Sun, Bell, BellOff } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { HADITH_BOOKS_STATIC, type HadithBookMeta } from "@/data/hadithTypes";
+import { libraryLinkFor, useLibraryHadithLinkMap } from "@/lib/libraryHadithLinks";
+import { HadithPlanCard } from "@/components/hadith/HadithPlanCard";
 import { useHadithIndex } from "@/data/useHadithBook";
 import { hadithPlaceLabel, hadithRefLabel } from "@/data/hadithNumbers";
 import { useHadithPrefs } from "@/lib/hadithPrefs";
 import { useDailyHadith } from "@/lib/useDailyHadith";
 import { useTodayKey } from "@/hooks/useTodayKey";
-import { highlightWindow } from "@/lib/arabicHighlight";
 import { loadChapterCounts } from "@/data/hadithChapters";
-import { BENEFIT, BOOK, BOOKMARK, CARD, HADITH, RESULT, countAr } from "@/lib/arabicCount";
-import { SEARCH_BOOKS, isFullHadithSearchReady, prewarmFullHadithSearch, searchHadithText, type HadithSearchOutcome } from "@/lib/fullHadithSearch";
-
-/** Results shown at a time. */
-const PAGE = 40;
+import { BENEFIT, BOOK, BOOKMARK, CARD, HADITH, countAr } from "@/lib/arabicCount";
+import { HadithSearchPanel } from "@/components/hadith/HadithSearchPanel";
+import { HadithOfflineCard } from "@/components/hadith/HadithOfflineCard";
 import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
 import type { FlatLibraryEntry, LibraryCollection } from "@/data/libraryTypes";
 import { useNoorStore } from "@/store/noorStore";
@@ -82,7 +81,6 @@ function ArbainiCard({ book }: { book: HadithBookMeta }) {
       className="relative flex-1 min-w-[140px] overflow-hidden rounded-3xl text-right glass-strong glass-hover press-effect"
       style={{ borderColor: "color-mix(in srgb, var(--accent) 28%, transparent)" }}
     >
-      <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
       <div className="absolute inset-y-0 right-0 w-1 opacity-80" style={{ background: book.color }} />
       <div className="relative p-4">
         <span className="mb-2 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: book.color + "33", color: book.color }}>
@@ -109,7 +107,6 @@ function BookCard({ book, chapters }: { book: HadithBookMeta; chapters?: number 
       onClick={() => navigate(`/hadith/${book.key}`)}
       className="relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect cv-auto"
     >
-      <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
       <div className="absolute top-0 right-0 h-full w-1 opacity-75" style={{ background: book.color }} />
 
       <div className="relative px-4 py-3.5 pr-5">
@@ -171,6 +168,8 @@ async function copyCuratedEntry(entry: FlatLibraryEntry) {
 
 function CuratedEntryCard({ entry }: { entry: FlatLibraryEntry }) {
   const navigate = useNavigate();
+  const { data: linkMap } = useLibraryHadithLinkMap();
+  const link = libraryLinkFor(linkMap, entry.id);
   const favorite = useNoorStore((s) => !!s.libraryFavorites[entry.key]);
   const toggleLibraryFavorite = useNoorStore((s) => s.toggleLibraryFavorite);
   const [copied, setCopied] = useState(false);
@@ -211,7 +210,9 @@ function CuratedEntryCard({ entry }: { entry: FlatLibraryEntry }) {
             <CuratedIcon id={entry.collectionId} size={15} color={entry.collectionAccent} />
             <span className="text-xs font-semibold" style={{ color: entry.collectionAccent }}>{entry.collectionTitle}</span>
             <Badge className="px-2 py-0.5 text-[10px]">{entry.chapterTitle}</Badge>
-            {CURATED_GRADE_LABELS[entry.grade] && <Badge className="px-2 py-0.5 text-[10px]">{CURATED_GRADE_LABELS[entry.grade]}</Badge>}
+            {link ? (
+              <Badge className="px-2 py-0.5 text-[10px]">{HADITH_BOOKS_STATIC.find((b) => b.key === link.bookKey)?.title ?? link.bookKey}</Badge>
+            ) : CURATED_GRADE_LABELS[entry.grade] && <Badge className="px-2 py-0.5 text-[10px]">{CURATED_GRADE_LABELS[entry.grade]}</Badge>}
           </div>
           <div className="text-sm font-semibold opacity-75 mb-2 arabic-text">{entry.title}</div>
           <div className="arabic-text text-base md:text-lg leading-9 font-medium text-right">{curatedEntryPreview(entry)}</div>
@@ -407,187 +408,9 @@ function CuratedTab() {
 /* ------------------------------------------------------------------ */
 
 function SearchTab({ books }: { books: HadithBookMeta[] }) {
-  const navigate = useNavigate();
-  const [query, setQuery] = useState("");
-  const [outcome, setOutcome] = useState<HadithSearchOutcome | null>(null);
-  const [bookFilter, setBookFilter] = useState<string | null>(null);
-  const [limit, setLimit] = useState(PAGE);
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const runRef = useRef(0);
-  // Per-book counts come from the search over every book (no filter).
-  const [allCounts, setAllCounts] = useState<Record<string, number>>({});
-  const bookMeta = useCallback((key: string) => books.find((b) => b.key === key), [books]);
-
-  useEffect(() => {
-    prewarmFullHadithSearch();
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
-
-  const runSearch = useCallback(async (q: string, filter: string | null, max: number) => {
-    const run = ++runRef.current;
-    if (q.trim().length < 2) {
-      setOutcome(null);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const ready = isFullHadithSearchReady();
-    const found = await searchHadithText(q, {
-      limit: max,
-      books: filter ? [filter] : undefined,
-      onProgress: ready ? undefined : (done, total) => run === runRef.current && setProgress({ done, total }),
-    });
-    if (run !== runRef.current) return;
-    setProgress(null);
-    setOutcome(found);
-    if (!filter) setAllCounts(found.byBook);
-    setLoading(false);
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    setQuery(v);
-    setBookFilter(null);
-    setLimit(PAGE);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => void runSearch(v, null, PAGE), 400);
-  };
-
-  const pickBook = (key: string | null) => {
-    setBookFilter(key);
-    setLimit(PAGE);
-    void runSearch(query, key, PAGE);
-  };
-
-  const showMore = () => {
-    const next = limit + PAGE;
-    setLimit(next);
-    void runSearch(query, bookFilter, next);
-  };
-
-  const countedBooks = Object.entries(allCounts).sort((x, y) => SEARCH_BOOKS.indexOf(x[0] as never) - SEARCH_BOOKS.indexOf(y[0] as never));
-  const allTotal = countedBooks.reduce((sum, [, n]) => sum + n, 0);
-  const results = outcome?.results ?? [];
-  const searched = outcome !== null;
-
   return (
-    <div dir="rtl" className="px-4 pt-4">
-      {/* Search input */}
-      <div className="relative mb-4" role="search" aria-label="بحث في الأحاديث">
-        <Search size={16} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-(--muted) pointer-events-none" />
-        <input
-          type="search"
-          value={query}
-          onChange={handleChange}
-          placeholder="ابحث في نص الأحاديث…"
-          dir="rtl"
-          aria-label="البحث في كتب الحديث"
-          spellCheck={false}
-          autoComplete="off"
-          autoCapitalize="none"
-          className="w-full rounded-2xl border border-(--stroke) bg-(--card) py-3 pr-9 pl-4 text-sm font-arabic text-(--fg) outline-hidden focus:border-accent-45"
-        />
-      </div>
-
-      {/* The first search loads each book's text once; after that it is offline. */}
-      {loading && progress && (
-        <div className="mb-4 rounded-2xl border border-(--stroke) bg-(--card) p-3.5" role="status" aria-live="polite">
-          <p className="text-[12px] font-arabic text-(--fg)">نجهّز البحث في نص كل الأحاديث، مرة واحدة فقط…</p>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-(--stroke)" aria-hidden="true">
-            <div className="h-full rounded-full bg-(--accent) transition-all" style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }} />
-          </div>
-          <p className="mt-1.5 text-[11px] text-(--muted)">{arNum(progress.done)} من {countAr(progress.total, BOOK)}</p>
-        </div>
-      )}
-      {loading && !progress && (
-        <div className="flex flex-col items-center py-10 gap-3 text-(--muted)" role="status">
-          <div className="w-6 h-6 border-2 border-(--accent) border-t-transparent rounded-full animate-spin" aria-hidden="true" />
-          <p className="text-sm font-arabic">جارٍ البحث…</p>
-        </div>
-      )}
-
-      {!loading && searched && results.length === 0 && (
-        <div className="flex flex-col items-center py-12 gap-3">
-          <Search size={36} aria-hidden="true" className="text-(--muted) opacity-30" />
-          <p className="text-sm text-(--muted) font-arabic">لا توجد نتائج</p>
-          {outcome?.missing.length ? <p className="text-xs text-(--muted) text-center">بعض الكتب لم تُحمَّل بعد، اتصل بالإنترنت مرة ليكتمل البحث.</p> : null}
-        </div>
-      )}
-
-      {!loading && !searched && (
-        <div className="flex flex-col items-center py-12 gap-3">
-          <Search size={36} aria-hidden="true" className="text-(--muted) opacity-20" />
-          <p className="text-sm text-(--muted) font-arabic text-center">ابحث بكلمة أو جملة من أي موضع في الحديث، في الكتب كلها</p>
-          <p className="text-xs text-(--muted) font-arabic opacity-70 text-center">لا يهم التشكيل ولا الهمزات</p>
-        </div>
-      )}
-
-      {/* Results */}
-      {!loading && results.length > 0 && outcome && (
-        <div className="stack-y-3 pb-6">
-          <p className="text-xs text-(--muted) font-arabic" aria-live="polite" aria-atomic="true">
-            {countAr(outcome.total, RESULT)}
-            {!bookFilter && countedBooks.length > 1 ? ` في ${countAr(countedBooks.length, BOOK)}` : ""}
-          </p>
-          {countedBooks.length > 1 && (
-            <div className="-mx-1 flex gap-2 overflow-x-auto no-scrollbar px-1 pb-1" role="radiogroup" aria-label="تصفية بالكتاب">
-              {([[null, "الكل", allTotal], ...countedBooks.map(([key, n]) => [key, bookMeta(key)?.title ?? key, n])] as [string | null, string, number][]).map(([key, label, n]) => (
-                <button key={key ?? "all"} type="button" role="radio" aria-checked={bookFilter === key} onClick={() => pickBook(key)}
-                  className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs", bookFilter === key ? "bg-(--accent) text-(--on-accent) border-transparent font-bold" : "bg-(--card) border-(--stroke)")}
-                >
-                  {label} <span className="opacity-60 tabular-nums">{arNum(n)}</span>
-                </button>
-              ))}
-            </div>
-          )}
-          {results.map((r) => {
-            const meta = bookMeta(r.bookKey);
-            const open = () => navigate(`/hadith/${r.bookKey}/${r.n}`);
-            return (
-              <button
-                key={`${r.bookKey}:${r.n}`}
-                type="button"
-                dir="rtl"
-                onClick={open}
-                className="group relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect"
-              >
-                <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-                <div className="relative px-4 py-3">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                      style={{ background: (meta?.color ?? "#888") + "22", color: meta?.color ?? "#888" }}>
-                      {meta?.title ?? r.bookKey}
-                    </span>
-                    <span className="text-[10px] text-(--muted)">{hadithPlaceLabel({ a: r.n, r: r.ref ?? String(r.n) })}</span>
-                    {r.grade && <GradeChip grade={r.grade} size="sm" />}
-                  </div>
-                  {/* The words that matched, in their place in the text. */}
-                  <p className="text-[13px] font-arabic text-(--fg) leading-relaxed line-clamp-3">
-                    {highlightWindow(r.snippet, query).map((part, i) =>
-                      part.hit ? (
-                        <mark key={i} className="rounded px-0.5 font-bold text-(--fg)" style={{ background: "color-mix(in srgb, var(--accent) 28%, transparent)" }}>{part.text}</mark>
-                      ) : (
-                        <React.Fragment key={i}>{part.text}</React.Fragment>
-                      ),
-                    )}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-          {results.length < (bookFilter ? outcome.byBook[bookFilter] ?? 0 : outcome.total) && (
-            <button type="button" onClick={showMore}
-              className="w-full rounded-2xl border border-(--stroke) bg-(--card) py-3 text-sm font-semibold press-effect"
-            >
-              عرض المزيد
-            </button>
-          )}
-        </div>
-      )}
+    <div className="px-4 pt-4">
+      <HadithSearchPanel books={books} />
     </div>
   );
 }
@@ -606,7 +429,6 @@ function ContinueCard({ books }: { books: HadithBookMeta[] }) {
       onClick={() => navigate(`/hadith/${last.bookKey}/${last.n}`)}
       className="relative w-full overflow-hidden rounded-3xl text-right glass-strong glass-hover press-effect p-4 flex items-center gap-3"
     >
-      <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
       <div className="relative w-10 h-10 rounded-2xl grid place-items-center shrink-0" style={{ background: book.color + "26", color: book.color }}>
         <History size={18} aria-hidden="true" />
       </div>
@@ -649,7 +471,6 @@ function HadithOfTheDay() {
   const meta = [hadith.attribution, hadith.grade].filter(Boolean).join("، ");
   return (
     <div className="relative w-full overflow-hidden rounded-3xl glass-strong" style={{ borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)" }}>
-      <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
       <button type="button"
         onClick={() => navigate(`/library/sharh?h=${hadith.id}`)}
         className="relative w-full text-right glass-hover press-effect p-4"
@@ -732,12 +553,11 @@ export function HadithBooksPage() {
 
   return (
     <div dir="rtl" className="relative min-h-screen-safe overflow-hidden pb-24 page-enter">
-      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" data-hadith-stars="" aria-hidden />
       <div className="relative z-10 px-4 pt-4">
         <Card className="relative overflow-hidden p-5">
-          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           <div className="flex items-center gap-3">
-            <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
+            <IconButton data-page-back="" aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <Library size={19} aria-hidden="true" className="text-(--accent)" />
@@ -806,6 +626,7 @@ export function HadithBooksPage() {
         <div className="relative z-10" role="tabpanel" id="hadith-books-panel-library" aria-labelledby="hadith-books-tab-library" tabIndex={0}>
           <div className="px-4 mb-6 stack-y-3">
             <ContinueCard books={sorted} />
+            <HadithPlanCard />
             <HadithOfTheDay />
           </div>
 
@@ -835,6 +656,8 @@ export function HadithBooksPage() {
               ))}
             </div>
           </div>
+
+          <HadithOfflineCard books={sorted} />
 
         </div>
       )}

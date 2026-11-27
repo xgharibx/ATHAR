@@ -241,6 +241,14 @@ function loadSharhBundle(): Promise<Record<string, SharhHadith>> {
   return bundleLoading;
 }
 
+/** Every explanation that ships with the app (offline): id, title and the hadith's text. */
+export async function loadBundledSharhList(): Promise<Array<{ id: string; title: string; text: string }>> {
+  const b = await loadSharhBundle();
+  return Object.values(b)
+    .filter((h) => h && h.id && h.hadeeth)
+    .map((h) => ({ id: String(h.id), title: String(h.title ?? ""), text: String(h.hadeeth) }));
+}
+
 /** Kick off the bundle load in the background so the first sharh is instant. */
 export function prewarmSharhBundle(): void {
   void loadSharhBundle();

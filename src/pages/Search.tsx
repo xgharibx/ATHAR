@@ -1,7 +1,7 @@
 import * as React from "react";
 import Fuse from "fuse.js";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ArrowUpRight, X, BookOpen, LibraryBig, ScrollText, Loader2, Copy } from "lucide-react";
+import { Search, ArrowUpRight, X, BookOpen, LibraryBig, ScrollText, Copy } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
@@ -19,22 +19,13 @@ import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { useNoorStore } from "@/store/noorStore";
 import { cn, contrastText } from "@/lib/utils";
-import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
-import { HADITH_BOOKS_STATIC, hadithPreview } from "@/data/hadithTypes";
-import { GradeChip } from "@/components/hadith/GradeChip";
-import { hadithNumberLabel } from "@/data/hadithNumbers";
-import { useHadithPack } from "@/data/useHadithBook";
+import { stripDiacritics } from "@/lib/arabic";
+import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
+import { HadithSearchPanel } from "@/components/hadith/HadithSearchPanel";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { arNum } from "@/lib/formatNumber";
 
-/** «نتيجة واحدة»، «نتيجتان»، «٣ نتائج»، «١١ نتيجة» — Arabic number agreement. */
-function resultsLabel(n: number): string {
-  if (n === 1) return "نتيجة واحدة";
-  if (n === 2) return "نتيجتان";
-  if (n >= 3 && n <= 10) return `${arNum(n)} نتائج`;
-  return `${arNum(n)} نتيجة`;
-}
 import { writeClipboard } from "@/lib/nativeUI";
 
 // --- Recent searches helpers ---
@@ -79,7 +70,6 @@ export function SearchPage() {
   const [recentSearches, setRecentSearches] = React.useState<string[]>(() => loadRecent());
   const [sectionFilter, setSectionFilter] = React.useState<string | null>(null);
   const [libraryFilter, setLibraryFilter] = React.useState<string | null>(null);
-  const [hadithBookKey, setHadithBookKey] = React.useState<string>("nawawi");
 
   const searchCorpus = React.useMemo(() => {
     const customItems: FlatDhikr[] = customPacks.flatMap((pack) => pack.items.map((item, index) => ({
@@ -220,25 +210,6 @@ export function SearchPage() {
     }
     return [...map.values()].sort((a, b) => b.count - a.count);
   }, [libraryData, libraryFuse, q]);
-  // ─────────────────────────────────────────────────────────────────────────
-
-  // ── Hadith search ─────────────────────────────────────────────────────────
-  const { data: hadithPack, isLoading: hadithLoading } = useHadithPack(
-    searchTab === "hadith" ? hadithBookKey : undefined,
-  );
-
-  const hadithResults = React.useMemo(() => {
-    if (!hadithPack || !q.trim()) return [];
-    const term = normalizeArabicSearch(q.trim());
-    const hits: Array<{ n: number; a: number | string; t: string; g: string[] }> = [];
-    for (const h of hadithPack.hadiths) {
-      if (normalizeArabicSearch(h.t).includes(term)) {
-        hits.push(h);
-        if (hits.length >= 50) break;
-      }
-    }
-    return hits;
-  }, [hadithPack, q]);
   // ─────────────────────────────────────────────────────────────────────────
 
   const adhkarCatalogUnavailable = !data && (adhkarQuery.isLoading || Boolean(adhkarQuery.error));
@@ -700,77 +671,9 @@ export function SearchPage() {
       {/* ── Hadith results ────────────────────────────────────────────────── */}
       {searchTab === "hadith" && (
       <Card className="p-5" role="tabpanel" id="search-panel-hadith" aria-labelledby="search-tab-hadith" tabIndex={0}>
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="text-sm font-semibold">بحث في الأحاديث</div>
-          {hadithResults.length > 0 && q.trim() && (
-            <div className="text-xs opacity-55 tabular-nums">{resultsLabel(hadithResults.length)}</div>
-          )}
-        </div>
-
-        {/* Book selector chips */}
-        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar mb-3">
-          {HADITH_BOOKS_STATIC.map((book) => (
-            <button type="button"
-              key={book.key}
-              onClick={() => setHadithBookKey(book.key)}
-              className={cn(
-                "shrink-0 text-xs px-3 py-1.5 rounded-full border transition font-arabic whitespace-nowrap min-h-[32px]",
-                hadithBookKey === book.key
-                  ? "border-transparent"
-                  : "bg-(--card) border-(--stroke) hover:bg-(--card-2)"
-              )}
-              style={hadithBookKey === book.key ? { background: book.color, color: contrastText(book.color) } : {}}
-            >
-              {book.title}
-            </button>
-          ))}
-        </div>
-
-        {!q.trim() ? (
-          <div className="flex flex-col items-center text-center py-6 gap-2">
-            <ScrollText size={32} aria-hidden="true" className="opacity-20" />
-            <div className="text-sm opacity-55 font-arabic">اكتب كلمة للبحث في الكتاب المختار</div>
-          </div>
-        ) : hadithLoading ? (
-          <div role="status" aria-live="polite" aria-atomic="true" className="flex items-center justify-center gap-2 py-8 text-(--muted)">
-            <Loader2 size={18} aria-hidden="true" className="animate-spin" />
-            <span className="text-sm font-arabic">جاري تحميل الكتاب…</span>
-          </div>
-        ) : hadithResults.length === 0 ? (
-          <EmptyState
-            variant="search"
-            title={`لا توجد نتائج لـ «${q}»`}
-            description="جرّب كلمة مختلفة أو اختر كتاباً آخر"
-          />
-        ) : (
-          <div className="stack-y-2" role="list" aria-label="نتائج الحديث">
-            {hadithResults.map((h) => {
-              const book = HADITH_BOOKS_STATIC.find((b) => b.key === hadithBookKey);
-              const g = h.g[0] ?? "";
-              return (
-                <div key={`${hadithBookKey}-${h.n}`} role="listitem">
-                <button type="button"
-                  dir="rtl"
-                  onClick={() => navigate(`/hadith/${hadithBookKey}/${h.n}`)}
-                  className="w-full text-right glass rounded-3xl p-4 hover:bg-(--card-2) transition border border-(--stroke) press-effect glass-hover"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      {g && <GradeChip grade={g} size="sm" />}
-                      <span className="text-xs opacity-45 font-arabic shrink-0">{book?.title}</span>
-                      <span className="text-xs opacity-45">ح{hadithNumberLabel(h)}</span>
-                    </div>
-                    <ArrowUpRight size={16} className="opacity-55 shrink-0" aria-hidden="true" />
-                  </div>
-                  <div className="mt-2 arabic-text text-sm leading-7 opacity-80">
-                    {hadithPreview(h.t, 200)}
-                  </div>
-                </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <div className="mb-3 text-sm font-semibold">بحث في الأحاديث</div>
+        {/* The same search as the hadith page: every word of the nine books. */}
+        <HadithSearchPanel books={HADITH_BOOKS_STATIC} query={q} />
       </Card>
       )}
     </div>

@@ -102,3 +102,8 @@ export function normalizeHadithPack(pack: HadithPack): HadithPack {
   Object.defineProperty(out, NORMALIZED, { value: true });
   return out;
 }
+
+/** The public link to a hadith: opens the app where it is installed (universal / app links), the site otherwise. */
+export function hadithShareUrl(bookKey: string, n: number): string {
+  return `https://www.athark.org/hadith/${bookKey}/${n}`;
+}

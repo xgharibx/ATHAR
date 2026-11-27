@@ -57,6 +57,16 @@ jobs:
           VITE_RUNTIME_VERSION: ${{ github.sha }}
         run: npm run verify
 
+      # Shared hadith links (www.athark.org/hadith/…) open the app when it is
+      # installed: iOS universal links need the team's app id, Android app
+      # links the fingerprint of the Play signing certificate (Play Console →
+      # App integrity). Each file is written only when its value is set.
+      - name: Write app link files
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ANDROID_CERT_SHA256: ${{ secrets.ANDROID_CERT_SHA256 || vars.ANDROID_CERT_SHA256 }}
+        run: node tools/scripts/app-links.mjs dist
+
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
 

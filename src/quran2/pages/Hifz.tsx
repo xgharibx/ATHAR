@@ -14,6 +14,8 @@ import { juzOf, pageRange, refFromIndex } from "../data/meta";
 import { pageLabel } from "../data/pages";
 import { Q2Error, Q2Loading, Q2Sheet } from "../components/ui";
 import { syncQuran2Native } from "../native/sync";
+import { useNoorStore } from "@/store/noorStore";
+import { hadithDueOn, localDayKey } from "@/lib/reviewToday";
 
 /** The colour of a page on the map: how likely you are to recall it today. */
 function recallColor(r: number | null): string {
@@ -86,6 +88,23 @@ function dueLabel(due: number, now: number): string {
   if (days <= 0) return "اليوم";
   if (days === 1) return "غدًا";
   return `بعد ${arCount(days, "يوم", "يومين", "أيام", "يومًا")}`;
+}
+
+/** The hadith side of «مراجعة اليوم»: its cards due today, one tap away. */
+function HadithDueRow() {
+  const navigate = useNavigate();
+  const due = useNoorStore((s) => hadithDueOn(s.hadithMemoCards, localDayKey()));
+  const cards = useNoorStore((s) => Object.keys(s.hadithMemoCards).length);
+  if (!cards) return null;
+  return (
+    <button type="button" className="q2-card q2-row q2-press" style={{ width: "100%", marginTop: 12, textAlign: "right" }} onClick={() => navigate("/hadith/memo")}>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <b style={{ fontSize: 15 }}>بطاقات الحديث</b>
+        <span className="q2-small" style={{ display: "block" }}>{due ? "تنتظرك اليوم مع جلسة القرآن" : "لا شيء منها اليوم"}</span>
+      </span>
+      <b style={{ fontSize: 20 }}>{arDigits(due)}</b>
+    </button>
+  );
 }
 
 export default function Q2Hifz() {
@@ -167,6 +186,7 @@ export default function Q2Hifz() {
         <button type="button" className="q2-btn is-ghost q2-press" style={{ width: "100%", marginTop: 8 }} onClick={() => navigate("/quran/hifz/similar")}>
           تدرّب على المتشابهات
         </button>
+        <HadithDueRow />
         <ReminderRow />
       </section>
 

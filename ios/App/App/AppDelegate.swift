@@ -146,6 +146,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             Self.deliverRoute(route)
             return true
         }
+        // A shared hadith link (https://www.athark.org/hadith/bukhari/1): open it here.
+        if userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+           let url = userActivity.webpageURL,
+           let route = Self.sharedLinkRoute(from: url) {
+            Self.deliverRoute(route)
+            return true
+        }
         // Called when the app was launched with an activity, including Universal Links.
         // Feel free to add additional processing here, but if you want the App API to support
         // tracking app url opens, make sure to keep this call
@@ -170,6 +177,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // A simple query is kept («/library/sharh?h=123» from the hadith widget).
         let route = url.query.map { path + "?" + $0 } ?? path
         return isSafeRoute(route) ? route : nil
+    }
+
+    /// `https://www.athark.org/hadith/bukhari/1` → `/hadith/bukhari/1`. Only hadith pages are claimed.
+    static func sharedLinkRoute(from url: URL) -> String? {
+        guard url.scheme?.lowercased() == "https", url.port == nil,
+              let host = url.host?.lowercased(), host == "www.athark.org" || host == "athark.org" else { return nil }
+        var path = url.path
+        if path.count > 1 && path.hasSuffix("/") { path.removeLast() }
+        guard path.range(of: "^/hadith(/[a-z]+(/[0-9]+)?)?$", options: .regularExpression) != nil else { return nil }
+        return path
     }
 
     /// An in-app path, optionally with a simple query («/mushaf?surah=18»).

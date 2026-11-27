@@ -4,6 +4,22 @@ What changed in each version of Athar, newest first. Store notes for a version
 live in `ios/fastlane/metadata/*/release_notes.txt` (App Store) and
 `docs/PLAY_WHATS_NEW_<version>.txt` (Google Play, 500 characters at most).
 
+## 1.2.98 (build 111)
+
+### Hadith
+- **Lighter books:** a book opens from its table of contents (20–140 KB) and the chapter you read (at most ~0.8 MB), not the whole book (up to 8.6 MB). On the web, «تحميل الكل» keeps every book for offline reading; the apps carry them already.
+- **Chains and lists:** chains are read narrator by narrator (co-narrators, «ح», «يعني …» notes), and list rows show the hadith instead of its chain (chain-like previews from 35% to under 3%).
+- **One search everywhere:** the hadith page and the app's search use the same full-text search, with filters by grade, narrator and exact phrase, and voice search.
+- **Explanations:** 4,453 hadiths linked to their explanation (from 1,445); the Nawawi forty is fully explained offline. «الشروح» searches the explanations bundled with the app, also offline.
+- **Curated cards point into the books:** a curated hadith shows the book's own wording and grade, with «اقرأه في الكتاب بإسناده».
+- **Folders and export:** put saved hadiths in your own folders, search what you saved and your notes, and «تصدير ملاحظاتي» as a text file.
+- **One review with the Quran:** «مراجعة اليوم» shows the Quran pages and hadith cards due side by side; the memorisation reminder names both. Memo cards load only their own chapters.
+- **Shared links:** a shared or copied hadith carries its link (www.athark.org/hadith/bukhari/1), which opens the hadith in the app where it is installed.
+- **«اسأل عن الحديث»:** a question about a hadith, answered by «أثر» from that hadith, its scholars' rulings and its explanation only.
+- **Word meanings:** tap an underlined word in the hadith to see its meaning (from the explanation's «معاني الكلمات», in 1,558 hadiths).
+- **Reading plans:** the two forties a hadith a day, or a Sahih in a year, with today's share, progress and an optional daily reminder.
+- In «أفق», the hadith pages keep one top bar; plain rows without star backgrounds.
+
 ## 1.2.97 (build 110)
 
 ### Hadith (bundle v2)

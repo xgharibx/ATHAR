@@ -7,12 +7,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { ArrowRight, Bookmark, BookOpenText, Hash, ListTree, Loader2, StickyNote, WifiOff } from "lucide-react";
-import { useHadithPackProgress, HADITH_PACK_SIZES_MB } from "@/data/useHadithBook";
-import { HADITH_BOOKS_STATIC, hadithPreview, type HadithItem } from "@/data/hadithTypes";
+import { ArrowRight, Bookmark, Hash, ListTree, Loader2, StickyNote } from "lucide-react";
+import { useHadithChapter, useHadithToc } from "@/data/useHadithBook";
+import type { HadithBookToc } from "@/data/hadithSchemas";
+import { HADITH_BOOKS_STATIC, hadithPreview } from "@/data/hadithTypes";
 import { stripDiacritics } from "@/lib/arabic";
 import { splitHadithText } from "@/lib/hadithText";
-import { findByPrintedNumber, hadithNumberLabel, hadithPlaceLabel } from "@/data/hadithNumbers";
+import { hadithNumberLabel, hadithPlaceLabel, hadithRefNumber } from "@/data/hadithNumbers";
 import { useNoorStore } from "@/store/noorStore";
 import { Modal } from "@/components/ui/Modal";
 import { shortChapterTitle } from "@/data/hadithChapters";
@@ -60,12 +61,16 @@ function rowPreview(t: string): string {
   return text.length > 190 ? `${text.slice(0, 190)}…` : text;
 }
 
-function HadithRow({ item, bookKey }: { item: HadithItem; bookKey: string }) {
+/** One hadith in the list. Its chapter loads when the row first shows. */
+function HadithRow({ bookKey, n, chapter, printed }: { bookKey: string; n: number; chapter: number; printed?: string }) {
   const navigate = useNavigate();
-  const key = `${bookKey}:${item.n}`;
+  const key = `${bookKey}:${n}`;
   const isBookmarked = useNoorStore((s) => !!s.hadithBookmarks[key]);
   const hasNote = useNoorStore((s) => !!s.hadithNotes[key]);
-  const open = () => navigate(`/hadith/${bookKey}/${item.n}`);
+  const { data: items } = useHadithChapter(bookKey, chapter);
+  const item = useMemo(() => items?.find((h) => h.n === n), [items, n]);
+  const place = hadithPlaceLabel({ a: n, r: printed ?? String(n) });
+  const open = () => navigate(`/hadith/${bookKey}/${n}`);
 
   return (
     <div className="mx-3 my-2">
@@ -73,19 +78,18 @@ function HadithRow({ item, bookKey }: { item: HadithItem; bookKey: string }) {
         dir="rtl"
         role="button"
         tabIndex={0}
-        aria-label={item.ti ? `${hadithPlaceLabel(item)}: ${item.ti}` : hadithPlaceLabel(item)}
+        aria-label={item?.ti ? `${place}: ${item.ti}` : place}
         onClick={open}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && open()}
-        className="group relative w-full overflow-hidden rounded-3xl border border-(--stroke) p-4 text-right transition cursor-pointer glass-strong glass-hover press-effect"
+        className="relative w-full overflow-hidden rounded-3xl border border-(--stroke) bg-(--card) p-4 text-right cursor-pointer press-effect"
       >
-        <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-        <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: "var(--accent)" }} />
-        <div className="relative pr-2">
+        <div className="absolute inset-y-0 right-0 w-1 opacity-80" style={{ background: "var(--accent)" }} />
+        <div className="pr-2">
           <div className="mb-2 flex items-center gap-2">
             <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-[11px] font-bold tabular-nums whitespace-nowrap" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: "var(--accent)" }}>
-              {hadithNumberLabel(item)}
+              {hadithNumberLabel({ a: n, r: printed ?? String(n) })}
             </span>
-            {item.g[0] && <GradeChip grade={item.g[0]} size="sm" />}
+            {item?.g[0] && <GradeChip grade={item.g[0]} size="sm" />}
             {(hasNote || isBookmarked) && (
               <span className="mr-auto flex items-center gap-1.5">
                 {hasNote && <StickyNote size={14} aria-label="عليه ملاحظتك" className="text-(--accent)" />}
@@ -93,8 +97,15 @@ function HadithRow({ item, bookKey }: { item: HadithItem; bookKey: string }) {
               </span>
             )}
           </div>
-          {item.ti && <p className="mb-1 text-[15px] font-bold font-arabic text-(--accent) leading-snug">{item.ti}</p>}
-          <p className="arabic-text text-base leading-8 font-semibold text-(--fg) line-clamp-3">{rowPreview(item.t)}</p>
+          {item?.ti && <p className="mb-1 text-[15px] font-bold font-arabic text-(--accent) leading-snug">{item.ti}</p>}
+          {item ? (
+            <p className="arabic-text text-base leading-8 font-semibold text-(--fg) line-clamp-3">{rowPreview(item.t)}</p>
+          ) : (
+            <div className="stack-y-2 py-1" aria-hidden="true">
+              <div className="skeleton h-4 w-full rounded-lg" />
+              <div className="skeleton h-4 w-4/5 rounded-lg" />
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -103,7 +114,12 @@ function HadithRow({ item, bookKey }: { item: HadithItem; bookKey: string }) {
 
 type ListRow =
   | { type: "header"; sectionId: number; title: string; index: number; count: number }
-  | { type: "hadith"; item: HadithItem };
+  | { type: "hadith"; n: number; chapter: number; ref?: string };
+
+/** The first hadith printed under number «n», from the table of contents. */
+function rowByPrintedNumber(rows: HadithBookToc["rows"], n: number): HadithBookToc["rows"][number] | undefined {
+  return rows.find(([rowN, , ref]) => hadithRefNumber(ref ?? String(rowN)) === n);
+}
 
 /** The book index: every chapter with its count, and a jump to any hadith number. */
 function BookIndex({
@@ -196,23 +212,15 @@ function BookIndex({
 export function HadithBookViewPage() {
   const { bookKey } = useParams<{ bookKey: string }>();
   const navigate = useNavigate();
-  const { data: pack, isLoading, isError, progress, isFromCache, refetch } = useHadithPackProgress(bookKey);
+  // Only the table of contents (20–140 KB); each chapter loads as its rows show.
+  const { data: toc, isLoading, isError, refetch } = useHadithToc(bookKey);
   const lastN = useNoorStore((s) => s.hadithProgress[bookKey ?? ""]);
   const virtuoso = useRef<VirtuosoHandle>(null);
   const [indexOpen, setIndexOpen] = useState(false);
   const [currentId, setCurrentId] = useState<number | null>(null);
   const topBar = useTopBarHeight();
 
-  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
-  useEffect(() => {
-    const up = () => setIsOnline(true);
-    const dn = () => setIsOnline(false);
-    window.addEventListener("online", up);
-    window.addEventListener("offline", dn);
-    return () => { window.removeEventListener("online", up); window.removeEventListener("offline", dn); };
-  }, []);
-
-  const meta = pack ?? HADITH_BOOKS_STATIC.find((b) => b.key === bookKey);
+  const meta = toc ?? HADITH_BOOKS_STATIC.find((b) => b.key === bookKey);
 
   // One list: a header before the first hadith of each chapter.
   const { rows, chapters, headerIndex, chapterOfRow } = useMemo(() => {
@@ -220,52 +228,52 @@ export function HadithBookViewPage() {
     const chapterOfRow: (number | null)[] = [];
     const headerIndex = new Map<number, number>();
     const chapters: { id: number; title: string; index: number; count: number; first: string }[] = [];
-    if (!pack) return { rows, chapters, headerIndex, chapterOfRow };
-    const byId = new Map(pack.sections.map((s) => [s.id, s]));
+    if (!toc) return { rows, chapters, headerIndex, chapterOfRow };
+    const byId = new Map(toc.sections.map((s) => [s.id, s]));
     const counts = new Map<number, number>();
-    for (const h of pack.hadiths) counts.set(h.s, (counts.get(h.s) ?? 0) + 1);
-    const showHeaders = pack.sections.length > 1;
+    for (const [, s] of toc.rows) counts.set(s, (counts.get(s) ?? 0) + 1);
+    const showHeaders = toc.sections.length > 1;
     let lastId = -1;
-    for (const item of pack.hadiths) {
-      if (showHeaders && item.s !== lastId) {
-        lastId = item.s;
-        const section = byId.get(item.s);
+    for (const [n, s, ref] of toc.rows) {
+      if (showHeaders && s !== lastId) {
+        lastId = s;
+        const section = byId.get(s);
         if (section?.title) {
           const index = chapters.length + 1;
-          chapters.push({ id: item.s, title: section.title, index, count: counts.get(item.s) ?? 0, first: hadithPlaceLabel(item) });
-          headerIndex.set(item.s, rows.length);
-          rows.push({ type: "header", sectionId: item.s, title: section.title, index, count: counts.get(item.s) ?? 0 });
-          chapterOfRow.push(item.s);
+          chapters.push({ id: s, title: section.title, index, count: counts.get(s) ?? 0, first: hadithPlaceLabel({ a: n, r: ref ?? String(n) }) });
+          headerIndex.set(s, rows.length);
+          rows.push({ type: "header", sectionId: s, title: section.title, index, count: counts.get(s) ?? 0 });
+          chapterOfRow.push(s);
         }
       }
-      rows.push({ type: "hadith", item });
-      chapterOfRow.push(showHeaders ? item.s : null);
+      rows.push({ type: "hadith", n, chapter: s, ...(ref ? { ref } : {}) });
+      chapterOfRow.push(showHeaders ? s : null);
     }
     return { rows, chapters, headerIndex, chapterOfRow };
-  }, [pack]);
+  }, [toc]);
 
   const chapterTitle = (id: number | null) => (id == null ? null : chapters.find((c) => c.id === id) ?? null);
   const current = chapterTitle(currentId) ?? chapters[0] ?? null;
 
   const lastIndex = useMemo(() => {
     if (!lastN) return null;
-    const idx = rows.findIndex((r) => r.type === "hadith" && r.item.n === lastN);
+    const idx = rows.findIndex((r) => r.type === "hadith" && r.n === lastN);
     return idx >= 0 ? idx : null;
   }, [lastN, rows]);
   const lastRow = lastIndex === null ? null : rows[lastIndex];
-  const lastItem = lastRow?.type === "hadith" ? lastRow.item : null;
+  const lastItem = lastRow?.type === "hadith" ? { a: lastRow.n, r: lastRow.ref ?? String(lastRow.n) } : null;
 
   // «/hadith/muslim?ref=1144» (links from «اسأل أثر» and elsewhere) opens the
   // hadith printed under that number.
   const [params] = useSearchParams();
   const refParam = params.get("ref");
   useEffect(() => {
-    if (!pack || !refParam) return;
+    if (!toc || !refParam) return;
     const n = Number(refParam.replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d))));
-    const hit = Number.isFinite(n) && n > 0 ? findByPrintedNumber(pack, n) : undefined;
-    if (hit) navigate(`/hadith/${bookKey}/${hit.n}`, { replace: true });
+    const hit = Number.isFinite(n) && n > 0 ? rowByPrintedNumber(toc.rows, n) : undefined;
+    if (hit) navigate(`/hadith/${bookKey}/${hit[0]}`, { replace: true });
     else toast.error("لا يوجد حديث بهذا الرقم في هذا الكتاب");
-  }, [pack, refParam, bookKey, navigate]);
+  }, [toc, refParam, bookKey, navigate]);
 
   const scrollToRow = useCallback((index: number) => {
     virtuoso.current?.scrollToIndex({ index, align: "start", offset: -(topBar + 64) });
@@ -276,23 +284,23 @@ export function HadithBookViewPage() {
       const row = rows[index];
       if (!row) return null;
       if (row.type === "header") return <ChapterHeader title={row.title} index={row.index} count={row.count} />;
-      return <HadithRow item={row.item} bookKey={bookKey!} />;
+      return <HadithRow bookKey={bookKey!} n={row.n} chapter={row.chapter} printed={row.ref} />;
     },
     [rows, bookKey],
   );
 
   return (
     <div className="relative flex min-h-screen-safe flex-col page-enter pb-floating-nav">
-      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" data-hadith-stars="" aria-hidden />
       <div dir="rtl" className="relative z-10 px-3 pt-2 pb-2">
         <Card className="relative overflow-hidden p-4">
-          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           <div className="absolute inset-y-0 right-0 w-1.5" style={{ background: meta?.color ?? "var(--accent)" }} />
           <div className="relative flex items-center gap-3 pr-2">
             <button type="button"
               onClick={() => navigate(-1)}
               className="h-11 w-11 rounded-2xl border border-(--stroke) bg-(--card) grid place-items-center transition hover:bg-(--card-2) shrink-0"
               aria-label="رجوع"
+              data-page-back=""
             >
               <ArrowRight size={19} aria-hidden="true" className="text-(--fg)" />
             </button>
@@ -301,12 +309,7 @@ export function HadithBookViewPage() {
                 {meta?.title ?? bookKey}
               </h1>
               <div className="mt-1 flex items-center gap-2 text-xs opacity-65 flex-wrap">
-                <span>{countAr(pack?.count ?? meta?.count ?? 0, HADITH)}{chapters.length > 1 ? `، ${countAr(chapters.length, BOOK)}` : ""}</span>
-                {isFromCache && !isOnline && (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]" style={{ background: "#10b98122", color: "#10b981" }}>
-                    <WifiOff size={10} aria-hidden="true" /> محفوظ للقراءة بلا إنترنت
-                  </span>
-                )}
+                <span>{countAr(toc?.rows.length ?? meta?.count ?? 0, HADITH)}{chapters.length > 1 ? `، ${countAr(chapters.length, BOOK)}` : ""}</span>
               </div>
             </div>
             {isLoading && <Loader2 size={18} aria-hidden="true" className="animate-spin text-(--muted) shrink-0" />}
@@ -325,7 +328,7 @@ export function HadithBookViewPage() {
       </div>
 
       {/* Always names the chapter you are in; opens the index. */}
-      {pack && (
+      {toc && (
         <div dir="rtl" className="sticky z-20 px-3 pt-1 pb-2" style={{ top: topBar }}>
           <button
             type="button"
@@ -344,28 +347,9 @@ export function HadithBookViewPage() {
       )}
 
       {isLoading && (
-        <div dir="rtl" role="status" aria-live="polite" aria-atomic="true" aria-label="جارٍ تحميل الكتاب" className="flex-1 flex items-center justify-center px-6 py-10">
-          <div className="w-full max-w-sm rounded-3xl glass-strong border border-(--stroke) p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)" }}>
-                <BookOpenText size={20} aria-hidden="true" className="text-(--accent)" />
-              </div>
-              <div>
-                <p className="font-bold text-sm font-arabic" style={{ color: "var(--fg)" }}>{meta?.title ?? "جارٍ التحميل"}</p>
-                <p className="text-xs font-arabic" style={{ color: "var(--muted)" }}>
-                  {bookKey && HADITH_PACK_SIZES_MB[bookKey]
-                    ? `يُحفظ مرة واحدة لتقرأه بلا إنترنت (نحو ${arNum(HADITH_PACK_SIZES_MB[bookKey])} ميغابايت)`
-                    : "جارٍ التحميل…"}
-                </p>
-              </div>
-            </div>
-            <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "var(--bg)" }}>
-              <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, background: "var(--accent)" }} />
-            </div>
-            <p className="text-center text-xs font-arabic" style={{ color: "var(--muted)" }}>
-              {progress < 5 ? "يبدأ التحميل…" : progress >= 100 ? "اكتمل التحميل" : `${arNum(progress)}٪`}
-            </p>
-          </div>
+        <div dir="rtl" role="status" aria-live="polite" aria-label="جارٍ فتح الكتاب" className="flex-1 flex items-center justify-center gap-2 px-6 py-10 text-(--muted)">
+          <Loader2 size={18} aria-hidden="true" className="animate-spin" />
+          <span className="text-sm font-arabic">جارٍ فتح الكتاب…</span>
         </div>
       )}
 
@@ -383,7 +367,7 @@ export function HadithBookViewPage() {
         </div>
       )}
 
-      {pack && rows.length > 0 && (
+      {toc && rows.length > 0 && (
         <div id="hbv-list-panel" className="relative z-10">
           <Virtuoso
             ref={virtuoso}
@@ -409,9 +393,9 @@ export function HadithBookViewPage() {
           if (i != null) setTimeout(() => scrollToRow(i), 60);
         }}
         onJump={(n) => {
-          const hit = pack ? findByPrintedNumber(pack, n) : undefined;
+          const hit = toc ? rowByPrintedNumber(toc.rows, n) : undefined;
           if (!hit) return false;
-          navigate(`/hadith/${bookKey}/${hit.n}`);
+          navigate(`/hadith/${bookKey}/${hit[0]}`);
           return true;
         }}
       />

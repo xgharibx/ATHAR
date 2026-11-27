@@ -10,7 +10,7 @@ describe("bundled Hadith data schema", () => {
 
     expect(index.length).toBeGreaterThan(0);
     for (const book of index) {
-      const pack = JSON.parse(readFileSync(`public/data/hadith/${book.key}.json`, "utf8"));
+      const pack = JSON.parse(readFileSync(`data/hadith/${book.key}.json`, "utf8"));
       expect(HadithPackSchema.parse(pack)).toMatchObject({ key: book.key });
     }
   });
