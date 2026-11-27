@@ -33,12 +33,16 @@ const MIN_TEXT_SKELETON = 12;
 /** Two narrations sharing this share of their words are the same hadith. */
 const SAME_NARRATION_OVERLAP = 0.6;
 
+/** Tags removed until none is left, any stray angle bracket dropped, then the few entities the source uses decoded in one pass. */
 function stripTags(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, "&")
+  let text = html;
+  for (let previous = ""; previous !== text;) {
+    previous = text;
+    text = text.replace(/<[^<>]*>/g, "");
+  }
+  return text
+    .replace(/[<>]/g, "")
+    .replace(/&(nbsp|quot|amp);/g, (_m, name: string) => (name === "nbsp" ? " " : name === "quot" ? '"' : "&"))
     .replace(/\s+/g, " ")
     .trim();
 }

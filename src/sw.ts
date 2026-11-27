@@ -40,8 +40,19 @@ declare const self: ServiceWorkerGlobalScope & typeof globalThis & {
   __WB_MANIFEST: Array<{ url: string; revision: string | null }>;
 };
 
+/**
+ * Only the app's own pages talk to this worker. Browsers deliver a page's
+ * message with that page's origin; anything else is ignored.
+ */
+function fromOwnPage(event: ExtendableMessageEvent): boolean {
+  const source = event.source as { url?: string } | null;
+  const origin = event.origin || (source?.url ? new URL(source.url).origin : "");
+  return origin === self.location.origin;
+}
+
 // Keep an update waiting until a page explicitly accepts a refresh.
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
+  if (!fromOwnPage(event)) return;
   if (event.data?.type === "SKIP_WAITING") event.waitUntil(self.skipWaiting());
 });
 cleanupOutdatedCaches();
@@ -341,6 +352,7 @@ async function waitForSwNotificationOperations(): Promise<void> {
 }
 
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
+  if (!fromOwnPage(event)) return;
   const data = event.data;
   if (!data || typeof data !== "object") return;
   if (data.type === "athar-reminder-owner-query") {

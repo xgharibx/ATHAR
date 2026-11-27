@@ -93,7 +93,7 @@ export default function SleepNeuroscienceVisual({ className }: MiracleVisualProp
       const waveColor = stageColors[stageIdx];
 
       const waveY = h * 0.67;
-      ctx.strokeStyle = waveColor.replace('0.', '0.'); ctx.lineWidth = 1.5;
+      ctx.strokeStyle = waveColor; ctx.lineWidth = 1.5;
       ctx.beginPath();
       for (let px = 0; px < w; px += 2) {
         const t = px / w;

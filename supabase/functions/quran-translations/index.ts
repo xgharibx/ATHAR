@@ -151,26 +151,22 @@ async function readBoundedJson(request: Request): Promise<unknown> {
   return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(payload));
 }
 
+const NAMED_ENTITIES: Record<string, string> = { nbsp: " ", amp: "&", quot: '"', "#39": "'", apos: "'", lt: "<", gt: ">" };
+
+/** Tags removed until none is left (a tag split by another cannot survive), then entities decoded in one pass. */
 function plainText(value: string): string {
-  return value
-    .replace(/<[^>]*>/g, "")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&#(\d+);/g, (_match, decimal: string) => {
-      const codePoint = Number(decimal);
-      return Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff
-        ? String.fromCodePoint(codePoint)
-        : "";
-    })
-    .replace(/&#x([\da-f]+);/gi, (_match, hex: string) => {
-      const codePoint = Number.parseInt(hex, 16);
-      return Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff
-        ? String.fromCodePoint(codePoint)
-        : "";
+  let text = value;
+  for (let previous = ""; previous !== text;) {
+    previous = text;
+    text = text.replace(/<[^<>]*>/g, "");
+  }
+  return text
+    .replace(/[<>]/g, "")
+    .replace(/&(#x[\da-f]+|#\d+|[a-z\d#]+);/gi, (match, name: string) => {
+      const lower = name.toLowerCase();
+      if (lower in NAMED_ENTITIES) return NAMED_ENTITIES[lower]!;
+      const codePoint = lower.startsWith("#x") ? Number.parseInt(lower.slice(2), 16) : lower.startsWith("#") ? Number(lower.slice(1)) : NaN;
+      return Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : match;
     })
     .replace(/\s+/g, " ")
     .trim();

@@ -83,9 +83,9 @@ function continuation(data) {
 }
 
 /** Channel RSS: exact publish times for the latest ~15 uploads. */
-async function rssTimes(channelId) {
+async function rssTimes(id) {
   try {
-    const res = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`);
+    const res = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId(id))}`);
     if (!res.ok) return new Map();
     const xml = await res.text();
     const map = new Map();
@@ -171,8 +171,15 @@ function extractVideos(data) {
   return out;
 }
 
+/** A channel id from the library file, checked before it goes into a request. */
+function channelId(value) {
+  const id = String(value ?? "");
+  if (!/^UC[A-Za-z0-9_-]{20,30}$/.test(id)) throw new Error(`not a YouTube channel id: ${id.slice(0, 40)}`);
+  return id;
+}
+
 async function newForChannel(ch, knownIds) {
-  const uploads = `VL${"UU" + ch.youtubeChannelId.slice(2)}`;
+  const uploads = `VL${"UU" + channelId(ch.youtubeChannelId).slice(2)}`;
   const found = [];
   let data = await post({ context: IT_CONTEXT, browseId: uploads });
   for (let page = 0; page < MAX_PAGES && data; page += 1) {
