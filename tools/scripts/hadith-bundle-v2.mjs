@@ -14,17 +14,17 @@
  *   every word of every hadith, not only its opening. Folded the same way
  *   as foldHadithSearch() in src/lib/hadithFullText.ts.
  *
- * The source editions (fawazahmed0/hadith-api, public domain) are
- * downloaded once into $HADITH_SRC (default: a temp folder).
+ * The source editions (fawazahmed0/hadith-api, public domain) are read from
+ * $HADITH_SRC when it names a folder of ara-{book}.json files, otherwise
+ * downloaded and kept in memory.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
-import { tmpdir } from "os";
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { refsOf } from "./tidy-hadith.mjs";
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), "../../public/data/hadith");
-const SRC = process.env.HADITH_SRC || join(tmpdir(), "athar-hadith-src");
+const SRC = process.env.HADITH_SRC || "";
 const CDN = "https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions";
 const BOOKS = ["bukhari", "muslim", "abudawud", "tirmidhi", "nasai", "ibnmajah", "malik", "nawawi", "qudsi"];
 
@@ -98,15 +98,12 @@ export function arabicRuling(raw) {
   return text.replace(/\s+،/g, "،").replace(/\s+/g, " ").trim();
 }
 
+/** The source edition: a local copy when $HADITH_SRC names a folder, else downloaded (kept in memory only). */
 async function source(key) {
-  const path = join(SRC, `ara-${key}.json`);
-  if (!existsSync(path)) {
-    mkdirSync(SRC, { recursive: true });
-    const res = await fetch(`${CDN}/ara-${key}.min.json`);
-    if (!res.ok) throw new Error(`${key}: HTTP ${res.status}`);
-    writeFileSync(path, await res.text(), "utf8");
-  }
-  return JSON.parse(readFileSync(path, "utf8"));
+  if (SRC) return JSON.parse(readFileSync(join(SRC, `ara-${key}.json`), "utf8"));
+  const res = await fetch(`${CDN}/ara-${key}.min.json`);
+  if (!res.ok) throw new Error(`${key}: HTTP ${res.status}`);
+  return res.json();
 }
 
 async function main() {
