@@ -122,18 +122,34 @@ export function chainEnd(text: string): number {
   pieces.push([from, text.length]);
   let end = 0;
   let links = 0;
-  for (const [a, b] of pieces) {
+  const TRANSMITS = /^[\s\-–"«»\u200f]*و?(?:حدثنا|حدثني|أخبرنا|أخبرني|أنبأنا|أنبأني|سمعت|عن)(?:\s|$)/;
+  // A chain that ends at «قال …»/«أنه …» is one even with a single narrator before it.
+  let atSpeech = false;
+  for (let p = 0; p < pieces.length; p++) {
+    const [a, b] = pieces[p]!;
     const raw = text.slice(a, b).trim();
     if (!raw) continue;
     const { connector, name: rawName } = stripConnectors(raw.replace(/^ح\s+/u, ""));
     const name = rawName.replace(PRAISE_RE, "").replace(/[\s\-–"«»\u200f.:]+$/u, "").trim();
     // «… وأحمد بن عبدة قالوا»: a co-narrator, then the verb before the next «حدثنا».
     const bare = plain(name).replace(/\s+(?:قال|قالا|قالوا)$/, "");
+    // «يعني الطيالسي»، «وهو ابن الأكوع»: a short note on the narrator. A long one
+    // («وهو على المنبر يقول …») is where the hadith begins.
+    if (NOTE_RE.test(bare) && bare.split(/\s+/).length > 4) break;
     if (!name || SKIP_RE.test(bare) || NOTE_RE.test(bare)) { end = b; continue; }
     const coNarrator = !connector && /^و\S/.test(bare) && bare.split(/\s+/).length <= 8;
+    // «قال كنا …» or «أنه كان …» with no «حدثنا/أخبرنا/عن» after it: the words are the hadith, not a narrator
+    // («قال ابن رمح أخبرنا …» goes on to the next link, so it stays one).
+    if (/(?:^|\s)(?:قال|قالت|يقول|أنه)$/.test(plain(connector))) {
+      const next = pieces.slice(p + 1).map(([x, y]) => plain(text.slice(x, y)).trim()).find(Boolean) ?? "";
+      if (!TRANSMITS.test(next)) {
+        atSpeech = true;
+        break;
+      }
+    }
     if (END_RE.test(bare) || PROPHET_RE.test(bare) || (!connector && !coNarrator) || bare.split(/\s+/).length > 8) break;
     links++;
     end = b;
   }
-  return links >= 2 ? end : 0;
+  return links >= 2 || (atSpeech && links >= 1) ? end : 0;
 }

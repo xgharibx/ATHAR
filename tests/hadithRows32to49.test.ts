@@ -96,6 +96,21 @@ describe("D2/D8: chains read link by link, lists show the hadith not the chain",
   });
 });
 
+describe("D8: almost no hadith loses its text to the chain", () => {
+  it("leaves at most a handful empty (those that really are a chain only: «وساق الحديث»)", () => {
+    let empty = 0;
+    for (const book of BOOKS) for (const items of chapters(book).values()) for (const h of items) if (!splitHadithText(h.t).matn.trim()) empty++;
+    expect(empty).toBeLessThanOrEqual(5);
+  });
+
+  it("ends the chain where the words begin («قال كنا …»، «أنه كان …»، a long «وهو …»)", () => {
+    expect(foldHadithSearch(splitHadithText("حَدَّثَنَا عَبْدَانُ، قَالَ أَخْبَرَنَا عَبْدُ اللَّهِ، قَالَ أَخْبَرَنَا حُمَيْدٌ، عَنْ أَنَسٍ، قَالَ كُنَّا نُبَكِّرُ بِالْجُمُعَةِ، وَنَقِيلُ بَعْدَ الْجُمُعَةِ").matn)).toMatch(/^قال كنا نبكر/);
+    expect(foldHadithSearch(splitHadithText("وَحَدَّثَنِي عَنْ مَالِكٍ، أَنَّهُ بَلَغَهُ أَنَّ أَبَا بَكْرٍ وَعُمَرَ كَانَا يَفْعَلَانِ ذَلِكَ").matn)).toMatch(/^انه بلغه/);
+    // «قال ابن رمح أخبرنا …» is a narrator, not the hadith.
+    expect(foldHadithSearch(splitHadithText("حَدَّثَنَا قُتَيْبَةُ، وَابْنُ رُمْحٍ، قَالَ ابْنُ رُمْحٍ أَخْبَرَنَا اللَّيْثُ، عَنْ نَافِعٍ، عَنِ ابْنِ عُمَرَ، أَنَّهُ قَالَ نَهَى رَسُولُ اللَّهِ عَنْ ذَلِكَ").matn)).not.toMatch(/^قال ابن رمح/);
+  });
+});
+
 describe("A3: grade filter groups", () => {
   it("counts the two Sahihs as sahih and «-» as no grade", () => {
     expect(gradeGroup("bukhari", "")).toBe("sahih");
