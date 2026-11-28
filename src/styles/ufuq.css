@@ -524,6 +524,13 @@ body:has(.sebha-focus) .u-tabbar-wrap {
   pointer-events: none;
 }
 
+/* Keep the floating counter out of immersive reading surfaces. */
+body.quran-focus-mode .u-frame .fab,
+body.focus-mode .u-frame .fab {
+  opacity: 0;
+  pointer-events: none;
+}
+
 body.focus-mode .u-topbar,
 body.quran-focus-mode .u-topbar {
   display: none;

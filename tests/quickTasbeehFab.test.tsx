@@ -108,4 +108,17 @@ describe("Quick Tasbeeh floating counter", () => {
     expect(useNoorStore.getState().tasbeehLifetime.subhanallah).toBe(34);
     expect(container.textContent).toContain("تم 33 — سبحان الله");
   });
+
+  it("shows the Ufuq counter on Quran pages and counts using shared progress", () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => root.render(<MemoryRouter initialEntries={["/quran"]}><QuickTasbeehFab variant="ufuq" /></MemoryRouter>));
+    const trigger = container.querySelector<HTMLButtonElement>('button[aria-label="تسبيح سريع"]')!;
+    expect(trigger).not.toBeNull();
+    expect(trigger.style.bottom).toContain("--u-tabbar-h");
+    act(() => trigger.click());
+    act(() => [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("اضغط للعدّ"))!.click());
+    expect(useNoorStore.getState().quickTasbeeh.subhanallah).toBe(1);
+  });
 });

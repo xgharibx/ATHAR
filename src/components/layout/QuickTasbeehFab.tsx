@@ -14,7 +14,7 @@ const TASBEEHAT = [
 type TasbeehKey = typeof TASBEEHAT[number]["key"];
 const QUICK_TASBEEH_BOTTOM = "calc(var(--mobile-nav-height) + var(--sab) - 6px)";
 
-export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
+export function QuickTasbeehFab({ drawerOpen, variant = "classic" }: { drawerOpen?: boolean; variant?: "classic" | "ufuq" }) {
   // All hooks must be declared before any early return
   const location = useLocation();
   const [open, setOpen] = React.useState(false);
@@ -83,7 +83,11 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
   // Hide when drawer is open — all hooks already called above
   if (drawerOpen) return null;
   // The Quran's pages have «السماع» in that corner's place; two buttons there covered the page.
-  if (!open && (location.pathname.startsWith("/quran") || location.pathname.startsWith("/mushaf"))) return null;
+  if (variant === "classic" && !open && (location.pathname.startsWith("/quran") || location.pathname.startsWith("/mushaf"))) return null;
+
+  const bottom = variant === "ufuq"
+    ? "calc(var(--u-tabbar-h) + var(--u-tabbar-gap) + var(--sab) + 12px)"
+    : QUICK_TASBEEH_BOTTOM;
 
   const count = quickTasbeeh[selected] ?? 0;
   const pct = Math.min(count / target, 1);
@@ -105,7 +109,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
         ref={fabRef}
         className="fab xl:hidden"
         style={{
-          bottom: QUICK_TASBEEH_BOTTOM,
+          bottom,
           right: "calc(16px + var(--sar))",
         }}
         onClick={() => setOpen(true)}
@@ -124,7 +128,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
     <div
       className="fixed z-9990 xl:hidden"
       style={{
-        bottom: QUICK_TASBEEH_BOTTOM,
+        bottom,
         right: "calc(16px + var(--sar))",
       }}
       onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setOpen(false); } }}

@@ -25,6 +25,9 @@ import { LiveGardenLazy } from "@/components/ufuq/ufuqLazy";
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
+const QuickTasbeehFab = React.lazy(() =>
+  import("@/components/layout/QuickTasbeehFab").then((m) => ({ default: m.QuickTasbeehFab })),
+);
 
 /** Search opens instantly: its code is fetched while the app is idle. */
 function usePrefetchSearch() {
@@ -310,6 +313,9 @@ export function UfuqShell() {
             <Outlet />
           </motion.div>
       </main>
+      <React.Suspense fallback={null}>
+        <QuickTasbeehFab variant="ufuq" />
+      </React.Suspense>
       <UfuqTabBar />
     </div>
   );
