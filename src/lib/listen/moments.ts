@@ -1,6 +1,6 @@
 /**
  * Listening for the moments of the day and the week, each from the Sunnah or
- * the habits of Muslims, played in your preferred reciter's voice.
+ * the habits of Muslims, played in a variety of voices.
  */
 import { findMoshaf, findReciter, parseSurahList, surahTrack, type ListenCatalog, type ListenTrack } from "@/lib/listen/catalog";
 
@@ -34,10 +34,20 @@ export function voiceFor(catalog: ListenCatalog, preferred: { reciterId: number;
   return { reciter, moshaf: reciter.m[0]! };
 }
 
-export function momentTracks(catalog: ListenCatalog, moment: Moment, preferred: { reciterId: number; moshafId: number } | null): ListenTrack[] {
-  const { reciter, moshaf } = voiceFor(catalog, preferred);
-  const has = new Set(parseSurahList(moshaf.l));
-  return moment.surahs.filter((s) => has.has(s)).map((s) => surahTrack(reciter, moshaf, s));
+export function momentTracks(catalog: ListenCatalog, moment: Moment, _preferred: { reciterId: number; moshafId: number } | null = null): ListenTrack[] {
+  const candidates = catalog.reciters.flatMap((reciter) => reciter.m
+    .filter((moshaf) => moshaf.r === "حفص عن عاصم" && moshaf.s === "مرتّل")
+    .map((moshaf) => ({ reciter, moshaf, surahs: new Set(parseSurahList(moshaf.l)) })));
+  let previous: number | undefined;
+  return moment.surahs.flatMap((surah) => {
+    const available = candidates.filter((entry) => entry.surahs.has(surah));
+    const different = available.filter((entry) => entry.reciter.id !== previous);
+    const choices = different.length ? different : available;
+    if (!choices.length) return [];
+    const chosen = choices[Math.floor(Math.random() * choices.length)]!;
+    previous = chosen.reciter.id;
+    return [surahTrack(chosen.reciter, chosen.moshaf, surah)];
+  });
 }
 
 /** Friday from sunset Thursday to sunset Friday is roughly Thursday evening and Friday. */

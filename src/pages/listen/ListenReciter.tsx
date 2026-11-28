@@ -142,7 +142,7 @@ export function ListenReciterPage() {
           className={`ls-chip mt-3 ${isPreferred ? "is-on" : ""}`}
           onClick={() => {
             setPreferred(reciter.id, moshaf.id);
-            toast.success("صار صوت «لكل وقتٍ سورته» وسورة اليوم", { duration: 1800 });
+            toast.success("تم اختيار قارئك المفضّل", { duration: 1800 });
           }}
         >
           <Mic2 size={13} aria-hidden="true" /> {isPreferred ? "قارئك المفضّل" : "اجعله قارئي المفضّل"}

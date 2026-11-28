@@ -10,6 +10,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, BookOpen, Check, Compass, HandHeart, Library, MapPin, MessageCircle, MoonStar, RotateCcw, Sparkles, Sun } from "lucide-react";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
+import { BETTER_MUSLIM_DAILY_STEPS } from "@/data/dailyGrowth";
 import { useStartupReady } from "@/hooks/useStartupReady";
 import { usePrayerTimes, formatPrayerHijriDate } from "@/hooks/usePrayerTimes";
 import { useTodayKey } from "@/hooks/useTodayKey";
@@ -248,6 +249,61 @@ function QadaaRow() {
   );
 }
 
+function DailyStep({ fajrTime }: { fajrTime?: string }) {
+  const navigate = useNavigate();
+  const now = useNow(60_000);
+  const lastFajr = useNoorStore((s) => s.lastKnownFajrTime);
+  const today = useTodayKey({ mode: "ibadah", fajrTime: fajrTime ?? lastFajr });
+  const done = useNoorStore((s) => !!s.dailyBetterStepDone[today]);
+  const setDone = useNoorStore((s) => s.setDailyBetterStepDone);
+  const enabled = useNoorStore((s) => s.prefs.homeWidgets.dailyStep);
+  const step = BETTER_MUSLIM_DAILY_STEPS[Math.floor(now.getTime() / 86400000) % BETTER_MUSLIM_DAILY_STEPS.length];
+  if (!enabled) return null;
+  return <section aria-label="خطوة اليوم">
+    <div className="u-section-head"><h2>خطوة اليوم</h2></div>
+    <div className="u-card p-5">
+      <p className={`text-[15px] leading-8 ${done ? "opacity-60 line-through" : ""}`}>{step}</p>
+      <button type="button" className="u-pill-btn mt-3" aria-pressed={done} onClick={() => setDone(today, !done)}>{done ? "تمت الخطوة ✓" : "أتممتها"}</button>
+      <div className="flex flex-wrap gap-2 mt-4" aria-label="اختصارات يومية">
+        <button type="button" className="u-pill-btn is-quiet" onClick={() => navigate("/wird")}>الورد</button>
+        <button type="button" className="u-pill-btn is-quiet" onClick={() => navigate("/muhasaba")}>المحاسبة</button>
+        <button type="button" className="u-pill-btn is-quiet" onClick={() => navigate("/qadaa")}>القضاء</button>
+      </div>
+    </div>
+  </section>;
+}
+
+const QUICK_PHRASES = [
+  { key: "subhanallah", label: "سبحان الله" },
+  { key: "alhamdulillah", label: "الحمد لله" },
+  { key: "la_ilaha_illallah", label: "لا إله إلا الله" },
+  { key: "allahu_akbar", label: "الله أكبر" },
+] as const;
+
+function QuickTasbeeh() {
+  const counts = useNoorStore((s) => s.quickTasbeeh);
+  const increment = useNoorStore((s) => s.incQuickTasbeeh);
+  const reset = useNoorStore((s) => s.resetAllQuickTasbeeh);
+  const [target, setTarget] = React.useState<33 | 100>(100);
+  const [confirmReset, setConfirmReset] = React.useState(false);
+  const enabled = useNoorStore((s) => s.prefs.homeWidgets.tasbeeh);
+  if (!enabled) return null;
+  return <section aria-label="التسبيح السريع">
+    <div className="u-section-head"><h2>التسبيح السريع</h2></div>
+    <div className="u-card p-4">
+      <div className="flex flex-wrap gap-2 mb-3" aria-label="هدف التسبيح">
+        {[33, 100].map((value) => <button key={value} type="button" className="u-pill-btn is-quiet" aria-pressed={target === value} onClick={() => setTarget(value as 33 | 100)}>{arNum(value)}{target === value ? " ✓" : ""}</button>)}
+        {confirmReset ? <><button type="button" className="u-pill-btn" onClick={() => { reset(); setConfirmReset(false); }}>تأكيد التصفير</button><button type="button" className="u-pill-btn is-quiet" onClick={() => setConfirmReset(false)}>إلغاء</button></> : <button type="button" className="u-pill-btn is-quiet" onClick={() => setConfirmReset(true)}>تصفير</button>}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {QUICK_PHRASES.map(({ key, label }) => <button key={key} type="button" className="u-pill-btn is-quiet min-h-14" onClick={() => increment(key, target)} aria-label={`${label}، ${arNum(Math.min(counts[key] ?? 0, target))} من ${arNum(target)}`}>
+          <span>{label}</span><span className="u-num">{arNum(Math.min(counts[key] ?? 0, target))} / {arNum(target)}</span>
+        </button>)}
+      </div>
+    </div>
+  </section>;
+}
+
 /** In the garden: what today's remembrance has planted, and why. */
 function GardenGrowthCard() {
   const navigate = useNavigate();
@@ -394,9 +450,16 @@ export function UfuqHome() {
         <h2>مسار اليوم</h2>
       </div>
       <TodayPath sections={sections} />
+      <DailyStep fajrTime={prayer.data?.data?.timings?.Fajr ?? undefined} />
+      <QuickTasbeeh />
 
       {whole ? (
         <>
+          <div className="u-section-head">
+            <h2>السماع</h2>
+          </div>
+          <ListenEntry />
+
           {garden ? (
             <>
               <div className="u-section-head">
@@ -405,11 +468,6 @@ export function UfuqHome() {
               <GardenGrowthCard />
             </>
           ) : null}
-
-          <div className="u-section-head">
-            <h2>السماع</h2>
-          </div>
-          <ListenEntry />
 
           <div className="u-section-head">
             <h2>زاد اليوم</h2>

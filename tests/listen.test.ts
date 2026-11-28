@@ -56,10 +56,14 @@ describe("the listening catalogue", () => {
     expect(initials("عبدالباسط عبدالصمد")).toBe("عع");
   });
 
-  it("plays the moments in the preferred voice", () => {
+  it("keeps every available surah in order while mixing reciters", () => {
     const kahf = momentTracks(catalog, MOMENTS.find((m) => m.id === "kahf")!, null);
     expect(kahf).toHaveLength(1);
     expect(kahf[0]!.surah).toBe(18);
+    const sleep = MOMENTS.find((m) => m.id === "sleep")!;
+    const tracks = momentTracks(catalog, sleep);
+    expect(tracks.map((track) => track.surah)).toEqual(sleep.surahs);
+    expect(tracks.every((track, i) => i === 0 || track.reciterId !== tracks[i - 1]!.reciterId)).toBe(true);
   });
 });
 

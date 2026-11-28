@@ -113,11 +113,9 @@ function ContinueRail() {
 }
 
 function Moments({ catalog }: { catalog: ListenCatalog }) {
-  const preferred = useListenStore((s) => s.preferred);
-  const voice = findMoshaf(catalog, (preferred ?? { moshafId: 123 }).moshafId);
   const ordered = isKahfTime() ? MOMENTS : [...MOMENTS.filter((m) => m.id !== "kahf"), MOMENTS[0]!];
   return (
-    <Section title="لكل وقتٍ سورته" sub={voice ? `بصوت ${voice.reciter.n}` : undefined}>
+    <Section title="لكل وقتٍ سورته" sub="بأصوات قرّاء متنوّعة">
       <div className="ls-rail">
         {ordered.map((m) => (
           <button
@@ -125,7 +123,7 @@ function Moments({ catalog }: { catalog: ListenCatalog }) {
             type="button"
             className="ls-tile ls-press"
             style={{ background: `radial-gradient(90% 80% at 100% 0%, ${m.from}, transparent 70%), linear-gradient(160deg, ${m.from}, ${m.to})` }}
-            onClick={() => playTracks(momentTracks(catalog, m, preferred), 0, { resume: true })}
+            onClick={() => playTracks(momentTracks(catalog, m), 0, { resume: true })}
           >
             <span className="ls-tile-icon">
               {m.id === "sleep" ? <Moon size={18} aria-hidden="true" /> : <Play size={16} fill="currentColor" aria-hidden="true" />}
