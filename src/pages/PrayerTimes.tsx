@@ -744,7 +744,8 @@ function HijriCalendarTab() {
                     isFriday   && !isToday && !hasEvent && "bg-(--card)"
                   )}>
                   <div className={cn("text-sm font-bold leading-tight",
-                    isToday && "text-(--accent)", isFriday && !isToday && "text-(--accent-2)")}>
+                    isToday && "text-(--accent)", isFriday && !isToday && "text-(--accent-2)")}
+                    style={isFriday && !isToday ? { color: "var(--u-gold-ink, var(--accent-2))" } : undefined}>
                     {day.date.gregorian.day}
                   </div>
                   <div className="text-[9px] opacity-40 leading-tight">{toArabicIndic(Number(day.date.hijri.day))}</div>

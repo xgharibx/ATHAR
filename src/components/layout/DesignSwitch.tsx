@@ -12,7 +12,7 @@ import * as React from "react";
 import { flushSync } from "react-dom";
 import "@/styles/designSwitch.css";
 import { useNoorStore } from "@/store/noorStore";
-import type { DesignMode } from "@/lib/design";
+import { DEFAULT_DESIGN_MODE, type DesignMode } from "@/lib/design";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { prefetchWhenIdle } from "@/lib/prefetch";
@@ -50,7 +50,7 @@ function Flower({ growing }: { growing: boolean }) {
 }
 
 export function DesignSwitch({ className }: { className?: string }) {
-  const design: DesignMode = useNoorStore((s) => s.prefs.designMode) ?? "classic";
+  const design: DesignMode = useNoorStore((s) => s.prefs.designMode) ?? DEFAULT_DESIGN_MODE;
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const [seen, setSeen] = React.useState(hasSeen);
   const ref = React.useRef<HTMLButtonElement>(null);

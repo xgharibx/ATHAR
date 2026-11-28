@@ -125,12 +125,18 @@ export default function Q2Hub() {
         <div className="q2-section-title" style={{ marginBottom: 12 }}>
           <Rosette size={14} /> العوالم
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
+        <div className="q2-world-grid">
           {WORLDS.map(({ to, Icon, title, line }, i) => (
-            <button key={to} type="button" className="q2-tile q2-press q2-rise" style={{ animationDelay: `${240 + i * 40}ms` }} onClick={() => navigate(to)}>
-              <span className="q2-tile-medal"><Icon size={21} aria-hidden="true" /></span>
-              <b>{title}</b>
-              <span>{line}</span>
+            <button key={to} type="button" className={`q2-world-card q2-press q2-rise${i < 2 ? " is-primary" : ""}`} style={{ animationDelay: `${240 + i * 40}ms` }} onClick={() => navigate(to)}>
+              <span className="q2-world-card-top">
+                <span className="q2-world-icon"><Icon size={20} aria-hidden="true" /></span>
+                <span className="q2-world-index" aria-hidden="true">{arDigits(i + 1).padStart(2, "٠")}</span>
+              </span>
+              <span className="q2-world-copy">
+                <b>{title}</b>
+                <span>{line}</span>
+              </span>
+              <ArrowLeft className="q2-world-arrow" size={16} aria-hidden="true" />
             </button>
           ))}
         </div>

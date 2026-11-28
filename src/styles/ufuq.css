@@ -97,7 +97,7 @@
   --card-2: rgba(132, 104, 62, 0.115);
   --stroke: rgba(70, 56, 36, 0.12);
   --accent: #1d5a48;
-  --accent-2: #a27838;
+  --accent-2: #fffdf8;
   --on-accent: #ffffff;
   --on-ok: #ffffff;
   --ok: #2e7a58;
@@ -109,8 +109,10 @@
   --u-raised: #ffffff;
   --u-hairline: rgba(28, 26, 22, 0.09);
   --u-ink: #1c1a16;
-  --u-gold: #a27838;
-  --u-gold-soft: rgba(162, 120, 56, 0.12);
+  --u-gold: #fffdf8;
+  --u-brand-gold: #a27838;
+  --u-gold-ink: #1d5a48;
+  --u-gold-soft: rgba(255, 255, 255, 0.14);
   --u-accent-soft: rgba(29, 90, 72, 0.09);
   --u-shadow-card: 0 1px 1px rgba(28, 26, 22, 0.03), 0 6px 22px rgba(28, 26, 22, 0.05);
   --u-shadow-float: 0 1px 1px rgba(28, 26, 22, 0.04), 0 18px 44px rgba(28, 26, 22, 0.14);
@@ -149,9 +151,9 @@
   --card: rgba(237, 231, 218, 0.05);
   --card-2: rgba(237, 231, 218, 0.085);
   --stroke: rgba(237, 231, 218, 0.1);
-  --accent: #d8b678;
-  --accent-2: #8fc0a6;
-  --on-accent: #17120a;
+  --accent: #fffdf8;
+  --accent-2: #fffdf8;
+  --on-accent: #10130f;
   --on-ok: #08140e;
   --ok: #7ccaa1;
   --danger: #f08b77;
@@ -162,9 +164,11 @@
   --u-raised: #19202c;
   --u-hairline: rgba(237, 231, 218, 0.08);
   --u-ink: #ede7da;
-  --u-gold: #d8b678;
-  --u-gold-soft: rgba(216, 182, 120, 0.13);
-  --u-accent-soft: rgba(216, 182, 120, 0.11);
+  --u-gold: #fffdf8;
+  --u-brand-gold: #d8b678;
+  --u-gold-ink: #fffdf8;
+  --u-gold-soft: rgba(255, 255, 255, 0.13);
+  --u-accent-soft: rgba(255, 255, 255, 0.11);
   --u-shadow-card: 0 0 0 1px rgba(237, 231, 218, 0.02), 0 12px 32px rgba(0, 0, 0, 0.28);
   --u-shadow-float: 0 20px 50px rgba(0, 0, 0, 0.55);
   --u-glass: rgba(17, 22, 31, 0.72);
@@ -503,7 +507,7 @@
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: var(--u-gold);
+  background: var(--u-gold-ink, var(--u-gold));
   box-shadow: 0 0 0 2px var(--u-surface);
 }
 
@@ -873,7 +877,7 @@ body.quran-focus-mode .u-topbar {
   gap: 8px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--u-gold);
+  color: var(--u-gold-ink, var(--u-gold));
 }
 
 .u-verse-mark::before,
@@ -921,7 +925,7 @@ body.quran-focus-mode .u-topbar {
 
 .u-daily-tab.is-on {
   background: var(--u-surface);
-  color: var(--u-gold);
+  color: var(--u-gold-ink, var(--u-gold));
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
 }
 
@@ -964,7 +968,7 @@ body.quran-focus-mode .u-topbar {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--u-gold);
+  color: var(--u-gold-ink, var(--u-gold));
   background: var(--u-gold-soft);
 }
 
@@ -1263,7 +1267,7 @@ body.quran-focus-mode .u-topbar {
 .u-brand-print {
   -webkit-mask-image: var(--u-brand-print);
   mask-image: var(--u-brand-print);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--u-gold) 82%, #fff 18%), var(--u-gold));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--u-brand-gold, #a27838) 82%, #fff 18%), var(--u-brand-gold, #a27838));
 }
 
 .u-brand-word {
@@ -1312,8 +1316,10 @@ body.quran-focus-mode .u-topbar {
   --u-raised: #ffffff;
   --u-hairline: rgba(14, 31, 61, 0.09);
   --u-ink: #0e1f3d;
-  --u-gold: #9a6c22;
-  --u-gold-soft: rgba(154, 108, 34, 0.14);
+  --u-gold: #fffdf8;
+  --u-brand-gold: #9a6c22;
+  --u-gold-ink: #1d4a9a;
+  --u-gold-soft: rgba(255, 255, 255, 0.14);
   --u-accent-soft: rgba(29, 74, 154, 0.1);
   --u-glass: rgba(255, 255, 255, 0.6);
   --u-glass-stroke: rgba(255, 255, 255, 0.7);
@@ -1331,9 +1337,9 @@ body.quran-focus-mode .u-topbar {
   --card: rgba(234, 238, 247, 0.06);
   --card-2: rgba(234, 238, 247, 0.1);
   --stroke: rgba(234, 238, 247, 0.11);
-  --accent: #e3cf9c;
-  --accent-2: #8cc9a6;
-  --on-accent: #12100a;
+  --accent: #fffdf8;
+  --accent-2: #fffdf8;
+  --on-accent: #10141c;
   --on-ok: #08140e;
   --ok: #86cfa6;
   --danger: #f28b78;
@@ -1342,9 +1348,11 @@ body.quran-focus-mode .u-topbar {
   --u-raised: #10172a;
   --u-hairline: rgba(234, 238, 247, 0.08);
   --u-ink: #eaeef7;
-  --u-gold: #e3cf9c;
-  --u-gold-soft: rgba(227, 207, 156, 0.14);
-  --u-accent-soft: rgba(227, 207, 156, 0.12);
+  --u-gold: #fffdf8;
+  --u-brand-gold: #e3cf9c;
+  --u-gold-ink: #fffdf8;
+  --u-gold-soft: rgba(255, 255, 255, 0.14);
+  --u-accent-soft: rgba(255, 255, 255, 0.12);
   --u-glass: rgba(6, 10, 22, 0.55);
   --u-glass-stroke: rgba(234, 238, 247, 0.1);
   --u-shadow-card: 0 0 0 1px rgba(234, 238, 247, 0.02), 0 14px 34px rgba(0, 0, 0, 0.45);

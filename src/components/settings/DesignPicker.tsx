@@ -6,7 +6,7 @@ import * as React from "react";
 import toast from "react-hot-toast";
 import { ArrowLeft, Check } from "lucide-react";
 import { useNoorStore } from "@/store/noorStore";
-import { DESIGN_MODES, UFUQ_LOOKS, type DesignMode, type UfuqLook } from "@/lib/design";
+import { DEFAULT_DESIGN_MODE, DESIGN_MODES, UFUQ_LOOKS, type DesignMode, type UfuqLook } from "@/lib/design";
 import { cn } from "@/lib/utils";
 import { vibrate } from "@/lib/haptics";
 import { markUfuqArrival, preloadUfuq } from "@/components/ufuq/ufuqLazy";
@@ -53,7 +53,7 @@ function useSetDesign() {
 }
 
 export function DesignPicker() {
-  const design: DesignMode = useNoorStore((s) => s.prefs.designMode) ?? "classic";
+  const design: DesignMode = useNoorStore((s) => s.prefs.designMode) ?? DEFAULT_DESIGN_MODE;
   const setDesign = useSetDesign();
   return (
     <div className="design-picker" role="radiogroup" aria-label="تصميم التطبيق">

@@ -4,6 +4,15 @@ What changed in each version of Athar, newest first. Store notes for a version
 live in `ios/fastlane/metadata/*/release_notes.txt` (App Store) and
 `docs/PLAY_WHATS_NEW_<version>.txt` (Google Play, 500 characters at most).
 
+## 1.2.99 (build 112)
+
+### «أفق» والقرآن
+- «أفق» هو التصميم الافتراضي للمستخدمين الجدد، مع الاحتفاظ بالتصميم الذي اختاره المستخدم سابقًا.
+- لون الواجهة الثانوي أبيض، مع بقاء بصمة «أثر» بلونها الذهبي.
+- بطاقات «عوالم القرآن» أوضح وأسهل في التصفح.
+- مصحف المدينة بصفحات أدفأ وخط داكن، وأشرطة قراءة عائمة أنيقة لا تحجب الآيات.
+- تحسين مؤشر الصفحة وشريط التنقل، مع مراعاة المساحات الآمنة وحجم الشاشة.
+
 ## 1.2.98 (build 111)
 
 ### Hadith

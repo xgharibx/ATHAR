@@ -402,14 +402,14 @@
     (function(){
       try {
         var raw = localStorage.getItem("athar_design_v1");
-        var hint = raw && JSON.parse(raw);
-        if (!hint || hint.design !== "ufuq") return;
+        var hint = raw ? JSON.parse(raw) : null;
+        if (hint && hint.design && hint.design !== "ufuq") return;
         var hour = new Date().getHours();
-        var palette = hint.palette || "night";
+        var palette = (hint && hint.palette) || "night";
         var dark = palette === "night"
           || (palette === "time" && (hour >= 18 || hour < 5))
           || (palette === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        var garden = hint.look !== "plain";
+        var garden = !hint || hint.look !== "plain";
         var root = document.documentElement;
         root.setAttribute("data-design", "ufuq");
         root.setAttribute("data-ufuq-palette", dark ? "night" : "day");

@@ -31,7 +31,7 @@ import { parsePrayerKey, parseFastKey, type Madhhab, type PlanMode } from "@/lib
 import { sanitizeItem as sanitizeWirdItem, sanitizeLog as sanitizeWirdLog, pruneWirdLog, type WirdItem } from "@/lib/wird";
 import { pruneLog as pruneMuhasabaLog } from "@/lib/muhasaba";
 import { isKhatmaDateWithinPlan } from "@/lib/quranKhatma";
-import { normalizeDesignMode, normalizeUfuqLook, normalizeUfuqPalette, type DesignMode, type UfuqLook, type UfuqPalette } from "@/lib/design";
+import { DEFAULT_DESIGN_MODE, normalizeDesignMode, normalizeUfuqLook, normalizeUfuqPalette, type DesignMode, type UfuqLook, type UfuqPalette } from "@/lib/design";
 import {
   accountScopedLocalStorage,
   getAccountStorageOwner,
@@ -744,6 +744,7 @@ export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "hadith", 
 
 const DEFAULT_PREFS: Preferences = {
   theme: "forest",
+  designMode: DEFAULT_DESIGN_MODE,
   fontScale: 1.05,
   lineHeight: 1.95,
   quranFontScale: 1.1,

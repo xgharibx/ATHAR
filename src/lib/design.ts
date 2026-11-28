@@ -36,6 +36,9 @@ export type UfuqLook = "plain" | "live";
 
 export type UfuqResolvedPalette = "day" | "night";
 
+/** Fresh installs and unset preferences open in Athar's «أفق» design. */
+export const DEFAULT_DESIGN_MODE: DesignMode = "ufuq";
+
 export const DESIGN_MODES: ReadonlyArray<{ id: DesignMode; label: string; hint: string }> = [
   { id: "classic", label: "الكلاسيكي", hint: "تصميم أثر المعتاد بسماته الكثيرة" },
   { id: "classic-new", label: "الكلاسيكي الجديد", hint: "الكلاسيكي نفسه برئيسية جديدة: مسار يومك، وورد الساعة، وأثرك" },
@@ -70,7 +73,7 @@ export const UFUQ_GARDEN_META_COLORS: Record<UfuqResolvedPalette, string> = {
 export const DESIGN_BOOTSTRAP_STORAGE_KEY = "athar_design_v1";
 
 export function normalizeDesignMode(value: unknown): DesignMode {
-  return value === "ufuq" || value === "classic-new" ? value : "classic";
+  return value === "ufuq" || value === "classic-new" || value === "classic" ? value : DEFAULT_DESIGN_MODE;
 }
 
 /** The two classic designs share everything but their home. */

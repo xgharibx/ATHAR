@@ -38,7 +38,7 @@ import { DataGroup } from "@/components/settings/groups/DataGroup";
 import { AboutGroup } from "@/components/settings/groups/AboutGroup";
 import { APP_VERSION } from "@/lib/appVersion";
 import { DesignInvite } from "@/components/settings/DesignPicker";
-import { resolveUfuqPalette } from "@/lib/design";
+import { DEFAULT_DESIGN_MODE, resolveUfuqPalette } from "@/lib/design";
 import "@/styles/settings.css";
 
 const GROUP_ICONS: Record<SettingsGroupId, React.ReactNode> = {
@@ -139,7 +139,7 @@ function useGroupSummaries(): Record<SettingsGroupId, string> {
     reminders: reminders.enabled ? (dailyOn ? `${arNum(dailyOn)} مفعّلة` : "لا تذكير مفعّل") : "متوقفة",
     quran: getReciter(prefs.quranReciter ?? "Alafasy_128kbps")?.label ?? "",
     tasbeeh: `الهدف ${arNum(sebhaTarget)}${prefs.enableHaptics && prefs.hapticStrength !== "off" ? "، مع الاهتزاز" : ""}`,
-    appearance: prefs.designMode === "ufuq"
+    appearance: (prefs.designMode ?? DEFAULT_DESIGN_MODE) === "ufuq"
       ? [
         "أُفُق",
         { live: "الحديقة الحيّة", plain: "بسيط" }[prefs.ufuqLook ?? "live"],

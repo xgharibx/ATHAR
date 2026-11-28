@@ -6,6 +6,7 @@ import { getAccessibleAccentForeground, isSupportedOpaqueAccentColor } from "@/l
 import { getSamaPhase, SAMA_PHASE_COLORS } from "@/lib/samaTheme";
 import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
 import {
+  DEFAULT_DESIGN_MODE,
   rememberDesignForFirstPaint,
   resolveUfuqPalette,
   UFUQ_GARDEN_META_COLORS,
@@ -254,7 +255,7 @@ export function useApplyTheme() {
   const uiLanguage = useNoorStore((s) => s.prefs.uiLanguage);
   const transparentMode = useNoorStore((s) => s.prefs.transparentMode);
   const clearReading = useNoorStore((s) => s.prefs.clearReading);
-  const designMode: DesignMode = useNoorStore((s) => s.prefs.designMode) ?? "classic";
+  const designMode: DesignMode = useNoorStore((s) => s.prefs.designMode) ?? DEFAULT_DESIGN_MODE;
   const ufuqPalette = useNoorStore((s) => s.prefs.ufuqPalette);
   const ufuqLook: UfuqLook = useNoorStore((s) => s.prefs.ufuqLook) ?? "live";
 

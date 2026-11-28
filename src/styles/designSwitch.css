@@ -27,11 +27,11 @@
   outline-offset: 2px;
 }
 
-/* «أفق» is a night sky: the pill takes its deep blue and gold. */
+/* «أفق» uses its white secondary accent over the forest palette. */
 .ds-switch.is-ufuq {
-  border-color: color-mix(in srgb, #d7b46a 45%, var(--stroke));
+  border-color: color-mix(in srgb, var(--u-gold, #fffdf8) 45%, var(--stroke));
   background:
-    radial-gradient(60% 120% at 80% 50%, rgb(215 180 106 / 0.18), transparent 70%),
+    radial-gradient(60% 120% at 80% 50%, color-mix(in srgb, var(--u-gold, #fffdf8) 18%, transparent), transparent 70%),
     var(--card);
 }
 
@@ -71,8 +71,8 @@
 /* RTL: the handle starts on the right and slides left into «أفق». */
 .ds-switch.is-ufuq .ds-knob {
   transform: translateX(-50px);
-  background: linear-gradient(160deg, #f1d796, #b88a36);
-  box-shadow: 0 4px 14px -4px rgb(184 138 54 / 0.9);
+  background: linear-gradient(160deg, #ffffff, var(--u-gold, #fffdf8));
+  box-shadow: 0 4px 14px -4px rgb(255 255 255 / 0.3), inset 0 0 0 1px rgb(29 90 72 / 0.16);
 }
 
 :root[dir="ltr"] .ds-switch.is-ufuq .ds-knob {
@@ -143,7 +143,18 @@
 }
 
 .ds-switch.is-ufuq .ds-petal {
-  fill: #fff8e8;
+  fill: #fffdf8;
+  stroke: #1d5a48;
+  stroke-width: 0.45;
+}
+
+.ds-switch.is-ufuq .ds-stem {
+  stroke: #1d5a48;
+}
+
+.ds-switch.is-ufuq .ds-leaf,
+.ds-switch.is-ufuq .ds-heart {
+  fill: #1d5a48;
 }
 
 /* Growing, then resting open, then growing again — every few seconds. */
