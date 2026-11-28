@@ -450,8 +450,6 @@ export function UfuqHome() {
         <h2>مسار اليوم</h2>
       </div>
       <TodayPath sections={sections} />
-      <DailyStep fajrTime={prayer.data?.data?.timings?.Fajr ?? undefined} />
-      <QuickTasbeeh />
 
       {whole ? (
         <>
@@ -468,6 +466,9 @@ export function UfuqHome() {
               <GardenGrowthCard />
             </>
           ) : null}
+
+          <DailyStep fajrTime={prayer.data?.data?.timings?.Fajr ?? undefined} />
+          <QuickTasbeeh />
 
           <div className="u-section-head">
             <h2>زاد اليوم</h2>
