@@ -45,7 +45,7 @@ describe("accent foreground contrast", () => {
     document.documentElement.style.removeProperty("--accent");
     delete document.documentElement.dataset.accentForeground;
     useNoorStore.setState((state) => ({
-      prefs: { ...state.prefs, theme: "forest", customAccent: "#34d399" },
+      prefs: { ...state.prefs, theme: "forest", designMode: "classic", customAccent: "#34d399" },
     }));
     container = document.createElement("div");
     document.body.appendChild(container);

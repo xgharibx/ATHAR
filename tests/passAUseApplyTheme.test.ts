@@ -112,7 +112,7 @@ describe("useApplyTheme (Pass A — DOM sync)", () => {
 
   it("layers clear reading over the selected palette and removes only its own class", async () => {
     useNoorStore.setState((s) => ({
-      prefs: { ...s.prefs, theme: "midnight", clearReading: true, reduceMotion: true, transparentMode: true },
+      prefs: { ...s.prefs, designMode: "classic", theme: "midnight", clearReading: true, reduceMotion: true, transparentMode: true },
     }));
 
     await act(async () => {
@@ -139,7 +139,7 @@ describe("useApplyTheme (Pass A — DOM sync)", () => {
   it("updates the startup theme hint when a hydrated user changes themes", async () => {
     await hydrateAccountStorageOwner("local");
     await act(async () => {
-      useNoorStore.setState((s) => ({ prefs: { ...s.prefs, theme: "diwan" } }));
+      useNoorStore.setState((s) => ({ prefs: { ...s.prefs, designMode: "classic", theme: "diwan" } }));
       mount();
       await Promise.resolve();
     });
@@ -151,7 +151,7 @@ describe("useApplyTheme (Pass A — DOM sync)", () => {
     await hydrateAccountStorageOwner("local");
 
     await act(async () => {
-      useNoorStore.setState((s) => ({ prefs: { ...s.prefs, theme: "midad" } }));
+      useNoorStore.setState((s) => ({ prefs: { ...s.prefs, designMode: "classic", theme: "midad" } }));
       mount();
       await Promise.resolve();
     });

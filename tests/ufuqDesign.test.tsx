@@ -31,11 +31,11 @@ if (!("ResizeObserver" in globalThis)) {
 }
 
 describe("choosing a design", () => {
-  it("is classic unless «أفق» was chosen", () => {
-    expect(normalizeDesignMode(undefined)).toBe("classic");
-    expect(normalizeDesignMode("something")).toBe("classic");
+  it("defaults to «أفق» unless a known design was chosen", () => {
+    expect(normalizeDesignMode(undefined)).toBe("ufuq");
+    expect(normalizeDesignMode("something")).toBe("ufuq");
     expect(normalizeDesignMode("ufuq")).toBe("ufuq");
-    // The reorganised classic home, a third design on trial.
+    // The reorganised classic home remains a separate classic-family option.
     expect(normalizeDesignMode("classic-new")).toBe("classic-new");
     expect(normalizeUfuqPalette("night")).toBe("night");
     expect(normalizeUfuqPalette("blue")).toBe("night");
